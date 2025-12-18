@@ -11,7 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('cart_item', function (Blueprint $table) {
+
+            $table->float('quantity');
+
+            $table->timestamps();
+
+            $table->foreignId('cart_id')
+                ->nullable()
+                ->constrained('cart');
+
+            $table->foreignId('booster_pack_id')
+                ->nullable()
+                ->constrained('booster_pack');
+        });
     }
 
     /**

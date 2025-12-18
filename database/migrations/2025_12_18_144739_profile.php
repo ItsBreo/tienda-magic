@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('bio');
             $table->string('bio');
 
-        }
+        });
     }
 
     /**
