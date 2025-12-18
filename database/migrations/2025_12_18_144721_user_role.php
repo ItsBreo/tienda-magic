@@ -11,7 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('user_role', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('user');
+            $table->foreignId('role_id')->nullable()->constrained('roles');
+            $table->timestamps();
+        });
     }
 
     /**
