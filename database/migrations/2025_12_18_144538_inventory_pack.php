@@ -11,7 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('inventory_pack', function (Blueprint $table) {
+            $table->id()->unique();
+            foreignId('inventory_id')->nullable()->constrained('inventory');
+            foreignId('card_sets_id')->nullable()->constrained('cart_sets');
+            $table->integer('quantity');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -19,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('inventory_pack');
     }
 };

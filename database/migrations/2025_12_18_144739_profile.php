@@ -11,15 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profile', function (Blueprint $table) {
-            $table->id();
-            $table->string('display_name');
-            $table->string('avatar_url');
-            $table->string('banner_url');
-            $table->string('bio');
-            $table->string('bio');
-
-        }
+        
     }
 
     /**
