@@ -11,7 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create("card_price_history", function (Blueprint $table) {
+            $table->id();
+            $table->foreignId("card_id")->constrained("cards");
+            $table->float("price");
+            $table->date("recorded_at");
+        });
     }
 
     /**
@@ -19,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists("card_price_history");
     }
 };
