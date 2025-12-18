@@ -11,9 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('deck', function (Blueprint $table) {
-            $table->id("deck_id")->unique();
-
-            $table->primary("deck_id");
+            $table->id()->unique();
             $table->foreignId("user_id")->constrained("user");
             $table->string("name");
             $table->boolean("is_public")->default(false);

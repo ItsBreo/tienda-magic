@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('inventory_pack', function (Blueprint $table) {
             $table->id()->unique();
-            foreignId('inventory_id')->nullable()->constrained('inventory');
-            foreignId('card_sets_id')->nullable()->constrained('cart_sets');
+            $table->foreignId('inventory_id')->nullable()->constrained('inventory');
+            $table->foreignId('card_sets_id')->nullable()->constrained('card_sets');
             $table->integer('quantity');
             $table->timestamps();
         });

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('inventory_card', function (Blueprint $table) {
             $table->id()->unique();
-            foreignId('inventory_id')->nullable()->constrained('inventory');
-            foreignId('card_id')->nullable()->constrained('cards');
+            $table->foreignId('inventory_id')->nullable()->constrained('inventory');
+            $table->foreignId('card_id')->nullable()->constrained('cards');
             $table->integer('quantity');
             $table->integer('quantity_locked');
             $table->boolean('is_foil');

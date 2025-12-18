@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('banner_url');
             $table->string('bio');
             $table->string('country');
-            $table->int('reputation_score');
+            $table->integer('reputation_score');
             $table->string('trade_terms');
             $table->timestamps();
         });
