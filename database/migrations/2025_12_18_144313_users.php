@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('username')->unique();
+        Schema::create('users', function (Blueprint $table) { // PLURAL 'users'
+            $table->id(); // Ya es único y primary key por defecto
+            $table->string('username')->unique(); // Recomendado unique
             $table->string('email')->unique();
             $table->string('password');
-            $table->decimal('wallet_balance', 10, 2)->default(0.00); // Decimal, no float
-            $table->boolean('is_active')->default(true);
-            $table->rememberToken();
+            $table->decimal('wallet_balance', 10, 2)->default(0.00);
+            $table->boolean('is_active')->default(true); // Mejor true por defecto si no requiere aprobación manual
+            $table->rememberToken(); // Necesario para Auth de Laravel
             $table->timestamps();
         });
     }
