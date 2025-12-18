@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user', function (Blueprint $table) {
-            $table->id()->unique();
-            $table->string('username');
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('username')->unique();
             $table->string('email')->unique();
             $table->string('password');
-            $table->float('wallet_balance');
-            $table->boolean('is_active')->default(false);
+            $table->decimal('wallet_balance', 10, 2)->default(0.00); // Decimal, no float
+            $table->boolean('is_active')->default(true);
+            $table->rememberToken();
             $table->timestamps();
         });
     }
