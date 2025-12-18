@@ -11,7 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        $table->id()->unique();
+        $table->string('username')
+        $table->string('email')->unique();
+        $table->string('password');
+        $table->float('wallet_balance');
+        $table->boolean('is_active')->default(false);
+        $table->timestamps();
     }
 
     /**
@@ -19,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('user');
     }
 };

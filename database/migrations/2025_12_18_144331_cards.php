@@ -24,14 +24,13 @@ return new class extends Migration
             $table->decimal('market_avg_price', 10, 2)->default(0);
             $table->string('image_url')->nullable();
 
-            // === AQUÍ VA EL JSON ENTERO ===
-            // Usamos 'jsonb' para PostgreSQL (Mejor rendimiento que 'json')
             $table->jsonb('data');
 
             $table->timestamps();
 
-            // Relación opcional con sets
-            $table->foreignId('card_set_id')->nullable()->constrained('card_sets');
+            $table->foreignId('card_set_id')
+            ->nullable()
+            ->constrained('card_sets');
         });
     }
 
