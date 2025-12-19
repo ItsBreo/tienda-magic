@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) { // PLURAL 'users'
+        Schema::create('users_shop', function (Blueprint $table) { // PLURAL 'users'
             $table->id(); // Ya es único y primary key por defecto
             $table->string('username')->unique(); // Recomendado unique
             $table->string('email')->unique();
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user');
+        Schema::dropIfExists('users_shop');
     }
 };
