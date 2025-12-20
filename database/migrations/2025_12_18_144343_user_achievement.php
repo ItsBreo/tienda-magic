@@ -11,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create("user_achievement", function (Blueprint $table) {
+            $table->foreignId("user_id");
+            $table->foreignId("achievement_id");
+            $table->date("obtained_at");
+        });
     }
 
     /**
@@ -19,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists("user_achievement");
     }
 };
