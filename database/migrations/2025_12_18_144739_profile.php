@@ -20,6 +20,9 @@ return new class extends Migration
             $table->string('country');
             $table->integer('reputation_score');
             $table->string('trade_terms');
+            $table->foreignId('user_id')
+            ->constrained()
+            ->onDelete('cascade');
             $table->timestamps();
         });
     }

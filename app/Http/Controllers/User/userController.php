@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\User;
 
 use Illuminate\Http\Request;
+use \App\Models\User;
 
 class userController extends Controller
 /* Funciones del usuario:
     -Show(perfil público) X
     -Update(Editar información) X
-    -Destroy(Eliminar cuenta)
-    -ChangePassword(Actualizar contraseña)
+    -Destroy(Eliminar cuenta) X
+    -ChangePassword(Actualizar contraseña) X
     -Decks(mostrar listado de decks)
     -Favorites(Listado de cartas favoritas)
     -Si el usuario es vendedor:
@@ -27,19 +28,29 @@ class userController extends Controller
     // Funciones CRUD
 
     // Mostrar info para el perfil (Propio usuario)
-    public function show (){
-        // 1. Obtener el usuario actual
-        $user = auth()->user();
+    public function current(Request $request)
+    {
+        // Obtiene al usuario dueño del Token
+        // Devuelve TODO: email, saldo, preferencias...
+        return response()->json(auth()->user());
+    }
 
-        // 2. Acceder al perfil
-        $perfil = $user->profile;
+    public function show($id)
+    {
+        // Busca a un usuario por su ID
+        $user = User::with('profile')->find($id);
 
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no encontrado'], 404);
+        }
+
+        // IMPORTANTE: Aquí filtramos datos.
+        // NO devuelvas su email, ni su saldo, ni su password.
         return response()->json([
-            'usuario' => $user->name,
-            'email' => $user->email,
-            'bio' => $perfil->bio,        // Campo de la tabla profiles
-            'pais' => $perfil->country,   // Campo de la tabla profiles
-            'saldo' => $user->wallet_balance
+            'username' => $user->username,
+            'avatar'   => $user->profile->avatar ?? null, // Usamos ?? por si no tiene perfil
+            'bio'      => $user->profile->bio ?? '',
+            'created_at' => $user->created_at,
         ]);
     }
 
@@ -85,4 +96,37 @@ class userController extends Controller
 
         return response()->json(['message' => 'Contraseña cambiada con éxito']);
     }
+
+    // Eliminar contraseña
+    public function destroyAccount(Request $request){
+        $user = auth()->user();
+
+        // 1. SEGURIDAD: Validar que envía la contraseña
+        $request->validate([
+        'password' => 'required'
+        ]);
+
+        // 2. SEGURIDAD: Comprobar que la contraseña es real
+        // Esto evita que si te dejas la sesión abierta, alguien te borre la cuenta.
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'La contraseña es incorrecta. No se ha eliminado nada.'
+            ], 403); // 403 Forbidden
+        }
+
+        // 3. LIMPIEZA: Revocar todos los tokens de acceso
+        // Esto cierra la sesión en el móvil, en el PC y en cualquier sitio.
+        $user->tokens()->delete();
+
+        // 4. BORRADO FINAL
+        // Aquí confiamos en que la Base de Datos borre en cascada el perfil, inventario, etc.
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Tu cuenta ha sido eliminada permanentemente. ¡Hasta pronto!'
+        ]);
+    }
+
+    // Funciones de mazos
+    // TODO
 }
