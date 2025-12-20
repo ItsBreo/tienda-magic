@@ -11,12 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_pack', function (Blueprint $table) {
-            $table->id()->unique();
-            $table->foreignId('inventory_id')->nullable()->constrained('inventory');
-            $table->foreignId('card_sets_id')->nullable()->constrained('card_sets');
-            $table->integer('quantity');
+        Schema::create('cart_item', function (Blueprint $table) {
+
+            $table->float('quantity');
+
             $table->timestamps();
+
+            $table->foreignId('cart_id')
+                ->nullable()
+                ->constrained('cart');
+
+            $table->foreignId('booster_pack_id')
+                ->nullable()
+                ->constrained('booster_pack');
         });
     }
 
@@ -25,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('inventory_pack');
+        //
     }
 };

@@ -11,7 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create("booster_pack", function (Blueprint $table) {
+            $table->id();
+            $table->string("name")->constrained("card_sets");
+            $table->float("price");
+            $table->foreignId("card_set_id")->constrained("card_sets");
+            $table->string("type");
+            $table->json("config");
+        });
     }
 
     /**
@@ -19,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists("booster_pack");
     }
 };
