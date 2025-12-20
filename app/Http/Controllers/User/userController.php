@@ -63,10 +63,11 @@ class userController extends Controller
         ]);
     }
 
-
+    // Actualizar contraseña
     public function updatePassword(Request $request){
         $user = auth()->user();
 
+        // Validaciones de contraseña
         $request -> validate([
             'current_password' => 'required',
             'new_password' => 'required|min:8|confirmed'

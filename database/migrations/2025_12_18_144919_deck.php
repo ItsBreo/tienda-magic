@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('deck', function (Blueprint $table) {
             $table->id()->unique();
-            $table->foreignId("user_id")->constrained("user");
+            $table->foreignId("user_id")->constrained("users");
             $table->string("name");
             $table->boolean("is_public")->default(false);
         });
