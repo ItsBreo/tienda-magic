@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id()->unique();
             $table->string('theme');
             $table->string('language');
-            $table->foreignId('user_id')->nullable()->constrained('users_shop');
+            $table->foreignId('user_id')->nullable()->constrained('users');
             $table->boolean('is_inventory_public')->default(false);
             $table->boolean('allow_trade_requests')->default(false);
             $table->timestamps();
