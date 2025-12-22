@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Wallet;
+namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -15,6 +15,7 @@ class depositController extends Controller
     {
         $request->validate(['amount' => 'required|numeric|min:5']);
         $user = Auth::user();
+        $amount = $request->amount;
 
         // TODO: Simulamos respuesta exitosa de pasarela de pago (Bizum/PayPal)
         $paymentSuccess = true;
@@ -40,7 +41,7 @@ class depositController extends Controller
                     'user_id' => $user->id,
                     'type' => 'DEPOSIT', // Tipo diferente a la compra
                     'amount' => $request->amount, // Positivo
-                    'balance_after' => $user->wallet_balance,
+                    'balance_after' => $user->fresh()->wallet_balance,
                     'description' => "Recarga ID: {$deposit->id}"
                 ]);
             });

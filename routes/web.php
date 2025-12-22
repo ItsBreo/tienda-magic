@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\Shop\depositController;
 use App\Http\Controllers\Shop\orderController;
 use App\Http\Controllers\Shop\cartController;
 
@@ -16,6 +17,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    // Ruta para la página de depositos
+    Route::post('/wallet/deposit', [depositController::class, 'store'])->name('wallet.deposit');
 
     // Ruta para la página de carrito
     Route::get('/cart', [cartController::class, 'index'])->name('cart.index');
