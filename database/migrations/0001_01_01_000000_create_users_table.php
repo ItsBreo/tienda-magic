@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
 
             // Tus campos personalizados
-            $table->string('username')->unique();
+            $table->string('name')->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

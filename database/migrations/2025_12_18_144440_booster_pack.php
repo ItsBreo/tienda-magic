@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId("card_set_id")->constrained("card_sets");
             $table->string("type");
             $table->json("config");
+            $table->timestamps();
         });
     }
 
