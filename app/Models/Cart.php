@@ -17,7 +17,6 @@ class Cart extends Model
 
     public function items()
     {
-        // Asegúrate que coincida con tu archivo (CartItem o cartItem)
-        return $this->hasMany(CartItem::class);
+        return $this->hasMany(cartItem::class);
     }
 }
