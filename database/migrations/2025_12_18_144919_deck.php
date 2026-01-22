@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->foreignId("user_id")->constrained("users");
             $table->string("name");
             $table->boolean("is_public")->default(false);
+            $table->boolean("is_in_sale")->default(false);
+            $table->decimal('price', 8, 2)->nullable();
         });
     }
 

@@ -77,6 +77,26 @@ class User extends Authenticatable
         return $this->hasMany(InventoryCard::class);
     }
 
+    public function favoriteCards(){
+    // Laravel buscará la tabla card_user automáticamente
+    return $this->belongsToMany(Card::class);
+    }
+
+    public function itemsForSale(){
+    // Esto trae los registros del inventario que pertenecen al usuario
+    // pero solo aquellos donde 'is_for_sale' sea verdadero (true/1)
+    return $this->hasMany(Inventory::class)->where('is_for_sale', true);
+    }
+
+    // Relación filtrada para lo que vende
+    public function cardsForSale() {
+    return $this->hasMany(Card::class)->where('is_for_sale', true);
+    }
+
+    public function decksForSale() {
+    return $this->hasMany(Deck::class)->where('is_for_sale', true);
+    }
+
     // User.php
 
     // Relación 1:M (Un usuario tiene muchos movimientos de dinero)

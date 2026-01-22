@@ -31,6 +31,9 @@ return new class extends Migration
             $table->foreignId('card_set_id')
             ->nullable()
             ->constrained('card_sets');
+
+            $table->boolean("is_in_sale")->default(false);
+            $table->decimal('price', 8, 2)->nullable();
         });
     }
 
