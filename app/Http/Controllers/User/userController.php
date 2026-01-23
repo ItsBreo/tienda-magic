@@ -3,27 +3,11 @@
 namespace App\Http\Controllers\User;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Deck;
 
 class userController extends Controller
-/* Funciones del usuario:
-    -Show(perfil público) X
-    -Update(Editar información) X
-    -Destroy(Eliminar cuenta) X
-    -ChangePassword(Actualizar contraseña) X
-    -Decks(mostrar listado de decks) X
-    -Favorites(Listado de cartas favoritas) X
-    -Si el usuario es vendedor:
-    -Inventory(Inventario puesto en venta) X
-    -Sales(Mostrar sus ventas realizadas)
-    -salesStats(Total de ventas, dinero ganado)
-    -Si el usuario es comprador:
-    -orderHistory(Historial de compras)
-    -Wallet:
-    -getBalance(Devolver saldo actual)
-    -Transactions(Recargas y gastos totales)
-*/
 {
 
     // Funciones CRUD
@@ -39,14 +23,14 @@ class userController extends Controller
         return response()->json([
             'usuario' => $user->name,
             'email' => $user->email,
-            'bio' => $perfil->bio,        // Campo de la tabla profiles
-            'pais' => $perfil->country,   // Campo de la tabla profiles
+            'bio' => $perfil->bio,        // Campo de la tabla profiles CAMBIAR A PROFILECONTROLLER
+            'pais' => $perfil->country,   // Campo de la tabla profiles CAMBIAR A PROFILECONTROLLER
             'saldo' => $user->wallet_balance
         ]);
     }
 
     // Actualizar cuenta (nombre de usuario,email)
-    public function updateProfile(Request $request) {
+    public function updateProfile(Request $request, User $user) {
 
         $user = auth()->user();
 
@@ -66,7 +50,7 @@ class userController extends Controller
     }
 
     // Actualizar contraseña
-    public function updatePassword(Request $request){
+    public function updatePassword(Request $request, User $user){
         $user = auth()->user();
 
         // Validaciones de contraseña

@@ -72,9 +72,16 @@ class User extends Authenticatable
         return $this->hasMany(Deck::class);
     }
 
-    // Usuario - inventarioCartas 1:M
-    public function inventoryCards(){
+    // Relación 1:M con sus cartas
+    public function inventoryCards()
+    {
         return $this->hasMany(InventoryCard::class);
+    }
+
+    // Relación 1:M con sus sobres cerrados
+    public function inventoryPacks()
+    {
+        return $this->hasMany(InventoryPack::class);
     }
 
     public function favoriteCards(){

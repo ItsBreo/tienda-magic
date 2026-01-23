@@ -12,21 +12,27 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('inventory_card', function (Blueprint $table) {
-            $table->id()->unique();
-            $table->foreignId('inventory_id')->nullable()->constrained('inventory');
-            $table->foreignId('card_id')->nullable()->constrained('cards');
-            $table->integer('quantity');
-            $table->integer('quantity_locked');
-            $table->boolean('is_foil');
-            $table->string('condition');
-            $table->string('language');
+            $table->id(); // id() ya implica unique() y primary key
+
+            // CONEXIÓN DIRECTA AL USUARIO
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
+
+            $table->foreignId('card_id')
+                  ->constrained('cards')
+                  ->onDelete('cascade');
+
+            $table->integer('quantity')->default(1);
+            $table->integer('quantity_locked')->default(0); // Para intercambios activos
+            $table->boolean('is_foil')->default(false);
+            $table->string('condition')->default('NM'); // NM, LP, MP, HP...
+            $table->string('language')->default('en');
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('inventory_card');

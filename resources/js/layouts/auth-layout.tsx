@@ -11,8 +11,8 @@ export default function AuthLayout({
     description: string;
 }) {
     return (
-        <AuthLayoutTemplate title={title} description={description} {...props}>
-            {children}
-        </AuthLayoutTemplate>
+      <AuthLayoutTemplate title={title} description={description} {...props}>
+        {children}
+      </AuthLayoutTemplate>
     );
 }

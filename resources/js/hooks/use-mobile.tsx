@@ -2,8 +2,7 @@ import { useSyncExternalStore } from 'react';
 
 const MOBILE_BREAKPOINT = 768;
 
-const mql =
-    typeof window === 'undefined'
+const mql = typeof window === 'undefined'
         ? undefined
         : window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
 

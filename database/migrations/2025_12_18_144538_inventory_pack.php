@@ -12,17 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('inventory_pack', function (Blueprint $table) {
-            $table->id()->unique();
-            $table->foreignId('inventory_id')->nullable()->constrained('inventory');
-            $table->foreignId('card_sets_id')->nullable()->constrained('card_sets');
-            $table->integer('quantity');
+            $table->id();
+
+            // CONEXIÓN DIRECTA AL USUARIO
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
+
+            // Referencia al SET al que pertenece el sobre (según tu esquema original)
+            $table->foreignId('card_sets_id')
+                  ->constrained('card_sets')
+                  ->onDelete('cascade');
+
+            $table->integer('quantity')->default(1);
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('inventory_pack');
