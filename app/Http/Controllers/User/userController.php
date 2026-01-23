@@ -91,7 +91,7 @@ class userController extends Controller
     // Eliminar usuario
     public function destroyUser(Request $request, User $user){
         $user->delete();
-        return return redirect()->route('$index}'); // TODO: pendiente cambiar el Index
+        return redirect()->route('$index}'); // TODO: pendiente cambiar el Index
     }
 
     // Mostrar sus decks
