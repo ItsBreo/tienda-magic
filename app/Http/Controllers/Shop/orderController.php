@@ -10,6 +10,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\orderItem;
 use App\Models\walletTransaction;
+use App\Models\InventoryPack;
 
 class orderController extends Controller
 {
@@ -57,6 +58,15 @@ class orderController extends Controller
                         'quantity' => $item->quantity,
                         'price_at_purchase' => $item->boosterPack->price // Guardamos precio histórico
                     ]);
+
+                    // Buscamos si ya tiene este tipo de sobre o lo creamos
+                    $inventoryPack = inventoryPack::firstOrCreate(
+                        ['user_id' => $user->id, 'booster_pack_id' => $item->booster_pack_id],
+                        ['quantity' => 0]
+                    );
+
+                    // Sumamos la cantidad comprada
+                    $inventoryPack->increment('quantity', $item->quantity);
                 }
 
                 // Creamos el registro de Transacción (WalletTransaction)

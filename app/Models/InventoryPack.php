@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\boosterPack;
+use App\Models\User;
+
 
 class InventoryPack extends Model
 {
@@ -10,7 +13,7 @@ class InventoryPack extends Model
 
     protected $fillable = [
         'user_id',
-        'card_sets_id',
+        'booster_pack_id',
         'quantity'
     ];
 
@@ -19,8 +22,8 @@ class InventoryPack extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function cardSet()
+    public function boosterPack()
     {
-        return $this->belongsTo(cardSet::class, 'card_sets_id');
+        return $this->belongsTo(boosterPack::class, 'card_sets_id');
     }
 }

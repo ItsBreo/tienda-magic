@@ -20,8 +20,8 @@ return new class extends Migration
                   ->onDelete('cascade');
 
             // Referencia al SET al que pertenece el sobre (según tu esquema original)
-            $table->foreignId('card_sets_id')
-                  ->constrained('card_sets')
+            $table->foreignId('booster_pack_id')
+                  ->constrained('booster_pack')
                   ->onDelete('cascade');
 
             $table->integer('quantity')->default(1);

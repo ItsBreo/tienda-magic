@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Cart;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -40,12 +41,25 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+
+            // Usuario y Datos Globales
             'auth' => [
                 'user' => $request->user(),
+                'wallet_balance' => $request->user() ? $request->user()->wallet_balance : 0,
             ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+
+            //Items en el carrito
+            'cart_count' => $request->user()
+                ? (Cart::where('user_id', $request->user()->id)->withCount('items')->first()->items_count ?? 0)
+                : 0,
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }
