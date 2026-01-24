@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Deck;
@@ -80,7 +82,8 @@ class userController extends Controller
 
     // Mostrar sus decks
     public function showDecks(Request $request, User $user){
-        $user->load(decks);
+        $user->load('decks');
+
     }
 
     // Cartas favoritas

@@ -18,13 +18,13 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-// Ruta para la pagina de tienda
-Route::get('/shop', [catalogController::class, 'index'])->name('shop.index');
-
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    // Ruta para la pagina de tienda
+    Route::get('/shop', [catalogController::class, 'index'])->name('shop.index');
 
     // Ruta para la pagina de depositos
     Route::post('/wallet/deposit', [depositController::class, 'store'])->name('wallet.deposit');
