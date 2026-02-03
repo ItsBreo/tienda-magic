@@ -5,10 +5,10 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
-use App\Models\depositOrder;
-use App\Models\walletTransaction;
+use App\Models\DepositOrder;
+use App\Models\WalletTransaction;
 
-class depositTest extends TestCase
+class DepositTest extends TestCase
 {
     use RefreshDatabase;
 

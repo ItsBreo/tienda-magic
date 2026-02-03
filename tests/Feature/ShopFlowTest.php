@@ -6,10 +6,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
-use App\Models\boosterPack;
-use App\Models\cardSet;
+use App\Models\BoosterPack;
+use App\Models\CardSet;
 use App\Models\Cart;
-use App\Models\cartItem;
+use App\Models\CartItem;
 use Inertia\Testing\AssertableInertia as Assert;
 
 class ShopFlowTest extends TestCase
@@ -27,14 +27,14 @@ class ShopFlowTest extends TestCase
 
         // Creamos datos base para todos los tests
         // Creamos un Set de cartas
-        $this->set = cardSet::create([
+        $this->set = CardSet::create([
             'name' => 'Kamigawa: Neon Dynasty',
             'code' => 'NEO',
             'released_at' => now()
         ]);
 
         // Creamos dos Packs diferentes
-        $this->pack1 = boosterPack::create([
+        $this->pack1 = BoosterPack::create([
             'name' => 'Sobre Draft Kamigawa',
             'price' => 4.50,
             'card_set_id' => $this->set->id,
@@ -42,7 +42,7 @@ class ShopFlowTest extends TestCase
             'config' => json_encode(['cards' => 15])
         ]);
 
-        $this->pack2 = boosterPack::create([
+        $this->pack2 = BoosterPack::create([
             'name' => 'Sobre Coleccionista Ixalan',
             'price' => 25.00,
             'card_set_id' => $this->set->id,
@@ -120,7 +120,7 @@ class ShopFlowTest extends TestCase
         $cart = Cart::create(['user_id' => $user->id]);
 
         // Ya tenemos un item en el carrito
-        cartItem::create([
+        CartItem::create([
             'cart_id' => $cart->id,
             'booster_pack_id' => $this->pack1->id,
             'quantity' => 1
@@ -151,7 +151,7 @@ class ShopFlowTest extends TestCase
         $user = User::factory()->create();
         $cart = Cart::create(['user_id' => $user->id]);
 
-        $item = cartItem::create([
+        $item = CartItem::create([
             'cart_id' => $cart->id,
             'booster_pack_id' => $this->pack1->id,
             'quantity' => 1

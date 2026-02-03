@@ -5,9 +5,9 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
-use App\Models\boosterPack;
+use App\Models\BoosterPack;
 use App\Models\Cart;
-use App\Models\cartItem;
+use App\Models\CartItem;
 use Illuminate\Support\Facades\DB;
 
 class CheckoutTest extends TestCase
@@ -38,7 +38,7 @@ class CheckoutTest extends TestCase
         ]);
 
         // Producto (Usamos el ID del Set creado en setUp)
-        $pack = boosterPack::create([
+        $pack = BoosterPack::create([
             'name' => 'Sobre Kamigawa',
             'price' => 10.00,
             'card_set_id' => $this->cardSetId, // <--- USO CORRECTO DEL ID
@@ -49,7 +49,7 @@ class CheckoutTest extends TestCase
         // Carrito
         $cart = Cart::create(['user_id' => $user->id]);
 
-        cartItem::create([
+        CartItem::create([
             'cart_id' => $cart->id,
             'booster_pack_id' => $pack->id,
             'quantity' => 2
@@ -70,7 +70,7 @@ class CheckoutTest extends TestCase
         $user = User::factory()->create(['wallet_balance' => 5.00]);
 
         // Producto (Usamos el ID del Set creado en setUp)
-        $pack = boosterPack::create([
+        $pack = BoosterPack::create([
             'name' => 'Pack Caro',
             'price' => 10.00,
             'card_set_id' => $this->cardSetId, // <--- USO CORRECTO DEL ID
@@ -80,7 +80,7 @@ class CheckoutTest extends TestCase
 
         // Carrito
         $cart = Cart::create(['user_id' => $user->id]);
-        cartItem::create(['cart_id' => $cart->id, 'booster_pack_id' => $pack->id, 'quantity' => 1]);
+        CartItem::create(['cart_id' => $cart->id, 'booster_pack_id' => $pack->id, 'quantity' => 1]);
 
         // Intentar comprar
         $response = $this->actingAs($user)->post(route('checkout.process'));
