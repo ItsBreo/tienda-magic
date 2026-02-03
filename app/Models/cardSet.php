@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class cardSet extends Model
+class CardSet extends Model
 {
     protected $fillable = [
         'code',
@@ -14,6 +14,6 @@ class cardSet extends Model
 
     public function boosterPacks()
     {
-        return $this->hasMany(boosterPack::class);
+        return $this->hasMany(BoosterPack::class);
     }
 }

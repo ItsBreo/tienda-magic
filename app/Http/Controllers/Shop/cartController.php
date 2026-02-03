@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Cart;
-use App\Models\cartItem;
+use App\Models\CartItem;
 
 
-class cartController extends Controller
+class CartController extends Controller
 {
     // Visualizar carrito
     public function index()
@@ -41,7 +41,7 @@ class cartController extends Controller
 
         // Buscamos un item con este cart_id y booster_pack_id.
         // Si no existe, se crea una instancia en memoria con cantidad 0 (o null).
-        $item = cartItem::firstOrNew([
+        $item = CartItem::firstOrNew([
             'cart_id' => $cart->id,
             'booster_pack_id' => $request->booster_pack_id
         ]);
@@ -61,7 +61,7 @@ class cartController extends Controller
 
         if ($cart) {
             // Borramos solo si el item pertenece al carrito
-            cartItem::where('cart_id', $cart->id)
+            CartItem::where('cart_id', $cart->id)
                     ->where('id', $id)
                     ->delete();
         }

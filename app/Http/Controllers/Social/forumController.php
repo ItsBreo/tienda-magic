@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class forumController extends Controller
+class ForumController extends Controller
 {
     //
 }

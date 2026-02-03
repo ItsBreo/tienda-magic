@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class orderItem extends Model
+class OrderItem extends Model
 {
     protected $fillable = [
         'order_id',
@@ -18,6 +18,6 @@ class orderItem extends Model
     }
 
     public function boosterPack() {
-        return $this->belongsTo(boosterPack::class);
+        return $this->belongsTo(BoosterPack::class);
     }
 }

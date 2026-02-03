@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Deck;
 
-class userController extends Controller
+class UserController extends Controller
 {
 
     // Funciones CRUD

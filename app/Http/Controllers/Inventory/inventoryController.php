@@ -10,7 +10,7 @@ use App\Models\InventoryCard;
 use App\Models\Card;
 
 
-class inventoryController extends Controller
+class InventoryController extends Controller
 {
 
     public function showInventory(User $user){

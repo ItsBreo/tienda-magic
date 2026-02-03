@@ -14,7 +14,7 @@ class Order extends Model
 
     // Relación: Un pedido tiene muchos items
     public function items(){
-        return $this->hasMany(orderItem::class);
+        return $this->hasMany(OrderItem::class);
     }
 
     // Relación: Un pedido pertenece a un usuario

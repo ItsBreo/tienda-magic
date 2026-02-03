@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\boosterPack;
-use App\Models\cardSet;
+use App\Models\BoosterPack;
+use App\Models\CardSet;
 
-class catalogController extends Controller
+class CatalogController extends Controller
 {
     public function index(Request $request)
     {
@@ -16,14 +16,14 @@ class catalogController extends Controller
         $filters = $request->only(['search', 'type', 'sort']);
 
         // Consulta con filtros y paginación
-        $packs = boosterPack::with('cardSet')
+        $packs = BoosterPack::with('cardSet')
             ->filter($filters)
             ->paginate(12)
             ->withQueryString();
 
         // Obtenemos lista de Sets y Tipos para rellenar los desplegables del filtro
-        $sets = cardSet::select('id', 'name')->get();
-        $types = boosterPack::select('type')->distinct()->pluck('type');
+        $sets = CardSet::select('id', 'name')->get();
+        $types = BoosterPack::select('type')->distinct()->pluck('type');
 
         return Inertia::render('shop/Catalog', [
             'packs' => $packs,

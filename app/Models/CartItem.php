@@ -21,6 +21,6 @@ class cartItem extends Model
 
     public function boosterPack()
     {
-        return $this->belongsTo(boosterPack::class);
+        return $this->belongsTo(BoosterPack::class);
     }
 }

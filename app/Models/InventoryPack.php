@@ -24,6 +24,6 @@ class InventoryPack extends Model
 
     public function boosterPack()
     {
-        return $this->belongsTo(boosterPack::class, 'card_sets_id');
+        return $this->belongsTo(BoosterPack::class, 'card_sets_id');
     }
 }

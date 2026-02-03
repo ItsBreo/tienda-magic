@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class marketController extends Controller
+class MarketController extends Controller
 {
     /*
     public function showUserMarket(User $user) {

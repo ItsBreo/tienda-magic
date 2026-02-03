@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Cart;
 use App\Models\Order;
-use App\Models\orderItem;
-use App\Models\walletTransaction;
+use App\Models\OrderItem;
+use App\Models\WalletTransaction;
 use App\Models\InventoryPack;
 
-class orderController extends Controller
+class OrderController extends Controller
 {
     public function store(Request $request)
     {
@@ -41,7 +41,7 @@ class orderController extends Controller
 
                 // Cobramos el Saldo (Actualizar Usuario)
                 $user->wallet_balance -= $total;
-                $user->save();
+                $user->save(); // TODO: Corregir error method save
 
                 // Creamos el Pedido (Order)
                 $order = Order::create([
@@ -52,7 +52,7 @@ class orderController extends Controller
 
                 // Movemos los Items (OrderItem)
                 foreach ($cart->items as $item) {
-                    orderItem::create([
+                    OrderItem::create([
                         'order_id' => $order->id,
                         'booster_pack_id' => $item->booster_pack_id,
                         'quantity' => $item->quantity,
@@ -60,7 +60,7 @@ class orderController extends Controller
                     ]);
 
                     // Buscamos si ya tiene este tipo de sobre o lo creamos
-                    $inventoryPack = inventoryPack::firstOrCreate(
+                    $inventoryPack = InventoryPack::firstOrCreate(
                         ['user_id' => $user->id, 'booster_pack_id' => $item->booster_pack_id],
                         ['quantity' => 0]
                     );
@@ -71,7 +71,7 @@ class orderController extends Controller
 
                 // Creamos el registro de Transacción (WalletTransaction)
                 // Usamos create() directo asumiendo que tienes el modelo WalletTransaction
-                walletTransaction::create([
+                WalletTransaction::create([
                     'user_id' => $user->id,
                     'type' => 'PURCHASE_PACK', // O el tipo que uséis en el ENUM
                     'amount' => -$total,

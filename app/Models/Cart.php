@@ -17,6 +17,6 @@ class Cart extends Model
 
     public function items()
     {
-        return $this->hasMany(cartItem::class);
+        return $this->hasMany(CartItem::class);
     }
 }

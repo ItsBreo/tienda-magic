@@ -59,7 +59,7 @@ class User extends Authenticatable
 
     // Usuario - perfil 1-1
     public function profile() {
-        return $this->hasOne(Profile::class);
+        return $this->hasOne(userProfile::class);
     }
 
     // Usuario - roles M:M
@@ -110,7 +110,7 @@ class User extends Authenticatable
     public function transactions()
     {
         // Asumiendo que crearás un modelo WalletTransaction
-        return $this->hasMany(walletTransaction::class)->latest();
+        return $this->hasMany(WalletTransaction::class)->latest();
     }
 
     // Pedidos que ESTE usuario ha COMPRADO

@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Deck;
-use App\Models\Card;
+use App\Models\Card; // TODO: ¿Vas a utilizar el modelo de cartas?
 
-class deckController extends Controller
+class DeckController extends Controller
 {
     // 1. VER MIS MAZOS
     public function index()
