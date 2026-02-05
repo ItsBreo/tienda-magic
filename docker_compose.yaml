@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"  # Esto abre la puerta: [Puerto en tu PC] : [Puerto dentro del contenedor]
+    environment:
+      POSTGRES_DB: tienda-magic
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - /Users/josue/DatosBulk:/datos_bulk
+
+volumes:
+  pgdata:

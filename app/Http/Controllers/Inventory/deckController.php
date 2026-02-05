@@ -62,7 +62,77 @@ class DeckController extends Controller
         ]);
     }
 
-    // 4. AÑADIR CARTA AL MAZO
+    // 4. VER MAZOS PÚBLICOS DE OTRO USUARIO
+    public function userPublicDecks($userId)
+    {
+        $user = \App\Models\User::findOrFail($userId);
+
+        // Obtenemos todos los mazos públicos del usuario
+        $decks = Deck::where('user_id', $userId)
+            ->where('is_public', true)
+            ->withCount('cards')
+            ->with('user:id,name,username') // Cargamos info básica del usuario
+            ->get();
+
+        return Inertia::render('Decks/UserPublic', [
+            'user' => $user,
+            'decks' => $decks
+        ]);
+    }
+
+    // 5. EXPLORAR MAZOS PÚBLICOS (Todos los mazos públicos)
+    public function explore(Request $request)
+    {
+        $query = Deck::where('is_public', true)
+            ->withCount('cards')
+            ->with('user:id,name,username');
+
+        // Búsqueda opcional
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        // Ordenamiento
+        $sort = $request->get('sort', 'latest');
+        switch ($sort) {
+            case 'popular':
+                $query->orderBy('views', 'desc');
+                break;
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'latest':
+            default:
+                $query->latest();
+                break;
+        }
+
+        $decks = $query->paginate(12);
+
+        return Inertia::render('Decks/Explore', [
+            'decks' => $decks,
+            'search' => $request->get('search', ''),
+            'sort' => $sort
+        ]);
+    }
+
+    // 6. VER LOS MAZOS A LA VENTA
+    public function forSale(Request $request)
+    {
+        $decks = Deck::where('is_public', true)
+            ->where('is_in_sale', true)
+            ->withCount('cards')
+            ->with('user:id,name,username')
+            ->latest()
+            ->paginate(12);
+
+        return Inertia::render('Decks/ForSale', [
+            'decks' => $decks
+        ]);
+    }
+
+    // 7. AÑADIR CARTA AL MAZO
     public function addCard(Request $request, $deckId)
     {
         $request->validate([
@@ -87,10 +157,9 @@ class DeckController extends Controller
             $deck->cards()->attach($request->card_id, ['quantity' => $request->quantity]);
         }
 
-        return back()->with('success', 'Carta añadida al mazo');
     }
 
-    // 5. BORRAR CARTA DEL MAZO
+    // 8. BORRAR CARTA DEL MAZO
     public function removeCard($deckId, $cardId)
     {
         $deck = Deck::where('user_id', Auth::id())->findOrFail($deckId);
