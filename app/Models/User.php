@@ -125,6 +125,12 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'seller_id'); // Clave foránea explícita
     }
 
+    // Relación M:M con logros
+    public function achievements()
+    {
+        return $this->belongsToMany(Achievement::class);
+    }
+
     public function isAdmin(): bool
     {
         // Verifica si alguno de sus roles se llama 'admin'

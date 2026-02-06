@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Events\DeckCreated;
+use App\Listeners\CheckFirstDeckAchievement;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Registrar los listeners de eventos
+        \Illuminate\Support\Facades\Event::listen(
+            DeckCreated::class,
+            CheckFirstDeckAchievement::class
+        );
     }
 }
