@@ -8,45 +8,49 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\DepositOrder;
 use App\Models\WalletTransaction;
+use App\Models\User;
 
 class DepositController extends Controller
 {
     public function store(Request $request)
     {
         $request->validate(['amount' => 'required|numeric|min:5']);
+        /**
+        * PHPDoc to detect methods from eloquent user auth
+        * @var \App\Models\User $user
+        **/
         $user = Auth::user();
-        $amount = $request->amount;
+        $amount = (float)$request->amount;
 
         // TODO: Simulamos respuesta exitosa de pasarela de pago (Bizum/PayPal/Ebay)
-        $paymentSuccess = true;
         $transactionRef = 'PAY-' . strtoupper(uniqid());
 
-        if ($paymentSuccess) {
-            DB::transaction(function () use ($user, $request, $transactionRef) {
+        try {
+            DB::transaction(function () use ($user, $amount, $transactionRef) {
 
-                // Creamos registro de la recarga (Dinero Ficticio)
                 $deposit = DepositOrder::create([
                     'user_id' => $user->id,
-                    'amount_eur' => $request->amount,
+                    'amount_eur' => $amount,
                     'payment_method' => 'credit_card',
                     'status' => 'COMPLETED',
                     'transaction_ref' => $transactionRef
                 ]);
 
-                // Sumamos saldo al usuario
-                $user->transactions->increment('wallet_balance', $request->amount);
+                $user->increment('wallet_balance', $amount);
 
-                // Creamos el registro de la transacción (Auditoría)
                 WalletTransaction::create([
                     'user_id' => $user->id,
                     'type' => 'DEPOSIT',
-                    'amount' => $request->amount,
-                    'balance_after' => $user->refresh()->wallet_balance, //TODO: Revisar error method refresh/fresh/reload
+                    'amount' => $amount,
+                    'balance_after' => $user->fresh()->wallet_balance,
                     'description' => "Recarga ID: {$deposit->id}"
                 ]);
             });
 
-            return back()->with('success', 'Saldo recargado correctamente');
+            return redirect()->route('dashboard')->with('success', 'Depósito realizado con éxito!');
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

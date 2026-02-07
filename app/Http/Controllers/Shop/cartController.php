@@ -17,7 +17,7 @@ class CartController extends Controller
     {
         $user = Auth::user();
 
-        // Buscamos el carrito del usuario o creamos uno vacío si no tiene
+        // Search for cart with items and booster pack details, or create an empty cart if none exists
         $cart = Cart::with('items.boosterPack.cardSet')
                     ->firstOrCreate(['user_id' => $user->id]);
 
@@ -26,7 +26,7 @@ class CartController extends Controller
         ]);
     }
 
-    // Añadir productos al carrito
+    // Add item to cart
     public function store(Request $request)
     {
         $request->validate([
@@ -36,31 +36,30 @@ class CartController extends Controller
 
         $user = Auth::user();
 
-        // Obtenemos el Carrito
+        // Obtain or create cart for user
         $cart = Cart::firstOrCreate(['user_id' => $user->id]);
 
-        // Buscamos un item con este cart_id y booster_pack_id.
-        // Si no existe, se crea una instancia en memoria con cantidad 0 (o null).
+        // Search for existing cart item with the same booster pack, or create a new instance (without saving yet)
         $item = CartItem::firstOrNew([
             'cart_id' => $cart->id,
             'booster_pack_id' => $request->booster_pack_id
         ]);
 
-        // Sumamos la cantidad (si es nuevo, será -> 0 + cantidad)
+        // Increment quantity if item already exists, otherwise set to requested quantity
         $item->quantity = ($item->quantity ?? 0) + $request->quantity;
         $item->save();
 
-        return back()->with('success', 'Producto añadido');
+        return back()->with('success', 'Producto añadido al carrito.');
     }
 
-    // Eliminar item del carrito
+    // Delete item from cart
     public function destroy($id)
     {
         $user = Auth::user();
         $cart = Cart::where('user_id', $user->id)->first();
 
         if ($cart) {
-            // Borramos solo si el item pertenece al carrito
+            // Delete only if the item belongs to the cart
             CartItem::where('cart_id', $cart->id)
                     ->where('id', $id)
                     ->delete();
