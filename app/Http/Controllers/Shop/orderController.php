@@ -15,78 +15,84 @@ use App\Models\InventoryPack;
 class OrderController extends Controller
 {
     public function store(Request $request)
-    {
-        $user = Auth::user();
+{
+    /**
+     * PHPDoc to detect methods from eloquent user auth
+     * @var \App\Models\User $user
+     **/
+    $user = Auth::user();
 
-        // Obtenemos carrito con productos
-        $cart = Cart::with('items.boosterPack')->where('user_id', $user->id)->first();
+    // Obtain the user's cart with booster pack details
+    $cart = Cart::with('items.boosterPack')->where('user_id', $user->id)->first();
 
-        if (!$cart || $cart->items->isEmpty()) {
-            return back()->withErrors(['error' => 'El carrito está vacío']);
-        }
+    // Validation Check if cart exists and has items
+    if (!$cart || $cart->items->isEmpty()) {
+        return response()->json(['error' => 'El carrito está vacío'], 400);
+    }
 
-        // Calculamos el total
-        $total = $cart->items->sum(function ($item) {
-            return $item->quantity * $item->boosterPack->price;
+    // Calculate total price
+    $total = $cart->items->sum(function ($item) {
+        return $item->quantity * $item->boosterPack->price;
+    });
+
+    try {
+        DB::transaction(function () use ($user, $cart, $total) {
+
+            // Validate wallet balance
+            if ($user->wallet_balance < $total) {
+                throw new \Exception('No tienes suficiente saldo para esta compra.');
+            }
+
+            // Decrement wallet balance
+            $user->decrement('wallet_balance', $total);
+
+            // Create Order
+            $order = Order::create([
+                'user_id' => $user->id,
+                'total_price' => $total,
+                'status' => 'completed'
+            ]);
+
+            // Process each cart item
+            foreach ($cart->items as $item) {
+                // Create Order Item
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'booster_pack_id' => $item->booster_pack_id,
+                    'quantity' => $item->quantity,
+                    'price_at_purchase' => $item->boosterPack->price
+                ]);
+
+                // update inventory - add booster packs to user's inventory
+                $inventoryPack = InventoryPack::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'booster_pack_id' => $item->booster_pack_id
+                    ],
+                    ['quantity' => 0]
+                );
+
+                $inventoryPack->increment('quantity', $item->quantity);
+            }
+
+            // Record wallet transaction
+            WalletTransaction::create([
+                'user_id' => $user->id,
+                'type' => 'PURCHASE_PACK',
+                'amount' => -$total,
+                'balance_after' => $user->fresh()->wallet_balance,
+                'description' => "Compra Pedido #{$order->id}"
+            ]);
+
+            // Clear user's cart
+            $cart->items()->delete();
         });
 
-        // Transacción Atómica (se tiene que completar todo, o fallará y no se harán cambios)
-        try {
-            DB::transaction(function () use ($user, $cart, $total) {
+        return redirect()->route('dashboard')->with('success', '¡Compra realizada con éxito!');
 
-                // Validamos el Saldo
-                if ($user->wallet_balance < $total) {
-                    throw new \Exception('No tienes suficiente saldo.');
-                }
-
-                // Cobramos el Saldo (Actualizar Usuario)
-                $user->wallet_balance -= $total;
-                $user->save(); // TODO: Corregir error method save
-
-                // Creamos el Pedido (Order)
-                $order = Order::create([
-                    'user_id' => $user->id,
-                    'total_price' => $total,
-                    'status' => 'completed'
-                ]);
-
-                // Movemos los Items (OrderItem)
-                foreach ($cart->items as $item) {
-                    OrderItem::create([
-                        'order_id' => $order->id,
-                        'booster_pack_id' => $item->booster_pack_id,
-                        'quantity' => $item->quantity,
-                        'price_at_purchase' => $item->boosterPack->price // Guardamos precio histórico
-                    ]);
-
-                    // Buscamos si ya tiene este tipo de sobre o lo creamos
-                    $inventoryPack = InventoryPack::firstOrCreate(
-                        ['user_id' => $user->id, 'booster_pack_id' => $item->booster_pack_id],
-                        ['quantity' => 0]
-                    );
-
-                    // Sumamos la cantidad comprada
-                    $inventoryPack->increment('quantity', $item->quantity);
-                }
-
-                // Creamos el registro de Transacción (WalletTransaction)
-                // Usamos create() directo asumiendo que tienes el modelo WalletTransaction
-                WalletTransaction::create([
-                    'user_id' => $user->id,
-                    'type' => 'PURCHASE_PACK', // O el tipo que uséis en el ENUM
-                    'amount' => -$total,
-                    'balance_after' => $user->wallet_balance,
-                    'description' => "Compra Pedido #{$order->id}"
-                ]);
-
-                // Vaciamos Carrito (Borramos items primero por FK)
-                $cart->items()->delete();
-            });
-
-            return redirect()->route('dashboard')->with('success', '¡Compra realizada con éxito!');
-
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => $e->getMessage()]);
-        }
+    } catch (\Exception $e) {
+        // 4. RESPUESTA ERROR (JSON) - Para que Postman lo entienda
+        return response()->json(['error' => $e->getMessage()], 400);
     }
+}
 }
