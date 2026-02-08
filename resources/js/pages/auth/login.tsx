@@ -10,6 +10,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 interface LoginProps {
     status?: string;
@@ -84,6 +85,27 @@ export default function Login({
                     tabIndex={3}
                   />
                   <Label htmlFor="remember">Remember me</Label>
+                </div>
+
+                <div className="flex flex-col items-center justify-center py-4">
+                    <Input
+                        type="hidden"
+                        name="turnstile_token"
+                        id="turnstile_token_input"
+                    />
+                    <Turnstile
+                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                        onSuccess={(token) => {
+                            const input = document.getElementById('turnstile_token_input') as HTMLInputElement;
+                            if (input) {
+                                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+                                nativeInputValueSetter?.call(input, token);
+                                const event = new Event('input', { bubbles: true });
+                                input.dispatchEvent(event);
+                            }
+                        }}
+                    />
+                    <InputError message={errors.turnstile_token} className="mt-2" />
                 </div>
 
                 <Button
