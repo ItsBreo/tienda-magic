@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function Register() {
     return (
@@ -88,6 +89,27 @@ export default function Register() {
                   <InputError
                     message={errors.password_confirmation}
                   />
+                </div>
+
+                <div className="flex flex-col items-center justify-center py-4">
+                    <Input
+                        type="hidden"
+                        name="turnstile_token"
+                        id="turnstile_token_input"
+                    />
+                    <Turnstile
+                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                        onSuccess={(token) => {
+                            const input = document.getElementById('turnstile_token_input') as HTMLInputElement;
+                            if (input) {
+                                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+                                nativeInputValueSetter?.call(input, token);
+                                const event = new Event('input', { bubbles: true });
+                                input.dispatchEvent(event);
+                            }
+                        }}
+                    />
+                    <InputError message={errors.turnstile_token} className="mt-2" />
                 </div>
 
                 <Button

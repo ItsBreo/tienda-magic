@@ -12,16 +12,16 @@ class CatalogController extends Controller
 {
     public function index(Request $request)
     {
-        // Recogemos los filtros de la URL
+        // Obtain filters from request
         $filters = $request->only(['search', 'type', 'sort']);
 
-        // Consulta con filtros y paginación
+        // Query booster packs with applied filters and pagination
         $packs = BoosterPack::with('cardSet')
             ->filter($filters)
             ->paginate(12)
             ->withQueryString();
 
-        // Obtenemos lista de Sets y Tipos para rellenar los desplegables del filtro
+        // List of sets and types for filter dropdowns
         $sets = CardSet::select('id', 'name')->get();
         $types = BoosterPack::select('type')->distinct()->pluck('type');
 
