@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Inventory;
 
 use App\Models\Achievement;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class AchievementController extends Controller
