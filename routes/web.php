@@ -30,9 +30,8 @@ use App\Http\Controllers\searchController;
 use App\Http\Controllers\cookieController;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
+    // Mostrar la página de login como página principal
+    return view('auth.login-example');
 })->name('home');
 
 // Rutas de autenticación (sin middleware auth)
