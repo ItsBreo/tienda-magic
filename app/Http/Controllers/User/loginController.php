@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController extends Controller
 {
@@ -36,11 +37,19 @@ class LoginController extends Controller
             'remember' => ['nullable', 'boolean'],
         ]);
 
+        if (RateLimiter::tooManyAttempts($this->throttleKey($request), 5, 60)) {
+            throw ValidationException::withMessages([
+                'email' => __('auth.throttle', ['seconds' => RateLimiter::availableIn($this->throttleKey($request))]),
+            ]);
+        }
+
         // Intentar autenticar al usuario
         if (!Auth::attempt([
             'email' => $credentials['email'],
             'password' => $credentials['password'],
         ], $request->boolean('remember'))) {
+            RateLimiter::hit($this->throttleKey($request));
+
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -48,6 +57,7 @@ class LoginController extends Controller
 
         // Regenerar la sesión para prevenir ataques de fijación de sesión
         $request->session()->regenerate();
+        $request->session()->regenerateToken();
 
         // Redirigir al dashboard o a la URL anterior
         return redirect()->intended(route('dashboard'));
@@ -67,5 +77,16 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Get the throttle key for the given request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return string
+     */
+    protected function throttleKey(Request $request)
+    {
+        return Str::lower($request->input('email')) . '|' . $request->ip();
     }
 }
