@@ -81,9 +81,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/settings/profile', [SettingsProfileController::class, 'update'])->name('profile.update');
     Route::delete('/settings/profile', [SettingsProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // ========== RUTAS DE TIENDA ==========
-    Route::get('/shop', [catalogController::class, 'index'])->name('shop.index');
-
     // ========== RUTAS DE CARRITO ==========
     Route::get('/cart', [cartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [cartController::class, 'store'])->name('cart.add');
@@ -197,5 +194,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/marketplace', [MarketplaceController::class, 'index'])
         ->name('marketplace.index')
     ;
+
+        // ========== RUTAS DE TIENDA ==========
+    Route::get('/shop', [catalogController::class, 'index'])->name('shop.index');
 
 require __DIR__.'/settings.php';

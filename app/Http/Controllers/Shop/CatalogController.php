@@ -29,7 +29,7 @@ class CatalogController extends Controller
             'packs' => $packs,
             'filters' => $filters,
             'sets' => $sets,
-            'types' => $types
+            'types' => $types,
         ]);
     }
 }
