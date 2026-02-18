@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\Shop\MarketplaceController;
 use App\Http\Controllers\Shop\depositController;
 use App\Http\Controllers\Shop\catalogController;
 use App\Http\Controllers\Shop\cartController;
@@ -192,5 +193,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/cookies/accept', [cookieController::class, 'accept'])->name('cookies.accept');
     Route::post('/cookies/decline', [cookieController::class, 'decline'])->name('cookies.decline');
 });
+
+    Route::get('/marketplace', [MarketplaceController::class, 'index'])
+        ->name('marketplace.index')
+    ;
 
 require __DIR__.'/settings.php';

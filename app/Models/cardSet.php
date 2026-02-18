@@ -6,14 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class CardSet extends Model
 {
-    protected $fillable = [
-        'code',
-        'name',
-        'released_at'
-    ];
+    protected $guarded = [];
+    public $incrementing = false;
+    protected $primaryKey = 'code';
+    protected $keyType = 'string';
 
-    public function boosterPacks()
+    public function cards()
     {
-        return $this->hasMany(BoosterPack::class);
+        return $this->hasMany(Card::class, 'set_code', 'code');
     }
 }

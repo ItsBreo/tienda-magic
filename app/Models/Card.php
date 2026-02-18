@@ -9,9 +9,9 @@ class Card extends Model
     // Permitir asignación masiva para todos los campos
     protected $guarded = [];
 
-    // CASTS: La parte más importante
+    // Castear campos
     protected $casts = [
-        'data' => 'array',               // <--- LA CLAVE: Convierte JSON DB <-> Array PHP
+        'data' => 'array',
         'market_avg_price' => 'decimal:2',
         'mana_value' => 'float',
     ];
