@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
-  ShoppingCart, Search, Package, Sparkles, Zap,
+  Search, Package, Sparkles,
 } from 'lucide-react';
 import { route } from 'ziggy-js';
-import { Head, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import { Head, router, Link } from '@inertiajs/react';
+import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,6 +27,7 @@ interface PackData {
   name: string;
   price: number;
   type: string;
+  cover_image?: string;
   card_set?: {
     name: string;
   };
@@ -74,23 +75,6 @@ export default function Catalog({
     );
   };
 
-  const handleAddToCart = (packId: number) => {
-    router.post(
-      route('cart.add'),
-      { pack_id: packId, quantity: 1 },
-      {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-          // Opcional: mostrar notificación de éxito
-        },
-        onError: (errors) => {
-          console.error('Error al añadir al carrito:', errors);
-        },
-      },
-    );
-  };
-
   useEffect(() => {
     const timer = setTimeout(() => {
       if (search !== (filters?.search || '')) {
@@ -111,7 +95,7 @@ export default function Catalog({
   }, [selectedType, sort]);
 
   return (
-    <AppLayout
+    <TiendaMagicLayout
       breadcrumbs={[
         { title: 'Tienda de Sobres', href: route('shop.index') },
       ]}
@@ -211,23 +195,34 @@ export default function Catalog({
                 className="overflow-hidden bg-zinc-900 border-zinc-800 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-900/10 transition-all duration-300 group flex flex-col"
               >
                 {/* Imagen del Sobre */}
-                <div className="aspect-[3/4] relative bg-gradient-to-br from-zinc-950 to-zinc-900 p-6 flex flex-col items-center justify-center border-b border-zinc-800 group-hover:from-zinc-900/80 group-hover:to-zinc-950 transition-colors">
+                <div className="aspect-[2.5/3.5] relative bg-gradient-to-br from-zinc-950 to-zinc-900 overflow-hidden border-b border-zinc-800 group-hover:from-zinc-900/80 group-hover:to-zinc-950 transition-colors">
                   {/* Efecto de brillo si es Collector */}
                   {pack.type === 'collector' && (
-                    <div className="absolute top-0 right-0 p-2">
+                    <div className="absolute top-0 right-0 p-2 z-10">
                       <Sparkles className="h-4 w-4 text-emerald-400 animate-pulse" />
                     </div>
                   )}
 
-                  <Package
-                    className={`h-16 w-16 mb-4 transition-transform duration-300 group-hover:scale-110 ${
-                      pack.type === 'collector'
-                        ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'
-                        : 'text-zinc-500'
-                    }`}
-                  />
+                  {/* Portada Épica */}
+                  {pack.cover_image ? (
+                    <img
+                      src={pack.cover_image}
+                      alt={pack.name}
+                      className="aspect-[2.5/3.5] w-full h-auto object-contain rounded-xl drop-shadow-md"
+                    />
+                  ) : (
+                    <div className="aspect-[2.5/3.5] w-full h-auto bg-zinc-800 rounded-xl flex items-center justify-center">
+                      <Package
+                        className={`h-16 w-16 transition-transform duration-300 group-hover:scale-110 ${
+                          pack.type === 'collector'
+                            ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'
+                            : 'text-zinc-500'
+                        }`}
+                      />
+                    </div>
+                  )}
 
-                  <h3 className="text-center font-serif text-zinc-300 text-sm leading-tight px-2">
+                  <h3 className="absolute bottom-2 left-2 right-2 text-center font-serif text-zinc-300 text-sm leading-tight bg-black/60 backdrop-blur-sm rounded px-2 py-1">
                     {pack.card_set?.name || 'Set Desconocido'}
                   </h3>
 
@@ -257,21 +252,18 @@ export default function Catalog({
                     <span className="text-xs text-zinc-500">
                       Precio
                     </span>
-                    <span className="text-xl font-bold text-emerald-400 font-mono">
+                    <span className="text-lg font-bold text-emerald-400">
                       {pack.price.toFixed(2)}
-                      {' '}
-                      €
+                      {' €'}
                     </span>
                   </div>
 
-                  <Button
-                    size="sm"
-                    onClick={() => handleAddToCart(pack.id)}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-black font-semibold shadow-lg shadow-emerald-900/20 border border-emerald-500/50 transition-all duration-200 hover:scale-105"
+                  <Link
+                    href={route('pack.detail', pack.id)}
+                    className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black font-semibold shadow-lg shadow-emerald-900/20 border border-emerald-500/50 transition-all duration-200 hover:scale-105 rounded-md text-sm"
                   >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Comprar
-                  </Button>
+                    Ver detalles
+                  </Link>
                 </CardFooter>
               </Card>
             ))}
@@ -300,6 +292,6 @@ export default function Catalog({
           </div>
         )}
       </div>
-    </AppLayout>
+    </TiendaMagicLayout>
   );
 }

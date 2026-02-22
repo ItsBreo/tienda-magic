@@ -165,9 +165,11 @@ class InventoryController extends Controller
         $query = InventoryCard::where('user_id', $user->id)
             ->with('card');
 
-        // Búsqueda por nombre de carta
+        // Búsqueda por nombre de carta con sanitización XSS
         if ($request->has('search') && $request->search) {
             $search = $request->search;
+            // Sanitizar input para prevenir XSS
+            $search = htmlspecialchars(strip_tags($search), ENT_QUOTES, 'UTF-8');
             $query->whereHas('card', function($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%');
             });

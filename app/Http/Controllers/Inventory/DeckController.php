@@ -87,9 +87,11 @@ class DeckController extends Controller
             ->withCount('cards')
             ->with('user:id,name,username');
 
-        // Búsqueda opcional
+        // Búsqueda opcional con sanitización XSS
         if ($request->has('search')) {
             $search = $request->get('search');
+            // Sanitizar input para prevenir XSS
+            $search = htmlspecialchars(strip_tags($search), ENT_QUOTES, 'UTF-8');
             $query->where('name', 'like', '%' . $search . '%');
         }
 

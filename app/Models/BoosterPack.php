@@ -15,28 +15,71 @@ class BoosterPack extends Model
         'price',
         'card_set_id',
         'type',
-        'config'
+        'config',
+        'image_uri',
     ];
+
+    protected $appends = ['cover_image'];
 
     public function cardSet()
     {
         return $this->belongsTo(CardSet::class, 'card_set_id', 'code');
     }
 
-    // Filtros de busqueda para el catalogController
+    /**
+     * Get cover image for this pack
+     */
+    public function getCoverImageAttribute()
+    {
+        if ($this->image_uri) {
+            return $this->image_uri;
+        }
+
+        // Buscar carta mítica del set para usar como portada
+        $mythicCard = \App\Models\Card::where('card_set_id', $this->card_set_id)
+            ->where('rarity', 'mythic')
+            ->whereNotNull('image_uri')
+            ->orderBy('id')
+            ->first();
+
+        if ($mythicCard) {
+            return $mythicCard->image_uri;
+        }
+
+        // Si no hay míticas, buscar una rara
+        $rareCard = \App\Models\Card::where('card_set_id', $this->card_set_id)
+            ->where('rarity', 'rare')
+            ->whereNotNull('image_uri')
+            ->orderBy('id')
+            ->first();
+
+        if ($rareCard) {
+            return $rareCard->image_uri;
+        }
+
+        // Si no hay raras, usar cualquier carta con imagen
+        $anyCard = \App\Models\Card::where('card_set_id', $this->card_set_id)
+            ->whereNotNull('image_uri')
+            ->orderBy('id')
+            ->first();
+
+        return $anyCard ? $anyCard->image_uri : null;
+    }
+
+    // Filtros para búsqueda en catálogo
     public function scopeFilter(Builder $query, array $filters)
     {
-        // Busqueda por texto (Nombre)
+        // Filtrar por nombre del pack
         if ($filters['search'] ?? false) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
         }
 
-        // Filtro por Tipo (ej. 'draft', 'set', 'collector')
+        // Filtrar por tipo de pack
         if ($filters['type'] ?? false) {
             $query->where('type', $filters['type']);
         }
 
-        // Ordenar por Precio
+        // Ordenar resultados por precio
         if ($filters['sort'] ?? false) {
             if ($filters['sort'] === 'price_asc') {
                 $query->orderBy('price', 'asc');
