@@ -5,13 +5,13 @@ import { AppShell } from '@/components/app-shell';
 import { type BreadcrumbItem } from '@/types';
 
 export default function AppHeaderLayout({
-    children,
-    breadcrumbs,
+  children,
+  breadcrumbs,
 }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
-    return (
-      <AppShell>
-        <AppHeader breadcrumbs={breadcrumbs} />
-        <AppContent>{children}</AppContent>
-      </AppShell>
-    );
+  return (
+    <AppShell>
+      <AppHeader breadcrumbs={breadcrumbs} />
+      <AppContent>{children}</AppContent>
+    </AppShell>
+  );
 }

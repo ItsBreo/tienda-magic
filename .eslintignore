@@ -1,0 +1,10 @@
+node_modules
+public/build
+vendor
+dist
+.phpstorm.meta.php
+_ide_helper.php
+storage
+resources/js/actions
+resources/js/routes
+resources/js/wayfinder

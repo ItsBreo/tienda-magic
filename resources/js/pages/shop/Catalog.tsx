@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Package, Sparkles } from 'lucide-react';
+import {
+  ShoppingCart, Search, Package, Sparkles,
+} from 'lucide-react';
 import { route } from 'ziggy-js';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout.tsx';
@@ -21,27 +23,27 @@ import {
 import { Badge } from '@/components/ui/badge.tsx';
 
 interface PackData {
-    id: number;
+  id: number;
+  name: string;
+  price: number;
+  type: string;
+  card_set?: {
     name: string;
-    price: number;
-    type: string;
-    card_set?: {
-        name: string;
-    };
+  };
 }
 
 interface PageProps {
-    packs: {
-        data: PackData[];
-        links: any[];
-    };
-    sets: { id: number; name: string }[];
-    types: string[];
-    filters: {
-        search?: string;
-        type?: string;
-        sort?: string;
-    };
+  packs: {
+    data: PackData[];
+    links: any[];
+  };
+  sets: { id: number; name: string }[];
+  types: string[];
+  filters: {
+    search?: string;
+    type?: string;
+    sort?: string;
+  };
 }
 
 export default function Catalog({
@@ -49,48 +51,47 @@ export default function Catalog({
   types,
   filters,
 }: PageProps) {
-    // Verificación segura de strings
-    const initialSort = (typeof filters?.sort === 'string') ? filters.sort : 'newest';
+  // Verificación segura de strings
+  const initialSort = (typeof filters?.sort === 'string') ? filters.sort : 'newest';
 
-    const [search, setSearch] = useState(filters?.search || '');
-    const [selectedType, setSelectedType] = useState(filters?.type || 'all');
-    const [sort, setSort] = useState(initialSort);
+  const [search, setSearch] = useState(filters?.search || '');
+  const [selectedType, setSelectedType] = useState(filters?.type || 'all');
+  const [sort, setSort] = useState(initialSort);
 
-      const handleSearch = () => {
-        router.get(
-          route('shop.index'),
-          {
-            search,
-            type: selectedType !== 'all' ? selectedType : undefined,
-            sort,
-          },
-          {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
-          }
-        );
-      };
+  const handleSearch = () => {
+    router.get(
+      route('shop.index'),
+      {
+        search,
+        type: selectedType !== 'all' ? selectedType : undefined,
+        sort,
+      },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      },
+    );
+  };
 
-      useEffect(() => {
-        const timer = setTimeout(() => {
-          if (search !== (filters?.search || '')) {
-            handleSearch();
-          }
-        }, 500);
-        return () => clearTimeout(timer);
-      }, [search]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search !== (filters?.search || '')) {
+        handleSearch();
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-      useEffect(() => {
-        const currentSort =
-          typeof filters?.sort === 'string' ? filters.sort : 'newest';
-        if (
-          (selectedType !== 'all' && selectedType !== filters?.type) ||
-          sort !== currentSort
-        ) {
-          handleSearch();
-        }
-      }, [selectedType, sort]);
+  useEffect(() => {
+    const currentSort = typeof filters?.sort === 'string' ? filters.sort : 'newest';
+    if (
+      (selectedType !== 'all' && selectedType !== filters?.type)
+          || sort !== currentSort
+    ) {
+      handleSearch();
+    }
+  }, [selectedType, sort]);
 
   return (
     <AppLayout
