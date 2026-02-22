@@ -19,6 +19,7 @@ export function NavFooter({
 }) {
   return (
     <SidebarGroup
+      // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
       className={`group-data-[collapsible=icon]:p-0 ${className || ''}`}
     >

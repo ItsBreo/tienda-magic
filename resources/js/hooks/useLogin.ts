@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { usePage } from '@inertiajs/react';
 
 interface LoginErrors {
   email?: string;

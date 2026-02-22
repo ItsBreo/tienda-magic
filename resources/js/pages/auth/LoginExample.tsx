@@ -20,7 +20,7 @@ interface LoginPageProps {
 export default function LoginPage({
   status,
   canResetPassword,
-  canRegister,
+  canRegister: _canRegister,
 }: LoginPageProps) {
   const {
     formData, errors, loading, handleChange, handleSubmit,

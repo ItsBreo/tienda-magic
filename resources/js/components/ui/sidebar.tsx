@@ -30,7 +30,7 @@ const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
-type SidebarContext = {
+type SidebarContextType = {
   state: 'expanded' | 'collapsed'
   open: boolean
   setOpen: (open: boolean) => void
@@ -40,7 +40,7 @@ type SidebarContext = {
   toggleSidebar: () => void
 };
 
-const SidebarContext = React.createContext<SidebarContext | null>(null);
+const SidebarContext = React.createContext<SidebarContextType | null>(null);
 
 function useSidebar() {
   const context = React.useContext(SidebarContext);
@@ -87,7 +87,7 @@ function SidebarProvider({
   );
 
   // Helper to toggle the sidebar.
-  const toggleSidebar = React.useCallback(() => (isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)), [isMobile, setOpen, setOpenMobile]);
+  const toggleSidebar = React.useCallback(() => (isMobile ? setOpenMobile((prevOpen) => !prevOpen) : setOpen((prevOpen) => !prevOpen)), [isMobile, setOpen, setOpenMobile]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -109,7 +109,7 @@ function SidebarProvider({
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? 'expanded' : 'collapsed';
 
-  const contextValue = React.useMemo<SidebarContext>(
+  const contextValue = React.useMemo<SidebarContextType>(
     () => ({
       state,
       open,
@@ -180,6 +180,7 @@ function Sidebar({
 
   if (isMobile) {
     return (
+      // eslint-disable-next-line react/jsx-props-no-spreading
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
         <SheetHeader className="sr-only">
           <SheetTitle>Sidebar</SheetTitle>
@@ -266,6 +267,7 @@ function SidebarTrigger({
         onClick?.(event);
         toggleSidebar();
       }}
+      // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     >
       <PanelLeftIcon />
@@ -322,6 +324,7 @@ function SidebarInput({
       data-slot="sidebar-input"
       data-sidebar="input"
       className={cn('bg-background h-8 w-full shadow-none', className)}
+      // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     />
   );
@@ -358,6 +361,7 @@ function SidebarSeparator({
       data-slot="sidebar-separator"
       data-sidebar="separator"
       className={cn('bg-sidebar-border mx-2 w-auto', className)}
+      // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     />
   );
@@ -521,11 +525,9 @@ function SidebarMenuButton({
     return button;
   }
 
-  if (typeof tooltip === 'string') {
-    tooltip = {
-      children: tooltip,
-    };
-  }
+  const tooltipProps = typeof tooltip === 'string' ? {
+    children: tooltip,
+  } : tooltip;
 
   return (
     <Tooltip>
@@ -534,7 +536,7 @@ function SidebarMenuButton({
         side="right"
         align="center"
         hidden={state !== 'collapsed' || isMobile}
-        {...tooltip}
+        {...tooltipProps}
       />
     </Tooltip>
   );

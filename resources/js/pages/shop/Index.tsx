@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 
 interface CardSet {
@@ -17,8 +17,9 @@ interface PageProps {
   };
 }
 
-export default function Marketplace({ auth, sets }: PageProps) {
+export default function Marketplace({ auth: _auth, sets }: PageProps) {
   // 1. Chivato en consola: F12 -> Console para ver si llegan los datos
+  // eslint-disable-next-line no-console
   console.log('Datos de sets:', sets);
 
   return (

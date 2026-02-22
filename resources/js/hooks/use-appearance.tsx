@@ -68,7 +68,6 @@ export function useAppearance() {
       'appearance',
     ) as Appearance | null;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     updateAppearance(savedAppearance || 'system');
 
     return () => mediaQuery()?.removeEventListener(
