@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
     plugins: [
@@ -21,6 +22,12 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    resolve: {
+        alias: {
+            // Esto asegura que @ apunte siempre a la carpeta del proyecto, sea Windows o Linux
+            '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+        },
+    },
     esbuild: {
         jsx: 'automatic',
     },

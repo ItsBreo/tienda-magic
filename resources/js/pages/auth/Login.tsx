@@ -1,94 +1,90 @@
 import { Form, Head } from '@inertiajs/react';
-import { login } from '@/routes';
-import { store } from '@/routes/register';
-
+import { register } from '@/routes';
+import { store } from '@/actions/App/Http/Controllers/User/LoginController';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+import { request } from '@/routes/password';
 import { Turnstile } from '@marsidev/react-turnstile';
 
-export default function Register() {
+interface LoginProps {
+    status?: string;
+    canResetPassword: boolean;
+    canRegister: boolean;
+}
+
+export default function Login({
+    status,
+    canResetPassword,
+    canRegister,
+}: LoginProps) {
     return (
       <AuthLayout
-        title="Create an account"
-        description="Enter your details below to create your account"
+        title="Log in to your account"
+        description="Enter your email and password below to log in"
       >
-        <Head title="Register" />
+        <Head title="Log in" />
+
         <Form
           {...store.form()}
-          resetOnSuccess={['password', 'password_confirmation']}
-          disableWhileProcessing
+          resetOnSuccess={['password']}
           className="flex flex-col gap-6"
         >
           {({ processing, errors }) => (
             <>
               <div className="grid gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    required
-                    autoFocus
-                    tabIndex={1}
-                    autoComplete="name"
-                    name="name"
-                    placeholder="Full name"
-                  />
-                  <InputError
-                    message={errors.name}
-                    className="mt-2"
-                  />
-                </div>
-
-                <div className="grid gap-2">
                   <Label htmlFor="email">Email address</Label>
                   <Input
                     id="email"
                     type="email"
-                    required
-                    tabIndex={2}
-                    autoComplete="email"
                     name="email"
+                    required
+                    autoFocus
+                    tabIndex={1}
+                    autoComplete="email"
                     placeholder="email@example.com"
                   />
                   <InputError message={errors.email} />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Password</Label>
+                    {canResetPassword && (
+                    <TextLink
+                      href={request()}
+                      className="ml-auto text-sm"
+                      tabIndex={5}
+                    >
+                          Forgot password?
+                    </TextLink>
+                                    )}
+                  </div>
                   <Input
                     id="password"
                     type="password"
-                    required
-                    tabIndex={3}
-                    autoComplete="new-password"
                     name="password"
+                    required
+                    tabIndex={2}
+                    autoComplete="current-password"
                     placeholder="Password"
                   />
                   <InputError message={errors.password} />
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="password_confirmation">
-                    Confirm password
-                  </Label>
-                  <Input
-                    id="password_confirmation"
-                    type="password"
-                    required
-                    tabIndex={4}
-                    autoComplete="new-password"
-                    name="password_confirmation"
-                    placeholder="Confirm password"
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="remember"
+                    name="remember"
+                    tabIndex={3}
                   />
-                  <InputError
-                    message={errors.password_confirmation}
-                  />
+                  <Label htmlFor="remember">Remember me</Label>
                 </div>
 
                 <div className="flex flex-col items-center justify-center py-4">
@@ -114,25 +110,34 @@ export default function Register() {
 
                 <Button
                   type="submit"
-                  className="mt-2 w-full"
-                  tabIndex={5}
-                  data-test="register-user-button"
+                  className="mt-4 w-full"
+                  tabIndex={4}
+                  disabled={processing}
+                  data-test="login-button"
                 >
                   {processing && <Spinner />}
-                  Create account
+                  Log in
                 </Button>
               </div>
 
-              <div className="text-center text-sm text-muted-foreground">
-                Already have an account?
-                {' '}
-                <TextLink href={login()} tabIndex={6}>
-                  Log in
-                </TextLink>
-              </div>
+              {canRegister && (
+                <div className="text-center text-sm text-muted-foreground">
+                  Don't have an account?
+                  {' '}
+                  <TextLink href={register()} tabIndex={5}>
+                    Sign up
+                  </TextLink>
+                </div>
+                        )}
             </>
                 )}
         </Form>
+
+        {status && (
+        <div className="mb-4 text-center text-sm font-medium text-green-600">
+          {status}
+        </div>
+            )}
       </AuthLayout>
     );
 }
