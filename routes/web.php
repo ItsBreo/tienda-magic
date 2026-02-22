@@ -200,4 +200,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
 
+        // ========== RUTAS DE TIENDA ==========
+    Route::get('/shop', [catalogController::class, 'index'])->name('shop.index');
+
 require __DIR__.'/settings.php';
