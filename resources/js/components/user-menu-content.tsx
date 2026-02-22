@@ -13,7 +13,7 @@ import { edit } from '@/routes/profile';
 import { type User } from '@/types';
 
 interface UserMenuContentProps {
-  user: User;
+  user: User | null;
 }
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
@@ -23,6 +23,10 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     cleanup();
     router.flushAll();
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <>

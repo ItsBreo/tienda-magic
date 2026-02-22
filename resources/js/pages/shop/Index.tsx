@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
+import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 
 interface CardSet {
   code: string;
@@ -18,12 +18,9 @@ interface PageProps {
 }
 
 export default function Marketplace({ auth: _auth, sets }: PageProps) {
-  // 1. Chivato en consola: F12 -> Console para ver si llegan los datos
-  // eslint-disable-next-line no-console
-  console.log('Datos de sets:', sets);
 
   return (
-    <AppLayout>
+    <TiendaMagicLayout>
       <Head title="Tienda de Sobres" />
 
       {/* Añadimos un fondo llamativo temporal para ver si se renderiza algo */}
@@ -55,6 +52,6 @@ export default function Marketplace({ auth: _auth, sets }: PageProps) {
           )}
         </div>
       </div>
-    </AppLayout>
+    </TiendaMagicLayout>
   );
 }

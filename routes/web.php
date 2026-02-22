@@ -6,11 +6,12 @@ use Inertia\Inertia;
 //use Laravel\Fortify\Features;
 
 // Importaciones corregidas a PascalCase
-use App\Http\Controllers\Shop\MarketplaceController;
-use App\Http\Controllers\Shop\DepositController;
 use App\Http\Controllers\Shop\CatalogController;
 use App\Http\Controllers\Shop\CartController;
-use App\Http\Controllers\Shop\OrderController;
+use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\PackOpeningController;
+use App\Http\Controllers\Shop\PackDetailController;
+use App\Http\Controllers\Shop\DepositController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Inventory\DeckController;
 use App\Http\Controllers\Inventory\WalletTransactionController;
@@ -44,7 +45,7 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
-    
+
     // Ruta de two-factor challenge (usando la vista de Fortify)
     // Solo accesible si hay un login.id en la sesión (usuario en proceso de autenticación con 2FA)
     Route::get('/two-factor-challenge', function (Request $request) {
@@ -91,10 +92,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ========== RUTAS DE CARRITO ==========
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [CartController::class, 'store'])->name('cart.add');
+    Route::patch('/cart/item/{id}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/item/{id}', [CartController::class, 'destroy'])->name('cart.destroy');
 
     // ========== RUTAS DE CHECKOUT ==========
-    Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.process');
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+
+    // ========== RUTAS DE APERTURA DE PACKS ==========
+    Route::get('/packs/opening/{orderId}', [PackOpeningController::class, 'show'])->name('pack.opening');
+    Route::post('/packs/open/{orderId}/{orderItemId}', [PackOpeningController::class, 'openPack'])->name('pack.open');
 
     // ========== RUTAS DE WALLET ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store'])->name('wallet.deposit');
@@ -198,9 +205,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/cookies/decline', [CookieController::class, 'decline'])->name('cookies.decline');
 });
 
-Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
-
-        // ========== RUTAS DE TIENDA ==========
-    Route::get('/shop', [catalogController::class, 'index'])->name('shop.index');
+    // ========== RUTAS DE TIENDA ==========
+    Route::get('/shop', [CatalogController::class, 'index'])->name('shop.index');
+    Route::get('/pack/{code}', [PackDetailController::class, 'show'])->name('pack.detail');
 
 require __DIR__.'/settings.php';
