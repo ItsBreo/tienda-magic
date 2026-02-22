@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
-class boosterPack extends Model
+class BoosterPack extends Model
 {
 
     protected $table = 'booster_pack';

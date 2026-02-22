@@ -25,3 +25,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+.continueignore
+main.py
+.continue/agents/config.yaml
+.continue/agents/rules
