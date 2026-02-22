@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 //use Laravel\Fortify\Features;
@@ -39,11 +40,23 @@ Route::get('/', function () {
 // Rutas de autenticación
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store']);
+    Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+    
+    // Ruta de two-factor challenge (usando la vista de Fortify)
+    // Solo accesible si hay un login.id en la sesión (usuario en proceso de autenticación con 2FA)
+    Route::get('/two-factor-challenge', function (Request $request) {
+        if (!$request->session()->has('login.id')) {
+            return redirect()->route('login');
+        }
+        return Inertia::render('auth/two-factor-challenge');
+    })->name('two-factor.login');
 });
+
+// Rutas públicas de tienda (accesibles sin autenticación)
+Route::get('/shop', [CatalogController::class, 'index'])->name('shop.index');
 
 // Rutas protegidas
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -74,9 +87,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings/profile', [SettingsProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/settings/profile', [SettingsProfileController::class, 'update'])->name('profile.update');
     Route::delete('/settings/profile', [SettingsProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // ========== RUTAS DE TIENDA ==========
-    Route::get('/shop', [CatalogController::class, 'index'])->name('shop.index');
 
     // ========== RUTAS DE CARRITO ==========
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

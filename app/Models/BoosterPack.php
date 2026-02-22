@@ -20,7 +20,7 @@ class BoosterPack extends Model
 
     public function cardSet()
     {
-        return $this->belongsTo(cardSet::class);
+        return $this->belongsTo(CardSet::class, 'card_set_id', 'code');
     }
 
     // Filtros de busqueda para el catalogController

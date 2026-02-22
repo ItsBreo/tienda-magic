@@ -37,7 +37,7 @@ class ShopFlowTest extends TestCase
         $this->pack1 = BoosterPack::create([
             'name' => 'Sobre Draft Kamigawa',
             'price' => 4.50,
-            'card_set_id' => $this->set->id,
+            'card_set_id' => $this->set->code,
             'type' => 'draft',
             'config' => json_encode(['cards' => 15])
         ]);
@@ -45,7 +45,7 @@ class ShopFlowTest extends TestCase
         $this->pack2 = BoosterPack::create([
             'name' => 'Sobre Coleccionista Ixalan',
             'price' => 25.00,
-            'card_set_id' => $this->set->id,
+            'card_set_id' => $this->set->code,
             'type' => 'collector',
             'config' => json_encode(['cards' => 15])
         ]);

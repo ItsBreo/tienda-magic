@@ -22,10 +22,10 @@ class CatalogController extends Controller
             ->withQueryString();
 
         // List of sets and types for filter dropdowns
-        $sets = CardSet::select('id', 'name')->get();
+        $sets = CardSet::select('code', 'name')->get();
         $types = BoosterPack::select('type')->distinct()->pluck('type');
 
-        return Inertia::render('shop/Catalog', [
+        return Inertia::render('Shop/Catalog', [
             'packs' => $packs,
             'filters' => $filters,
             'sets' => $sets,

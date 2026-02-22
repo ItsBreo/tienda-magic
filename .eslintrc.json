@@ -23,24 +23,20 @@
     "@typescript-eslint"
   ],
   "rules": {
-    "react/react-in-jsx-scope": "off",
-    "react/prop-types": "off",
-    "react/jsx-props-no-spreading": "off",
-    "max-len": "off",
-    "react/require-default-props": "off",
-    "no-underscore-dangle": "off",
-    "@typescript-eslint/naming-convention": "off",
+    "indent": "off",
+    "@typescript-eslint/indent": "off",
+    "react/jsx-indent": "off",
+    "react/jsx-indent-props": "off",
+    "react/jsx-closing-bracket-location": "off",
+    "react/jsx-closing-tag-location": "off",
     "import/extensions": "off",
     "import/no-unresolved": "off",
-    "import/prefer-default-export": "off",
     "react/no-array-index-key": "off",
-    "no-nested-ternary": "off",
-    "jsx-a11y/tabindex-no-positive": "off",
-    "@typescript-eslint/no-use-before-define": "off",
-    "@typescript-eslint/no-shadow": "off",
-    "react/no-unescaped-entities": "off",
-    "react/button-has-type": "warn",
-    "@typescript-eslint/no-unused-vars": "warn",
-    "no-console": "warn"
+    "max-len": "off",
+    "no-underscore-dangle": "off",
+    "@typescript-eslint/naming-convention": "off",
+    "react/prop-types": "off",
+    "react/require-default-props": "off",
+    "react/no-unescaped-entities": "off"
   }
 }

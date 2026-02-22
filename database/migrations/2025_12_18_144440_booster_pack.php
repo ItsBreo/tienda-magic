@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string("name")->constrained("card_sets");
             $table->float("price");
-            $table->foreignId("card_set_id")->constrained("card_sets");
+            $table->string('card_set_id');
+            $table->foreign('card_set_id')->references('code')->on('card_sets')->onDelete('cascade');
             $table->string("type");
             $table->json("config");
             $table->timestamps();

@@ -5,7 +5,12 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Features;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 
 class LoginController extends Controller
 {
@@ -16,7 +21,7 @@ class LoginController extends Controller
      */
     public function create()
     {
-        return view('auth.login');
+        return Inertia::render('auth/Login');
     }
 
     /**
@@ -29,6 +34,22 @@ class LoginController extends Controller
      */
     public function store(Request $request)
     {
+        // Aplicar rate limiting
+        $throttleKey = \Illuminate\Support\Str::transliterate(
+            \Illuminate\Support\Str::lower($request->input(Fortify::username())).'|'.$request->ip()
+        );
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            
+            // Lanzar ThrottleRequestsException que Laravel maneja correctamente
+            // Esto devuelve un código 429 sin redirección
+            throw new ThrottleRequestsException(__('auth.throttle', [
+                'seconds' => $seconds,
+                'minutes' => ceil($seconds / 60),
+            ]));
+        }
+
         // Validar las credenciales
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -41,9 +62,33 @@ class LoginController extends Controller
             'email' => $credentials['email'],
             'password' => $credentials['password'],
         ], $request->boolean('remember'))) {
+            RateLimiter::hit($throttleKey);
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
+        }
+
+        RateLimiter::clear($throttleKey);
+
+        $user = Auth::user();
+
+        // Verificar si el usuario tiene two-factor authentication habilitado
+        if (Features::canManageTwoFactorAuthentication() && 
+            Features::enabled(Features::twoFactorAuthentication(), 'confirm') &&
+            $user->hasEnabledTwoFactorAuthentication() &&
+            $user->two_factor_confirmed_at) {
+            
+            // Guardar el ID del usuario en la sesión para el two-factor challenge
+            $request->session()->put('login.id', $user->id);
+            
+            // Cerrar la sesión actual (el usuario aún no está completamente autenticado)
+            Auth::logout();
+            
+            // Regenerar la sesión
+            $request->session()->regenerate();
+            
+            // Redirigir al two-factor challenge
+            return redirect()->route('two-factor.login');
         }
 
         // Regenerar la sesión para prevenir ataques de fijación de sesión
