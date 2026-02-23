@@ -21,9 +21,17 @@ class PackDetailController extends Controller
             ->take(6)
             ->get();
 
-        // Buscar cartas del set ordenadas por rareza
+        // Buscar cartas del set ordenadas por rareza (seguro contra SQL injection)
+        $rarityOrder = "CASE rarity
+            WHEN 'mythic' THEN 1
+            WHEN 'rare' THEN 2
+            WHEN 'uncommon' THEN 3
+            WHEN 'common' THEN 4
+            ELSE 5
+        END";
+
         $possibleCards = Card::where('card_set_id', $pack->card_set_id)
-            ->orderByRaw("FIELD(rarity, 'mythic', 'rare', 'uncommon', 'common')")
+            ->orderByRaw($rarityOrder)
             ->orderBy('id', 'asc')
             ->take(20)
             ->get();
