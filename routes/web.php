@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 //use Laravel\Fortify\Features;
 
@@ -35,16 +36,12 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
 
 Route::get('/', function () {
-<<<<<<< HEAD
     // Si el usuario está autenticado, redirigir al dashboard
     if (Auth::check()) {
         return redirect()->route('dashboard');
     }
     // Si no está autenticado, redirigir al login
     return redirect()->route('login');
-=======
-    return view('auth.login-example');
->>>>>>> 5abbcdbbddb5956e4862ea6611c519fe441027ed
 })->name('home');
 
 // Rutas de autenticación

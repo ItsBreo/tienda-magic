@@ -21,7 +21,11 @@ class LoginController extends Controller
      */
     public function create()
     {
-        return Inertia::render('auth/Login');
+        return Inertia::render('auth/Login', [
+            'canResetPassword' => false,
+            'canRegister' => true,
+            'status' => session('status'),
+        ]);
     }
 
     /**
@@ -41,7 +45,7 @@ class LoginController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            
+
             // Lanzar ThrottleRequestsException que Laravel maneja correctamente
             // Esto devuelve un código 429 sin redirección
             throw new ThrottleRequestsException(__('auth.throttle', [
@@ -73,20 +77,20 @@ class LoginController extends Controller
         $user = Auth::user();
 
         // Verificar si el usuario tiene two-factor authentication habilitado
-        if (Features::canManageTwoFactorAuthentication() && 
+        if (Features::canManageTwoFactorAuthentication() &&
             Features::enabled(Features::twoFactorAuthentication(), 'confirm') &&
             $user->hasEnabledTwoFactorAuthentication() &&
             $user->two_factor_confirmed_at) {
-            
+
             // Guardar el ID del usuario en la sesión para el two-factor challenge
             $request->session()->put('login.id', $user->id);
-            
+
             // Cerrar la sesión actual (el usuario aún no está completamente autenticado)
             Auth::logout();
-            
+
             // Regenerar la sesión
             $request->session()->regenerate();
-            
+
             // Redirigir al two-factor challenge
             return redirect()->route('two-factor.login');
         }
