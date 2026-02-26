@@ -21,7 +21,7 @@ class RegisterController extends Controller
      */
     public function create()
     {
-        return Inertia::render('auth.RegisterWithProvider');
+        return Inertia::render('auth/Register');
     }
 
     /**
@@ -59,6 +59,12 @@ class RegisterController extends Controller
 
         // Autenticar al usuario
         Auth::login($user);
+
+        // Regenerar la sesión para prevenir ataques de fijación de sesión
+        // Esto es una práctica de seguridad recomendada después de autenticación exitosa
+        // IMPORTANTE: Regenerar la sesión DESPUÉS del login mantiene la autenticación
+        // porque Laravel copia los datos de la sesión anterior (incluyendo auth) a la nueva
+        $request->session()->regenerate();
 
         // Redirigir al dashboard
         return redirect()->route('dashboard');

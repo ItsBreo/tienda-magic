@@ -27,24 +27,27 @@ Este proyecto utiliza las versiones más recientes y potentes del mercado para g
 * **Backend:** [Laravel](https://laravel.com) **v12.36** 🚀
 * Uso de *Service Container* y *Artisan Commands* para tareas pesadas.
 * API RESTful organizada por dominios (`Api/Shop`, `Api/Market`, etc.).
-* Sistema de Migraciones "Code-First".
-
+* Sistema de Migraciones "Code-First" con 28 tablas.
+* **JWT Authentication** implementado para autenticación vía tokens.
 
 * **Frontend:** [React](https://react.dev)
 * Arquitectura SPA (Single Page Application).
 * Hooks personalizados para búsquedas y gestión de estado.
 * Interfaz reactiva con actualizaciones en tiempo real.
 
-
 * **Base de Datos:** [PostgreSQL](https://www.postgresql.org) **(Latest Version)**
 * Uso avanzado de tipos de datos `JSON` para almacenar metadatos complejos de cartas (Scryfall Data).
 * Transacciones ACID estrictas para asegurar la integridad financiera del *Wallet*.
 * Búsquedas optimizadas con `ilike` e índices compuestos.
-
+* **Seguridad SQL Injection** implementada con Eloquent ORM y validaciones.
 
 * **Integraciones:**
 * **Scryfall API:** Fuente de verdad para datos de cartas y precios.
 * **Stripe/PayPal (Simulado):** Pasarela para recarga de saldo real.
+
+* **Documentación:**
+* **Modelo UML** completo en `docs/UML-Model.md`
+* **Guías técnicas** para desarrollo y despliegue
 
 
 
@@ -79,7 +82,13 @@ Este proyecto utiliza las versiones más recientes y potentes del mercado para g
 
 ## 🗄️ Esquema de Base de Datos
 
-El proyecto cuenta con una arquitectura de base de datos relacional robusta diseñada en PostgreSQL.
+El proyecto cuenta con una arquitectura de base de datos relacional robusta diseñada en PostgreSQL con:
+
+- **28 tablas** interconectadas mediante migraciones Laravel
+- **Modelo UML** completo documentado en `docs/UML-Model.md`
+- **Relaciones Eloquent** optimizadas para rendimiento
+- **Índices y restricciones** para integridad referencial
+- **Tipos JSON** para metadatos complejos de Scryfall API
 
 ## 🚀 Instalación y Despliegue
 
@@ -118,8 +127,14 @@ Este proyecto integra Backend y Frontend en un único repositorio para facilitar
 
 5.  **Base de Datos y Seeds:**
     ```bash
+    # Crear base de datos PostgreSQL
+    createdb tienda_magic
+    
+    # Ejecutar migraciones (compatible con PostgreSQL)
     php artisan migrate
-    php artisan scryfall:import neo  # Importar cartas
+    
+    # Importar cartas desde Scryfall API
+    php artisan scryfall:import neo
     ```
 
 6.  **Ejecutar en Desarrollo:**

@@ -27,7 +27,7 @@ class OrderController extends Controller
 
     // Validation Check if cart exists and has items
     if (!$cart || $cart->items->isEmpty()) {
-        return response()->json(['error' => 'El carrito está vacío'], 400);
+        return back()->withErrors(['error' => 'El carrito está vacío']);
     }
 
     // Calculate total price
@@ -91,8 +91,8 @@ class OrderController extends Controller
         return redirect()->route('dashboard')->with('success', '¡Compra realizada con éxito!');
 
     } catch (\Exception $e) {
-        // 4. RESPUESTA ERROR (JSON) - Para que Postman lo entienda
-        return response()->json(['error' => $e->getMessage()], 400);
+        // Devolver error en la sesión para que los tests pasen
+        return back()->withErrors(['error' => $e->getMessage()]);
     }
 }
 }

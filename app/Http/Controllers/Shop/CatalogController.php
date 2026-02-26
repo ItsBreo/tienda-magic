@@ -16,20 +16,21 @@ class CatalogController extends Controller
         $filters = $request->only(['search', 'type', 'sort']);
 
         // Query booster packs with applied filters and pagination
+        // El cover_image se generará automáticamente via el accessor del modelo
         $packs = BoosterPack::with('cardSet')
             ->filter($filters)
-            ->paginate(12)
+            ->paginate(48)
             ->withQueryString();
 
         // List of sets and types for filter dropdowns
-        $sets = CardSet::select('id', 'name')->get();
+        $sets = CardSet::select('code', 'name')->get();
         $types = BoosterPack::select('type')->distinct()->pluck('type');
 
         return Inertia::render('shop/Catalog', [
             'packs' => $packs,
             'filters' => $filters,
             'sets' => $sets,
-            'types' => $types
+            'types' => $types,
         ]);
     }
 }

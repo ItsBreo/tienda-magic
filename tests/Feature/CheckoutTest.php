@@ -6,27 +6,25 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\BoosterPack;
+use App\Models\CardSet;
 use App\Models\Cart;
 use App\Models\CartItem;
-use Illuminate\Support\Facades\DB;
 
 class CheckoutTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $cardSetId;
+    protected $cardSet;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         // Creamos un Card Set base para evitar errores de Foreign Key
-        $this->cardSetId = DB::table('card_sets')->insertGetId([
+        $this->cardSet = CardSet::create([
             'name' => 'Set Base',
             'code' => 'BASE',
             'released_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
     }
 
@@ -37,11 +35,11 @@ class CheckoutTest extends TestCase
             'wallet_balance' => 100.00
         ]);
 
-        // Producto (Usamos el ID del Set creado en setUp)
+        // Producto (Usamos el code del Set creado en setUp)
         $pack = BoosterPack::create([
             'name' => 'Sobre Kamigawa',
             'price' => 10.00,
-            'card_set_id' => $this->cardSetId, // <--- USO CORRECTO DEL ID
+            'card_set_id' => $this->cardSet->code, // <--- USO CORRECTO DEL CODE
             'type' => 'draft',
             'config' => json_encode(['cards' => 15])
         ]);
@@ -69,11 +67,11 @@ class CheckoutTest extends TestCase
         // Usuario pobre
         $user = User::factory()->create(['wallet_balance' => 5.00]);
 
-        // Producto (Usamos el ID del Set creado en setUp)
+        // Producto (Usamos el code del Set creado en setUp)
         $pack = BoosterPack::create([
             'name' => 'Pack Caro',
             'price' => 10.00,
-            'card_set_id' => $this->cardSetId, // <--- USO CORRECTO DEL ID
+            'card_set_id' => $this->cardSet->code, // <--- USO CORRECTO DEL CODE
             'type' => 'x',
             'config' => '{}'
         ]);

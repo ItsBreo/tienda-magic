@@ -4,9 +4,9 @@ import LoginForm from '@/components/LoginForm';
 import { useLogin } from '@/hooks/useLogin';
 
 interface LoginPageProps {
-    status?: string;
-    canResetPassword: boolean;
-    canRegister: boolean;
+  status?: string;
+  canResetPassword: boolean;
+  canRegister: boolean;
 }
 
 /**
@@ -18,34 +18,36 @@ interface LoginPageProps {
  * - Maneja el layout general
  */
 export default function LoginPage({
-    status,
-    canResetPassword,
-    canRegister,
+  status,
+  canResetPassword,
+  canRegister: _canRegister,
 }: LoginPageProps) {
-    const { formData, errors, loading, handleChange, handleSubmit } = useLogin();
+  const {
+    formData, errors, loading, handleChange, handleSubmit,
+  } = useLogin();
 
-    return (
-        <AuthLayout
-            title="Inicia sesión en tu cuenta"
-            description="Ingresa tu email y contraseña para continuar"
-        >
-            <Head title="Iniciar sesión" />
+  return (
+    <AuthLayout
+      title="Inicia sesión en tu cuenta"
+      description="Ingresa tu email y contraseña para continuar"
+    >
+      <Head title="Iniciar sesión" />
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+      {status && (
+        <div className="mb-4 text-sm font-medium text-green-600">
+          {status}
+        </div>
+      )}
 
-            {/* Componente Presentacional */}
-            <LoginForm
-                formData={formData}
-                errors={errors}
-                loading={loading}
-                onSubmit={handleSubmit}
-                onChange={handleChange}
-                canResetPassword={canResetPassword}
-            />
-        </AuthLayout>
-    );
+      {/* Componente Presentacional */}
+      <LoginForm
+        formData={formData}
+        errors={errors}
+        loading={loading}
+        onSubmit={handleSubmit}
+        onChange={handleChange}
+        canResetPassword={canResetPassword}
+      />
+    </AuthLayout>
+  );
 }

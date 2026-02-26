@@ -21,7 +21,7 @@ class CartController extends Controller
         $cart = Cart::with('items.boosterPack.cardSet')
                     ->firstOrCreate(['user_id' => $user->id]);
 
-        return Inertia::render('Shop/Cart', [
+        return Inertia::render('shop/Cart', [
             'cart' => $cart
         ]);
     }

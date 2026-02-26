@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('name');
             $table->date('released_at')->nullable();
+            $table->integer('card_count')->default(0);
+            $table->string('icon_svg_uri')->nullable();
             $table->timestamps();
         });
     }

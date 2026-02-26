@@ -51,7 +51,7 @@ class AuthenticationTest extends TestCase
             'two_factor_confirmed_at' => now(),
         ])->save();
 
-        $response = $this->post(route('login'), [
+        $response = $this->post(route('login.store'), [
             'email' => $user->email,
             'password' => 'password',
         ]);
@@ -87,7 +87,16 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
+        // Usar la misma clave que Fortify usa para rate limiting
+        $throttleKey = \Illuminate\Support\Str::transliterate(
+            \Illuminate\Support\Str::lower($user->email).'|127.0.0.1'
+        );
+        
+        RateLimiter::hit($throttleKey, 5);
+        RateLimiter::hit($throttleKey, 5);
+        RateLimiter::hit($throttleKey, 5);
+        RateLimiter::hit($throttleKey, 5);
+        RateLimiter::hit($throttleKey, 5);
 
         $response = $this->post(route('login.store'), [
             'email' => $user->email,

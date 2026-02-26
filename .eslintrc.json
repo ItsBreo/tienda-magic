@@ -1,0 +1,91 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
+    "airbnb",
+    "airbnb-typescript",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "rules": {
+    "indent": "off",
+    "@typescript-eslint/indent": "off",
+    "react/jsx-indent": "off",
+    "react/jsx-indent-props": "off",
+    "react/jsx-closing-bracket-location": "off",
+    "react/jsx-closing-tag-location": "off",
+    "import/extensions": "off",
+    "import/no-unresolved": "off",
+    "react/no-array-index-key": "off",
+    "max-len": "off",
+    "no-underscore-dangle": "off",
+    "@typescript-eslint/naming-convention": "off",
+    "react/prop-types": "off",
+    "react/require-default-props": "off",
+    "react/no-unescaped-entities": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-props-no-spreading": ["error", {
+      "html": "ignore",
+      "custom": "ignore",
+      "explicitSpread": "ignore",
+      "exceptions": ["Input", "Button", "Card", "Dialog", "Select", "DropdownMenu", "Sheet", "Tooltip", "Avatar", "Badge", "Alert", "Breadcrumb", "Checkbox", "Collapsible", "Label", "Separator", "Skeleton", "Spinner", "Toggle", "ToggleGroup", "NavigationMenu", "InputOTP", "SidebarTrigger", "SidebarInput", "SidebarHeader", "SidebarFooter", "SidebarSeparator", "Sidebar", "SidebarProvider", "SidebarRail", "SidebarInset", "SidebarContent", "SidebarGroup", "SidebarMenu", "SidebarMenuItem", "SidebarMenuButton", "SidebarMenuAction", "SidebarMenuSub", "SidebarMenuSubButton", "SidebarMenuSubItem", "AppContent", "NavFooter"]
+    }],
+    "import/prefer-default-export": "off",
+    "react/jsx-no-useless-fragment": ["error", {
+      "allowExpressions": true
+    }],
+    "react/button-has-type": "off",
+    "react/no-danger": "warn",
+    "no-console": ["warn", {
+      "allow": ["warn", "error"]
+    }],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_"
+    }],
+    "react/no-unused-prop-types": "off",
+    "@typescript-eslint/no-use-before-define": ["error", {
+      "functions": false,
+      "classes": true,
+      "variables": true
+    }],
+    "no-nested-ternary": "warn",
+    "no-param-reassign": ["error", {
+      "props": true,
+      "ignorePropertyModificationsFor": ["state", "acc", "e", "ctx", "req", "request", "res", "response", "$scope"]
+    }],
+    "react/jsx-no-constructed-context-values": "warn",
+    "jsx-a11y/tabindex-no-positive": "warn",
+    "func-names": "off",
+    "react-hooks/set-state-in-effect": "off",
+    "@typescript-eslint/no-redeclare": ["error", {
+      "ignoreDeclarationMerge": true
+    }],
+    "@typescript-eslint/no-shadow": ["error", {
+      "ignoreTypeValueShadow": true
+    }]
+  },
+  "ignorePatterns": ["vite.config.ts", "dist", "node_modules"]
+}
