@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
 
 class RegisterController extends Controller
 {
@@ -20,7 +21,7 @@ class RegisterController extends Controller
      */
     public function create()
     {
-        return view('auth.register');
+        return Inertia::render('auth.RegisterWithProvider');
     }
 
     /**

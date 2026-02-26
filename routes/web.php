@@ -30,8 +30,12 @@ use App\Http\Controllers\searchController;
 use App\Http\Controllers\cookieController;
 
 Route::get('/', function () {
-    // Mostrar la página de login como página principal
-    return view('auth.login-example');
+    // Si el usuario está autenticado, redirigir al dashboard
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+    // Si no está autenticado, redirigir al login
+    return redirect()->route('login');
 })->name('home');
 
 // Rutas de autenticación (sin middleware auth)
@@ -51,7 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/logout', [loginController::class, 'destroy'])->name('logout');
 
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        return Inertia::render('DashboardProtected');
     })->name('dashboard');
 
     // ========== RUTAS DE USUARIO ==========

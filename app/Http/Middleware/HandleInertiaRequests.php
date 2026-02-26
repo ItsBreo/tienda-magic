@@ -48,7 +48,17 @@ class HandleInertiaRequests extends Middleware
 
             // Usuario y Datos Globales
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user()
+                    ? $request->user()->only(
+                        'id',
+                        'name',
+                        'username',
+                        'email',
+                        'wallet_balance',
+                        'created_at',
+                        'updated_at'
+                    )
+                    : null,
                 'wallet_balance' => $request->user() ? $request->user()->wallet_balance : 0,
             ],
 

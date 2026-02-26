@@ -5,8 +5,10 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\RateLimiter;
+use Inertia\Inertia;
 
 class LoginController extends Controller
 {
@@ -17,7 +19,11 @@ class LoginController extends Controller
      */
     public function create()
     {
-        return view('auth.login');
+        return Inertia::render('auth.LoginWithProvider', [
+            'canResetPassword' => false,
+            'canRegister' => true,
+            'status' => session('status'),
+        ]);
     }
 
     /**
