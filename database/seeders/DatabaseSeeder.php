@@ -3,27 +3,37 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. Crear los roles fijos primero
+        $adminRole = Role::create(['name' => 'Admin']);
+        $userRole = Role::create(['name' => 'User']);
+        $sellerRole = Role::create(['name' => 'Seller']);
 
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'username' => 'testuser',
-                'password' => bcrypt('password'),
-                'wallet_balance' => 100.00,
-                'email_verified_at' => now(),
-            ]
-        );
+        // 2. Crear un usuario Administrador de pruebas específico
+        $admin = User::factory()->create([
+            'name' => 'Super Admin',
+            'username' => 'superadmin',
+            'email' => 'admin@ejemplo.com',
+            // El password será 'password' por la factory
+        ]);
+
+        // Le asignamos el rol de Admin
+        $admin->roles()->attach($adminRole->id);
+
+        // 3. Crear 15 usuarios aleatorios usando la Factory
+        $users = User::factory(15)->create();
+
+        // 4. Asignar roles aleatorios a esos 15 usuarios
+        foreach ($users as $user) {
+            // A la mayoría le damos el rol 'User', pero a algunos les damos 'Seller'
+            $roleToAssign = fake()->randomElement([$userRole->id, $userRole->id, $sellerRole->id]);
+            $user->roles()->attach($roleToAssign);
+        }
     }
 }

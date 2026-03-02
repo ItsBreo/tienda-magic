@@ -14,8 +14,8 @@ class Role extends Model
     /**
      * Obtener todos los usuarios con este rol
      */
-    public function users(): HasMany
-    {
-        return $this->hasMany(User::class, 'roles_id');
-    }
+public function users(): BelongsToMany
+{
+    return $this->belongsToMany(User::class, 'user_role', 'roles_id', 'user_id');
+}
 }

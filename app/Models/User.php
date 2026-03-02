@@ -64,9 +64,10 @@ class User extends Authenticatable
     }
 
     // Usuario - roles M:M
-    public function roles(){
-        return $this->belongsToMany(Role::class);
-    }
+public function roles()
+{
+    return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'roles_id');
+}
 
     // Usuario - mazo 1:M
     public function decks(){
