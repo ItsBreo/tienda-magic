@@ -1,15 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // SPA Navigation
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Wand2 } from 'lucide-react';
-
-// Cambiamos Turnstile por reCAPTCHA
+// 1. Unificamos el icono con el del Registro (Layers)
+import { Eye, EyeOff, Layers, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import ReCAPTCHA from 'react-google-recaptcha';
 
 interface Props {
@@ -32,7 +31,6 @@ export default function Login({ canResetPassword = false, status }: Props) {
 
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<any>({});
-    const [generalError, setGeneralError] = useState<string | null>(null);
 
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -41,86 +39,85 @@ export default function Login({ canResetPassword = false, status }: Props) {
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!formData.recaptcha_token) {
+            // MTG Flavor
+            toast.error('Demuestra que eres un jugador y no una ilusión (completa el reCAPTCHA)');
+            return;
+        }
+
         setProcessing(true);
-        setGeneralError(null);
         setErrors({});
 
-        try {
-            await authLogin(
-                formData.email,
-                formData.password,
-                formData.remember,
-                formData.recaptcha_token
-            );
+        // Usamos toast.promise con MTG Flavor
+        toast.promise(
+            authLogin(formData.email, formData.password, formData.remember, formData.recaptcha_token),
+            {
+                loading: 'Resolviendo hechizo de invocación...',
+                success: () => {
+                    navigate('/dashboard', { replace: true });
+                    return '¡Invocación exitosa! Bienvenido de nuevo, Planeswalker.';
+                },
+                error: (err: any) => {
+                    setProcessing(false);
+                    if (recaptchaRef.current) recaptchaRef.current.reset();
+                    handleChange('recaptcha_token', '');
 
-            // Si el login es exitoso, redirigimos
-            navigate('/dashboard', { replace: true });
-
-        } catch (err: any) {
-            console.error("🛑 Error en el login:", err.response?.data);
-
-            // Reiniciamos el captcha en caso de error
-            if (recaptchaRef.current) {
-                recaptchaRef.current.reset();
+                    if (err.response?.data?.errors) {
+                        setErrors(err.response.data.errors);
+                        return 'Tu hechizo ha sido contrarrestado (revisa tus datos)';
+                    }
+                    return err.response?.data?.message || 'Fallo de conexión con el Multiverso';
+                },
             }
-            handleChange('recaptcha_token', '');
-
-            if (err.response?.data?.errors) {
-                setErrors(err.response.data.errors);
-            } else {
-                setGeneralError(err.response?.data?.message || 'Error al iniciar sesión');
-            }
-        } finally {
-            setProcessing(false);
-        }
+        );
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 px-4">
-            <Card className="w-full max-w-md">
+        <div className="min-h-screen flex items-center justify-center bg-black px-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+
+            <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-zinc-100 z-10 shadow-2xl">
                 <CardHeader className="space-y-1">
                     <div className="flex items-center justify-center mb-4">
-                        <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg">
-                            <Wand2 className="h-6 w-6 text-white" />
+                        {/* 2. Actualizamos el icono a Layers con efecto hover */}
+                        <div className="p-3 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-900/40 transform transition-transform hover:scale-105">
+                            <Layers className="h-6 w-6 text-black" />
                         </div>
                     </div>
-                    <CardTitle className="text-2xl text-center">Tienda Magic</CardTitle>
-                    <CardDescription className="text-center">
-                        Inicia sesión para acceder a tu colección de cartas
+                    <CardTitle className="text-3xl text-center font-bold bg-gradient-to-r from-zinc-100 via-emerald-400 to-zinc-100 bg-clip-text text-transparent">
+                        Tienda Magic
+                    </CardTitle>
+                    <CardDescription className="text-center text-zinc-400">
+                        Accede a tu bóveda del Multiverso
                     </CardDescription>
                 </CardHeader>
 
                 <CardContent>
-                    {(status || generalError) && (
-                        <Alert className={`mb-4 ${generalError ? 'border-red-200 bg-red-50' : ''}`}>
-                            <AlertDescription className={generalError ? 'text-red-800' : ''}>
-                                {generalError || status}
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email" className="text-zinc-300">Email de Plainswalker</Label>
                             <Input
                                 id="email"
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => handleChange('email', e.target.value)}
+                                className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50 placeholder:text-zinc-600"
                                 placeholder="tu@email.com"
                                 required
                             />
-                            {errors.email && <p className="text-sm text-red-600">{errors.email[0]}</p>}
+                            {errors.email && <p className="text-xs text-red-500">{errors.email[0]}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password">Contraseña</Label>
+                            <Label htmlFor="password" className="text-zinc-300">Grimorio (Contraseña)</Label>
                             <div className="relative">
                                 <Input
                                     id="password"
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => handleChange('password', e.target.value)}
+                                    className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50 placeholder:text-zinc-600"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -128,13 +125,13 @@ export default function Login({ canResetPassword = false, status }: Props) {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 text-zinc-500 hover:bg-transparent hover:text-emerald-400"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </Button>
                             </div>
-                            {errors.password && <p className="text-sm text-red-600">{errors.password[0]}</p>}
+                            {errors.password && <p className="text-xs text-red-500">{errors.password[0]}</p>}
                         </div>
 
                         <div className="flex items-center space-x-2">
@@ -142,32 +139,42 @@ export default function Login({ canResetPassword = false, status }: Props) {
                                 id="remember"
                                 checked={formData.remember}
                                 onCheckedChange={(checked) => handleChange('remember', !!checked)}
+                                className="border-zinc-700 data-[state=checked]:bg-emerald-600"
                             />
-                            <Label htmlFor="remember" className="text-sm">Recordarme</Label>
+                            <Label htmlFor="remember" className="text-sm text-zinc-400 cursor-pointer">Mantener portal abierto</Label>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center py-4">
+                        <div className="flex flex-col items-center justify-center py-4 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
                             <ReCAPTCHA
                                 ref={recaptchaRef}
+                                theme="dark"
                                 sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                                 onChange={(token) => handleChange('recaptcha_token', token || '')}
                             />
                             {errors.recaptcha_token && (
-                                <p className="text-sm text-red-600 mt-2">{errors.recaptcha_token[0]}</p>
+                                <p className="text-xs text-red-500 mt-2">{errors.recaptcha_token[0]}</p>
                             )}
                         </div>
 
-                        <Button type="submit" className="w-full" disabled={processing}>
-                            {processing ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                        <Button
+                            type="submit"
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-bold transition-all duration-200"
+                            disabled={processing}
+                        >
+                            {processing ? (
+                                <span className="flex items-center gap-2">
+                                    <Sparkles className="h-4 w-4 animate-spin" /> Resolviendo stack...
+                                </span>
+                            ) : 'Entrar a la Bóveda'}
                         </Button>
                     </form>
                 </CardContent>
 
-                <CardFooter className="flex flex-col space-y-4">
-                    <div className="text-center text-sm text-gray-600">
-                        ¿No tienes cuenta?{' '}
-                        <Link to="/register" className="text-blue-600 underline hover:text-blue-800">
-                            Regístrate aquí
+                <CardFooter className="flex flex-col space-y-4 border-t border-zinc-800/50 mt-4 pt-6">
+                    <div className="text-center text-sm text-zinc-500">
+                        ¿Aún no tienes tu Chispa?{' '}
+                        <Link to="/register" className="text-emerald-400 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline">
+                            Forja tu mazo aquí
                         </Link>
                     </div>
                 </CardFooter>
