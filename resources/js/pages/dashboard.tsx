@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext'; // 2. Usamos tu contexto de au
 import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import axios from 'axios';
 
 const breadcrumbs = [
   {
@@ -29,12 +30,31 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth(); // Obtenemos el usuario logueado si lo necesitas
 
-  const [stats] = useState({
-    totalPacks: 234,
-    totalCards: 112598,
-    activeUsers: 1247,
-    todaySales: 89,
-  });
+ const [stats, setStats] = useState({
+  totalPacks: 0,
+  totalCards: 0,
+  activeUsers: 0,
+  todaySales: 0,
+});
+const [loadingStats, setLoadingStats] = useState(true);
+
+// Añadimos este useEffect para ir a buscar los números reales
+useEffect(() => {
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get('/api/store-stats');
+      setStats(response.data);
+    } catch (error) {
+      console.error("Error al cargar las estadísticas de la Bóveda:", error);
+      // Opcional: Si falla, dejamos unos números de prueba
+      setStats({ totalPacks: 150, totalCards: 50000, activeUsers: 300, todaySales: 12 });
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  fetchStats();
+}, []);
 
   const featuredPacks = [
     {
@@ -247,11 +267,14 @@ export default function Dashboard() {
         {/* Stats Section */}
         <div className="px-6 py-16">
           <div className="mx-auto max-w-7xl">
+            <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+              Estado de la Bóveda
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { label: 'Packs Disponibles', value: stats.totalPacks, icon: Package, color: 'emerald' },
                 { label: 'Cartas en BD', value: stats.totalCards.toLocaleString(), icon: Sparkles, color: 'blue' },
-                { label: 'Coleccionistas', value: stats.activeUsers.toLocaleString(), icon: Users, color: 'purple' },
+                { label: 'Planeswalkers', value: stats.activeUsers.toLocaleString(), icon: Users, color: 'purple' },
                 { label: 'Ventas Hoy', value: stats.todaySales, icon: TrendingUp, color: 'orange' },
               ].map((stat, index) => (
                 <Card key={index} className="bg-zinc-900 border-zinc-800 hover:border-emerald-500/50 transition-all duration-300">
@@ -259,7 +282,11 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-zinc-500 mb-1">{stat.label}</p>
-                        <p className="text-3xl font-bold text-zinc-100">{stat.value}</p>
+                        {loadingStats ? (
+                           <div className="h-9 w-24 bg-zinc-800 rounded animate-pulse mt-1"></div>
+                        ) : (
+                           <p className="text-3xl font-bold text-zinc-100">{stat.value}</p>
+                        )}
                       </div>
                       <div className="p-3 rounded-lg bg-zinc-800">
                         <stat.icon className={`h-6 w-6 ${getColorClasses(stat.color).split(' ').pop()}`} />

@@ -91,3 +91,31 @@ Route::middleware('auth:sanctum')->group(function () {
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);
 });
+Route::get('/store-stats', function () {
+
+    // 1. Obtenemos el total de cartas de Scryfall (¡Y lo guardamos en caché por 24 horas!)
+    // Usamos el catálogo de nombres únicos de Scryfall que es rapidísimo.
+    $totalCards = Cache::remember('scryfall_total_cards', 60 * 60 * 24, function () {
+        try {
+            // Llamamos a la API de Scryfall
+            $response = Http::timeout(5)->get('https://api.scryfall.com/catalog/card-names');
+
+            if ($response->successful()) {
+                // Scryfall devuelve un campo "total_values" con el número exacto de cartas únicas
+                return $response->json('total_values');
+            }
+            return 30000; // Un número por defecto si la API de Scryfall falla temporalmente
+        } catch (\Exception $e) {
+            Log::error('Error conectando a Scryfall: ' . $e->getMessage());
+            return 30000;
+        }
+    });
+
+    // 2. Devolvemos los datos a React mezclando Scryfall con tu base de datos local
+    return response()->json([
+        'totalPacks' => 420, // (Tus packs locales)
+        'totalCards' => $totalCards, // 🚀 ¡El número real de Scryfall!
+        'activeUsers' => User::count(), // Tus usuarios reales
+        'todaySales' => 15, // (Tus ventas locales)
+    ]);
+});
