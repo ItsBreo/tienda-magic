@@ -8,33 +8,22 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rules\Password;
-use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
 
 class RegisterController extends Controller
 {
     /**
-     * Display the registration view.
-     *
-     * @return \Illuminate\View\View
+     * En una API, el método 'create' no es necesario ya que React
+     * renderiza el formulario de Registro por su cuenta.
      */
-    public function create()
-    {
-        return Inertia::render('auth.Register');
-    }
 
     /**
      * Handle an incoming registration request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     *
-     * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // Validar los datos del registro
+        // 1. Validar los datos del registro
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users'],
@@ -42,31 +31,34 @@ class RegisterController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        // Hash de la contraseña
-        $validated['password'] = Hash::make($validated['password']);
-
-        // Crear el usuario con saldo inicial de wallet
+        // 2. Crear el usuario con saldo inicial (wallet_balance)
+        // Se utiliza Hash::make para la contraseña
         $user = User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
-            'password' => $validated['password'],
-            'wallet_balance' => 0, // Saldo inicial
+            'password' => Hash::make($validated['password']),
+            'wallet_balance' => 0,
         ]);
 
-        // Disparar evento de usuario registrado
+        // 3. Disparar evento de usuario registrado
         event(new Registered($user));
 
-        // Autenticar al usuario
+        // 4. Autenticar al usuario
         Auth::login($user);
 
-        // Regenerar la sesión para prevenir ataques de fijación de sesión
-        // Esto es una práctica de seguridad recomendada después de autenticación exitosa
-        // IMPORTANTE: Regenerar la sesión DESPUÉS del login mantiene la autenticación
-        // porque Laravel copia los datos de la sesión anterior (incluyendo auth) a la nueva
+        // 5. Regenerar la sesión (Si usas cookies/Sanctum)
         $request->session()->regenerate();
 
-        // Redirigir al dashboard
-        return redirect()->route('dashboard');
+        // 6. Respuesta JSON de éxito en lugar de redirección
+        return response()->json([
+            'message' => 'Usuario registrado y autenticado con éxito.',
+            'user' => [
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'saldo' => $user->wallet_balance, //
+            ]
+        ], 201);
     }
 }

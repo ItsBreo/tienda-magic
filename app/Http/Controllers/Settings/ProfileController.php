@@ -5,45 +5,49 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class ProfileController extends Controller
 {
     /**
-     * Show the user's profile settings page.
+     * En la API, el método 'edit' suele sustituirse por uno que
+     * devuelve los datos actuales del usuario para rellenar el formulario.
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request): JsonResponse
     {
-        return Inertia::render('settings/profile', [
+        return response()->json([
+            'user' => $request->user(),
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => $request->session()->get('status'),
+            'status' => session('status'), // Opcional en API
         ]);
     }
 
     /**
      * Update the user's profile settings.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): JsonResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
 
-        return to_route('profile.edit');
+        return response()->json([
+            'message' => 'Perfil actualizado con éxito.',
+            'user' => $user
+        ]);
     }
 
     /**
      * Delete the user's account.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): JsonResponse
     {
         $request->validate([
             'password' => ['required', 'current_password'],
@@ -51,13 +55,18 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        Auth::logout();
+        // En API con Sanctum, solemos revocar el token en lugar de solo Logout
+        if (method_exists($user, 'tokens')) {
+            $user->tokens()->delete();
+        }
+
+        Auth::guard('web')->logout(); // Logout de la sesión si existe
 
         $user->delete();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect('/');
+        // En una API pura, no se suele invalidar sesión, pero se devuelve éxito
+        return response()->json([
+            'message' => 'Cuenta eliminada correctamente.'
+        ]);
     }
 }

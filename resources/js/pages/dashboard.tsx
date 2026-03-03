@@ -1,5 +1,5 @@
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   ShoppingBag,
   Package,
@@ -13,8 +13,7 @@ import {
   Crown,
   Flame
 } from 'lucide-react';
-import { route } from 'ziggy-js';
-import { usePage } from '@inertiajs/react';
+import { useAuth } from '@/contexts/AuthContext'; // 2. Usamos tu contexto de autenticación
 import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,8 +26,9 @@ const breadcrumbs = [
 ];
 
 export default function Dashboard() {
-  const { props } = usePage();
-  const { auth } = props as any;
+  const navigate = useNavigate();
+  const { user } = useAuth(); // Obtenemos el usuario logueado si lo necesitas
+
   const [stats] = useState({
     totalPacks: 234,
     totalCards: 112598,
@@ -69,14 +69,14 @@ export default function Dashboard() {
       description: 'Descubre todos los booster packs disponibles',
       icon: ShoppingBag,
       color: 'emerald',
-      href: route('shop.index'),
+      href: '/shop', // Rutas directas de React Router
     },
     {
       title: 'Mi Carrito',
       description: 'Gestiona tus compras pendientes',
       icon: Package,
       color: 'blue',
-      href: route('cart.index'),
+      href: '/cart',
     },
     {
       title: 'Abrir Packs',
@@ -96,19 +96,20 @@ export default function Dashboard() {
     },
   ];
 
+  // Helper para las clases de colores (evita problemas de purga de Tailwind)
   const getColorClasses = (color: string) => {
     const colors = {
-      emerald: 'bg-emerald-600 hover:bg-emerald-500 text-black',
-      blue: 'bg-blue-600 hover:bg-blue-500 text-white',
-      purple: 'bg-purple-600 hover:bg-purple-500 text-white',
-      orange: 'bg-orange-600 hover:bg-orange-500 text-white',
+      emerald: 'bg-emerald-600 hover:bg-emerald-500 text-black border-emerald-500/50 text-emerald-400',
+      blue: 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500/50 text-blue-400',
+      purple: 'bg-purple-600 hover:bg-purple-500 text-white border-purple-500/50 text-purple-400',
+      orange: 'bg-orange-600 hover:bg-orange-500 text-white border-orange-500/50 text-orange-400',
     };
-    return colors[color as keyof typeof colors] || 'bg-zinc-600 hover:bg-zinc-500 text-white';
+    return colors[color as keyof typeof colors] || 'bg-zinc-600 text-white text-zinc-400';
   };
 
   return (
     <TiendaMagicLayout breadcrumbs={breadcrumbs}>
-      <Head title="Tienda Magic - Tu Portal de Colección" />
+      {/* Ya no usamos <Head />, el título se puede manejar con useEffect o un componente SEO */}
 
       <div className="min-h-screen bg-black text-zinc-100">
         {/* Hero Section */}
@@ -128,13 +129,12 @@ export default function Dashboard() {
                 </div>
               </div>
               <p className="text-xl md:text-2xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-                La tienda definitiva para coleccionistas de Magic: The Gathering.
-                Descubre packs exclusivos, abre cartas legendarias y construye la colección de tus sueños.
+                Hola {user?.name}, la tienda definitiva para coleccionistas de Magic: The Gathering.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   className="bg-emerald-600 hover:bg-emerald-500 text-black font-semibold shadow-lg shadow-emerald-900/20 border border-emerald-500/50 transition-all duration-200 hover:scale-105"
-                  onClick={() => router.visit(route('shop.index'))}
+                  onClick={() => navigate('/shop')}
                 >
                   <ShoppingBag className="h-4 w-4 mr-2" />
                   Explorar Packs
@@ -142,7 +142,7 @@ export default function Dashboard() {
                 <Button
                   variant="outline"
                   className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-200"
-                  onClick={() => router.visit(route('cart.index'))}
+                  onClick={() => navigate('/cart')}
                 >
                   <Package className="h-4 w-4 mr-2" />
                   Mi Carrito
@@ -162,20 +162,17 @@ export default function Dashboard() {
                   Packs Destacados
                 </h2>
               </div>
-              <p className="text-zinc-400 max-w-2xl mx-auto">
-                Las expansiones más populares y exclusivas del momento. ¡No te las pierdas!
-              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredPacks.map((pack, index) => (
                 <Card
                   key={index}
                   className="bg-zinc-900 border-zinc-800 hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 cursor-pointer group"
-                  onClick={() => router.visit(route('shop.index'))}
+                  onClick={() => navigate('/shop')}
                 >
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`px-3 py-1 rounded-full text-xs font-semibold ${getColorClasses(pack.color)}`}>
+                      <div className={`px-3 py-1 rounded-full text-xs font-semibold ${getColorClasses(pack.color).split(' ')[0]} ${getColorClasses(pack.color).split(' ')[2]}`}>
                         {pack.badge}
                       </div>
                       <div className="flex items-center gap-1">
@@ -191,10 +188,10 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <span className="text-2xl font-bold text-emerald-400">{pack.price}</span>
                         <Button
-                          className={`px-4 py-2 text-sm ${getColorClasses(pack.color)}`}
+                          className={`px-4 py-2 text-sm ${getColorClasses(pack.color).split(' ').slice(0,2).join(' ')}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.visit(route('shop.index'));
+                            navigate('/shop');
                           }}
                         >
                           Ver Detalles
@@ -221,18 +218,18 @@ export default function Dashboard() {
                   className={`bg-zinc-900 border-zinc-800 hover:border-emerald-500/50 transition-all duration-300 cursor-pointer ${
                     action.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
                   }`}
-                  onClick={() => !action.disabled && router.visit(action.href)}
+                  onClick={() => !action.disabled && navigate(action.href)}
                 >
                   <CardHeader className="pb-4">
-                    <div className={`p-3 rounded-lg bg-${action.color}-500/10 w-fit mb-4`}>
-                      <action.icon className={`h-6 w-6 text-${action.color}-400`} />
+                    <div className="p-3 rounded-lg bg-zinc-800 w-fit mb-4">
+                      <action.icon className={`h-6 w-6 ${getColorClasses(action.color).split(' ').pop()}`} />
                     </div>
                     <CardTitle className="text-zinc-100">{action.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-zinc-400 text-sm mb-4">{action.description}</p>
                     <Button
-                      className={`w-full ${getColorClasses(action.color)} ${
+                      className={`w-full ${getColorClasses(action.color).split(' ').slice(0,2).join(' ')} ${
                         action.disabled ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                       disabled={action.disabled}
@@ -250,9 +247,6 @@ export default function Dashboard() {
         {/* Stats Section */}
         <div className="px-6 py-16">
           <div className="mx-auto max-w-7xl">
-            <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-              Estadísticas de la Tienda
-            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { label: 'Packs Disponibles', value: stats.totalPacks, icon: Package, color: 'emerald' },
@@ -267,37 +261,14 @@ export default function Dashboard() {
                         <p className="text-sm text-zinc-500 mb-1">{stat.label}</p>
                         <p className="text-3xl font-bold text-zinc-100">{stat.value}</p>
                       </div>
-                      <div className={`p-3 rounded-lg bg-${stat.color}-500/10`}>
-                        <stat.icon className={`h-6 w-6 text-${stat.color}-400`} />
+                      <div className="p-3 rounded-lg bg-zinc-800">
+                        <stat.icon className={`h-6 w-6 ${getColorClasses(stat.color).split(' ').pop()}`} />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="px-6 py-24 bg-gradient-to-r from-emerald-900/20 to-blue-900/20">
-          <div className="mx-auto max-w-4xl text-center">
-            <div className="inline-flex items-center gap-3 px-6 py-3 bg-zinc-900/80 backdrop-blur-sm border border-zinc-700 rounded-full mb-6">
-              <Sparkles className="h-6 w-6 text-emerald-400 animate-pulse" />
-              <h2 className="text-2xl font-bold text-zinc-100">
-                ¿Listo para empezar tu colección?
-              </h2>
-            </div>
-            <p className="text-zinc-400 mb-8 max-w-2xl mx-auto">
-              Explora nuestra colección de más de 200 booster packs de todas las expansiones de Magic.
-              Desde los clásicos hasta los más recientes, ¡todo lo que necesitas para construir la colección perfecta!
-            </p>
-            <Button
-              className="bg-emerald-600 hover:bg-emerald-500 text-black font-semibold shadow-lg shadow-emerald-900/20 border border-emerald-500/50 transition-all duration-200 hover:scale-105 text-lg px-8 py-3"
-              onClick={() => router.visit(route('shop.index'))}
-            >
-              <ShoppingBag className="h-5 w-5 mr-2" />
-              Comenzar a Coleccionar
-            </Button>
           </div>
         </div>
       </div>

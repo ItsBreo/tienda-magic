@@ -1,50 +1,75 @@
-import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useRef } from 'react'; // 1. Añadimos useRef
+// import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Wand2 } from 'lucide-react';
-import { GuestRoute } from '@/components/ProtectedRoute';
-import InputError from '@/components/input-error';
-import { useForm } from '@inertiajs/react';
-import { Turnstile } from '@marsidev/react-turnstile';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-export default function RegisterWithProvider() {
-    const { login: authLogin } = useAuth();
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    
-    const { data, setData, post, processing, errors, reset } = useForm({
+import ReCAPTCHA from 'react-google-recaptcha';
+
+export default function Register() {
+    const navigate = useNavigate();
+
+    // 2. Creamos la referencia para el componente ReCAPTCHA
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+    const [formData, setFormData] = useState({
         name: '',
         username: '',
         email: '',
         password: '',
         password_confirmation: '',
-        turnstile_token: '',
+        recaptcha_token: '',
     });
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState<any>({});
+    const [generalError, setGeneralError] = useState<string | null>(null);
+
+    const handleChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        if (errors[field]) setErrors((prev: any) => ({ ...prev, [field]: null }));
+    };
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
-        
+        setProcessing(true);
+        setGeneralError(null);
+        setErrors({});
+
         try {
-            // Usar el endpoint de registro normal
-            await post('/register', {
-                onFinish: () => reset('password', 'password_confirmation'),
-            });
+            await axios.get('/sanctum/csrf-cookie');
+            const response = await axios.post('/api/register', formData);
+
+            console.log(response.data.message);
+            navigate('/dashboard', { replace: true });
+
         } catch (err: any) {
-            setError(err.email || err.password || err.name || err.username || 'Error al registrarse');
+
+            // 3. REINICIAMOS EL CAPTCHA SI HAY UN ERROR
+            if (recaptchaRef.current) {
+                recaptchaRef.current.reset(); // Vuelve a poner la casilla en blanco
+            }
+            handleChange('recaptcha_token', ''); // Borramos el token viejo del estado
+
+            if (err.response?.data?.errors) {
+                setErrors(err.response.data.errors);
+            } else {
+                setGeneralError(err.response?.data?.message || 'Error al registrarse. Inténtalo de nuevo.');
+            }
+        } finally {
+            setProcessing(false);
         }
     };
 
     return (
-        <GuestRoute>
-            <Head title="Registro" />
-            
+        <>
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 px-4">
                 <Card className="w-full max-w-md">
                     <CardHeader className="space-y-1">
@@ -58,41 +83,37 @@ export default function RegisterWithProvider() {
                             Únete a la comunidad de Magic
                         </CardDescription>
                     </CardHeader>
-                    
+
                     <CardContent>
-                        {error && (
+                        {generalError && (
                             <Alert className="mb-4 border-red-200 bg-red-50">
-                                <AlertDescription className="text-red-800">{error}</AlertDescription>
+                                <AlertDescription className="text-red-800">{generalError}</AlertDescription>
                             </Alert>
                         )}
-                        
+
                         <form onSubmit={submit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nombre Completo</Label>
                                 <Input
                                     id="name"
-                                    type="text"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    value={formData.name}
+                                    onChange={(e) => handleChange('name', e.target.value)}
                                     placeholder="Tu nombre completo"
                                     required
-                                    autoComplete="name"
                                 />
-                                <InputError message={errors.name} />
+                                {errors.name && <p className="text-sm text-red-600">{errors.name[0]}</p>}
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="username">Nombre de Usuario</Label>
                                 <Input
                                     id="username"
-                                    type="text"
-                                    value={data.username}
-                                    onChange={(e) => setData('username', e.target.value)}
+                                    value={formData.username}
+                                    onChange={(e) => handleChange('username', e.target.value)}
                                     placeholder="@usuario"
                                     required
-                                    autoComplete="username"
                                 />
-                                <InputError message={errors.username} />
+                                {errors.username && <p className="text-sm text-red-600">{errors.username[0]}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -100,13 +121,12 @@ export default function RegisterWithProvider() {
                                 <Input
                                     id="email"
                                     type="email"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
+                                    value={formData.email}
+                                    onChange={(e) => handleChange('email', e.target.value)}
                                     placeholder="tu@email.com"
                                     required
-                                    autoComplete="email"
                                 />
-                                <InputError message={errors.email} />
+                                {errors.email && <p className="text-sm text-red-600">{errors.email[0]}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -115,11 +135,10 @@ export default function RegisterWithProvider() {
                                     <Input
                                         id="password"
                                         type={showPassword ? 'text' : 'password'}
-                                        value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
+                                        value={formData.password}
+                                        onChange={(e) => handleChange('password', e.target.value)}
                                         placeholder="••••••••"
                                         required
-                                        autoComplete="new-password"
                                     />
                                     <Button
                                         type="button"
@@ -128,14 +147,10 @@ export default function RegisterWithProvider() {
                                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
-                                        {showPassword ? (
-                                            <EyeOff className="h-4 w-4" />
-                                        ) : (
-                                            <Eye className="h-4 w-4" />
-                                        )}
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </Button>
                                 </div>
-                                <InputError message={errors.password} />
+                                {errors.password && <p className="text-sm text-red-600">{errors.password[0]}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -144,11 +159,10 @@ export default function RegisterWithProvider() {
                                     <Input
                                         id="password_confirmation"
                                         type={showConfirmPassword ? 'text' : 'password'}
-                                        value={data.password_confirmation}
-                                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                                        value={formData.password_confirmation}
+                                        onChange={(e) => handleChange('password_confirmation', e.target.value)}
                                         placeholder="••••••••"
                                         required
-                                        autoComplete="new-password"
                                     />
                                     <Button
                                         type="button"
@@ -157,34 +171,26 @@ export default function RegisterWithProvider() {
                                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     >
-                                        {showConfirmPassword ? (
-                                            <EyeOff className="h-4 w-4" />
-                                        ) : (
-                                            <Eye className="h-4 w-4" />
-                                        )}
+                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </Button>
                                 </div>
-                                <InputError message={errors.password_confirmation} />
+                                {errors.password_confirmation && <p className="text-sm text-red-600">{errors.password_confirmation[0]}</p>}
                             </div>
 
                             <div className="flex flex-col items-center justify-center py-4">
-                                <Input
-                                    type="hidden"
-                                    name="turnstile_token"
-                                    id="turnstile_token_input"
+                                <ReCAPTCHA
+                                    ref={recaptchaRef} // 4. CONECTAMOS LA REFERENCIA AQUÍ
+                                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                                    onChange={(token) => handleChange('recaptcha_token', token || '')}
                                 />
-                                <Turnstile
-                                    siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-                                    onSuccess={(token) => {
-                                        setData('turnstile_token', token);
-                                    }}
-                                />
-                                <InputError message={errors.turnstile_token} className="mt-2" />
+                                {errors.recaptcha_token && (
+                                    <p className="text-sm text-red-600 mt-2">{errors.recaptcha_token[0]}</p>
+                                )}
                             </div>
 
-                            <Button 
-                                type="submit" 
-                                className="w-full" 
+                            <Button
+                                type="submit"
+                                className="w-full"
                                 disabled={processing}
                             >
                                 {processing ? 'Creando cuenta...' : 'Crear Cuenta'}
@@ -194,17 +200,11 @@ export default function RegisterWithProvider() {
 
                     <CardFooter className="flex flex-col space-y-4">
                         <div className="text-center text-sm text-gray-600">
-                            ¿Ya tienes cuenta?{' '}
-                            <a
-                                href="/login"
-                                className="text-blue-600 hover:text-blue-800 underline"
-                            >
-                                Inicia sesión aquí
-                            </a>
+                            ¿Ya tienes cuenta? <a href="/login" className="text-blue-600 underline">Inicia sesión aquí</a>
                         </div>
                     </CardFooter>
                 </Card>
             </div>
-        </GuestRoute>
+        </>
     );
 }

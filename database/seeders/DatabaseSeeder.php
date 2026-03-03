@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Super Admin',
             'username' => 'superadmin',
             'email' => 'admin@ejemplo.com',
-            // El password será 'password' por la factory
+            'password' => bcrypt('password'),
         ]);
 
         // Le asignamos el rol de Admin

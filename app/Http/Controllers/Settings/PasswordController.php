@@ -3,36 +3,38 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class PasswordController extends Controller
 {
     /**
-     * Show the user's password settings page.
+     * En una API, el método 'edit' suele no existir
+     * ya que React se encarga de mostrar el formulario.
      */
-    public function edit(): Response
-    {
-        return Inertia::render('settings/password');
-    }
 
     /**
      * Update the user's password.
      */
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request): JsonResponse
     {
+        // 1. Validación de datos
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
+        // 2. Actualización de la contraseña con Hash::make
+        // Es vital encriptarla antes de guardar, similar a tu UserController
         $request->user()->update([
-            'password' => $validated['password'],
+            'password' => Hash::make($validated['password']),
         ]);
 
-        return back();
+        // 3. Respuesta JSON en lugar de RedirectResponse
+        return response()->json([
+            'message' => 'Contraseña actualizada correctamente.'
+        ], 200);
     }
 }

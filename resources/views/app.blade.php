@@ -30,7 +30,8 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        {{-- Quitamos el atributo 'inertia' de la etiqueta title --}}
+        <title>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -39,12 +40,13 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
-        @routes
+        {{-- 1. Eliminamos @routes (Ziggy) y @inertiaHead --}}
+        {{-- 2. Simplificamos @vite para que solo cargue el app.tsx principal --}}
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
-        @inertiaHead
+        @vite(['resources/js/app.tsx'])
     </head>
     <body class="font-sans antialiased">
-        @inertia
+        {{-- 3. Cambiamos @inertia por nuestro contenedor raíz de React --}}
+        <div id="root"></div>
     </body>
 </html>

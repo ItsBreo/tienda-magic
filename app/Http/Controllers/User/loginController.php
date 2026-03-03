@@ -7,114 +7,101 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Features;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use App\Rules\RecaptchaCheck;
 
 class LoginController extends Controller
 {
     /**
-     * Show the login form.
-     *
-     * @return \Illuminate\View\View
+     * En una API, el método 'create' no es necesario ya que React
+     * renderiza el formulario de Login por su cuenta.
      */
-    public function create()
-    {
-        return Inertia::render('auth/Login', [
-            'canResetPassword' => false,
-            'canRegister' => true,
-            'status' => session('status'),
-        ]);
-    }
 
     /**
      * Handle a login request to the application.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     *
-     * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // Aplicar rate limiting
+        // 1. Aplicar rate limiting (se mantiene igual, ya devuelve 429)
         $throttleKey = \Illuminate\Support\Str::transliterate(
-            \Illuminate\Support\Str::lower($request->input(Fortify::username())).'|'.$request->ip()
+            \Illuminate\Support\Str::lower($request->input('email')) . '|' . $request->ip()
         );
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-
-            // Lanzar ThrottleRequestsException que Laravel maneja correctamente
-            // Esto devuelve un código 429 sin redirección
             throw new ThrottleRequestsException(__('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]));
         }
 
-        // Validar las credenciales
+        // 2. Validar las credenciales
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
             'remember' => ['nullable', 'boolean'],
+            'recaptcha_token' => ['required', 'string', new RecaptchaCheck()],
         ]);
 
-        // Intentar autenticar al usuario
-        if (!Auth::attempt([
-            'email' => $credentials['email'],
-            'password' => $credentials['password'],
-        ], $request->boolean('remember'))) {
+        // 3. Intentar autenticar
+        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey);
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'email' => [__('auth.failed')],
             ]);
         }
 
         RateLimiter::clear($throttleKey);
-
         $user = Auth::user();
 
-        // Verificar si el usuario tiene two-factor authentication habilitado
+        // 4. Lógica de Two-Factor Authentication (Adaptada para API)
         if (Features::canManageTwoFactorAuthentication() &&
-            Features::enabled(Features::twoFactorAuthentication(), 'confirm') &&
             $user->hasEnabledTwoFactorAuthentication() &&
             $user->two_factor_confirmed_at) {
 
-            // Guardar el ID del usuario en la sesión para el two-factor challenge
+            // En lugar de redirección, informamos a React que se requiere 2FA
+            Auth::logout(); // Cerramos sesión temporal
+
+            // Opcional: puedes guardar un token temporal o ID en sesión/cache
             $request->session()->put('login.id', $user->id);
 
-            // Cerrar la sesión actual (el usuario aún no está completamente autenticado)
-            Auth::logout();
-
-            // Regenerar la sesión
-            $request->session()->regenerate();
-
-            // Redirigir al two-factor challenge
-            return redirect()->route('two-factor.login');
+            return response()->json([
+                'two_factor' => true,
+                'message' => 'Se requiere autenticación de dos factores.'
+            ]);
         }
 
-        // Regenerar la sesión para prevenir ataques de fijación de sesión
-        $request->session()->regenerate();
+        // 5. Respuesta de éxito (Si usas Sanctum, aquí generarías el token)
+        // $token = $user->createToken('auth_token')->plainTextToken;
 
-        // Redirigir al dashboard o a la URL anterior
-        return redirect()->intended(route('dashboard'));
+        return response()->json([
+            'message' => 'Login exitoso',
+            'user' => $user,
+            // 'access_token' => $token, // Descomenta si usas tokens
+        ]);
     }
 
     /**
      * Log the user out of the application.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(Request $request)
+    public function destroy(Request $request): JsonResponse
     {
+        // Si usas Sanctum, es mejor revocar el token actual
+        if ($request->user()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
         Auth::logout();
 
+        // En API con Axios/Sanctum, estas líneas de sesión suelen ser opcionales
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return response()->json([
+            'message' => 'Sesión cerrada correctamente.'
+        ]);
     }
 }

@@ -1,10 +1,9 @@
 import { type ReactNode } from 'react';
-import { Head, router, Link } from '@inertiajs/react';
+import { Link, useNavigate } from 'react-router-dom'; // 1. Cambiamos Inertia por React Router
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Package, LogOut, Settings } from 'lucide-react';
-import { route } from 'ziggy-js';
-import { usePage } from '@inertiajs/react';
+import { useAuth } from '@/contexts/AuthContext'; // 2. Usamos tu contexto de autenticación
 
 interface TiendaMagicLayoutProps {
   children: ReactNode;
@@ -17,41 +16,52 @@ export default function TiendaMagicLayout({
   breadcrumbs = [],
   title = 'Tienda Magic'
 }: TiendaMagicLayoutProps) {
-  const { props } = usePage();
-  const { auth } = props as any;
+  const { user, logout } = useAuth(); // 3. Obtenemos usuario y función logout del contexto
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login'); // Redirigir tras cerrar sesión
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
-      <Head title={title} />
+    <div className="min-h-screen flex flex-col bg-black text-zinc-100">
+      {/* Nota: Para el título de la pestaña (Head), al no usar Inertia,
+         puedes usar un useEffect en cada página o la librería 'react-helmet-async'
+      */}
 
       {/* Header Navigation */}
       <header className="bg-zinc-900 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-3">
+            <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="p-2 bg-emerald-600 rounded-lg">
                 <Package className="h-6 w-6 text-black" />
               </div>
               <h1 className="text-xl font-bold text-zinc-100">Tienda Magic</h1>
-            </div>
+            </Link>
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               <Link
-                href={route('dashboard')}
+                to="/dashboard"
                 className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 font-medium"
               >
                 Inicio
               </Link>
               <Link
-                href={route('shop.index')}
+                to="/shop"
                 className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 font-medium"
               >
                 Tienda
               </Link>
               <Link
-                href={route('cart.index')}
+                to="/cart"
                 className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 font-medium"
               >
                 Carrito
@@ -60,28 +70,29 @@ export default function TiendaMagicLayout({
 
             {/* User Menu */}
             <div className="flex items-center gap-4">
-              {auth.user ? (
+              {user ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-zinc-400">
-                    {auth.user.name}
+                  <span className="text-sm text-zinc-400 hidden sm:inline">
+                    {user.name}
                   </span>
                   <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
                     <span className="text-sm font-medium text-emerald-400">
-                      {Number(auth.user.wallet_balance ?? 0).toFixed(2)}€
+                      {Number(user.wallet_balance ?? 0).toFixed(2)}€
                     </span>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="text-zinc-400 hover:text-zinc-200"
+                    onClick={() => navigate('/profile')}
                   >
                     <Settings className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-zinc-400 hover:text-zinc-200"
-                    onClick={() => router.post(route('logout'))}
+                    className="text-zinc-400 hover:text-red-400"
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
@@ -92,14 +103,14 @@ export default function TiendaMagicLayout({
                     variant="outline"
                     size="sm"
                     className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                    onClick={() => router.visit(route('login'))}
+                    onClick={() => navigate('/login')}
                   >
                     Iniciar Sesión
                   </Button>
                   <Button
                     size="sm"
                     className="bg-emerald-600 hover:bg-emerald-500 text-black"
-                    onClick={() => router.visit(route('register'))}
+                    onClick={() => navigate('/register')}
                   >
                     Registrarse
                   </Button>
@@ -116,12 +127,12 @@ export default function TiendaMagicLayout({
           <div className="max-w-7xl mx-auto px-6 py-3">
             <nav className="flex items-center gap-2 text-sm">
               {breadcrumbs.map((breadcrumb, index) => (
-                <div key={breadcrumb.href} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-2">
                   {index > 0 && (
                     <span className="text-zinc-600">/</span>
                   )}
                   <Link
-                    href={breadcrumb.href}
+                    to={breadcrumb.href}
                     className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
                   >
                     {breadcrumb.title}
@@ -144,22 +155,22 @@ export default function TiendaMagicLayout({
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center md:text-left">
               <p className="text-zinc-400 text-sm">
-                © 2024 Tienda Magic. Todos los derechos reservados.
+                © {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.
               </p>
               <p className="text-zinc-500 text-xs mt-1">
                 Tu tienda especializada en Magic: The Gathering
               </p>
             </div>
             <div className="flex items-center gap-6">
-              <a href="#" className="text-zinc-500 hover:text-emerald-400 text-sm transition-colors duration-200">
+              <Link to="/terms" className="text-zinc-500 hover:text-emerald-400 text-sm transition-colors duration-200">
                 Términos
-              </a>
-              <a href="#" className="text-zinc-500 hover:text-emerald-400 text-sm transition-colors duration-200">
+              </Link>
+              <Link to="/privacy" className="text-zinc-500 hover:text-emerald-400 text-sm transition-colors duration-200">
                 Privacidad
-              </a>
-              <a href="#" className="text-zinc-500 hover:text-emerald-400 text-sm transition-colors duration-200">
+              </Link>
+              <Link to="/contact" className="text-zinc-500 hover:text-emerald-400 text-sm transition-colors duration-200">
                 Contacto
-              </a>
+              </Link>
             </div>
           </div>
         </div>

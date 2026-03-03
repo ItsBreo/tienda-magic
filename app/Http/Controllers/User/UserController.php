@@ -16,20 +16,24 @@ class UserController extends Controller
 
     // Mostrar info para el perfil (Propio usuario)
     public function show (){
-        // 1. Obtener el usuario actual
-        $user = auth()->user();
+    $user = auth()->user();
 
-        // 2. Acceder al perfil
-        $perfil = $user->profile;
-
-        return response()->json([
-            'usuario' => $user->name,
-            'email' => $user->email,
-            'bio' => $perfil->bio,        // Campo de la tabla profiles CAMBIAR A PROFILECONTROLLER
-            'pais' => $perfil->country,   // Campo de la tabla profiles CAMBIAR A PROFILECONTROLLER
-            'saldo' => $user->wallet_balance
-        ]);
+    // Si no hay usuario, devolvemos un 401 (No autorizado) en vez de un 500
+    if (!$user) {
+        return response()->json(['message' => 'No autenticado'], 401);
     }
+
+    $perfil = $user->profile;
+
+    return response()->json([
+        'usuario' => $user->name,
+        'email' => $user->email,
+        // Usamos el operador ?-> para que si no hay perfil, devuelva null en vez de explotar
+        'bio' => $perfil?->bio,
+        'pais' => $perfil?->country,
+        'saldo' => $user->wallet_balance
+    ]);
+}
 
     // Actualizar cuenta (nombre de usuario,email)
     public function updateProfile(Request $request, User $user) {
