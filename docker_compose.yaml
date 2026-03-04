@@ -9,7 +9,6 @@ services:
       POSTGRES_PASSWORD: 1234
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - /Users/josue/DatosBulk:/datos_bulk
 
 volumes:
   pgdata:

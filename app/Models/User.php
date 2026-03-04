@@ -25,7 +25,13 @@ class User extends Authenticatable
         'email',
         'password',
         'wallet_balance',
+    ];
 
+    /**
+     * Atributos dinámicos que siempre se adjuntarán al array/JSON del modelo
+     */
+    protected $appends = [
+        'is_admin'
     ];
 
     /**
@@ -59,18 +65,20 @@ class User extends Authenticatable
     // Todos los JOIN que tiene la tabla usuario
 
     // Usuario - perfil 1-1
-    public function profile() {
+    public function profile()
+    {
         return $this->hasOne(userProfile::class);
     }
 
     // Usuario - roles M:M
-public function roles()
-{
-    return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'roles_id');
-}
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'roles_id');
+    }
 
     // Usuario - mazo 1:M
-    public function decks(){
+    public function decks()
+    {
         return $this->hasMany(Deck::class);
     }
 
@@ -86,24 +94,28 @@ public function roles()
         return $this->hasMany(InventoryPack::class);
     }
 
-    public function favoriteCards(){
-    // Laravel buscará la tabla card_user automáticamente
-    return $this->belongsToMany(Card::class);
+    public function favoriteCards()
+    {
+        // Laravel buscará la tabla card_user automáticamente
+        return $this->belongsToMany(Card::class);
     }
 
-    public function itemsForSale(){
-    // Esto trae los registros del inventario que pertenecen al usuario
-    // pero solo aquellos donde 'is_for_sale' sea verdadero (true/1)
-    return $this->hasMany(Inventory::class)->where('is_for_sale', true);
+    public function itemsForSale()
+    {
+        // Esto trae los registros del inventario que pertenecen al usuario
+        // pero solo aquellos donde 'is_for_sale' sea verdadero (true/1)
+        return $this->hasMany(Inventory::class)->where('is_for_sale', true);
     }
 
     // Relación filtrada para lo que vende
-    public function cardsForSale() {
-    return $this->hasMany(Card::class)->where('is_for_sale', true);
+    public function cardsForSale()
+    {
+        return $this->hasMany(Card::class)->where('is_for_sale', true);
     }
 
-    public function decksForSale() {
-    return $this->hasMany(Deck::class)->where('is_for_sale', true);
+    public function decksForSale()
+    {
+        return $this->hasMany(Deck::class)->where('is_for_sale', true);
     }
 
     // User.php
@@ -135,8 +147,18 @@ public function roles()
 
     public function isAdmin(): bool
     {
-        // Verifica si alguno de sus roles se llama 'admin'
-        return $this->roles->contains('name', 'admin');
+        // Verifica si alguno de sus roles se llama 'admin' (case-insensitive)
+        return $this->roles->contains(function ($role) {
+            return strtolower($role->name) === 'admin';
+        });
+    }
+
+    /**
+     * Mutator para que el frontend reciba "is_admin" como un boolean
+     */
+    public function getIsAdminAttribute(): bool
+    {
+        return $this->isAdmin();
     }
 
     /**

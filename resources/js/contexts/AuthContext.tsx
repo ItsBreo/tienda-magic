@@ -13,6 +13,7 @@ interface User {
     username: string;
     email: string;
     wallet_balance?: number;
+    is_admin?: boolean;
 }
 
 interface AuthContextType {

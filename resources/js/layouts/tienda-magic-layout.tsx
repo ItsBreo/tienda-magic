@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // 1. Cambiamos Inertia por React Router
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Package, LogOut, Settings } from 'lucide-react';
+import { Package, LogOut, Settings, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext'; // 2. Usamos tu contexto de autenticación
 
 interface TiendaMagicLayoutProps {
@@ -66,6 +66,15 @@ export default function TiendaMagicLayout({
               >
                 Carrito
               </Link>
+              {user?.is_admin && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors duration-200 font-bold bg-emerald-900/20 px-3 py-1.5 rounded-full border border-emerald-500/30 shadow-sm shadow-emerald-900/20 hover:scale-105 transform"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
+              )}
             </nav>
 
             {/* User Menu */}

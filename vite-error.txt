@@ -1,0 +1,75 @@
+﻿
+> dev
+> vite
+
+node.exe : [31merror when 
+starting dev server:
+En E:\node\npm.ps1: 29 
+Carácter: 3
++   & $NODE_EXE $NPM_CLI_JS 
+$args
++   ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo          
+    : NotSpecified: ([31m  
+  error when starting dev   
+  server::String) [], Re    
+moteException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+Error: Error generating 
+types: Error: Command 
+failed: php artisan 
+wayfinder:generate 
+--with-form
+The environment file is 
+invalid!
+Failed to parse dotenv 
+file. Encountered an 
+invalid name at [V\I\T\E\_\R
+\E\C\A\P\T\C\H\A\_\S\I\T\E\_
+\K\E\Y].
+
+    at 
+PluginContext._formatLog (fi
+le:///C:/Users/Sa%C3%BAl/Doc
+uments/GitHub/tienda-magic/n
+ode_modules/vite/dist/node/c
+hunks/config.js:28999:43)
+    at PluginContext.error (
+file:///C:/Users/Sa%C3%BAl/D
+ocuments/GitHub/tienda-magic
+/node_modules/vite/dist/node
+/chunks/config.js:28996:14)
+    at runCommand (file:///C
+:/Users/Sa%C3%BAl/Documents/
+GitHub/tienda-magic/node_mod
+ules/@laravel/vite-plugin-wa
+yfinder/dist/index.mjs:2101:
+15)
+    at async Promise.all 
+(index 2)
+    at async EnvironmentPlug
+inContainer.hookParallel (fi
+le:///C:/Users/Sa%C3%BAl/Doc
+uments/GitHub/tienda-magic/n
+ode_modules/vite/dist/node/c
+hunks/config.js:28661:3)
+    at async EnvironmentPlug
+inContainer.buildStart (file
+:///C:/Users/Sa%C3%BAl/Docum
+ents/GitHub/tienda-magic/nod
+e_modules/vite/dist/node/chu
+nks/config.js:28671:3)
+    at async file:///C:/User
+s/Sa%C3%BAl/Documents/GitHub
+/tienda-magic/node_modules/v
+ite/dist/node/chunks/config.
+js:25633:4
+    at async 
+httpServer.listen (file:///C
+:/Users/Sa%C3%BAl/Documents/
+GitHub/tienda-magic/node_mod
+ules/vite/dist/node/chunks/c
+onfig.js:25644:5)[39m

@@ -3,6 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Modelos
+use App\Models\User;
+
 // Importaciones de Controladores
 use App\Http\Controllers\Shop\{CatalogController, CartController, CheckoutController, PackOpeningController, PackDetailController, DepositController};
 use App\Http\Controllers\Inventory\{InventoryController, DeckController, WalletTransactionController};
@@ -14,6 +17,11 @@ use App\Http\Controllers\Exchange\{ExchangeController, TradeController};
 use App\Http\Controllers\Social\{ForumController, ThreadController, CommentController, ProfileController as SocialProfileController};
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
+
+// Controladores de Admin
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminSetController;
+use App\Http\Controllers\Admin\AdminCardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,6 +98,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);
+
+    // ========== ADMIN DASHBOARD ==========
+    Route::prefix('admin')->middleware(['admin'])->group(function () {
+        Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'destroy']);
+        Route::apiResource('sets', AdminSetController::class)->only(['index', 'store', 'destroy']);
+        Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
+    });
 });
 Route::get('/store-stats', function () {
 

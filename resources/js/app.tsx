@@ -16,6 +16,15 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import { ProtectedLayout } from './components/ProtectedRoute';
 import Dashboard from './pages/dashboard';
+
+// Admin Components & Pages
+import { AdminRoute } from './components/AdminRoute';
+import AdminLayout from './layouts/AdminLayout';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminCards from './pages/admin/Cards';
+import AdminSets from './pages/admin/Sets';
+
 // Asegúrate de importar las otras páginas que uses
 
 initializeTheme();
@@ -52,6 +61,16 @@ if (el) {
                             <Route path="/profile" element={<div className="p-8"><h1>Tu Perfil</h1></div>} />
 
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                        </Route>
+
+                        {/* RUTAS DE ADMINISTRADOR */}
+                        <Route element={<AdminRoute />}>
+                            <Route element={<AdminLayout />}>
+                                <Route path="/admin" element={<AdminDashboard />} />
+                                <Route path="/admin/users" element={<AdminUsers />} />
+                                <Route path="/admin/cards" element={<AdminCards />} />
+                                <Route path="/admin/sets" element={<AdminSets />} />
+                            </Route>
                         </Route>
                     </Routes>
                 </BrowserRouter>
