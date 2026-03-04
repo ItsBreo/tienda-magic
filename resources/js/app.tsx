@@ -15,7 +15,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import { ProtectedLayout } from './components/ProtectedRoute';
-import Dashboard from './pages/dashboard';
+import Dashboard from './pages/dashboard/dashboard';
 
 // Admin Components & Pages
 import { AdminRoute } from './components/AdminRoute';
@@ -37,7 +37,6 @@ if (el) {
     root.render(
         <StrictMode>
             <AuthProvider>
-                {/* 🌟 AQUÍ ESTÁ LA MAGIA: El Toaster global */}
                 <Toaster
                     theme="dark"
                     position="top-right"

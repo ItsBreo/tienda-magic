@@ -17,6 +17,8 @@ use App\Http\Controllers\Exchange\{ExchangeController, TradeController};
 use App\Http\Controllers\Social\{ForumController, ThreadController, CommentController, ProfileController as SocialProfileController};
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
+use App\Http\Controllers\Api\SetController;
+use App\Http\Controllers\Api\DashboardController;
 
 // Controladores de Admin
 use App\Http\Controllers\Admin\AdminUserController;
@@ -36,6 +38,10 @@ Route::post('/register', [RegisterController::class, 'store']);
 // Tienda y Catálogo
 Route::get('/shop', [CatalogController::class, 'index']);
 Route::get('/pack/{code}', [PackDetailController::class, 'show']);
+
+// --- TUS RUTAS DEL DASHBOARD ---
+Route::get('/sets/latest', [SetController::class, 'latest']);
+Route::get('/store-stats', [DashboardController::class, 'getStats']);
 
 /*
 |--------------------------------------------------------------------------
@@ -105,32 +111,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('sets', AdminSetController::class)->only(['index', 'store', 'destroy']);
         Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
     });
-});
-Route::get('/store-stats', function () {
-
-    // 1. Obtenemos el total de cartas de Scryfall (¡Y lo guardamos en caché por 24 horas!)
-    // Usamos el catálogo de nombres únicos de Scryfall que es rapidísimo.
-    $totalCards = Cache::remember('scryfall_total_cards', 60 * 60 * 24, function () {
-        try {
-            // Llamamos a la API de Scryfall
-            $response = Http::timeout(5)->get('https://api.scryfall.com/catalog/card-names');
-
-            if ($response->successful()) {
-                // Scryfall devuelve un campo "total_values" con el número exacto de cartas únicas
-                return $response->json('total_values');
-            }
-            return 30000; // Un número por defecto si la API de Scryfall falla temporalmente
-        } catch (\Exception $e) {
-            Log::error('Error conectando a Scryfall: ' . $e->getMessage());
-            return 30000;
-        }
-    });
-
-    // 2. Devolvemos los datos a React mezclando Scryfall con tu base de datos local
-    return response()->json([
-        'totalPacks' => 420, // (Tus packs locales)
-        'totalCards' => $totalCards, // 🚀 ¡El número real de Scryfall!
-        'activeUsers' => User::count(), // Tus usuarios reales
-        'todaySales' => 15, // (Tus ventas locales)
-    ]);
 });
