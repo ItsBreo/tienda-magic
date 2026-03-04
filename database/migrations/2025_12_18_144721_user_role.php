@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('user_role', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users');
-            $table->foreignId('roles_id')->nullable()->constrained('roles');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('roles_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+
+            // Un usuario no puede tener el mismo rol dos veces
+            $table->unique(['user_id', 'roles_id']);
         });
     }
 
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('user_role');
     }
 };

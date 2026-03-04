@@ -1,11 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
-
-// Configuración global de Axios para trabajar con Laravel Sanctum/Sessions
-axios.defaults.baseURL = 'http://127.0.0.1:8000'; // Asegúrate de que coincida con tu URL de Laravel
-axios.defaults.withCredentials = true; // Crucial para enviar/recibir cookies de sesión
-axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import apiService from '@/services/ApiService';
 
 interface User {
     id: number;
@@ -16,11 +10,18 @@ interface User {
     is_admin?: boolean;
 }
 
+interface LoginCredentials {
+    email: string;
+    password: string;
+    remember?: boolean;
+    recaptcha_token?: string;
+}
+
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
     isAuthenticated: boolean;
-    login: (email: string, password: string, remember?: boolean, turnstile_token?: string) => Promise<void>;
+    login: (_credentials: LoginCredentials) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
 }
@@ -33,48 +34,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isAuthenticated = !!user;
 
-    // 1. Verificar autenticación al cargar la App
+    // 1. Verificar autenticación al cargar la App (ejecutar solo una vez)
     useEffect(() => {
-        checkAuth();
+        const initializeAuth = async () => {
+            try {
+                // Comprobar si existe token en localStorage o sessionStorage
+                const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+
+                if (token) {
+                    // Si existe token, recuperar datos del usuario
+                    const userData = await apiService.checkAuth();
+                    setUser(userData);
+                }
+            } catch (error: any) {
+                // Solo borrar token si es error 401 (Unauthorized)
+                if (error.response?.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('client_token');
+                    sessionStorage.removeItem('auth_token');
+                    sessionStorage.removeItem('client_token');
+                    setUser(null);
+                } else {
+                    // Para otros errores (red, servidor, etc), mantener el token
+                    console.error('Error verificando autenticación:', error);
+                }
+            } finally {
+                // Siempre detener el loading, haya éxito o error
+                setIsLoading(false);
+            }
+        };
+
+        // Siempre ejecutar inicialización para manejar rehidratación
+        initializeAuth();
     }, []);
 
     const checkAuth = async () => {
         try {
-            // Llamamos a la ruta de la API que definimos en api.php
-            const response = await axios.get('/api/user');
-            setUser(response.data);
+            // Usar servicio API
+            const userData = await apiService.checkAuth();
+            setUser(userData);
         } catch (error: any) {
-            // Si es 401 (no autenticado), simplemente ponemos el usuario en null
-            // sin llenar la consola de errores innecesarios
+            // Si es 401, poner usuario en null
             setUser(null);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const login = async (email: string, password: string, remember = false, recaptcha_token?: string) => {
+    const login = async (credentials: LoginCredentials) => {
         setIsLoading(true);
         try {
-            // Primero, inicializamos la protección CSRF de Sanctum (Solo necesario una vez)
-            await axios.get('/sanctum/csrf-cookie');
+            // Usar servicio API para login
+            const authResponse = await apiService.login(credentials);
 
-            // Enviamos los datos al nuevo LoginController API
-            const response = await axios.post('/api/login', {
-                email,
-                password,
-                remember,
-                recaptcha_token
-            });
-
-            if (response.data.two_factor) {
-                // Si el controlador devuelve que necesita 2FA, podrías manejarlo aquí
-                // Por ahora, lanzamos un aviso o redirigimos
+            if (authResponse.two_factor) {
                 window.location.href = '/two-factor-challenge';
             } else {
-                setUser(response.data.user);
+                setUser(authResponse.data);
             }
         } catch (error: any) {
-            // Re-lanzamos el error para que el componente Login lo capture y muestre
             throw error;
         } finally {
             setIsLoading(false);
@@ -83,23 +101,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = async () => {
         try {
-            await axios.post('/api/logout');
+            await apiService.logout();
             setUser(null);
-            window.location.href = '/login'; // Redirigir al salir
+            window.location.href = '/login';
         } catch (error) {
             console.error('Logout error:', error);
         }
     };
 
+    const contextValue = useMemo(() => ({
+        user,
+        isLoading,
+        isAuthenticated,
+        login,
+        logout,
+        checkAuth,
+    }), [user, isLoading, isAuthenticated]);
+
     return (
-        <AuthContext.Provider value={{
-            user,
-            isLoading,
-            isAuthenticated,
-            login,
-            logout,
-            checkAuth,
-        }}>
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
     );

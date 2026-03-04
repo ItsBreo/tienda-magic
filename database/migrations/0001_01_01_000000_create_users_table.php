@@ -31,6 +31,7 @@ return new class extends Migration
 
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes(); // Soft Deletes para seguridad
         });
 
         // 2. TABLA TOKENS (Sistema)

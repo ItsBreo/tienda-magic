@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Layers, Package, Sparkles } from 'lucide-react';
-import axios from 'axios';
+import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
 import ReCAPTCHA from 'react-google-recaptcha';
 
@@ -36,7 +36,6 @@ export default function Register() {
         e.preventDefault();
 
         if (!formData.recaptcha_token) {
-            // MTG Flavor: Tokens de artefacto
             toast.error('Por favor, demuestra que no eres un token de artefacto (completa el reCAPTCHA)');
             return;
         }
@@ -44,11 +43,10 @@ export default function Register() {
         setProcessing(true);
         setErrors({});
 
-        const registerRequest = axios.get('/sanctum/csrf-cookie')
-            .then(() => axios.post('/api/register', formData));
+        // Usar servicio API
+        const registerRequest = apiService.register(formData);
 
         toast.promise(registerRequest, {
-            // MTG Flavor: La Chispa de los Planeswalkers
             loading: 'Encendiendo tu Chispa de Planeswalker...',
             success: (response) => {
                 navigate('/dashboard', { replace: true });
@@ -59,8 +57,22 @@ export default function Register() {
                 if (recaptchaRef.current) recaptchaRef.current.reset();
                 handleChange('recaptcha_token', '');
 
+                // Mostrar errores detallados en consola para depuración
+                console.log('Error de registro:', err.response?.data);
+
                 if (err.response?.data?.errors) {
                     setErrors(err.response.data.errors);
+
+                    // Mensaje específico para username duplicado
+                    if (err.response.data.errors.username) {
+                        return 'Ese nombre de usuario ya está siendo usado por otro Planeswalker.';
+                    }
+
+                    // Mensaje específico para email duplicado
+                    if (err.response.data.errors.email) {
+                        return 'Ese email ya está registrado en el Multiverso.';
+                    }
+
                     return 'Revisa tu mano inicial (errores en el formulario)';
                 }
                 return err.response?.data?.message || 'Fallo al resolver el hechizo. Inténtalo de nuevo.';

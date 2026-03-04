@@ -29,9 +29,13 @@ return new class extends Migration
             $table->boolean("is_in_sale")->default(false);
             $table->decimal('market_avg_price', 10, 2)->default(0);
 
-            $table->foreignId('card_set_id')
-            ->nullable()
-            ->constrained('card_sets');
+            // Campos adicionales de Scryfall
+            $table->float('mana_value')->default(0);
+            $table->json('data')->nullable();
+
+            // Relación con card_sets
+            $table->foreignId('card_set_id')->nullable();
+            $table->foreign('card_set_id')->references('id')->on('card_sets')->onDelete('set null');
 
             $table->timestamps();
         });

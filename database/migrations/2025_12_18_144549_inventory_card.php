@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('inventory_card', function (Blueprint $table) {
             $table->id(); // id() ya implica unique() y primary key
 
-            // CONEXIÓN DIRECTA AL USUARIO
+            // CONEXIÓN DIRECTA AL USUARIO (PROTEGIDO)
             $table->foreignId('user_id')
                   ->constrained('users')
-                  ->onDelete('cascade');
+                  ->onDelete('restrict');
 
             $table->foreignId('card_id')
                   ->constrained('cards')

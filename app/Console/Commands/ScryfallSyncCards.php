@@ -90,6 +90,10 @@ class ScryfallSyncCards extends Command
                     $imageUri = $card['card_faces'][0]['image_uris']['normal'];
                 }
 
+                // Buscar el set para obtener su ID
+                $cardSet = CardSet::where('code', $setCode)->first();
+                $cardSetId = $cardSet ? $cardSet->id : null;
+
                 Card::updateOrCreate(
                     ['scryfall_id' => $card['id']],
                     [
@@ -98,11 +102,9 @@ class ScryfallSyncCards extends Command
                         'collector_number' => $card['collector_number'] ?? '',
                         'rarity' => $card['rarity'] ?? 'common',
                         'image_uri' => $imageUri,
-                        'price_eur' => $card['prices']['eur'] ?? null,
-                        'price_usd' => $card['prices']['usd'] ?? null,
                         'mana_value' => $card['cmc'] ?? 0,
-                        'card_set_id' => strtolower($setCode), // Usar el código del set directamente
-                        'data' => $card, // Store full Scryfall data
+                        'card_set_id' => $cardSetId, // ID del set para la relación
+                        'data' => $card, // Guardar datos completos de Scryfall
                     ]
                 );
 
@@ -115,6 +117,9 @@ class ScryfallSyncCards extends Command
             $this->info("Imported {$imported} cards so far...");
 
             $page++;
+
+            // Pausa para no sobrecargar la API de Scryfall
+            usleep(100000); // 100ms entre peticiones
 
         } while (isset($data['has_more']) && $data['has_more'] && $imported < $limit);
 

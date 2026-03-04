@@ -51,7 +51,12 @@ export default function Login({ canResetPassword = false, status }: Props) {
 
         // Usamos toast.promise con MTG Flavor
         toast.promise(
-            authLogin(formData.email, formData.password, formData.remember, formData.recaptcha_token),
+            authLogin({
+                email: formData.email,
+                password: formData.password,
+                remember: formData.remember,
+                recaptcha_token: formData.recaptcha_token
+            }),
             {
                 loading: 'Resolviendo hechizo de invocación...',
                 success: () => {

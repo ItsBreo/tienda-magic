@@ -6,13 +6,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 // use Tymon\JWTAuth\Contracts\JWTSubject; // Descomentado temporalmente
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -67,7 +69,7 @@ class User extends Authenticatable
     // Usuario - perfil 1-1
     public function profile()
     {
-        return $this->hasOne(userProfile::class);
+        return $this->hasOne(UserProfile::class);
     }
 
     // Usuario - roles M:M

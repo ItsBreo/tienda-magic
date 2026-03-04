@@ -23,15 +23,16 @@ class UserController extends Controller
         return response()->json(['message' => 'No autenticado'], 401);
     }
 
-    $perfil = $user->profile;
-
+    // Devolver datos básicos del usuario sin depender del profile
     return response()->json([
-        'usuario' => $user->name,
+        'id' => $user->id,
+        'name' => $user->name,
+        'username' => $user->username,
         'email' => $user->email,
-        // Usamos el operador ?-> para que si no hay perfil, devuelva null en vez de explotar
-        'bio' => $perfil?->bio,
-        'pais' => $perfil?->country,
-        'saldo' => $user->wallet_balance
+        'wallet_balance' => $user->wallet_balance,
+        'is_admin' => $user->is_admin,
+        'created_at' => $user->created_at,
+        'updated_at' => $user->updated_at
     ]);
 }
 

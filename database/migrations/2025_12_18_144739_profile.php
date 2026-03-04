@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('profile', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->unique('user_id'); // Un usuario solo puede tener un perfil
             $table->string('display_name');
             $table->string('avatar_url');
             $table->string('banner_url');

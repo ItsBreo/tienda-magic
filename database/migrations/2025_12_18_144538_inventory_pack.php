@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('inventory_pack', function (Blueprint $table) {
             $table->id();
 
-            // CONEXIÓN DIRECTA AL USUARIO
+            // CONEXIÓN DIRECTA AL USUARIO (PROTEGIDO)
             $table->foreignId('user_id')
                   ->constrained('users')
-                  ->onDelete('cascade');
+                  ->onDelete('restrict');
 
             // Referencia al SET al que pertenece el sobre (según tu esquema original)
             $table->foreignId('booster_pack_id')

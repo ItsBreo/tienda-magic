@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('wallet_transaction', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('type');
             $table->decimal('amount', 10, 2);
             $table->decimal('balance_after', 10, 2);

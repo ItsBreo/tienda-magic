@@ -55,6 +55,9 @@ class ScryfallSyncSets extends Command
                 ]
             );
             $bar->advance();
+
+            // Pequeña pausa entre sets
+            usleep(50000); // 50ms
         }
 
         $bar->finish();
