@@ -18,9 +18,9 @@ class ScryfallService
                 $response = Http::withoutVerifying()
                                 ->withHeaders([
                                     'Accept' => 'application/json',
-                                    'User-Agent' => 'TiendaMagic/1.0' // ¡El pase VIP para Scryfall!
+                                    'User-Agent' => 'TiendaMagic/1.0'
                                 ])
-                                ->timeout(10) // Le damos 10 segundos para curarnos en salud
+                                ->timeout(10)
                                 ->get('https://api.scryfall.com/sets');
 
                 if ($response->successful()) {

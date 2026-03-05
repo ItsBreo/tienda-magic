@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
   BookOpen, Folder, LayoutGrid, Menu, Search,
 } from 'lucide-react';
-import { Breadcrumbs } from '@/components/breadcrumbs';
+import { Breadcrumbs } from '@/components/breadcrumbs.old';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

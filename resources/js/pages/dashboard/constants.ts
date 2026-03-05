@@ -7,10 +7,10 @@ export const FEATURED_PACKS = [
 ];
 
 export const QUICK_ACTIONS = [
-  { title: 'Explorar Tienda', description: 'Descubre booster packs', icon: ShoppingBag, color: 'emerald', href: '/shop' },
-  { title: 'Mi Carrito', description: 'Gestiona tus compras', icon: Package, color: 'blue', href: '/cart' },
-  { title: 'Abrir Packs', description: 'Descubre cartas épicas', icon: Gift, color: 'purple', href: '#', disabled: true },
-  { title: 'Mi Colección', description: 'Explora tu inventario', icon: Sparkles, color: 'orange', href: '#', disabled: true },
+    { title: 'Explorar Tienda', description: 'Descubre booster packs', icon: ShoppingBag, theme: 'mtg-theme-green', href: '/shop' },
+    { title: 'Mi Carrito', description: 'Gestiona tus compras', icon: Package, theme: 'mtg-theme-blue', href: '/cart' },
+    { title: 'Abrir Packs', description: 'Descubre cartas épicas', icon: Gift, theme: 'mtg-theme-mythic', href: '#', disabled: true },
+    { title: 'Mi Colección', description: 'Explora tu inventario', icon: Sparkles, theme: 'mtg-theme-rare', href: '#', disabled: true },
 ];
 
 export const getColorClasses = (color: string) => {

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Flame, Crown, ShoppingBag, Package } from 'lucide-react';
+import { ShoppingBag, Sparkles, PackageOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -8,39 +8,42 @@ export function HeroSection() {
     const { user } = useAuth();
 
     return (
-        <div className="relative overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-black">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
-            <div className="relative px-6 py-24 text-center">
-                <div className="mx-auto max-w-4xl">
-                    <div className="flex items-center justify-center gap-4 mb-8">
-                        <div className="p-3 bg-emerald-500/10 rounded-full">
-                            <Flame className="h-8 w-8 text-emerald-400 animate-pulse" />
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-zinc-100 via-emerald-400 to-zinc-100 bg-clip-text text-transparent">
-                            Tienda Magic
-                        </h1>
-                        <div className="p-3 bg-emerald-500/10 rounded-full">
-                            <Crown className="h-6 w-6 text-emerald-400" />
-                        </div>
-                    </div>
-                    <p className="text-xl md:text-2xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-                        Hola {user?.name}, la tienda definitiva para coleccionistas de Magic: The Gathering.
+        <div className="bg-zinc-950 border-b border-zinc-800 relative overflow-hidden">
+            {/* Un pequeño toque visual sutil de fondo, como el reflejo foil de una carta oscura */}
+            <div className="absolute top-0 right-0 -mt-32 -mr-32 w-96 h-96 bg-amber-900/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="max-w-7xl mx-auto px-6 py-12 md:py-20 relative z-10">
+                <div className="max-w-3xl">
+                    <p className="text-amber-500/80 text-xs font-bold tracking-widest uppercase mb-3">
+                        Planeswalker Reconocido
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+                    {/* font-serif da el toque inconfundible de libro de fantasía/Magic */}
+                    <h1 className="text-4xl md:text-6xl font-serif font-bold text-zinc-100 mb-5 leading-tight">
+                        Saludos, {user?.name || 'Viajero'}.
+                    </h1>
+
+                    <p className="text-lg text-zinc-400 mb-10 max-w-2xl leading-relaxed">
+                        El Multiverso te espera. Explora las últimas expansiones, amplía tu colección o abre los sobres que has adquirido en la tienda.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        {/* Botón Principal: Estilo "Rareza Mítica" (Naranja/Oro) */}
                         <Button
-                            className="bg-emerald-600 hover:bg-emerald-500 text-black font-semibold shadow-lg shadow-emerald-900/20 border border-emerald-500/50 transition-all duration-200 hover:scale-105"
+                            className="bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 border border-amber-500/30 rounded-sm font-semibold px-6 py-6 text-md transition-colors"
                             onClick={() => navigate('/shop')}
                         >
-                            <ShoppingBag className="h-4 w-4 mr-2" />
-                            Explorar Packs
+                            <ShoppingBag className="h-5 w-5 mr-2" />
+                            Explorar la Tienda
                         </Button>
+
+                        {/* Botón Secundario: Estilo "Infrecuente" (Plata/Zinc) */}
                         <Button
-                            variant="outline"
-                            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-200"
-                            onClick={() => navigate('/cart')}
+                            className="bg-zinc-900 text-zinc-300 border border-zinc-700 hover:bg-zinc-800 hover:border-zinc-500 hover:text-zinc-100 rounded-sm font-semibold px-6 py-6 text-md transition-colors"
+                            onClick={() => navigate('/inventory')}
                         >
-                            <Package className="h-4 w-4 mr-2" />
-                            Mi Carrito
+                            <Sparkles className="h-5 w-5 mr-2" />
+                            Mi Colección
                         </Button>
                     </div>
                 </div>
