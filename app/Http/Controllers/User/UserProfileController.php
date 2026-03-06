@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\userProfile;
+use App\Models\UserProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -15,17 +15,12 @@ class UserProfileController extends Controller
     public function showProfile()
     {
         $user = auth()->user();
-        $profile = $user->profile;
 
-        if (!$profile) {
-            return response()->json([
-                'error' => 'Perfil no encontrado'
-            ], 404);
-        }
-
+        // Cargamos la relación 'profile'.
+        // Si no tiene perfil, $user->profile será null, pero React al menos recibe los datos base del usuario.
         return response()->json([
-            'message' => 'Perfil obtenido correctamente',
-            'profile' => $profile
+            'message' => 'Datos obtenidos correctamente',
+            'user' => $user->load('profile')
         ]);
     }
 
@@ -34,25 +29,15 @@ class UserProfileController extends Controller
      */
     public function show($userId)
     {
-        $user = User::find($userId);
+        $user = User::with('profile')->find($userId);
 
         if (!$user) {
-            return response()->json([
-                'error' => 'Usuario no encontrado'
-            ], 404);
-        }
-
-        $profile = $user->profile;
-
-        if (!$profile) {
-            return response()->json([
-                'error' => 'Perfil no encontrado'
-            ], 404);
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
 
         return response()->json([
             'message' => 'Perfil obtenido correctamente',
-            'profile' => $profile
+            'user' => $user
         ]);
     }
 
@@ -63,14 +48,10 @@ class UserProfileController extends Controller
     {
         $user = auth()->user();
 
-        // Verificar si ya tiene perfil
         if ($user->profile) {
-            return response()->json([
-                'error' => 'El usuario ya tiene un perfil'
-            ], 400);
+            return response()->json(['error' => 'El usuario ya tiene un perfil'], 400);
         }
 
-        // Validar datos
         $validated = $request->validate([
             'display_name' => 'required|string|max:255',
             'avatar_url' => 'nullable|url',
@@ -80,15 +61,15 @@ class UserProfileController extends Controller
             'trade_terms' => 'nullable|string|max:500',
         ]);
 
-        // Crear perfil
-        $profile = userProfile::create($validated);
-        $profile->user_id = $user->id;
-        $profile->reputation_score = 0;
-        $profile->save();
+        // Añadimos la reputación inicial a los datos validados
+        $validated['reputation_score'] = 0;
+
+        // Magia de Laravel: Crea el perfil y le asigna el user_id automáticamente
+        $profile = $user->profile()->create($validated);
 
         return response()->json([
             'message' => 'Perfil creado correctamente',
-            'profile' => $profile
+            'user' => $user->load('profile') // Devolvemos el usuario actualizado
         ], 201);
     }
 
@@ -101,12 +82,9 @@ class UserProfileController extends Controller
         $profile = $user->profile;
 
         if (!$profile) {
-            return response()->json([
-                'error' => 'Perfil no encontrado'
-            ], 404);
+            return response()->json(['error' => 'Perfil no encontrado'], 404);
         }
 
-        // Validar datos
         $validated = $request->validate([
             'display_name' => 'sometimes|string|max:255',
             'avatar_url' => 'sometimes|nullable|url',
@@ -116,12 +94,11 @@ class UserProfileController extends Controller
             'trade_terms' => 'sometimes|nullable|string|max:500',
         ]);
 
-        // Actualizar perfil
         $profile->update($validated);
 
         return response()->json([
             'message' => 'Perfil actualizado correctamente',
-            'profile' => $profile
+            'user' => $user->load('profile')
         ]);
     }
 

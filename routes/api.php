@@ -31,7 +31,7 @@ use App\Http\Controllers\Admin\AdminCardController;
 |--------------------------------------------------------------------------
 */
 
-// Autenticación (Si no usas Fortify/Sanctum de forma externa)
+// Autenticación
 Route::post('/login', [LoginController::class, 'store']);
 Route::post('/register', [RegisterController::class, 'store']);
 
@@ -39,9 +39,12 @@ Route::post('/register', [RegisterController::class, 'store']);
 Route::get('/shop', [CatalogController::class, 'index']);
 Route::get('/pack/{code}', [PackDetailController::class, 'show']);
 
-// --- TUS RUTAS DEL DASHBOARD ---
+// --- RUTAS DEL DASHBOARD ---
 Route::get('/sets/latest', [SetController::class, 'latest']);
 Route::get('/store-stats', [DashboardController::class, 'getStats']);
+
+// --- PERFILES PÚBLICOS ---
+Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver el perfil de otro usuario
 
 /*
 |--------------------------------------------------------------------------
@@ -52,16 +55,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'destroy']);
 
-    // ========== USUARIO & BILLETERA ==========
+    // ========== USUARIO (Cuenta Base y Billetera) ==========
     Route::prefix('user')->group(function () {
-        Route::get('/', [UserController::class, 'show']); //
-        Route::patch('/', [UserController::class, 'updateProfile']); //
-        Route::patch('/password', [UserController::class, 'updatePassword']); //
-        Route::delete('/', [UserController::class, 'destroyUser']); //
-        Route::get('/balance', [UserController::class, 'getBalance']); //
-        Route::get('/decks', [UserController::class, 'showDecks']); //
-        Route::get('/favorites', [UserController::class, 'showFavoriteCards']); //
-        Route::get('/transactions', [UserController::class, 'transactions']); //
+        Route::get('/', [UserController::class, 'show']);
+        Route::patch('/password', [UserController::class, 'updatePassword']);
+        Route::delete('/', [UserController::class, 'destroyUser']);
+        Route::get('/balance', [UserController::class, 'getBalance']);
+        Route::get('/decks', [UserController::class, 'showDecks']);
+        Route::get('/favorites', [UserController::class, 'showFavoriteCards']);
+        Route::get('/transactions', [UserController::class, 'transactions']);
+    });
+
+    // ========== PERFIL DE USUARIO (Avatar, Bio, País) ==========
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [UserProfileController::class, 'showProfile']); // Obtener mi perfil
+        Route::post('/', [UserProfileController::class, 'store']); // Crear mi perfil
+        Route::patch('/', [UserProfileController::class, 'update']); // Actualizar mi perfil
+        Route::patch('/public-info', [UserProfileController::class, 'updatePublicInfo']); // Actualizar solo info pública
+        Route::delete('/', [UserProfileController::class, 'destroy']); // Borrar mi perfil
     });
 
     // ========== INVENTARIO & MAZOS ==========
@@ -110,5 +121,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'destroy']);
         Route::apiResource('sets', AdminSetController::class)->only(['index', 'store', 'destroy']);
         Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
+
+        // El Admin puede subir o bajar la reputación de los usuarios a mano
+        Route::patch('/users/{userId}/reputation', [UserProfileController::class, 'updateReputation']);
     });
 });
