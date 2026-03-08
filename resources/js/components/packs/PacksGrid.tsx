@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { Package, ShoppingCart, ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+ Package, ShoppingCart, ArrowLeft, ArrowRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+ Dialog, DialogContent, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import CardItem from '@/components/ui/CardItem';
 import CardLightbox from './CardLightbox';
 
@@ -42,7 +46,9 @@ interface PacksGridProps {
   onBuyPack: (pack: Pack) => void;
 }
 
-const PacksGrid = ({ packs, loading = false, currentPage, setCurrentPage, onPackClick, onBuyPack }: PacksGridProps) => {
+function PacksGrid({
+ packs, loading = false, currentPage, setCurrentPage, onPackClick, onBuyPack,
+}: PacksGridProps) {
   const ITEMS_PER_PAGE = 6;
   const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
   const [packCards, setPackCards] = useState<Card[]>([]);
@@ -171,7 +177,8 @@ const PacksGrid = ({ packs, loading = false, currentPage, setCurrentPage, onPack
             {/* Precio y acciones */}
             <div className="flex justify-between items-center">
               <span className="text-xl font-bold text-emerald-400">
-                €{pack.price.toFixed(2)}
+                €
+{pack.price.toFixed(2)}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -205,11 +212,20 @@ const PacksGrid = ({ packs, loading = false, currentPage, setCurrentPage, onPack
 
           <div className="flex items-center gap-2 text-zinc-400 font-medium px-4 bg-zinc-900/50 py-2 rounded-lg border border-zinc-800/50">
             <span>
-              Página <span className="text-emerald-400">{currentPage}</span> de {totalPages}
+              Página
+{' '}
+<span className="text-emerald-400">{currentPage}</span>
+{' '}
+de
+{' '}
+{totalPages}
             </span>
             <span className="text-zinc-500 text-sm">
-              ({packs.length} packs)
-            </span>
+              (
+{packs.length}
+{' '}
+packs)
+</span>
           </div>
 
           <button
@@ -267,8 +283,10 @@ const PacksGrid = ({ packs, loading = false, currentPage, setCurrentPage, onPack
               {/* Grid de cartas del set */}
               <div>
                 <h3 className="text-xl font-semibold mb-4">
-                  Cartas del Set ({packCards.length})
-                </h3>
+                  Cartas del Set (
+{packCards.length}
+)
+</h3>
 
                 {loadingCards ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -306,6 +324,6 @@ const PacksGrid = ({ packs, loading = false, currentPage, setCurrentPage, onPack
       />
     </>
   );
-};
+}
 
 export default PacksGrid;

@@ -60,8 +60,7 @@ export default function PacksView() {
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
       filtered = packs.filter(
-        (pack) =>
-          pack.name.toLowerCase().includes(searchLower)
+        (pack) => pack.name.toLowerCase().includes(searchLower)
           || pack.type.toLowerCase().includes(searchLower)
           || pack.card_set_id.toLowerCase().includes(searchLower),
       );
@@ -152,8 +151,14 @@ export default function PacksView() {
       {searchTerm && (
         <div className="text-center px-4">
           <p className="text-sm text-zinc-500 mt-2">
-            Se encontraron {filteredPacks.length} packs para "{searchTerm}"
-          </p>
+            Se encontraron
+{' '}
+{filteredPacks.length}
+{' '}
+packs para "
+{searchTerm}
+"
+</p>
         </div>
       )}
 

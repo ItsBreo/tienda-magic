@@ -54,9 +54,7 @@ class MagicApi {
                 }
                 return config;
             },
-            (error) => {
-                return Promise.reject(error);
-            }
+            (error) => Promise.reject(error),
         );
 
         // Interceptor de respuesta: maneja errores de autenticación
@@ -76,7 +74,7 @@ class MagicApi {
                     }
                 }
                 return Promise.reject(error);
-            }
+            },
         );
     }
 
@@ -112,7 +110,7 @@ class MagicApi {
 
         const response: AxiosResponse<AuthResponse> = await this.api.post('/api/login', {
             ...credentials,
-            client_token: clientToken
+            client_token: clientToken,
         });
 
         // Almacenamos tokens según preferencia "remember me"
@@ -142,7 +140,7 @@ class MagicApi {
 
         const response: AxiosResponse<AuthResponse> = await this.api.post('/api/register', {
             ...data,
-            client_token: clientToken
+            client_token: clientToken,
         });
 
         // Almacenamos tokens según preferencia "remember me"

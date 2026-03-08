@@ -19,7 +19,9 @@ export default function AdminUsers() {
     const [showForm, setShowForm] = useState(false);
 
     // Form state
-    const [form, setForm] = useState({ name: '', username: '', email: '', password: '', role_id: '1' }); // Role 1 = User/Normal (or verify DB roles)
+    const [form, setForm] = useState({
+ name: '', username: '', email: '', password: '', role_id: '1',
+}); // Role 1 = User/Normal (or verify DB roles)
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -56,7 +58,9 @@ export default function AdminUsers() {
             await axios.post('/api/admin/users', form);
             toast.success('Usuario creado');
             setShowForm(false);
-            setForm({ name: '', username: '', email: '', password: '', role_id: '1' });
+            setForm({
+ name: '', username: '', email: '', password: '', role_id: '1',
+});
             fetchUsers();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error creando usuario');
@@ -72,8 +76,10 @@ export default function AdminUsers() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-zinc-100">Gestión de Usuarios</h1>
                 <Button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
-                    <Plus className="w-4 h-4 mr-2" /> Nuevo Usuario
-                </Button>
+                    <Plus className="w-4 h-4 mr-2" />
+{' '}
+Nuevo Usuario
+</Button>
             </div>
 
             {showForm && (
@@ -82,23 +88,23 @@ export default function AdminUsers() {
                     <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="text-xs text-zinc-400">Nombre Real</label>
-                            <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Username (Nick)</label>
-                            <Input value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Email</label>
-                            <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Contraseña</label>
-                            <Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Rol Predeterminado</label>
-                            <select value={form.role_id} onChange={e => setForm({ ...form, role_id: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-md p-2 mt-1 text-sm text-zinc-100">
+                            <select value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-md p-2 mt-1 text-sm text-zinc-100">
                                 {/* Suponiendo IDs fijos del seeder: 1=Admin, 2=User, 3=Seller. Si tienes dudas, asumo 2=User por ahora */}
                                 <option value="1">Admin</option>
                                 <option value="2">User Normal</option>
@@ -127,14 +133,17 @@ export default function AdminUsers() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800">
-                        {users.map(u => (
+                        {users.map((u) => (
                             <tr key={u.id} className="hover:bg-zinc-800/50 transition-colors">
-                                <td className="px-6 py-4">#{u.id}</td>
+                                <td className="px-6 py-4">
+#
+{u.id}
+</td>
                                 <td className="px-6 py-4 text-zinc-100">{u.name}</td>
                                 <td className="px-6 py-4">{u.username}</td>
                                 <td className="px-6 py-4">{u.email}</td>
                                 <td className="px-6 py-4">
-                                    {u.roles?.map(r => (
+                                    {u.roles?.map((r) => (
                                         <span key={r.id} className="px-2 py-1 bg-zinc-800 text-xs rounded-md border border-zinc-700 mr-2">{r.name}</span>
                                     ))}
                                 </td>

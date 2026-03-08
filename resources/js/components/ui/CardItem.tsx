@@ -49,7 +49,7 @@ export default function CardItem({ card, onClick, className = '' }: CardItemProp
                     onClick?.();
                 }
             }}
-            role='button'
+            role="button"
             tabIndex={0}
         >
             <div

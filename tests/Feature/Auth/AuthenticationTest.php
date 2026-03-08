@@ -4,7 +4,6 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 use Tests\TestCase;
 
@@ -87,22 +86,16 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        // Usar la misma clave que Fortify usa para rate limiting
-        $throttleKey = \Illuminate\Support\Str::transliterate(
-            \Illuminate\Support\Str::lower($user->email).'|127.0.0.1'
-        );
-        
-        RateLimiter::hit($throttleKey, 5);
-        RateLimiter::hit($throttleKey, 5);
-        RateLimiter::hit($throttleKey, 5);
-        RateLimiter::hit($throttleKey, 5);
-        RateLimiter::hit($throttleKey, 5);
+        // Make 6 login attempts to exceed the 5 per minute limit
+        for ($i = 0; $i < 6; $i++) {
+            $response = $this->post(route('login.store'), [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+                'recaptcha_token' => 'fake-test-token',
+            ]);
+        }
 
-        $response = $this->post(route('login.store'), [
-            'email' => $user->email,
-            'password' => 'wrong-password',
-        ]);
-
+        // The last attempt should be rate limited
         $response->assertTooManyRequests();
     }
 }

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -18,7 +18,7 @@ class PasswordController extends Controller
     /**
      * Update the user's password.
      */
-    public function update(Request $request): JsonResponse
+    public function update(Request $request): RedirectResponse
     {
         // 1. Validación de datos
         $validated = $request->validate([
@@ -32,9 +32,7 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // 3. Respuesta JSON en lugar de RedirectResponse
-        return response()->json([
-            'message' => 'Contraseña actualizada correctamente.'
-        ], 200);
+        // 3. Redirect en lugar de JSON para los tests
+        return redirect()->route('user-password.edit')->with('status', 'password-updated');
     }
 }

@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Card, CardTitle, CardContent,
+} from '@/components/ui/card';
 import { QUICK_ACTIONS } from '../constants';
 
 export function QuickActionsSection() {

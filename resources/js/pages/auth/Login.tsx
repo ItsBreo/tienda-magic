@@ -1,22 +1,26 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import {
+ Eye, EyeOff, Layers, Sparkles,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+ Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+} from '@/components/ui/card';
 // 1. Unificamos el icono con el del Registro (Layers)
-import { Eye, EyeOff, Layers, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 interface Props {
-    canResetPassword?: boolean;
-    status?: string;
+    _canResetPassword?: boolean;
+    _status?: string;
 }
 
-export default function Login({ canResetPassword = false, status }: Props) {
+export default function Login({ _canResetPassword = false, _status }: Props) {
     const { login: authLogin } = useAuth();
     const navigate = useNavigate();
     const recaptchaRef = useRef<ReCAPTCHA>(null);
@@ -33,7 +37,7 @@ export default function Login({ canResetPassword = false, status }: Props) {
     const [errors, setErrors] = useState<any>({});
 
     const handleChange = (field: string, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) setErrors((prev: any) => ({ ...prev, [field]: null }));
     };
 
@@ -55,7 +59,7 @@ export default function Login({ canResetPassword = false, status }: Props) {
                 email: formData.email,
                 password: formData.password,
                 remember: formData.remember,
-                recaptcha_token: formData.recaptcha_token
+                recaptcha_token: formData.recaptcha_token,
             }),
             {
                 loading: 'Resolviendo hechizo de invocación...',
@@ -74,7 +78,7 @@ export default function Login({ canResetPassword = false, status }: Props) {
                     }
                     return err.response?.data?.message || 'Fallo de conexión con el Multiverso';
                 },
-            }
+            },
         );
     };
 
@@ -168,8 +172,10 @@ export default function Login({ canResetPassword = false, status }: Props) {
                         >
                             {processing ? (
                                 <span className="flex items-center gap-2">
-                                    <Sparkles className="h-4 w-4 animate-spin" /> Resolviendo stack...
-                                </span>
+                                    <Sparkles className="h-4 w-4 animate-spin" />
+{' '}
+Resolviendo stack...
+</span>
                             ) : 'Entrar a la Bóveda'}
                         </Button>
                     </form>
@@ -177,7 +183,8 @@ export default function Login({ canResetPassword = false, status }: Props) {
 
                 <CardFooter className="flex flex-col space-y-4 border-t border-zinc-800/50 mt-4 pt-6">
                     <div className="text-center text-sm text-zinc-500">
-                        ¿Aún no tienes tu Chispa?{' '}
+                        ¿Aún no tienes tu Chispa?
+{' '}
                         <Link to="/register" className="text-emerald-400 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline">
                             Forja tu mazo aquí
                         </Link>

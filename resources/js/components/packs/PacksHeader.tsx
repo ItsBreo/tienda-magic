@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Package, ArrowLeft, ShoppingCart } from 'lucide-react';
 
-const PacksHeader = () => {
+function PacksHeader() {
   return (
     <div className="relative z-10">
       <div className="text-center px-4 py-8">
@@ -30,7 +30,7 @@ const PacksHeader = () => {
             <ArrowLeft className="w-4 h-4" />
             Volver al Dashboard
           </Link>
-          
+
           <Link
             to="/cart"
             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black font-medium rounded-lg transition-colors duration-200"
@@ -42,6 +42,6 @@ const PacksHeader = () => {
       </div>
     </div>
   );
-};
+}
 
 export default PacksHeader;

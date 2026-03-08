@@ -20,7 +20,9 @@ export default function AdminCards() {
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    const [form, setForm] = useState({ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0 });
+    const [form, setForm] = useState({
+ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0,
+});
 
     useEffect(() => {
         fetchCards();
@@ -56,7 +58,9 @@ export default function AdminCards() {
             await axios.post('/api/admin/cards', form);
             toast.success('Carta creada');
             setShowForm(false);
-            setForm({ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0 });
+            setForm({
+ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0,
+});
             fetchCards();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error creando carta (Verifica el código del set)');
@@ -72,8 +76,10 @@ export default function AdminCards() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-zinc-100">Gestión de Cartas</h1>
                 <Button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
-                    <Plus className="w-4 h-4 mr-2" /> Nueva Carta
-                </Button>
+                    <Plus className="w-4 h-4 mr-2" />
+{' '}
+Nueva Carta
+</Button>
             </div>
 
             {showForm && (
@@ -82,23 +88,23 @@ export default function AdminCards() {
                     <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="text-xs text-zinc-400">Nombre Carta</label>
-                            <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Scryfall UUID</label>
-                            <Input value={form.scryfall_id} onChange={e => setForm({ ...form, scryfall_id: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1 placeholder-zinc-500" placeholder="Ej: f29...5c1" required />
+                            <Input value={form.scryfall_id} onChange={(e) => setForm({ ...form, scryfall_id: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1 placeholder-zinc-500" placeholder="Ej: f29...5c1" required />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Set (Cód. ej ktk)</label>
-                            <Input value={form.set_code} onChange={e => setForm({ ...form, set_code: e.target.value.toLowerCase() })} className="bg-zinc-800 border-zinc-700 mt-1 uppercase" required maxLength={10} />
+                            <Input value={form.set_code} onChange={(e) => setForm({ ...form, set_code: e.target.value.toLowerCase() })} className="bg-zinc-800 border-zinc-700 mt-1 uppercase" required maxLength={10} />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Número Coleccionista</label>
-                            <Input value={form.collector_number} onChange={e => setForm({ ...form, collector_number: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <Input value={form.collector_number} onChange={(e) => setForm({ ...form, collector_number: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Rareza</label>
-                            <select value={form.rarity} onChange={e => setForm({ ...form, rarity: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-md p-2 mt-1 text-sm text-zinc-100">
+                            <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-md p-2 mt-1 text-sm text-zinc-100">
                                 <option value="common">Común</option>
                                 <option value="uncommon">Infrecuente</option>
                                 <option value="rare">Rara</option>
@@ -107,7 +113,7 @@ export default function AdminCards() {
                         </div>
                         <div>
                             <label className="text-xs text-zinc-400">Valor Maná</label>
-                            <Input type="number" min="0" step="0.5" value={form.mana_value} onChange={e => setForm({ ...form, mana_value: parseFloat(e.target.value) })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <Input type="number" min="0" step="0.5" value={form.mana_value} onChange={(e) => setForm({ ...form, mana_value: parseFloat(e.target.value) })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div className="md:col-span-3">
                             <Button disabled={submitting} type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-black mt-2">
@@ -130,15 +136,20 @@ export default function AdminCards() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800">
-                        {cards.map(c => (
+                        {cards.map((c) => (
                             <tr key={c.id} className="hover:bg-zinc-800/50 transition-colors">
                                 <td className="px-6 py-4 font-medium text-zinc-200">{c.name}</td>
                                 <td className="px-6 py-4 font-mono uppercase text-zinc-500">{c.set_code}</td>
-                                <td className={`px-6 py-4 capitalize ${c.rarity === 'mythic' ? 'text-orange-400' :
-                                        c.rarity === 'rare' ? 'text-yellow-400' :
-                                            c.rarity === 'uncommon' ? 'text-slate-300' : 'text-zinc-500'
-                                    }`}>{c.rarity}</td>
-                                <td className="px-6 py-4">${c.price_usd || '0.00'}</td>
+                                <td className={`px-6 py-4 capitalize ${c.rarity === 'mythic' ? 'text-orange-400'
+                                        : c.rarity === 'rare' ? 'text-yellow-400'
+                                            : c.rarity === 'uncommon' ? 'text-slate-300' : 'text-zinc-500'
+                                    }`}>
+{c.rarity}
+</td>
+                                <td className="px-6 py-4">
+$
+{c.price_usd || '0.00'}
+</td>
                                 <td className="px-6 py-4 text-right">
                                     <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} className="text-red-400 hover:bg-red-500/10 hover:text-red-300">
                                         <Trash2 className="w-4 h-4" />

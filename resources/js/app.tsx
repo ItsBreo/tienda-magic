@@ -2,7 +2,9 @@
 import '../css/app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import {
+ BrowserRouter, Routes, Route, Navigate,
+} from 'react-router-dom';
 
 // Importamos la librería de los Toasts 🚀
 import { Toaster } from 'sonner';
@@ -42,7 +44,7 @@ if (el) {
                     theme="dark"
                     position="top-right"
                     richColors
-                    expand={true}
+                    expand
                     toastOptions={{
                         className: 'bg-zinc-900 border-zinc-800 text-zinc-100 shadow-2xl',
                     }}
@@ -75,7 +77,7 @@ if (el) {
                     </Routes>
                 </BrowserRouter>
             </AuthProvider>
-        </StrictMode>
+        </StrictMode>,
     );
 } else {
     // Error silenciado: no se encontró el elemento raíz

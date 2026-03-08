@@ -15,9 +15,10 @@ class RecaptchaCheck implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (app()->environment('local')) {
-        return;
-    }
+        // Bypass en ambientes de desarrollo y testing
+        if (app()->environment(['local', 'testing'])) {
+            return;
+        }
         // Preguntamos a la API de Google si el token es válido
         $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => env('RECAPTCHA_SECRET_KEY'), // Usamos la nueva variable del .env

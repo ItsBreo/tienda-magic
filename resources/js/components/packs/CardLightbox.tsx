@@ -17,7 +17,7 @@ interface CardLightboxProps {
   onClose: () => void;
 }
 
-const CardLightbox = ({ card, onClose }: CardLightboxProps) => {
+function CardLightbox({ card, onClose }: CardLightboxProps) {
   if (card === null) {
     return null;
   }
@@ -39,8 +39,8 @@ const CardLightbox = ({ card, onClose }: CardLightboxProps) => {
         className="max-h-[85vh] object-contain shadow-2xl"
       />
     </div>,
-    document.body
+    document.body,
   );
-};
+}
 
 export default CardLightbox;

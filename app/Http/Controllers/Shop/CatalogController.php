@@ -26,7 +26,7 @@ class CatalogController extends Controller
         $sets = CardSet::select('code', 'name')->get();
         $types = BoosterPack::select('type')->distinct()->pluck('type');
 
-        return Inertia::render('shop/Catalog', [
+        return Inertia::render('Shop/Catalog', [
             'packs' => $packs,
             'filters' => $filters,
             'sets' => $sets,

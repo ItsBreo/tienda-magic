@@ -5,11 +5,13 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use App\Rules\RecaptchaCheck;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -27,7 +29,7 @@ class RegisterController extends Controller
      * @return JsonResponse Respuesta JSON con token Bearer y datos del usuario
      * @throws ValidationException Si los datos son inválidos
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         // Validación estricta para prevenir datos maliciosos
         $validated = $request->validate([
@@ -35,7 +37,7 @@ class RegisterController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:users'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'recaptcha_token' => ['required'],
+            'recaptcha_token' => ['required', new RecaptchaCheck],
         ]);
 
         // Creamos usuario con hash seguro de contraseña (bcrypt)
@@ -62,7 +64,13 @@ class RegisterController extends Controller
         $clientToken = $request->input('client_token');
         $token = $user->createToken('auth_token', ['client_token' => $clientToken])->plainTextToken;
 
-        // Devolvemos respuesta con token y datos limitados del usuario
+        // Si es una petición web (como en los tests), devolvemos redirect
+        if ($request->expectsJson() === false) {
+            return redirect()->route('dashboard')
+                ->with('success', 'Usuario registrado correctamente.');
+        }
+
+        // Devolvemos respuesta con token y datos limitados del usuario (para API)
         return response()->json([
             'data' => [
                 'name' => $user->name,

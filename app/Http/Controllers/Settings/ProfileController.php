@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,7 +28,7 @@ class ProfileController extends Controller
     /**
      * Update the user's profile settings.
      */
-    public function update(ProfileUpdateRequest $request): JsonResponse
+    public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
         $user->fill($request->validated());
@@ -38,16 +39,13 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return response()->json([
-            'message' => 'Perfil actualizado con éxito.',
-            'user' => $user
-        ]);
+        return redirect()->route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
      * Delete the user's account.
      */
-    public function destroy(Request $request): JsonResponse
+    public function destroy(Request $request): RedirectResponse
     {
         $request->validate([
             'password' => ['required', 'current_password'],
@@ -64,9 +62,6 @@ class ProfileController extends Controller
 
         $user->delete();
 
-        // En una API pura, no se suele invalidar sesión, pero se devuelve éxito
-        return response()->json([
-            'message' => 'Cuenta eliminada correctamente.'
-        ]);
+        return redirect()->route('home');
     }
 }

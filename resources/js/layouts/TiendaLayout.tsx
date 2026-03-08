@@ -1,5 +1,4 @@
-import { type ReactNode } from 'react';
-import { Head } from '@inertiajs/react';
+import { type ReactNode, useEffect } from 'react';
 import { type BreadcrumbItem } from '@/types';
 
 interface TiendaLayoutProps {
@@ -11,13 +10,12 @@ export default function TiendaLayout({
   children,
   breadcrumbs = [],
 }: TiendaLayoutProps) {
-  const { props } = usePage();
-  const auth = props.auth as any;
+  useEffect(() => {
+    document.title = 'Tienda Magic';
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
-      <Head title="Tienda Magic" />
-
       {/* Header Navigation */}
       <header className="bg-zinc-900 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -37,19 +35,19 @@ export default function TiendaLayout({
             {/* Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               <a
-                href={route('dashboard')}
+                href="/dashboard"
                 className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
               >
                 Inicio
               </a>
               <a
-                href={route('shop.index')}
+                href="/shop"
                 className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
               >
                 Tienda
               </a>
               <a
-                href={route('cart.index')}
+                href="/cart"
                 className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
               >
                 Carrito
@@ -58,30 +56,24 @@ export default function TiendaLayout({
 
             {/* User Menu */}
             <div className="flex items-center gap-4">
-              {auth.user ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
-                  <span className="text-zinc-300">{auth.user.name}</span>
-                  <span className="text-emerald-400">€{Number(auth.user.wallet_balance ?? 0).toFixed(2)}</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
-                  <a
-                    href={route('login')}
-                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-                  >
-                    Iniciar Sesión
-                  </a>
-                  <a
-                    href={route('register')}
-                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-                  >
-                    Registrarse
-                  </a>
-                </div>
-              )}
+              <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
+                <a
+                  href="/login"
+                  className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                >
+                  Iniciar Sesión
+                </a>
+                <a
+                  href="/register"
+                  className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                >
+                  Registrarse
+                </a>
+              </div>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
@@ -103,6 +95,7 @@ export default function TiendaLayout({
               ))}
             </nav>
           </div>
+        </div>
       )}
 
       {/* Main Content */}
@@ -121,26 +114,32 @@ export default function TiendaLayout({
               </p>
             </div>
             <div className="flex items-center gap-6 text-xs text-zinc-600">
-              <a
-                href="#"
+              {/* eslint-disable-next-line @typescript-eslint/no-empty-function */}
+              <button
+                type="button"
+                onClick={() => {}}
                 className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
               >
                 Términos
-              </a>
+              </button>
               <span className="text-zinc-600">•</span>
-              <a
-                href="#"
+              {/* eslint-disable-next-line @typescript-eslint/no-empty-function */}
+              <button
+                type="button"
+                onClick={() => {}}
                 className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
               >
                 Privacidad
-              </a>
+              </button>
               <span className="text-zinc-600">•</span>
-              <a
-                href="#"
+              {/* eslint-disable-next-line @typescript-eslint/no-empty-function */}
+              <button
+                type="button"
+                onClick={() => {}}
                 className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
               >
                 Contacto
-              </a>
+              </button>
             </div>
           </div>
         </div>
