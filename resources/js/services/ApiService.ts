@@ -184,6 +184,22 @@ class MagicApi {
     }
 
     /**
+     * Obtiene todos los packs disponibles en la tienda.
+     */
+    async getPacks(): Promise<any[]> {
+        const response = await this.api.get('/api/packs');
+        return response.data;
+    }
+
+    /**
+     * Obtiene cartas por set específico.
+     */
+    async getCardsBySet(setCode: string): Promise<any[]> {
+        const response = await this.api.get(`/api/cards/set/${setCode}`);
+        return response.data;
+    }
+
+    /**
      * Expone instancia de Axios para uso directo si es necesario.
      */
     get axiosInstance(): AxiosInstance {
