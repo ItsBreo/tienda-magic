@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
+use App\Services\Scryfall\ScryfallService;
 use App\Models\Card;
 use App\Models\CardSet;
 
@@ -12,13 +12,13 @@ class ScryfallSyncCards extends Command
     protected $signature = 'scryfall:sync-cards {--set= : Set code to sync specific set} {--limit=100 : Number of cards to import}';
     protected $description = 'Import cards from Scryfall with image URIs';
 
-    public function handle()
+    public function handle(ScryfallService $scryfallService)
     {
         $setCode = $this->option('set');
         $limit = $this->option('limit');
 
         if ($setCode) {
-            $this->syncSet($setCode, $limit);
+            $this->syncSet($scryfallService, $setCode, $limit);
         } else {
             // Sync all sets (limited)
             $sets = CardSet::where('card_count', '>', 0)
@@ -27,14 +27,15 @@ class ScryfallSyncCards extends Command
                 ->get();
 
             foreach ($sets as $set) {
-                $this->syncSet($set->code, min(50, $limit)); // 50 cards per set max
+                $this->syncSet($scryfallService, $set->code, min(50, $limit)); // 50 cards per set max
             }
         }
 
         $this->info('Card sync completed!');
+        return 0;
     }
 
-    private function syncSet($setCode, $limit)
+    private function syncSet(ScryfallService $scryfallService, string $setCode, int $limit)
     {
         $this->info("Syncing cards for set: {$setCode}");
 
@@ -44,23 +45,13 @@ class ScryfallSyncCards extends Command
         do {
             $this->info("Fetching page {$page}...");
 
-            $response = Http::withoutVerifying()
-                ->withHeaders([
-                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept' => 'application/json',
-                ])
-                ->get("https://api.scryfall.com/cards/search", [
-                    'q' => "set:{$setCode}",
-                    'page' => $page,
-                    'order' => 'name',
-                ]);
+            $data = $scryfallService->getCardsBySet($setCode, $page);
 
-            if ($response->failed()) {
-                $this->error("Failed to fetch page {$page}: " . $response->status());
+            if (!$data) {
+                $this->error("Failed to fetch page {$page}");
                 break;
             }
 
-            $data = $response->json();
             $cards = $data['data'] ?? [];
 
             if (empty($cards)) {
@@ -77,18 +68,13 @@ class ScryfallSyncCards extends Command
                 }
 
                 // Skip tokens and non-game pieces
-                if (in_array($card['layout'] ?? '', ['token', 'double_faced_token', 'emblem', 'planar'])) {
+                if ($scryfallService->shouldSkipCard($card)) {
                     $bar->advance();
                     continue;
                 }
 
                 // Extract image URI
-                $imageUri = null;
-                if (isset($card['image_uris']['normal'])) {
-                    $imageUri = $card['image_uris']['normal'];
-                } elseif (isset($card['card_faces'][0]['image_uris']['normal'])) {
-                    $imageUri = $card['card_faces'][0]['image_uris']['normal'];
-                }
+                $imageUri = $scryfallService->getCardImageUri($card);
 
                 // Buscar el set para obtener su ID (case-insensitive)
                 $cardSet = CardSet::whereRaw('LOWER(code) = ?', [strtolower($setCode)])->first();

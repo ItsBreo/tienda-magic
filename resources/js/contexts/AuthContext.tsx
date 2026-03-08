@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setUser(null);
                 } else {
                     // Para otros errores (red, servidor, etc), mantener el token
-                    console.error('Error verificando autenticación:', error);
                 }
             } finally {
                 // Siempre detener el loading, haya éxito o error
@@ -105,7 +104,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             window.location.href = '/login';
         } catch (error) {
-            console.error('Logout error:', error);
+            setUser(null);
+            window.location.href = '/login';
         }
     };
 

@@ -57,9 +57,6 @@ export default function Register() {
                 if (recaptchaRef.current) recaptchaRef.current.reset();
                 handleChange('recaptcha_token', '');
 
-                // Mostrar errores detallados en consola para depuración
-                console.log('Error de registro:', err.response?.data);
-
                 if (err.response?.data?.errors) {
                     setErrors(err.response.data.errors);
 

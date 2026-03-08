@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
+use App\Services\Scryfall\ScryfallService;
 use App\Models\CardSet;
 
 class ScryfallSyncSets extends Command
@@ -11,29 +11,17 @@ class ScryfallSyncSets extends Command
     protected $signature = 'scryfall:sync-sets';
     protected $description = 'Import sets from Scryfall';
 
-    public function handle()
+    public function handle(ScryfallService $scryfallService)
     {
         $this->info('--- Downloading sets list from Scryfall ---');
 
-        // 👇 AQUÍ ESTÁ EL CAMBIO IMPORTANTE
-        $response = Http::withoutVerifying()
-            ->withHeaders([
-                // El disfraz de navegador
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                // ⚠️ ESTO FALTABA: Decirle que queremos JSON
-                'Accept'     => 'application/json',
-            ])
-            ->get('https://api.scryfall.com/sets');
+        $sets = $scryfallService->getSets();
 
-        // Debug de errores mejorado
-        if ($response->failed()) {
-            $this->error('Connection to Scryfall failed.');
-            $this->error('Status: ' . $response->status());
-            $this->error('Error: ' . substr($response->body(), 0, 200));
-            return;
+        if (!$sets) {
+            $this->error('Failed to retrieve sets from Scryfall');
+            return 1;
         }
 
-        $sets = $response->json('data');
         $this->info('Sets encontrados: ' . count($sets));
 
         $bar = $this->output->createProgressBar(count($sets));
@@ -63,5 +51,7 @@ class ScryfallSyncSets extends Command
         $bar->finish();
         $this->newLine();
         $this->info('Expansions updated successfully!');
+
+        return 0;
     }
 }

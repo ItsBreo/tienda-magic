@@ -78,5 +78,5 @@ if (el) {
         </StrictMode>
     );
 } else {
-    console.error("No se encontró el elemento raíz en el HTML.");
+    // Error silenciado: no se encontró el elemento raíz
 }

@@ -43,7 +43,6 @@ export default function PacksView() {
         const packsData = await apiService.getPacks();
         setPacks(packsData || []);
       } catch (error) {
-        console.error('Error loading packs:', error);
         toast.error('Error al cargar los packs disponibles');
       } finally {
         setLoading(false);

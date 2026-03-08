@@ -75,7 +75,6 @@ const PacksGrid = ({ packs, loading = false, currentPage, setCurrentPage, onPack
       const cardsData = await response.json();
       setPackCards(cardsData || []);
     } catch (error) {
-      console.error('Error loading pack cards:', error);
       setPackCards([]);
     } finally {
       setLoadingCards(false);
@@ -86,8 +85,8 @@ const PacksGrid = ({ packs, loading = false, currentPage, setCurrentPage, onPack
     setSelectedCardFullscreen(card);
   };
 
-  const handleImageError = (imageSrc: string) => {
-    console.error('Fallo al cargar imagen:', imageSrc);
+  const handleImageError = (_imageSrc: string) => {
+    // Silenciar errores de imagen
   };
 
   const shouldShowImage = (imageSrc?: string) => !!imageSrc;

@@ -42,7 +42,6 @@ export default function Checkout() {
         payment_method: 'stripe',
       });
     } catch (error) {
-      console.error('Payment error:', error);
       setProcessing(false);
     }
   };

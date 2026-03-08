@@ -12,7 +12,7 @@ export function Navbar() {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      // Error silenciado en logout
     }
   };
 
