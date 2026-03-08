@@ -90,23 +90,36 @@ class ScryfallSyncCards extends Command
                     $imageUri = $card['card_faces'][0]['image_uris']['normal'];
                 }
 
-                // Buscar el set para obtener su ID
-                $cardSet = CardSet::where('code', $setCode)->first();
+                // Buscar el set para obtener su ID (case-insensitive)
+                $cardSet = CardSet::whereRaw('LOWER(code) = ?', [strtolower($setCode)])->first();
                 $cardSetId = $cardSet ? $cardSet->id : null;
 
-                Card::updateOrCreate(
-                    ['scryfall_id' => $card['id']],
-                    [
-                        'name' => $card['name'],
-                        'set_code' => $setCode,
-                        'collector_number' => $card['collector_number'] ?? '',
-                        'rarity' => $card['rarity'] ?? 'common',
-                        'image_uri' => $imageUri,
-                        'mana_value' => $card['cmc'] ?? 0,
-                        'card_set_id' => $cardSetId, // ID del set para la relación
-                        'data' => $card, // Guardar datos completos de Scryfall
-                    ]
-                );
+                // VALIDACIÓN CRÍTICA: Si el set no existe, loggear error y saltar
+                if (!$cardSetId) {
+                    $this->error("Set '{$setCode}' not found in database. Skipping card: {$card['name']}");
+                    $bar->advance();
+                    continue;
+                }
+
+                try {
+                    Card::updateOrCreate(
+                        ['scryfall_id' => $card['id']],
+                        [
+                            'name' => $card['name'],
+                            'set_code' => $setCode,
+                            'collector_number' => $card['collector_number'] ?? '',
+                            'rarity' => $card['rarity'] ?? 'common',
+                            'image_uri' => $imageUri,
+                            'mana_value' => $card['cmc'] ?? 0,
+                            'card_set_id' => $cardSetId, // ID del set para la relación
+                            'data' => $card, // Guardar datos completos de Scryfall
+                        ]
+                    );
+                } catch (\Exception $e) {
+                    $this->error("Failed to save card '{$card['name']}': " . $e->getMessage());
+                    $bar->advance();
+                    continue;
+                }
 
                 $imported++;
                 $bar->advance();
