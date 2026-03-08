@@ -16,6 +16,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import { ProtectedLayout } from './components/ProtectedRoute';
 import Dashboard from './pages/dashboard/dashboard';
+import PacksView from './pages/shop/PacksView';
 
 // Admin Components & Pages
 import { AdminRoute } from './components/AdminRoute';
@@ -56,7 +57,7 @@ if (el) {
                         {/* RUTAS PROTEGIDAS */}
                         <Route element={<ProtectedLayout />}>
                             <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/shop" element={<div className="p-8"><h1>Tienda de Cartas</h1></div>} />
+                            <Route path="/shop" element={<PacksView />} />
                             <Route path="/profile" element={<div className="p-8"><h1>Tu Perfil</h1></div>} />
 
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
