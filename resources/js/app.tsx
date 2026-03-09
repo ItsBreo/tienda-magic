@@ -2,7 +2,9 @@
 import '../css/app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import {
+ BrowserRouter, Routes, Route, Navigate,
+} from 'react-router-dom';
 
 // Importamos la librería de los Toasts 🚀
 import { Toaster } from 'sonner';
@@ -16,6 +18,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import { ProtectedLayout } from './components/ProtectedRoute';
 import Dashboard from './pages/dashboard/dashboard';
+import PacksView from './pages/shop/PacksView';
 
 // Admin Components & Pages
 import { AdminRoute } from './components/AdminRoute';
@@ -42,7 +45,7 @@ if (el) {
                     theme="dark"
                     position="top-right"
                     richColors
-                    expand={true}
+                    expand
                     toastOptions={{
                         className: 'bg-zinc-900 border-zinc-800 text-zinc-100 shadow-2xl',
                     }}
@@ -57,7 +60,7 @@ if (el) {
                         {/* RUTAS PROTEGIDAS */}
                         <Route element={<ProtectedLayout />}>
                             <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/shop" element={<div className="p-8"><h1>Tienda de Cartas</h1></div>} />
+                            <Route path="/shop" element={<PacksView />} />
                             <Route path="/profile" element={<Profile />} />
 
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -75,8 +78,8 @@ if (el) {
                     </Routes>
                 </BrowserRouter>
             </AuthProvider>
-        </StrictMode>
+        </StrictMode>,
     );
 } else {
-    console.error("No se encontró el elemento raíz en el HTML.");
+    // Error silenciado: no se encontró el elemento raíz
 }

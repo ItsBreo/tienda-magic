@@ -32,12 +32,14 @@ use App\Http\Controllers\Admin\AdminCardController;
 */
 
 // Autenticación
-Route::post('/login', [LoginController::class, 'store']);
-Route::post('/register', [RegisterController::class, 'store']);
+Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
+Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 
 // Tienda y Catálogo
 Route::get('/shop', [CatalogController::class, 'index']);
 Route::get('/pack/{code}', [PackDetailController::class, 'show']);
+Route::get('/packs', [PackController::class, 'index']);
+Route::get('/cards/set/{setCode}', [PackController::class, 'getCardsBySet']);
 
 // --- RUTAS DEL DASHBOARD ---
 Route::get('/sets/latest', [SetController::class, 'latest']);

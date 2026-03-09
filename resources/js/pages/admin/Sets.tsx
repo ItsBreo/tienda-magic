@@ -19,11 +19,9 @@ export default function AdminSets() {
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    const [form, setForm] = useState({ code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '' });
-
-    useEffect(() => {
-        fetchSets();
-    }, []);
+    const [form, setForm] = useState({
+        code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '',
+    });
 
     const fetchSets = async () => {
         try {
@@ -35,6 +33,10 @@ export default function AdminSets() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchSets();
+    }, []);
 
     const handleDelete = async (code: string) => {
         if (!window.confirm(`¿Seguro que deseas eliminar el set ${code}?`)) return;
@@ -55,7 +57,9 @@ export default function AdminSets() {
             await axios.post('/api/admin/sets', form);
             toast.success('Set creado');
             setShowForm(false);
-            setForm({ code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '' });
+            setForm({
+ code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '',
+});
             fetchSets();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error creando set');
@@ -71,8 +75,10 @@ export default function AdminSets() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-zinc-100">Gestión de Sets (Expansiones)</h1>
                 <Button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
-                    <Plus className="w-4 h-4 mr-2" /> Nuevo Set
-                </Button>
+                    <Plus className="w-4 h-4 mr-2" />
+{' '}
+Nuevo Set
+</Button>
             </div>
 
             {showForm && (
@@ -80,20 +86,20 @@ export default function AdminSets() {
                     <h2 className="text-lg font-bold text-zinc-100 mb-4">Crear Nuevo Set</h2>
                     <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs text-zinc-400">Código (ej. ktk)</label>
-                            <Input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toLowerCase() })} className="bg-zinc-800 border-zinc-700 mt-1 uppercase" required maxLength={10} />
+                            <label htmlFor="code" className="text-xs text-zinc-400">Código (ej. ktk)</label>
+                            <Input id="code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toLowerCase() })} className="bg-zinc-800 border-zinc-700 mt-1 uppercase" required maxLength={10} />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Nombre del Set</label>
-                            <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <label htmlFor="name" className="text-xs text-zinc-400">Nombre del Set</label>
+                            <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Fecha Lanzamiento</label>
-                            <Input type="date" value={form.released_at} onChange={e => setForm({ ...form, released_at: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1 block w-full" />
+                            <label htmlFor="released_at" className="text-xs text-zinc-400">Fecha Lanzamiento</label>
+                            <Input id="released_at" type="date" value={form.released_at} onChange={(e) => setForm({ ...form, released_at: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1 block w-full" />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Total Cartas</label>
-                            <Input type="number" min="0" value={form.card_count} onChange={e => setForm({ ...form, card_count: parseInt(e.target.value) })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <label htmlFor="card_count" className="text-xs text-zinc-400">Total Cartas</label>
+                            <Input id="card_count" type="number" min="0" value={form.card_count} onChange={(e) => setForm({ ...form, card_count: parseInt(e.target.value, 10) })} className="bg-zinc-800 border-zinc-700 mt-1" required />
                         </div>
                         <div className="md:col-span-2">
                             <Button disabled={submitting} type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-black mt-4">
@@ -117,7 +123,7 @@ export default function AdminSets() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800">
-                        {sets.map(s => (
+                        {sets.map((s) => (
                             <tr key={s.code} className="hover:bg-zinc-800/50 transition-colors">
                                 <td className="px-6 py-4">
                                     {s.icon_svg_uri && <img src={s.icon_svg_uri} alt={s.code} className="w-6 h-6 invert opacity-80" />}

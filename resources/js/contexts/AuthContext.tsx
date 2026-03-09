@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, {
+ createContext, useContext, useState, useEffect, useMemo, ReactNode,
+} from 'react';
 import apiService from '@/services/ApiService';
 
 interface User {
@@ -46,17 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     const userData = await apiService.checkAuth();
                     setUser(userData);
                 }
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Solo borrar token si es error 401 (Unauthorized)
-                if (error.response?.status === 401) {
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('client_token');
-                    sessionStorage.removeItem('auth_token');
-                    sessionStorage.removeItem('client_token');
-                    setUser(null);
-                } else {
+                if (error && typeof error === 'object' && 'response' in error) {
+                    const response = error as { response?: { status: number } };
+                    if (response.response?.status === 401) {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('client_token');
+                        sessionStorage.removeItem('auth_token');
+                        sessionStorage.removeItem('client_token');
+                        setUser(null);
+                    } else {
+                        // Para otros errores (red, servidor, etc), mantener el token
+                    }
                     // Para otros errores (red, servidor, etc), mantener el token
-                    console.error('Error verificando autenticación:', error);
                 }
             } finally {
                 // Siempre detener el loading, haya éxito o error
@@ -73,9 +78,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Usar servicio API
             const userData = await apiService.checkAuth();
             setUser(userData);
-        } catch (error: any) {
-            // Si es 401, poner usuario en null
-            setUser(null);
         } finally {
             setIsLoading(false);
         }
@@ -92,8 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
                 setUser(authResponse.data);
             }
-        } catch (error: any) {
-            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -105,7 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             window.location.href = '/login';
         } catch (error) {
-            console.error('Logout error:', error);
+            setUser(null);
+            window.location.href = '/login';
         }
     };
 

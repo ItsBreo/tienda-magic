@@ -1,4 +1,6 @@
-import { Package, Users, TrendingUp, Map } from 'lucide-react'; // Cambiamos Sparkles por Map
+import {
+ Package, Users, TrendingUp, Map,
+} from 'lucide-react'; // Cambiamos Sparkles por Map
 import { Card, CardContent } from '@/components/ui/card';
 import { getColorClasses } from '../constants';
 
@@ -14,11 +16,19 @@ interface StatsSectionProps {
 
 export function StatsSection({ stats, loading }: StatsSectionProps) {
     const items = [
-        { label: 'Packs Disponibles', value: stats.totalPacks, icon: Package, color: 'emerald' },
+        {
+ label: 'Packs Disponibles', value: stats.totalPacks, icon: Package, color: 'emerald',
+},
         // Actualizamos esta línea con latestSet
-        { label: 'Último Set (Scryfall)', value: stats.latestSet, icon: Map, color: 'blue' },
-        { label: 'Planeswalkers', value: stats.activeUsers.toLocaleString(), icon: Users, color: 'purple' },
-        { label: 'Ventas Hoy', value: stats.todaySales, icon: TrendingUp, color: 'orange' },
+        {
+ label: 'Último Set (Scryfall)', value: stats.latestSet, icon: Map, color: 'blue',
+},
+        {
+ label: 'Planeswalkers', value: stats.activeUsers.toLocaleString(), icon: Users, color: 'purple',
+},
+        {
+ label: 'Ventas Hoy', value: stats.todaySales, icon: TrendingUp, color: 'orange',
+},
     ];
 
     return (
@@ -32,10 +42,12 @@ export function StatsSection({ stats, loading }: StatsSectionProps) {
                         <Card key={index} className="bg-zinc-900 border-zinc-800 hover:border-emerald-500/50 transition-all duration-300">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
-                                    <div className="overflow-hidden"> {/* Previene que nombres largos rompan la tarjeta */}
+                                    <div className="overflow-hidden">
+{' '}
+{/* Previene que nombres largos rompan la tarjeta */}
                                         <p className="text-sm text-zinc-500 mb-1">{stat.label}</p>
                                         {loading ? (
-                                            <div className="h-9 w-24 bg-zinc-800 rounded animate-pulse mt-1"></div>
+                                            <div className="h-9 w-24 bg-zinc-800 rounded animate-pulse mt-1" />
                                         ) : (
                                             <p className="text-xl md:text-2xl font-bold text-zinc-100 truncate pr-2" title={stat.value.toString()}>
                                                 {stat.value}

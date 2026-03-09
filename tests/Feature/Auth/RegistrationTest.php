@@ -24,6 +24,7 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'recaptcha_token' => 'fake-test-token', // Token falso para tests
         ]);
 
         $response->assertRedirect(route('dashboard', absolute: false));

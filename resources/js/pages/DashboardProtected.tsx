@@ -1,10 +1,14 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
+import {
+ Wand2, ShoppingCart, Package, Wallet, Users, TrendingUp,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+ Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Wand2, ShoppingCart, Package, Wallet, Users, TrendingUp } from 'lucide-react';
 
 export default function DashboardProtected() {
     const { user, logout } = useAuth();
@@ -12,7 +16,7 @@ export default function DashboardProtected() {
     return (
         <ProtectedRoute>
             <Head title="Dashboard" />
-            
+
             <div className="min-h-screen bg-gray-50">
                 {/* Header */}
                 <div className="bg-white shadow-sm border-b">
@@ -26,11 +30,13 @@ export default function DashboardProtected() {
                             </div>
                             <div className="flex items-center space-x-4">
                                 <span className="text-sm text-gray-600">
-                                    Bienvenido, {user?.name}
+                                    Bienvenido,
+{' '}
+{user?.name}
                                 </span>
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => logout()}
                                 >
                                     Cerrar Sesión
@@ -45,8 +51,11 @@ export default function DashboardProtected() {
                     {/* Welcome Section */}
                     <div className="mb-8">
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                            ¡Hola, {user?.name}! 👋
-                        </h2>
+                            ¡Hola,
+{' '}
+{user?.name}
+! 👋
+</h2>
                         <p className="text-gray-600">
                             Bienvenido a tu dashboard de Tienda Magic. Gestiona tu colección y explora el mundo de Magic.
                         </p>
@@ -61,7 +70,8 @@ export default function DashboardProtected() {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">
-                                    ${user?.wallet_balance?.toFixed(2) || '0.00'}
+                                    $
+{user?.wallet_balance?.toFixed(2) || '0.00'}
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     Disponible para compras

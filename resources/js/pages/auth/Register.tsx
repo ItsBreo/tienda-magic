@@ -1,13 +1,17 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import {
+  Eye, EyeOff, Layers, Sparkles,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Layers, Package, Sparkles } from 'lucide-react';
+import {
+ Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+} from '@/components/ui/card';
 import apiService from '@/services/ApiService';
-import { toast } from 'sonner';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 export default function Register() {
     const navigate = useNavigate();
@@ -28,7 +32,7 @@ export default function Register() {
     const [errors, setErrors] = useState<any>({});
 
     const handleChange = (field: string, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) setErrors((prev: any) => ({ ...prev, [field]: null }));
     };
 
@@ -48,7 +52,7 @@ export default function Register() {
 
         toast.promise(registerRequest, {
             loading: 'Encendiendo tu Chispa de Planeswalker...',
-            success: (response) => {
+            success: (_response) => {
                 navigate('/dashboard', { replace: true });
                 return '¡Chispa encendida! Bienvenido al Multiverso.';
             },
@@ -56,9 +60,6 @@ export default function Register() {
                 setProcessing(false);
                 if (recaptchaRef.current) recaptchaRef.current.reset();
                 handleChange('recaptcha_token', '');
-
-                // Mostrar errores detallados en consola para depuración
-                console.log('Error de registro:', err.response?.data);
 
                 if (err.response?.data?.errors) {
                     setErrors(err.response.data.errors);
@@ -76,7 +77,7 @@ export default function Register() {
                     return 'Revisa tu mano inicial (errores en el formulario)';
                 }
                 return err.response?.data?.message || 'Fallo al resolver el hechizo. Inténtalo de nuevo.';
-            }
+            },
         });
     };
 
@@ -210,8 +211,10 @@ export default function Register() {
                         >
                             {processing ? (
                                 <span className="flex items-center gap-2">
-                                    <Sparkles className="h-4 w-4 animate-spin" /> Encendiendo Chispa...
-                                </span>
+                                    <Sparkles className="h-4 w-4 animate-spin" />
+{' '}
+Encendiendo Chispa...
+</span>
                             ) : 'Crear Cuenta'}
                         </Button>
                     </form>
@@ -219,7 +222,8 @@ export default function Register() {
 
                 <CardFooter className="flex flex-col space-y-4 border-t border-zinc-800/50 mt-4 pt-6">
                     <div className="text-center text-sm text-zinc-500">
-                        ¿Ya tienes cuenta?{' '}
+                        ¿Ya tienes cuenta?
+{' '}
                         <Link to="/login" className="text-emerald-400 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline">
                             Gira tus tierras e inicia sesión
                         </Link>

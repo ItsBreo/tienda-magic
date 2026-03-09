@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Sparkles, PackageOpen } from 'lucide-react';
+import { ShoppingBag, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -10,7 +10,7 @@ export function HeroSection() {
     return (
         <div className="bg-zinc-950 border-b border-zinc-800 relative overflow-hidden">
             {/* Un pequeño toque visual sutil de fondo, como el reflejo foil de una carta oscura */}
-            <div className="absolute top-0 right-0 -mt-32 -mr-32 w-96 h-96 bg-amber-900/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute top-0 right-0 -mt-32 -mr-32 w-96 h-96 bg-amber-900/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-6 py-12 md:py-20 relative z-10">
                 <div className="max-w-3xl">
@@ -20,8 +20,11 @@ export function HeroSection() {
 
                     {/* font-serif da el toque inconfundible de libro de fantasía/Magic */}
                     <h1 className="text-4xl md:text-6xl font-serif font-bold text-zinc-100 mb-5 leading-tight">
-                        Saludos, {user?.name || 'Viajero'}.
-                    </h1>
+                        Saludos,
+{' '}
+{user?.name || 'Viajero'}
+.
+</h1>
 
                     <p className="text-lg text-zinc-400 mb-10 max-w-2xl leading-relaxed">
                         El Multiverso te espera. Explora las últimas expansiones, amplía tu colección o abre los sobres que has adquirido en la tienda.

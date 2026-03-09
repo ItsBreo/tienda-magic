@@ -14,7 +14,6 @@ export default function TiendaMagicLayout({
   children,
   breadcrumbs = [],
 }: TiendaMagicLayoutProps) {
-
   return (
     <div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 font-sans">
 

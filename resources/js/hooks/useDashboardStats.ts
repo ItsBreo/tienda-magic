@@ -16,7 +16,7 @@ export function useDashboardStats() {
                 // Disparamos ambas peticiones AL MISMO TIEMPO (más rápido)
                 const [statsResponse, setsResponse] = await Promise.all([
                     axios.get('/api/store-stats'), // Va al DashboardController (tu base de datos)
-                    axios.get('/api/sets/latest')  // Va al SetController (Scryfall)
+                    axios.get('/api/sets/latest'), // Va al SetController (Scryfall)
                 ]);
 
                 // Juntamos la respuesta de ambos en un solo objeto para nuestro componente
@@ -24,17 +24,16 @@ export function useDashboardStats() {
                     totalPacks: statsResponse.data.totalPacks,
                     activeUsers: statsResponse.data.activeUsers,
                     todaySales: statsResponse.data.todaySales,
-                    latestSet: setsResponse.data.latestSet // Viene de la segunda petición
+                    latestSet: setsResponse.data.latestSet, // Viene de la segunda petición
                 });
-
             } catch (error) {
-                console.error("Error al cargar los datos del Multiverso:", error);
+                console.error('Error al cargar los datos del Multiverso:', error);
                 // Datos de emergencia si algo falla
                 setStats({
                     totalPacks: 150,
                     activeUsers: 300,
                     todaySales: 12,
-                    latestSet: 'Error de conexión'
+                    latestSet: 'Error de conexión',
                 });
             } finally {
                 setLoading(false);

@@ -1,16 +1,32 @@
-import { ShoppingBag, Package, Gift, Sparkles } from 'lucide-react';
+import {
+ ShoppingBag, Package, Gift, Sparkles,
+} from 'lucide-react';
 
 export const FEATURED_PACKS = [
-  { name: 'Dominaria United', set: 'Dominaria United', price: '€3.99', type: 'standard', badge: 'Popular', color: 'emerald' },
-  { name: 'Modern Horizons 3', set: 'Modern Horizons 3', price: '€4.79', type: 'master', badge: 'Nuevo', color: 'purple' },
-  { name: 'Throne of Eldraine Collector', set: 'Throne of Eldraine', price: '€19.99', type: 'collector', badge: 'Exclusivo', color: 'orange' },
+  {
+ name: 'Dominaria United', set: 'Dominaria United', price: '€3.99', type: 'standard', badge: 'Popular', color: 'emerald',
+},
+  {
+ name: 'Modern Horizons 3', set: 'Modern Horizons 3', price: '€4.79', type: 'master', badge: 'Nuevo', color: 'purple',
+},
+  {
+ name: 'Throne of Eldraine Collector', set: 'Throne of Eldraine', price: '€19.99', type: 'collector', badge: 'Exclusivo', color: 'orange',
+},
 ];
 
 export const QUICK_ACTIONS = [
-    { title: 'Explorar Tienda', description: 'Descubre booster packs', icon: ShoppingBag, theme: 'mtg-theme-green', href: '/shop' },
-    { title: 'Mi Carrito', description: 'Gestiona tus compras', icon: Package, theme: 'mtg-theme-blue', href: '/cart' },
-    { title: 'Abrir Packs', description: 'Descubre cartas épicas', icon: Gift, theme: 'mtg-theme-mythic', href: '#', disabled: true },
-    { title: 'Mi Colección', description: 'Explora tu inventario', icon: Sparkles, theme: 'mtg-theme-rare', href: '#', disabled: true },
+    {
+ title: 'Explorar Tienda', description: 'Descubre booster packs', icon: ShoppingBag, theme: 'mtg-theme-green', href: '/shop',
+},
+    {
+ title: 'Mi Carrito', description: 'Gestiona tus compras', icon: Package, theme: 'mtg-theme-blue', href: '/cart',
+},
+    {
+ title: 'Abrir Packs', description: 'Descubre cartas épicas', icon: Gift, theme: 'mtg-theme-mythic', href: '#', disabled: true,
+},
+    {
+ title: 'Mi Colección', description: 'Explora tu inventario', icon: Sparkles, theme: 'mtg-theme-rare', href: '#', disabled: true,
+},
 ];
 
 export const getColorClasses = (color: string) => {

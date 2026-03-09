@@ -54,7 +54,9 @@ class CheckoutTest extends TestCase
         ]);
 
         // Acción
-        $response = $this->actingAs($user)->post(route('checkout.process'));
+        $response = $this->actingAs($user)->post(route('checkout.process'), [
+            'total' => 20.00
+        ]);
 
         // Verificación
         $response->assertRedirect(route('dashboard'));
@@ -81,7 +83,9 @@ class CheckoutTest extends TestCase
         CartItem::create(['cart_id' => $cart->id, 'booster_pack_id' => $pack->id, 'quantity' => 1]);
 
         // Intentar comprar
-        $response = $this->actingAs($user)->post(route('checkout.process'));
+        $response = $this->actingAs($user)->post(route('checkout.process'), [
+            'total' => 10.00
+        ]);
 
         // Verificar fallo
         $response->assertSessionHasErrors(['error']);

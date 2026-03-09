@@ -22,8 +22,7 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
-            // Si en tu frontend también pides el 'username', asegúrate de añadirlo aquí
-            // 'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
+            'username' => ['required', 'string', 'max:255', Rule::unique(User::class)],
             'email' => [
                 'required',
                 'string',
@@ -41,7 +40,7 @@ class CreateNewUser implements CreatesNewUsers
 
         return User::create([
             'name' => $input['name'],
-            // 'username' => $input['username'], // Descomenta si usas username
+            'username' => $input['username'],
             'email' => $input['email'],
             'password' => $input['password'], // Fortify hace el hash automáticamente por defecto en el modelo, o asegúrate de usar Hash::make($input['password']) si tu modelo no lo hace.
         ]);
