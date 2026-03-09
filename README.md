@@ -128,6 +128,7 @@ Este proyecto integra Backend y Frontend en un único repositorio para facilitar
     
     **Importante:** 
     - Asegúrate de que **Docker Desktop** esté ejecutándose
+    - Ejecuta `docker-compose up -d` para iniciar el contenedor PostgreSQL
     - Para producción, configura tus propias claves de reCAPTCHA en `.env`:
       ```bash
       VITE_RECAPTCHA_SITE_KEY=tu_clave_real
@@ -143,7 +144,7 @@ Este proyecto integra Backend y Frontend en un único repositorio para facilitar
     php artisan migrate
     
     # Importar cartas desde Scryfall API
-    php artisan scryfall:import neo
+    php artisan scryfall:sync-cards --set=neo --limit=50
     ```
 
 ## 🃏 Importar Datos de Scryfall
@@ -164,16 +165,15 @@ php artisan shop:generate-packs
 php artisan app:generate-specific-pack CODIGO_SET
 
 # Ejemplos de packs específicos:
-php artisan app:generate-specific-pack fin    # Final Fantasy
-php artisan app:generate-specific-pack tmt    # Teenage Mutant Ninja Turtles
-php artisan app:generate-specific-pack tla    # Avatar: The Last Airbender
+php artisan app:generate-specific-pack neo    # Kamigawa: Neon Dynasty
+php artisan app:generate-specific-pack mom    # March of the Machine
+php artisan app:generate-specific-pack woe    # Wilds of Eldraine
 ```
 
 ### Comandos Adicionales
 - `php artisan scryfall:sync-cards --set=BLR --limit=500` - Importar set específico
-- `composer run dev` - Iniciar backend y frontend juntos
-- `php artisan migrate:fresh --seed` - Resetear base de datos con Docker
-- `docker-compose up -d` - Iniciar contenedor PostgreSQL (requerido antes de migrar)
+- `php artisan serve` - Iniciar backend
+- `npm run dev` - Iniciar frontend
 
 6.  **Ejecutar en Desarrollo:**
     Necesitarás dos terminales abiertas simultáneamente (o usar una herramienta como *Tmux*):
