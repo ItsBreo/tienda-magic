@@ -24,6 +24,7 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
 import AdminCards from './pages/admin/Cards';
 import AdminSets from './pages/admin/Sets';
+import Profile from './pages/profile/Profile';
 
 // Asegúrate de importar las otras páginas que uses
 
@@ -57,7 +58,7 @@ if (el) {
                         <Route element={<ProtectedLayout />}>
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/shop" element={<div className="p-8"><h1>Tienda de Cartas</h1></div>} />
-                            <Route path="/profile" element={<div className="p-8"><h1>Tu Perfil</h1></div>} />
+                            <Route path="/profile" element={<Profile />} />
 
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                         </Route>

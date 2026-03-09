@@ -12,18 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('profile', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->unique('user_id'); // Un usuario solo puede tener un perfil
-            $table->string('display_name');
-            $table->string('avatar_url');
-            $table->string('banner_url');
-            $table->string('bio');
-            $table->string('country');
-            $table->integer('reputation_score');
-            $table->string('trade_terms');
-            $table->timestamps();
-        });
+        $table->id();
+        $table->foreignId('user_id')->constrained();
+        $table->string('display_name');
+        $table->string('avatar_url')->nullable();
+        $table->string('banner_url')->nullable();
+        $table->text('bio')->nullable();
+        $table->string('country')->nullable();
+        $table->integer('reputation_score')->default(0);
+        $table->text('trade_terms')->nullable();
+
+        $table->timestamps();
+    });
     }
 
     /**
