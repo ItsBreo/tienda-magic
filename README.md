@@ -99,6 +99,7 @@ Este proyecto integra Backend y Frontend en un único repositorio para facilitar
 * Composer
 * Node.js & NPM
 * PostgreSQL
+* **Docker Desktop** (requerido para base de datos)
 
 ### Paso a Paso
 
@@ -124,6 +125,14 @@ Este proyecto integra Backend y Frontend en un único repositorio para facilitar
     php artisan key:generate
     # Configura tu base de datos en el archivo .env (DB_CONNECTION=pgsql...)
     ```
+    
+    **Importante:** 
+    - Asegúrate de que **Docker Desktop** esté ejecutándose
+    - Para producción, configura tus propias claves de reCAPTCHA en `.env`:
+      ```bash
+      VITE_RECAPTCHA_SITE_KEY=tu_clave_real
+      RECAPTCHA_SECRET_KEY=tu_secreto_real
+      ```
 
 5.  **Base de Datos y Seeds:**
     ```bash
@@ -136,6 +145,35 @@ Este proyecto integra Backend y Frontend en un único repositorio para facilitar
     # Importar cartas desde Scryfall API
     php artisan scryfall:import neo
     ```
+
+## 🃏 Importar Datos de Scryfall
+
+Para poblar la tienda con cartas y sobres reales:
+
+```bash
+# Sincronizar sets de Magic
+php artisan scryfall:sync-sets
+
+# Importar cartas (12 sets recientes, hasta 200 cartas por set)
+php artisan scryfall:sync-cards --limit=1000
+
+# Generar booster packs para todos los sets
+php artisan shop:generate-packs
+
+# Generar pack para un set específico (nuevo comando)
+php artisan app:generate-specific-pack CODIGO_SET
+
+# Ejemplos de packs específicos:
+php artisan app:generate-specific-pack fin    # Final Fantasy
+php artisan app:generate-specific-pack tmt    # Teenage Mutant Ninja Turtles
+php artisan app:generate-specific-pack tla    # Avatar: The Last Airbender
+```
+
+### Comandos Adicionales
+- `php artisan scryfall:sync-cards --set=BLR --limit=500` - Importar set específico
+- `composer run dev` - Iniciar backend y frontend juntos
+- `php artisan migrate:fresh --seed` - Resetear base de datos con Docker
+- `docker-compose up -d` - Iniciar contenedor PostgreSQL (requerido antes de migrar)
 
 6.  **Ejecutar en Desarrollo:**
     Necesitarás dos terminales abiertas simultáneamente (o usar una herramienta como *Tmux*):

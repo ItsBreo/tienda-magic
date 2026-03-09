@@ -13,7 +13,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
 } from '@/components/ui/card';
-// 1. Unificamos el icono con el del Registro (Layers)
 
 interface Props {
     _canResetPassword?: boolean;
@@ -23,7 +22,7 @@ interface Props {
 export default function Login({ _canResetPassword = false, _status }: Props) {
     const { login: authLogin } = useAuth();
     const navigate = useNavigate();
-    const recaptchaRef = useRef<ReCAPTCHA>(null);
+    const recaptchaRef = useRef<any>(null);
 
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
