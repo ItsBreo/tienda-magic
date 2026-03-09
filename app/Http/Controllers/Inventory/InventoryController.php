@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Inventory;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\DB; // Añadido para optimizar los cálculos de stats
 use App\Models\InventoryCard;
 use App\Models\InventoryPack;
 use App\Models\Card;
@@ -17,23 +17,25 @@ class InventoryController extends Controller
     /**
      * Ver el inventario del usuario autenticado
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
+        // Paginamos y evitamos el N+1 cargando la carta y su set
         $inventoryCards = InventoryCard::where('user_id', $user->id)
-            ->with('card')
-            ->get();
+            ->with('card.set')
+            ->paginate(24);
 
-        $inventoryPacks = InventoryPack::where('user_id', $user->id)
-            ->with('boosterPack')
-            ->get();
+        // Sumas directas en base de datos (sin cargar colecciones en memoria)
+        $totalCards = InventoryCard::where('user_id', $user->id)->sum('quantity');
+        $totalPacks = InventoryPack::where('user_id', $user->id)->sum('quantity');
 
-        return Inertia::render('Inventory/Index', [
+        return response()->json([
             'inventoryCards' => $inventoryCards,
-            'inventoryPacks' => $inventoryPacks,
-            'totalCards' => $inventoryCards->sum('quantity'),
-            'totalPacks' => $inventoryPacks->sum('quantity'),
+            'stats' => [
+                'totalCards' => $totalCards,
+                'totalPacks' => $totalPacks,
+            ]
         ]);
     }
 
@@ -48,27 +50,26 @@ class InventoryController extends Controller
         $preference = $user->preference ?? null;
         if (!$preference || !$preference->is_inventory_public) {
             // Si no es público, solo muestra si es el usuario autenticado
-            if (Auth::id() !== $userId) {
+            if (Auth::id() !== (int) $userId) {
                 return response()->json([
-                    'error' => 'El inventario de este usuario es privado'
+                    'error' => 'El inventario de este planeswalker es privado'
                 ], 403);
             }
         }
 
         $inventoryCards = InventoryCard::where('user_id', $userId)
-            ->with('card')
-            ->get();
+            ->with('card.set')
+            ->paginate(24);
 
-        $inventoryPacks = InventoryPack::where('user_id', $userId)
-            ->with('boosterPack')
-            ->get();
+        $totalCards = InventoryCard::where('user_id', $userId)->sum('quantity');
 
-        return Inertia::render('Inventory/UserPublic', [
-            'user' => $user,
+        return response()->json([
+            // Solo enviamos datos públicos del usuario
+            'user' => $user->only(['id', 'name', 'username']),
             'inventoryCards' => $inventoryCards,
-            'inventoryPacks' => $inventoryPacks,
-            'totalCards' => $inventoryCards->sum('quantity'),
-            'totalPacks' => $inventoryPacks->sum('quantity'),
+            'stats' => [
+                'totalCards' => $totalCards,
+            ]
         ]);
     }
 
@@ -83,14 +84,13 @@ class InventoryController extends Controller
             ->whereHas('marketListings', function($query) {
                 $query->where('status', 'active');
             })
-            ->with(['card', 'marketListings' => function($query) {
+            ->with(['card.set', 'marketListings' => function($query) {
                 $query->where('status', 'active');
             }])
-            ->get();
+            ->paginate(24);
 
-        return Inertia::render('Inventory/InSale', [
+        return response()->json([
             'cardsInSale' => $cardsInSale,
-            'totalListings' => $cardsInSale->count(),
         ]);
     }
 
@@ -105,15 +105,14 @@ class InventoryController extends Controller
             ->whereHas('marketListings', function($query) {
                 $query->where('status', 'active');
             })
-            ->with(['card', 'marketListings' => function($query) {
+            ->with(['card.set', 'marketListings' => function($query) {
                 $query->where('status', 'active');
             }])
-            ->get();
+            ->paginate(24);
 
-        return Inertia::render('Inventory/UserSelling', [
-            'user' => $user,
+        return response()->json([
+            'user' => $user->only(['id', 'name', 'username']),
             'cardsInSale' => $cardsInSale,
-            'totalListings' => $cardsInSale->count(),
         ]);
     }
 
@@ -124,14 +123,9 @@ class InventoryController extends Controller
     {
         $user = Auth::user();
 
-        $totalCards = InventoryCard::where('user_id', $user->id)
-            ->sum('quantity');
-
-        $totalCardsTypes = InventoryCard::where('user_id', $user->id)
-            ->count();
-
-        $totalPacks = InventoryPack::where('user_id', $user->id)
-            ->sum('quantity');
+        $totalCards = InventoryCard::where('user_id', $user->id)->sum('quantity');
+        $totalCardTypes = InventoryCard::where('user_id', $user->id)->count();
+        $totalPacks = InventoryPack::where('user_id', $user->id)->sum('quantity');
 
         $cardsInSale = InventoryCard::where('user_id', $user->id)
             ->whereHas('marketListings', function($query) {
@@ -139,16 +133,16 @@ class InventoryController extends Controller
             })
             ->count();
 
+        // ¡OPTIMIZACIÓN CRÍTICA!
+        // Antes cargabas todas las cartas en RAM para multiplicarlas.
+        // Ahora le decimos a la base de datos que haga la multiplicación por nosotros usando JOIN.
         $totalValue = InventoryCard::where('user_id', $user->id)
-            ->with('card')
-            ->get()
-            ->sum(function($item) {
-                return $item->quantity * ($item->card->market_avg_price ?? 0);
-            });
+            ->join('cards', 'inventory_cards.card_id', '=', 'cards.id')
+            ->sum(DB::raw('inventory_cards.quantity * COALESCE(cards.market_avg_price, 0)'));
 
         return response()->json([
             'totalCards' => $totalCards,
-            'totalCardTypes' => $totalCardsTypes,
+            'totalCardTypes' => $totalCardTypes,
             'totalPacks' => $totalPacks,
             'cardsInSale' => $cardsInSale,
             'estimatedValue' => round($totalValue, 2)
@@ -162,37 +156,30 @@ class InventoryController extends Controller
     {
         $user = Auth::user();
 
-        $query = InventoryCard::where('user_id', $user->id)
-            ->with('card');
+        $query = InventoryCard::where('user_id', $user->id)->with('card.set');
 
         // Búsqueda por nombre de carta con sanitización XSS
         if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            // Sanitizar input para prevenir XSS
-            $search = htmlspecialchars(strip_tags($search), ENT_QUOTES, 'UTF-8');
+            $search = htmlspecialchars(strip_tags($request->search), ENT_QUOTES, 'UTF-8');
             $query->whereHas('card', function($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%');
             });
         }
 
-        // Filtrar por condición
         if ($request->has('condition') && $request->condition) {
             $query->where('condition', $request->condition);
         }
 
-        // Filtrar por idioma
         if ($request->has('language') && $request->language) {
             $query->where('language', $request->language);
         }
 
-        // Filtrar por foil
         if ($request->has('is_foil')) {
-            $query->where('is_foil', $request->get('is_foil') === 'true');
+            $query->where('is_foil', $request->boolean('is_foil'));
         }
 
-        // Filtrar por disponibilidad en venta
         if ($request->has('inSale')) {
-            if ($request->get('inSale') === 'true') {
+            if ($request->boolean('inSale')) {
                 $query->whereHas('marketListings', function($q) {
                     $q->where('status', 'active');
                 });
@@ -203,9 +190,9 @@ class InventoryController extends Controller
             }
         }
 
-        $inventoryCards = $query->paginate(20);
+        $inventoryCards = $query->paginate(24);
 
-        return Inertia::render('Inventory/Filtered', [
+        return response()->json([
             'inventoryCards' => $inventoryCards,
             'filters' => $request->all()
         ]);
@@ -248,9 +235,7 @@ class InventoryController extends Controller
             $message = 'Carta añadida al inventario';
         }
 
-        return response()->json([
-            'message' => $message
-        ], 201);
+        return response()->json(['message' => $message], 201);
     }
 
     /**
@@ -261,11 +246,8 @@ class InventoryController extends Controller
         $user = Auth::user();
         $inventoryCard = InventoryCard::findOrFail($inventoryCardId);
 
-        // Verificar que sea del usuario
         if ($inventoryCard->user_id !== $user->id) {
-            return response()->json([
-                'error' => 'No tiene permiso para actualizar esta carta'
-            ], 403);
+            return response()->json(['error' => 'No tienes permiso para actualizar esta carta'], 403);
         }
 
         $validated = $request->validate([
@@ -290,11 +272,8 @@ class InventoryController extends Controller
         $user = Auth::user();
         $inventoryCard = InventoryCard::findOrFail($inventoryCardId);
 
-        // Verificar que sea del usuario
         if ($inventoryCard->user_id !== $user->id) {
-            return response()->json([
-                'error' => 'No tiene permiso para vender esta carta'
-            ], 403);
+            return response()->json(['error' => 'No tienes permiso para vender esta carta'], 403);
         }
 
         $validated = $request->validate([
@@ -302,18 +281,21 @@ class InventoryController extends Controller
             'quantity' => 'required|integer|min:1|max:' . ($inventoryCard->quantity - $inventoryCard->quantity_locked)
         ]);
 
-        // Crear listado en el mercado
         $marketListing = new Market();
         $marketListing->seller_id = $user->id;
         $marketListing->inventory_card_id = $inventoryCardId;
+
+        // ¡LA CORRECCIÓN MÁGICA! Ahora guardamos cuántas cartas vende realmente
+        $marketListing->quantity = $validated['quantity'];
+
         $marketListing->price_total = $validated['price_per_card'] * $validated['quantity'];
-        $marketListing->fee_platform = $marketListing->price_total * 0.10; // 10% de comisión
+        $marketListing->fee_platform = $marketListing->price_total * 0.10;
         $marketListing->amount_to_seller = $marketListing->price_total - $marketListing->fee_platform;
         $marketListing->status = 'active';
         $marketListing->listed_at = now();
         $marketListing->save();
 
-        // Bloquear cantidad
+        // Bloquear cantidad exacta que se puso a la venta
         $inventoryCard->increment('quantity_locked', $validated['quantity']);
 
         return response()->json([
@@ -330,32 +312,23 @@ class InventoryController extends Controller
         $user = Auth::user();
         $marketListing = Market::findOrFail($marketListingId);
 
-        // Verificar que sea del usuario
         if ($marketListing->seller_id !== $user->id) {
-            return response()->json([
-                'error' => 'No tiene permiso para eliminar este listado'
-            ], 403);
+            return response()->json(['error' => 'No tienes permiso para eliminar este listado'], 403);
         }
 
-        // Solo se puede quitar si está activo
         if ($marketListing->status !== 'active') {
-            return response()->json([
-                'error' => 'Este listado ya no está activo'
-            ], 400);
+            return response()->json(['error' => 'Este listado ya no está activo'], 400);
         }
 
         $inventoryCard = $marketListing->inventoryCard;
-        $quantity = $marketListing->price_total / ($marketListing->price_total - $marketListing->fee_platform) * ($marketListing->amount_to_seller);
 
-        // Desbloquear cantidad (estimado)
-        $inventoryCard->decrement('quantity_locked', 1);
+        // ¡CORRECCIÓN! Usamos la cantidad real guardada para desbloquear, en vez de matemáticas locas.
+        $inventoryCard->decrement('quantity_locked', $marketListing->quantity);
 
         $marketListing->status = 'cancelled';
         $marketListing->save();
 
-        return response()->json([
-            'message' => 'Carta removida de la venta correctamente'
-        ]);
+        return response()->json(['message' => 'Carta removida de la venta correctamente']);
     }
 
     /**
@@ -366,25 +339,16 @@ class InventoryController extends Controller
         $user = Auth::user();
         $inventoryCard = InventoryCard::findOrFail($inventoryCardId);
 
-        // Verificar que sea del usuario
         if ($inventoryCard->user_id !== $user->id) {
-            return response()->json([
-                'error' => 'No tiene permiso para eliminar esta carta'
-            ], 403);
+            return response()->json(['error' => 'No tienes permiso para eliminar esta carta'], 403);
         }
 
-        // No se puede eliminar si hay cantidad bloqueada
         if ($inventoryCard->quantity_locked > 0) {
-            return response()->json([
-                'error' => 'No puede eliminar cartas que están en venta'
-            ], 400);
+            return response()->json(['error' => 'No puedes eliminar cartas que están a la venta. Cancela el listado primero.'], 400);
         }
 
         $inventoryCard->delete();
 
-        return response()->json([
-            'message' => 'Carta eliminada del inventario correctamente'
-        ]);
+        return response()->json(['message' => 'Carta eliminada de tu colección correctamente']);
     }
 }
-

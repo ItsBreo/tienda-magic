@@ -43,6 +43,13 @@ export function Navbar() {
               Carrito
             </Link>
 
+            {/* 🌟 NUEVO ENLACE: Inventario (Solo visible si hay sesión iniciada) */}
+            {user && (
+              <Link to="/inventory" className="text-zinc-400 hover:text-amber-500 transition-colors duration-200 font-medium">
+                Mi Colección
+              </Link>
+            )}
+
             {user?.is_admin && (
               <Link
                 to="/admin"
@@ -63,9 +70,8 @@ export function Navbar() {
                 </span>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-sm border border-zinc-800">
                   <span className="text-sm font-medium text-amber-500">
-                    {Number(user.wallet_balance ?? 0).toFixed(2)}
-€
-</span>
+                    {Number(user.wallet_balance ?? 0).toFixed(2)}€
+                  </span>
                 </div>
                 <Button
                   variant="ghost"
