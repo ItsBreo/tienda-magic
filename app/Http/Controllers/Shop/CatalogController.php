@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Models\BoosterPack;
 use App\Models\CardSet;
 
@@ -26,11 +25,13 @@ class CatalogController extends Controller
         $sets = CardSet::select('code', 'name')->get();
         $types = BoosterPack::select('type')->distinct()->pluck('type');
 
-        return Inertia::render('Shop/Catalog', [
-            'packs' => $packs,
-            'filters' => $filters,
-            'sets' => $sets,
-            'types' => $types,
+        return response()->json([
+            'data' => [
+                'packs' => $packs,
+                'filters' => $filters,
+                'sets' => $sets,
+                'types' => $types,
+            ]
         ]);
     }
 }

@@ -27,7 +27,7 @@ class OrderController extends Controller
 
     // Validation Check if cart exists and has items
     if (!$cart || $cart->items->isEmpty()) {
-        return back()->withErrors(['error' => 'El carrito está vacío']);
+        return response()->json(['message' => 'El carrito está vacío'], 400);
     }
 
     // Calculate total price
@@ -88,11 +88,11 @@ class OrderController extends Controller
             $cart->items()->delete();
         });
 
-        return redirect()->route('dashboard')->with('success', '¡Compra realizada con éxito!');
+        return response()->json(['message' => '¡Compra realizada con éxito!'], 200);
 
     } catch (\Exception $e) {
-        // Devolver error en la sesión para que los tests pasen
-        return back()->withErrors(['error' => $e->getMessage()]);
+        // Devolver error JSON para API
+        return response()->json(['message' => $e->getMessage()], 500);
     }
 }
 }

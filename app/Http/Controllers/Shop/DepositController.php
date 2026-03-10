@@ -47,7 +47,7 @@ class DepositController extends Controller
                 ]);
             });
 
-            return redirect()->route('dashboard')->with('success', 'Depósito realizado con éxito!');
+            return response()->json(['message' => 'Depósito realizado con éxito!'], 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

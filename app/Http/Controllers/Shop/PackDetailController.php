@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
-use Inertia\Inertia;
 use App\Models\BoosterPack;
 use App\Models\Card;
 
@@ -55,11 +54,13 @@ class PackDetailController extends Controller
                 ->get();
         }
 
-        return Inertia::render('shop/PackDetail', [
-            'pack' => $pack,
-            'relatedPacks' => $relatedPacks,
-            'possibleCards' => $possibleCards,
-            'chaseCards' => $chaseCards,
+        return response()->json([
+            'data' => [
+                'pack' => $pack,
+                'relatedPacks' => $relatedPacks,
+                'possibleCards' => $possibleCards,
+                'chaseCards' => $chaseCards,
+            ]
         ]);
     }
 }
