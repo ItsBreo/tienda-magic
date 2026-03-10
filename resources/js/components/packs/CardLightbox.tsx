@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import TiltWrapper from '../ui/TiltWrapper';
 
 interface Card {
   id: number;
@@ -33,11 +34,13 @@ function CardLightbox({ card, onClose }: CardLightboxProps) {
       >
         <X size={48} />
       </button>
-      <img
-        src={card.image_url}
-        alt={card.name}
-        className="max-h-[85vh] object-contain shadow-2xl"
-      />
+      <TiltWrapper className="max-h-[85vh]">
+        <img
+          src={card.image_url}
+          alt={card.name}
+          className="max-h-[85vh] object-contain shadow-2xl"
+        />
+      </TiltWrapper>
     </div>,
     document.body,
   );

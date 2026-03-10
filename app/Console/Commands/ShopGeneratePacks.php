@@ -11,7 +11,7 @@ use App\Services\PackService;
 
 class ShopGeneratePacks extends Command
 {
-    protected $signature = 'shop:generate-packs {--set= : Generate pack for specific set code} {--force : Override existing packs}';
+    protected $signature = 'shop:generate-packs {set? : Generate pack for specific set code} {--force : Override existing packs}';
     protected $description = 'Generate booster packs from imported card sets with proper pricing and configuration';
 
     public function handle(PackService $packService)
@@ -19,7 +19,7 @@ class ShopGeneratePacks extends Command
         $this->info('=== Magic Shop - Booster Pack Generator ===');
         $this->newLine();
 
-        $specificSet = $this->option('set');
+        $specificSet = $this->argument('set');
         $force = $this->option('force');
 
         // Obtener sets que tienen cartas importadas

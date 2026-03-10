@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\CardSet;
-use Inertia\Inertia;
 
 class MarketplaceController extends Controller
 {
@@ -15,8 +14,10 @@ class MarketplaceController extends Controller
             ->orderBy('released_at', 'desc')
             ->paginate(12);
 
-        return Inertia::render('Marketplace/Index', [
-            'sets' => $sets
+        return response()->json([
+            'data' => [
+                'sets' => $sets
+            ]
         ]);
     }
 }

@@ -5,74 +5,96 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Card;
 use App\Models\InventoryCard;
-use Illuminate\Support\Str;
 
 class PackOpeningController extends Controller
 {
     public function show($orderId)
     {
         $user = Auth::user();
-        
+
         // Obtener la orden con sus items
         $order = Order::with('items.boosterPack.cardSet')
                     ->where('id', $orderId)
                     ->where('user_id', $user->id)
                     ->first();
-                    
+
         if (!$order) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Orden no encontrada.');
+            return response()->json(['message' => 'Orden no encontrada.'], 404);
         }
 
-        return Inertia::render('Shop/PackOpening', [
-            'order' => $order,
+        return response()->json([
+            'data' => [
+                'order' => $order,
+            ]
         ]);
     }
 
     public function openPack(Request $request, $orderId, $orderItemId)
     {
-        $user = Auth::user();
-        
-        // Obtener la orden y el item específico
-        $order = Order::where('id', $orderId)
-                    ->where('user_id', $user->id)
-                    ->first();
-                    
-        $orderItem = OrderItem::with('boosterPack')
-                    ->where('id', $orderItemId)
-                    ->where('order_id', $orderId)
-                    ->first();
-                    
-        if (!$order || !$orderItem) {
-            return response()->json(['error' => 'Pack no encontrado'], 404);
-        }
+        try {
+            $user = Auth::user();
 
-        // Generar cartas aleatorias del pack
-        $cards = $this->generateRandomCards($orderItem->boosterPack);
-        
-        // Añadir cartas al inventario del usuario
-        foreach ($cards as $card) {
-            InventoryCard::create([
-                'user_id' => $user->id,
-                'card_id' => $card['id'],
-                'quantity' => $card['quantity'],
-                'obtained_from' => 'pack_opening',
-                'obtained_at' => now(),
+            // Buscamos la orden y el item específico
+            $order = Order::where('id', $orderId)
+                        ->where('user_id', $user->id)
+                        ->first();
+
+            $orderItem = OrderItem::with('boosterPack')
+                        ->where('id', $orderItemId)
+                        ->where('order_id', $orderId)
+                        ->first();
+
+            if (!$order || !$orderItem) {
+                return response()->json(['error' => 'Pack no encontrado'], 404);
+            }
+
+            // Todo en una transacción: si falla la generación, no guardamos nada
+            $cards = DB::transaction(function () use ($user, $orderItem) {
+                // Generamos las cartas aleatorias del pack
+                $generatedCards = $this->generateRandomCards($orderItem->boosterPack);
+
+                // Añadimos las cartas al inventario del usuario
+                foreach ($generatedCards as $card) {
+                    InventoryCard::create([
+                        'user_id' => $user->id,
+                        'card_id' => $card['id'],
+                        'quantity' => $card['quantity'],
+                        'obtained_from' => 'pack_opening',
+                        'obtained_at' => now(),
+                    ]);
+                }
+
+                // Marcamos el sobre como abierto para que no lo vuelva a abrir
+                $orderItem->update(['opened' => true, 'opened_at' => now()]);
+
+                return $generatedCards;
+            });
+
+            return response()->json([
+                'success' => true,
+                'cards' => $cards,
             ]);
+
+        } catch (\Exception $e) {
+            // Log para debuggear
+            Log::error('Error al abrir pack: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'order_id' => $orderId,
+                'order_item_id' => $orderItemId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Devolvemos un error genérico al front para no filtrar datos de la BD
+            return response()->json([
+                'message' => 'Error al abrir el pack. Se ha cancelado la operación.'
+            ], 500);
         }
-
-        // Marcar el item como abierto
-        $orderItem->update(['opened' => true, 'opened_at' => now()]);
-
-        return response()->json([
-            'success' => true,
-            'cards' => $cards,
-        ]);
     }
 
     private function generateRandomCards($boosterPack)
@@ -83,7 +105,7 @@ class PackOpeningController extends Controller
 
         // Obtener cartas del set según la configuración
         $query = Card::where('set_code', $setCode);
-        
+
         // Common cards (10)
         if ($config['common'] > 0) {
             $commonCards = $query->where('rarity', 'common')

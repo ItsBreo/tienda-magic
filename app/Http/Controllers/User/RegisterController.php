@@ -64,11 +64,7 @@ class RegisterController extends Controller
         $clientToken = $request->input('client_token');
         $token = $user->createToken('auth_token', ['client_token' => $clientToken])->plainTextToken;
 
-        // Si es una petición web (como en los tests), devolvemos redirect
-        if ($request->expectsJson() === false) {
-            return redirect()->route('dashboard')
-                ->with('success', 'Usuario registrado correctamente.');
-        }
+        // Siempre devolvemos JSON para API REST pura
 
         // Devolvemos respuesta con token y datos limitados del usuario (para API)
         return response()->json([

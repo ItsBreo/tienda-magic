@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 use App\Models\Cart;
 use App\Models\CartItem;
 
@@ -21,8 +20,10 @@ class CartController extends Controller
         $cart = Cart::with('items.boosterPack.cardSet')
                     ->firstOrCreate(['user_id' => $user->id]);
 
-        return Inertia::render('shop/Cart', [
-            'cart' => $cart
+        return response()->json([
+            'data' => [
+                'cart' => $cart
+            ]
         ]);
     }
 
@@ -49,7 +50,7 @@ class CartController extends Controller
         $item->quantity = ($item->quantity ?? 0) + $request->quantity;
         $item->save();
 
-        return back()->with('success', 'Producto añadido al carrito.');
+        return response()->json(['message' => 'Producto añadido al carrito.'], 200);
     }
 
     // Delete item from cart
@@ -65,6 +66,6 @@ class CartController extends Controller
                     ->delete();
         }
 
-        return back()->with('success', 'Producto eliminado del carrito.');
+        return response()->json(['message' => 'Producto eliminado del carrito.'], 200);
     }
 }

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import {
- Package, ShoppingCart, ArrowLeft, ArrowRight,
+  Package, ShoppingCart, ArrowLeft, ArrowRight,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
- Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import CardItem from '@/components/ui/CardItem';
 import CardLightbox from './CardLightbox';
+import apiService from '@/services/ApiService';
 
 interface Pack {
   id: number;
@@ -71,17 +73,21 @@ function PacksGrid({
   };
 
   const handlePackClick = async (pack: Pack) => {
+    // Evitar multiples clics mientras carga
+    if (loadingCards) return;
+
     setSelectedPack(pack);
     setDialogOpen(true);
     setLoadingCards(true);
 
     try {
-      // Cargar cartas del set desde la API
-      const response = await fetch(`/api/cards/set/${pack.card_set_id}`);
-      const cardsData = await response.json();
+      // Usar nuestro servicio centralizado en lugar de fetch nativo
+      const cardsData = await apiService.getCardsBySet(pack.card_set_id);
       setPackCards(cardsData || []);
     } catch (error) {
+      console.error('Error cargando cartas del pack:', error);
       setPackCards([]);
+      toast.error('Error al cargar las cartas de este sobre');
     } finally {
       setLoadingCards(false);
     }

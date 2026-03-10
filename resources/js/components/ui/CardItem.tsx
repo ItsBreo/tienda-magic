@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
+import TiltWrapper from './TiltWrapper';
 
 interface CardItemProps {
     card: {
@@ -52,6 +53,7 @@ export default function CardItem({ card, onClick, className = '' }: CardItemProp
             role="button"
             tabIndex={0}
         >
+            <TiltWrapper className="w-full">
             <div
                 className="relative w-full transition-all duration-200 ease-out rounded-xl overflow-hidden border-2 bg-zinc-900 aspect-[2.5/3.5]"
                 style={{
@@ -93,6 +95,7 @@ export default function CardItem({ card, onClick, className = '' }: CardItemProp
                     <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${getRarityColor(card.rarity)} shadow-md`} />
                 </div>
             </div>
+            </TiltWrapper>
         </div>
     );
 }

@@ -23,11 +23,11 @@ class ScryfallSyncCards extends Command
             // Sync all sets (limited)
             $sets = CardSet::where('card_count', '>', 0)
                 ->orderBy('released_at', 'desc')
-                ->take(5) // Limit to 5 most recent sets
+                ->take(12) // Limit to 12 most recent sets
                 ->get();
 
             foreach ($sets as $set) {
-                $this->syncSet($scryfallService, $set->code, min(50, $limit)); // 50 cards per set max
+                $this->syncSet($scryfallService, $set->code, min(200, $limit)); // 200 cards per set max
             }
         }
 
