@@ -1,168 +1,70 @@
----
+# 🃏 Tienda Magic - TCG Marketplace & Social Platform
 
-# 🃏 TCG Marketplace & Social Platform
+Una plataforma moderna para coleccionar, comerciar y disfrutar de cartas coleccionables. Conecta con otros coleccionistas, abre sobres virtuales, construye tu colección y participa en un mercado seguro y dinámico.
 
-Plataforma integral para el coleccionismo, compraventa y gestión de cartas coleccionables (TCG), diseñada con una arquitectura moderna, escalable y centrada en una economía digital segura.
+## ✨ ¿Qué es Tienda Magic?
 
-## 📖 Sobre el Proyecto
+Tienda Magic es más que una tienda de cartas en línea. Es un **ecosistema completo** donde puedes:
 
-Este proyecto es una solución completa *Full-Stack* que simula y gestiona un ecosistema de cartas coleccionables (basado en datos reales de *Magic: The Gathering*). No es solo una tienda, es una **red social de coleccionismo** donde los usuarios pueden abrir sobres virtuales, construir mazos, gestionar su inventario y, lo más importante, comerciar con otros usuarios en un entorno seguro.
+- 🎁 **Abrir sobres virtuales** de diferentes ediciones y tipos de colecciones
+- 📚 **Gestionar tu inventario** de cartas y sobres sin abrir
+- 💳 **Comprar y vender** en un mercado seguro con billetera digital
+- 🤝 **Intercambiar cartas** con otros coleccionistas en la sala de trueque
+- 🎮 **Desbloquear logros** y construir tu reputación
+- 💬 **Conectar con la comunidad** a través de foros y perfiles públicos
 
-El sistema implementa una **economía de ciclo cerrado** (estilo Steam Wallet), lo que permite microtransacciones fluidas, un mercado secundario P2P (Peer-to-Peer) y un sistema de trueque (Trading Room) robusto.
+## 🌟 Funcionalidades Principales
 
-## 💡 ¿Por qué se ha hecho este proyecto?
+| Función | Descripción |
+|---------|------------|
+| **Tienda Oficial** | Compra sobres de diferentes tipos y ediciones directamente desde la plataforma |
+| **Mercado P2P** | Vende cartas de tu inventario a otros usuarios de forma segura |
+| **Trading Room** | Sistema de intercambio directo de cartas con otros coleccionistas |
+| **Billetera Digital** | Carga saldo una sola vez y úsalo para todas tus transacciones |
+| **Datos en Tiempo Real** | Información de cartas y precios siempre actualizada |
+| **Historial de Precios** | Observa cómo cambia el mercado día a día |
+| **Sistema de Privacidad** | Controla quién puede verte y quién puede ofrecerte intercambios |
+| **Logros y Reputación** | Desbloquea logros especiales y construye tu reputación en la comunidad |
+| **Foros y Comunidad** | Participa en discusiones, comparte consejos y conecta con otros coleccionistas |
 
-El mercado de TCG digital a menudo carece de una integración fluida entre la base de datos de cartas, la gestión de inventario personal y el comercio social.
+## 💡 ¿Por qué elegir Tienda Magic?
 
-Este proyecto nace para resolver tres desafíos técnicos y de producto:
+✅ **Seguridad garantizada** - Todas las transacciones están protegidas y auditorias  
+✅ **Sin comisiones ocultas** - Transparencia total en la plataforma  
+✅ **Datos precisos** - Información de cartas siempre actualizada y verificada  
+✅ **Comunidad activa** - Conecta con miles de coleccionistas del mundo  
+✅ **Experiencia realista** - Disfruta de la mecánica de coleccionismo tal como la conoces  
 
-1. **Seguridad en el Intercambio P2P:** A diferencia de los foros tradicionales donde el pago es inseguro, aquí implementamos un sistema de **"Wallet" transaccional** con auditoría financiera completa. El dinero real entra una vez y circula dentro de la plataforma, eliminando fraudes en pagos directos.
-2. **Experiencia de Coleccionismo Realista:** Queríamos ir más allá de una simple lista de cartas. Implementamos la mecánica de **Sobres Cerrados (Sealed Packs)** vs. **Cartas Sueltas**, permitiendo a los usuarios decidir si abrir sus productos o guardarlos como inversión, tal como en la vida real.
-3. **Datos Vivos y Reales:** En lugar de inventar cartas, nos sincronizamos con la API de **Scryfall** para tener datos verídicos, legales y actualizados, incluyendo un **Historial de Precios** que permite ver la fluctuación del mercado día a día.
+## 🛠️ Desarrollado con Tecnología Moderna
 
-## 🛠️ Stack Tecnológico
+| Tecnología | Propósito |
+|-----------|-----------|
+| **Laravel** | Backend robusto y seguro |
+| **React** | Interfaz moderna y responsiva |
+| **PostgreSQL** | Base de datos confiable y performante |
 
-Este proyecto utiliza las versiones más recientes y potentes del mercado para garantizar rendimiento y escalabilidad:
+Esto garantiza una plataforma rápida, segura y escalable.
 
-* **Backend:** [Laravel](https://laravel.com) **v12.36** 🚀
-* Uso de *Service Container* y *Artisan Commands* para tareas pesadas.
-* API RESTful organizada por dominios (`Api/Shop`, `Api/Market`, etc.).
-* Sistema de Migraciones "Code-First" con 28 tablas.
-* **JWT Authentication** implementado para autenticación vía tokens.
+## � Primeros Pasos - Lee la Documentación
 
-* **Frontend:** [React](https://react.dev)
-* Arquitectura SPA (Single Page Application).
-* Hooks personalizados para búsquedas y gestión de estado.
-* Interfaz reactiva con actualizaciones en tiempo real.
+Si es **la primera vez que traes este proyecto**, debes revisar la carpeta `Docs/`:
 
-* **Base de Datos:** [PostgreSQL](https://www.postgresql.org) **(Latest Version)**
-* Uso avanzado de tipos de datos `JSON` para almacenar metadatos complejos de cartas (Scryfall Data).
-* Transacciones ACID estrictas para asegurar la integridad financiera del *Wallet*.
-* Búsquedas optimizadas con `ilike` e índices compuestos.
-* **Seguridad SQL Injection** implementada con Eloquent ORM y validaciones.
+| Documento | Para quien | Qué aprenderás |
+|-----------|-----------|---|
+| **ReactYLaravel.md** | Desarrolladores nuevos | Cómo instalar todas las herramientas (PHP, Node, PostgreSQL) y levantar el proyecto por primera vez |
+| **HowToDocker.md** | Usuarios/Devs avanzados | Cómo usar Docker para levantar PostgreSQL y evitar problemas de configuración |
+| **EstructuraProyecto.md** | Desarrolladores | Cómo está organizado el código, estructura de carpetas, flujo entre frontend y backend |
 
-* **Integraciones:**
-* **Scryfall API:** Fuente de verdad para datos de cartas y precios.
-* **Stripe/PayPal (Simulado):** Pasarela para recarga de saldo real.
+**¿Por dónde empiezo?**
 
-* **Documentación:**
-* **Modelo UML** completo en `docs/UML-Model.md`
-* **Guías técnicas** para desarrollo y despliegue
+1. Si **nunca has trabajado** con PHP/React/PostgreSQL → Lee **ReactYLaravel.md**
+2. Si prefieres **evitar instalar cosas** → Lee **HowToDocker.md**
+3. Si quieres **entender cómo funciona el código** → Lee **EstructuraProyecto.md**
 
 
-
-## 🌟 Funcionalidades Clave
-
-### 💰 Economía "Steam Wallet"
-
-* Sistema de saldo virtual respaldado por dinero real.
-* Registro inmutable de transacciones (`WALLET_TRANSACTION`) para auditoría.
-* Soporte para recargas y comisiones de plataforma.
-
-### 🏪 Tienda y Mercado Secundario
-
-* **Tienda Oficial:** Compra de sobres generados por el sistema (Draft, Collector, etc.).
-* **Mercado P2P:** Los usuarios venden cartas de su inventario. El sistema gestiona la transferencia de propiedad y el movimiento de saldo, cobrando una comisión automática.
-
-### 🤝 Sala de Intercambio (Trading Room)
-
-* Sistema de trueque donde dos usuarios negocian cartas (objeto por objeto).
-* Estados de negociación: *Ofertando -> Bloqueado -> Completado*.
-
-### 🎒 Inventario Híbrido & Privacidad
-
-* Gestión de **Sobres sin abrir** e **Inventario de Cartas**.
-* Sistema de privacidad: Perfiles públicos o privados con opción de bloquear solicitudes de intercambio.
-
-### 📈 Gamificación y Social
-
-* **Logros:** Sistema de recompensas desbloqueables.
-* **Foros:** Estructura jerárquica (Categoría -> Hilo -> Comentario).
-* **Perfiles:** Avatares, reputación (Karma) y biografía.
-
-## 🗄️ Esquema de Base de Datos
-
-El proyecto cuenta con una arquitectura de base de datos relacional robusta diseñada en PostgreSQL con:
-
-- **28 tablas** interconectadas mediante migraciones Laravel
-- **Modelo UML** completo documentado en `docs/UML-Model.md`
-- **Relaciones Eloquent** optimizadas para rendimiento
-- **Índices y restricciones** para integridad referencial
-- **Tipos JSON** para metadatos complejos de Scryfall API
-
-## 🚀 Instalación y Despliegue
-
-Este proyecto integra Backend y Frontend en un único repositorio para facilitar el desarrollo y despliegue.
-
-### Prerrequisitos
-* PHP 8.2+
-* Composer
-* Node.js & NPM
-* PostgreSQL
-
-### Paso a Paso
-
-1.  **Clonar el repositorio:**
-    ```bash
-    git clone [https://github.com/tu-usuario/tu-proyecto-tcg.git](https://github.com/tu-usuario/tu-proyecto-tcg.git)
-    cd tu-proyecto-tcg
-    ```
-
-2.  **Instalar dependencias de Backend (Laravel):**
-    ```bash
-    composer install
-    ```
-
-3.  **Instalar dependencias de Frontend (React):**
-    ```bash
-    npm install
-    ```
-
-4.  **Configurar Entorno:**
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    # Configura tu base de datos en el archivo .env (DB_CONNECTION=pgsql...)
-    ```
-
-5.  **Base de Datos y Seeds:**
-    ```bash
-    # Crear base de datos PostgreSQL
-    createdb tienda_magic
-    
-    # Ejecutar migraciones (compatible con PostgreSQL)
-    php artisan migrate
-    
-    # Importar cartas desde Scryfall API
-    php artisan scryfall:import neo
-    ```
-
-6.  **Ejecutar en Desarrollo:**
-    Necesitarás dos terminales abiertas simultáneamente (o usar una herramienta como *Tmux*):
-
-    * **Terminal 1 (Servidor Laravel):**
-        ```bash
-        php artisan serve
-        ```
-    
-    * **Terminal 2 (Compilador Vite - React):**
-        ```bash
-        npm run dev
-        ```
-    
-    Vite detectará los cambios en tus archivos `.jsx` y recargará la página automáticamente (Hot Module Replacement).
-
-7.  **Compilar para Producción:**
-    Cuando subas el proyecto al servidor real:
-    ```bash
-    npm run build
-    ```
-    Esto generará los archivos estáticos optimizados en la carpeta `public/build`.
-
-## 📄 Licencia
 
 Este proyecto está bajo la licencia [MIT](https://opensource.org/licenses/MIT).
 
 ---
 
-*Desarrollado con ❤️ para los amantes del TCG.*
+*Hecho con ❤️ para los coleccionistas apasionados.*
