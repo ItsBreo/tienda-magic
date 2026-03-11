@@ -92,4 +92,51 @@ class PackController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Obtener pack individual por ID
+     */
+    public function show($id)
+    {
+        try {
+            $pack = BoosterPack::with('cardSet')->findOrFail($id);
+
+            $config = json_decode($pack->config, true);
+
+            return response()->json([
+                'data' => [
+                    'id' => $pack->id,
+                    'name' => $pack->name,
+                    'price' => (float) $pack->price,
+                    'card_set_id' => $pack->card_set_id,
+                    'type' => $pack->type,
+                    'cover_image' => $pack->cover_image,
+                    'image_uri' => $pack->image_uri,
+                    'description' => $config['description'] ?? null,
+                    'config' => [
+                        'commons' => $config['commons'] ?? 10,
+                        'uncommons' => $config['uncommons'] ?? 3,
+                        'rares' => $config['rare'] ?? 1,
+                        'mythic' => $config['mythic'] ?? 0,
+                        'foil' => $config['foil'] ?? false,
+                        'total_cards' => $config['total_cards'] ?? 14,
+                        'drops' => $config['drops'] ?? []
+                    ],
+                    'card_set' => $pack->cardSet
+                ]
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Pack no encontrado'], 404);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener pack: ' . $e->getMessage(), [
+                'pack_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'message' => 'Error al cargar el pack'
+            ], 500);
+        }
+    }
 }

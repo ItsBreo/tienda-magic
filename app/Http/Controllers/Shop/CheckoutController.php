@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Shop\CheckoutProcessRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\BoosterPack;
+use App\Models\Order;
+use App\Models\OrderItem;
 
 class CheckoutController extends Controller
 {
@@ -16,100 +19,260 @@ class CheckoutController extends Controller
     {
         $user = Auth::user();
 
-        // Obtener carrito con items y detalles
-        $cart = Cart::with('items.boosterPack.cardSet')
+        $cart = Cart::with(['items.boosterPack.cardSet'])
                     ->where('user_id', $user->id)
                     ->first();
 
         if (!$cart || $cart->items->isEmpty()) {
-            return response()->json(['message' => 'Tu carrito está vacío.'], 400);
+            return response()->json([
+                'message' => 'Tu carrito está vacío',
+                'data' => [
+                    'cart' => null,
+                    'items' => [],
+                    'subtotal' => 0,
+                    'tax' => 0,
+                    'total' => 0
+                ]
+            ], 400);
         }
 
-        // Calcular totales
-        $subtotal = $cart->items->sum(function ($item) {
-            return $item->booster_pack->price * $item->quantity;
-        });
+        // Recalcular precios en el servidor - NUNCA confiar en datos del frontend
+        $subtotal = 0;
+        $validItems = [];
 
-        $tax = $subtotal * 0.21; // 21% IVA
+        foreach ($cart->items as $item) {
+            // Validar que el pack aún existe y obtener precio actual
+            $pack = BoosterPack::find($item->booster_pack_id);
+            if (!$pack) {
+                // Eliminar items huérfanos y continuar
+                $item->delete();
+                continue;
+            }
+
+            $itemTotal = $pack->price * $item->quantity;
+            $subtotal += $itemTotal;
+
+            $validItems[] = [
+                'id' => $item->id,
+                'booster_pack_id' => $item->booster_pack_id,
+                'quantity' => $item->quantity,
+                'unit_price' => $pack->price,
+                'total_price' => $itemTotal,
+                'booster_pack' => $item->boosterPack
+            ];
+        }
+
+        // Si quedaron items huérfanos, actualizar carrito
+        if (count($validItems) !== $cart->items->count()) {
+            if (empty($validItems)) {
+                $cart->delete();
+                return response()->json([
+                    'message' => 'Tu carrito está vacío',
+                    'data' => [
+                        'cart' => null,
+                        'items' => [],
+                        'subtotal' => 0,
+                        'tax' => 0,
+                        'total' => 0
+                    ]
+                ], 400);
+            }
+        }
+
+        $taxRate = 0.21; // 21% IVA
+        $tax = $subtotal * $taxRate;
         $total = $subtotal + $tax;
 
         return response()->json([
             'data' => [
                 'cart' => $cart,
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'total' => $total,
-                'stripe_key' => config('services.stripe.public_key'),
+                'items' => $validItems,
+                'subtotal' => round($subtotal, 2),
+                'tax' => round($tax, 2),
+                'total' => round($total, 2),
+                'tax_rate' => $taxRate,
+                'currency' => 'EUR'
             ]
         ]);
     }
 
-    public function process(Request $request)
+    public function process(CheckoutProcessRequest $request)
+    {
+        try {
+            return DB::transaction(function () use ($request) {
+                $user = Auth::user();
+                $paymentMethod = $request->validated()['payment_method'];
+
+                // Obtener y validar carrito
+                $cart = Cart::with(['items.boosterPack'])
+                            ->where('user_id', $user->id)
+                            ->lockForUpdate()
+                            ->first();
+
+                if (!$cart || $cart->items->isEmpty()) {
+                    return response()->json([
+                        'message' => 'Tu carrito está vacío'
+                    ], 400);
+                }
+
+                // Recalcular totales en el servidor - SEGURIDAD CRÍTICA
+                $subtotal = 0;
+                $validItems = [];
+
+                foreach ($cart->items as $item) {
+                    $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
+                    if (!$pack) {
+                        // Eliminar items huérfanos
+                        $item->delete();
+                        continue;
+                    }
+
+                    // Validación adicional de integridad de precios
+                    if ($pack->price <= 0) {
+                        throw new \Exception('Precio inválido detectado para pack ID: ' . $pack->id);
+                    }
+
+                    $itemTotal = $pack->price * $item->quantity;
+                    $subtotal += $itemTotal;
+
+                    $validItems[] = [
+                        'booster_pack_id' => $item->booster_pack_id,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $pack->price,
+                        'total_price' => $itemTotal
+                    ];
+                }
+
+                if (empty($validItems)) {
+                    return response()->json([
+                        'message' => 'No hay items válidos en el carrito'
+                    ], 400);
+                }
+
+                // Calcular totales finales
+                $taxRate = 0.21;
+                $tax = $subtotal * $taxRate;
+                $total = $subtotal + $tax;
+
+                // Validar fondos suficientes
+                if ($paymentMethod === 'wallet' && $user->wallet_balance < $total) {
+                    return response()->json([
+                        'message' => 'Fondos insuficientes',
+                        'data' => [
+                            'required' => round($total, 2),
+                            'available' => round($user->wallet_balance, 2)
+                        ]
+                    ], 400);
+                }
+
+                // Validación anti-fraude: límite de compra
+                if ($total > 1000) {
+                    return response()->json([
+                        'message' => 'El monto de la compra excede el límite permitido'
+                    ], 400);
+                }
+
+                // Procesar pago según método
+                if ($paymentMethod === 'wallet') {
+                    // Descontar fondos del wallet
+                    $user->wallet_balance -= $total;
+                    $user->save();
+                }
+                // Aquí se integraría Stripe para pago con tarjeta
+
+                // Crear orden
+                $order = Order::create([
+                    'user_id' => $user->id,
+                    'subtotal' => $subtotal,
+                    'tax' => $tax,
+                    'total_price' => $total,
+                    'payment_method' => $paymentMethod,
+                    'status' => 'completed',
+                    'currency' => 'EUR'
+                ]);
+
+                // Crear items de la orden con precios congelados
+                foreach ($validItems as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'booster_pack_id' => $item['booster_pack_id'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'total_price' => $item['total_price']
+                    ]);
+                }
+
+                // Vaciar carrito
+                $cart->items()->delete();
+                $cart->delete();
+
+                Log::info('Checkout completado exitosamente', [
+                    'user_id' => $user->id,
+                    'order_id' => $order->id,
+                    'total' => $total,
+                    'payment_method' => $paymentMethod,
+                    'items_count' => count($validItems)
+                ]);
+
+                return response()->json([
+                    'message' => 'Pedido completado con éxito',
+                    'data' => [
+                        'order_id' => $order->id,
+                        'total' => round($total, 2),
+                        'payment_method' => $paymentMethod,
+                        'items_count' => count($validItems)
+                    ]
+                ], 201);
+
+            });
+
+        } catch (\Exception $e) {
+            Log::error('Error crítico en proceso de checkout', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->validated()
+            ]);
+
+            // No exponer detalles del error al cliente por seguridad
+            return response()->json([
+                'message' => 'Error al procesar el pago. Por favor, inténtalo de nuevo.',
+                'error_code' => 'CHECKOUT_FAILED'
+            ], 500);
+        }
+    }
+
+    public function show($orderId)
     {
         try {
             $user = Auth::user();
 
-            // Validar y sanitizar el monto total
-            $validated = $request->validate([
-                'total' => 'required|numeric|min:0.01|max:1000',
+            $order = Order::with(['items.boosterPack.cardSet'])
+                          ->where('id', $orderId)
+                          ->where('user_id', $user->id)
+                          ->first();
+
+            if (!$order) {
+                return response()->json([
+                    'message' => 'Pedido no encontrado'
+                ], 404);
+            }
+
+            return response()->json([
+                'data' => [
+                    'order' => $order
+                ]
             ]);
-
-            $total = (float) $validated['total'];
-
-            // Validar que el usuario tiene fondos suficientes
-            if ($user->wallet_balance < $total) {
-                return response()->json(['message' => 'Fondos insuficientes.'], 400);
-            }
-
-            // Obtener carrito
-            $cart = Cart::with('items.boosterPack')
-                        ->where('user_id', $user->id)
-                        ->first();
-
-            if (!$cart) {
-                return response()->json(['message' => 'Carrito no encontrado.'], 404);
-            }
-
-            // DB transaction para si algo falla, no cobramos nada y hacemos rollback
-            DB::transaction(function () use ($user, $total, $cart) {
-                // Restamos el dinero del wallet
-                $user->wallet_balance -= $total;
-                $user->save();
-
-                // Creamos la orden
-                $order = \App\Models\Order::create([
-                    'user_id' => $user->id,
-                    'total_price' => $total,
-                    'status' => 'completed',
-                ]);
-
-                // Añadimos los items a la orden
-                foreach ($cart->items as $cartItem) {
-                    \App\Models\OrderItem::create([
-                        'order_id' => $order->id,
-                        'booster_pack_id' => $cartItem->booster_pack_id,
-                        'quantity' => $cartItem->quantity,
-                        'price_at_purchase' => $cartItem->boosterPack->price,
-                    ]);
-                }
-
-                // Vaciamos el carrito
-                $cart->items()->delete();
-            });
-
-            // Todo bien, devolvemos mensaje de exito
-            return response()->json(['message' => '¡Pago completado con éxito!'], 200);
 
         } catch (\Exception $e) {
-            // Log para debuggear
-            \Log::error('Error en proceso de checkout: ' . $e->getMessage(), [
+            Log::error('Error al obtener detalles del pedido', [
                 'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
+                'order_id' => $orderId,
+                'error' => $e->getMessage()
             ]);
 
-            // Devolvemos un error genérico al front para no filtrar datos de la BD
             return response()->json([
-                'message' => 'Error al procesar el pago. Se ha cancelado la operación.'
+                'message' => 'Error al obtener los detalles del pedido'
             ], 500);
         }
     }

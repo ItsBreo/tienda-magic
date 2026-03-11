@@ -37,8 +37,28 @@ Route::post('/register', [RegisterController::class, 'store'])->name('register.s
 
 // Tienda y Catálogo
 Route::get('/shop', [CatalogController::class, 'index']);
+Route::get('/shop-debug', function() {
+    $packs = \App\Models\BoosterPack::with('cardSet')->paginate(6);
+    return response()->json([
+        'debug_info' => [
+            'total_items' => $packs->total(),
+            'per_page' => $packs->perPage(),
+            'current_page' => $packs->currentPage(),
+            'last_page' => $packs->lastPage(),
+            'has_more_pages' => $packs->hasMorePages(),
+        ],
+        'pagination_data' => [
+            'data' => $packs->items(),
+            'current_page' => $packs->currentPage(),
+            'last_page' => $packs->lastPage(),
+            'total' => $packs->total(),
+            'per_page' => $packs->perPage(),
+        ]
+    ]);
+});
 Route::get('/pack/{code}', [PackDetailController::class, 'show']);
 Route::get('/packs', [PackController::class, 'index']);
+Route::get('/packs/{id}', [PackController::class, 'show']);
 Route::get('/cards/set/{setCode}', [PackController::class, 'getCardsBySet']);
 
 // --- RUTAS DEL DASHBOARD ---
@@ -56,6 +76,12 @@ Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver 
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'destroy']);
+
+    // ========== TIENDA & CARRITO ==========
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::put('/cart/{id}', [CartController::class, 'update']);
+    Route::delete('/cart/{id}', [CartController::class, 'destroy']);
 
     // ========== USUARIO (Cuenta Base y Billetera) ==========
     Route::prefix('user')->group(function () {

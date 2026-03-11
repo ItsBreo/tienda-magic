@@ -18,7 +18,7 @@ class CatalogController extends Controller
         // El cover_image se generará automáticamente via el accessor del modelo
         $packs = BoosterPack::with('cardSet')
             ->filter($filters)
-            ->paginate(48)
+            ->paginate(6)
             ->withQueryString();
 
         // List of sets and types for filter dropdowns
