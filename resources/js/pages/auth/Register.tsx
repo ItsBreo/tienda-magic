@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Eye, EyeOff, Layers, Sparkles,
+    Eye, EyeOff, Layers, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
- Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
+    Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
 } from '@/components/ui/card';
 import apiService from '@/services/ApiService';
 
@@ -212,9 +212,9 @@ export default function Register() {
                             {processing ? (
                                 <span className="flex items-center gap-2">
                                     <Sparkles className="h-4 w-4 animate-spin" />
-{' '}
-Encendiendo Chispa...
-</span>
+                                    {' '}
+                                    Encendiendo Chispa...
+                                </span>
                             ) : 'Crear Cuenta'}
                         </Button>
                     </form>
@@ -223,7 +223,7 @@ Encendiendo Chispa...
                 <CardFooter className="flex flex-col space-y-4 border-t border-zinc-800/50 mt-4 pt-6">
                     <div className="text-center text-sm text-zinc-500">
                         ¿Ya tienes cuenta?
-{' '}
+                        {' '}
                         <Link to="/login" className="text-emerald-400 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline">
                             Gira tus tierras e inicia sesión
                         </Link>

@@ -4,7 +4,6 @@ import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { HeroSection } from './components/HeroSection';
 import { StatsSection } from './components/StatsSection';
 import { QuickActionsSection } from './components/QuickActionsSection';
-// Si extraes los Featured Packs a un componente, lo importarías aquí:
 // import { FeaturedPacksSection } from './dashboard/components/FeaturedPacksSection';
 
 export default function Dashboard() {

@@ -8,25 +8,25 @@ export default function AdminDashboard() {
 
     const stats = [
         {
- name: 'Gestión Usuarios', icon: Users, href: '/admin/users', color: 'text-blue-500', bg: 'bg-blue-500/10',
-},
+            name: 'Gestión Usuarios', icon: Users, href: '/admin/users', color: 'text-blue-500', bg: 'bg-blue-500/10',
+        },
         {
- name: 'Gestión Cartas', icon: BookOpen, href: '/admin/cards', color: 'text-emerald-500', bg: 'bg-emerald-500/10',
-},
+            name: 'Gestión Cartas', icon: BookOpen, href: '/admin/cards', color: 'text-emerald-500', bg: 'bg-emerald-500/10',
+        },
         {
- name: 'Gestión Sets', icon: Layers, href: '/admin/sets', color: 'text-purple-500', bg: 'bg-purple-500/10',
-},
+            name: 'Gestión Sets', icon: Layers, href: '/admin/sets', color: 'text-purple-500', bg: 'bg-purple-500/10',
+        },
     ];
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2">
                 Bienvenido,
-{' '}
-{user?.name}
+                {' '}
+                {user?.name}
             </h1>
             <p className="text-zinc-400 mb-8">
-                Desde aquí puedes administrar el Multiverso (Usuarios, Cartas y Expansiones).
+                Desde aquí puedes administrar Usuarios, Cartas y Expansiones.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

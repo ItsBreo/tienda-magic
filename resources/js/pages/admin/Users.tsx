@@ -20,8 +20,8 @@ export default function AdminUsers() {
 
     // Form state
     const [form, setForm] = useState({
- name: '', username: '', email: '', password: '', role_id: '1',
-}); // Role 1 = User/Normal (or verify DB roles)
+        name: '', username: '', email: '', password: '', role_id: '1',
+    }); // Role 1 = User/Normal (or verify DB roles)
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -59,8 +59,8 @@ export default function AdminUsers() {
             toast.success('Usuario creado');
             setShowForm(false);
             setForm({
- name: '', username: '', email: '', password: '', role_id: '1',
-});
+                name: '', username: '', email: '', password: '', role_id: '1',
+            });
             fetchUsers();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error creando usuario');
@@ -77,9 +77,9 @@ export default function AdminUsers() {
                 <h1 className="text-2xl font-bold text-zinc-100">Gestión de Usuarios</h1>
                 <Button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
                     <Plus className="w-4 h-4 mr-2" />
-{' '}
-Nuevo Usuario
-</Button>
+                    {' '}
+                    Nuevo Usuario
+                </Button>
             </div>
 
             {showForm && (
@@ -136,9 +136,9 @@ Nuevo Usuario
                         {users.map((u) => (
                             <tr key={u.id} className="hover:bg-zinc-800/50 transition-colors">
                                 <td className="px-6 py-4">
-#
-{u.id}
-</td>
+                                    #
+                                    {u.id}
+                                </td>
                                 <td className="px-6 py-4 text-zinc-100">{u.name}</td>
                                 <td className="px-6 py-4">{u.username}</td>
                                 <td className="px-6 py-4">{u.email}</td>

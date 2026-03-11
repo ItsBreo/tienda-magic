@@ -21,8 +21,8 @@ export default function AdminCards() {
     const [submitting, setSubmitting] = useState(false);
 
     const [form, setForm] = useState({
- scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0,
-});
+        scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0,
+    });
 
     useEffect(() => {
         fetchCards();
@@ -59,8 +59,8 @@ export default function AdminCards() {
             toast.success('Carta creada');
             setShowForm(false);
             setForm({
- scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0,
-});
+                scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0,
+            });
             fetchCards();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error creando carta (Verifica el código del set)');
@@ -77,9 +77,9 @@ export default function AdminCards() {
                 <h1 className="text-2xl font-bold text-zinc-100">Gestión de Cartas</h1>
                 <Button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
                     <Plus className="w-4 h-4 mr-2" />
-{' '}
-Nueva Carta
-</Button>
+                    {' '}
+                    Nueva Carta
+                </Button>
             </div>
 
             {showForm && (
@@ -141,15 +141,15 @@ Nueva Carta
                                 <td className="px-6 py-4 font-medium text-zinc-200">{c.name}</td>
                                 <td className="px-6 py-4 font-mono uppercase text-zinc-500">{c.set_code}</td>
                                 <td className={`px-6 py-4 capitalize ${c.rarity === 'mythic' ? 'text-orange-400'
-                                        : c.rarity === 'rare' ? 'text-yellow-400'
-                                            : c.rarity === 'uncommon' ? 'text-slate-300' : 'text-zinc-500'
+                                    : c.rarity === 'rare' ? 'text-yellow-400'
+                                        : c.rarity === 'uncommon' ? 'text-slate-300' : 'text-zinc-500'
                                     }`}>
-{c.rarity}
-</td>
+                                    {c.rarity}
+                                </td>
                                 <td className="px-6 py-4">
-$
-{c.price_usd || '0.00'}
-</td>
+                                    $
+                                    {c.price_usd || '0.00'}
+                                </td>
                                 <td className="px-6 py-4 text-right">
                                     <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} className="text-red-400 hover:bg-red-500/10 hover:text-red-300">
                                         <Trash2 className="w-4 h-4" />

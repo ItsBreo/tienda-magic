@@ -58,8 +58,8 @@ export default function AdminSets() {
             toast.success('Set creado');
             setShowForm(false);
             setForm({
- code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '',
-});
+                code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '',
+            });
             fetchSets();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error creando set');
@@ -76,9 +76,9 @@ export default function AdminSets() {
                 <h1 className="text-2xl font-bold text-zinc-100">Gestión de Sets (Expansiones)</h1>
                 <Button onClick={() => setShowForm(!showForm)} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
                     <Plus className="w-4 h-4 mr-2" />
-{' '}
-Nuevo Set
-</Button>
+                    {' '}
+                    Nuevo Set
+                </Button>
             </div>
 
             {showForm && (

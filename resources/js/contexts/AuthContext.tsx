@@ -3,6 +3,7 @@ import React, {
 } from 'react';
 import apiService from '@/services/ApiService';
 
+// --- Interfaces y Tipos
 interface User {
     id: number;
     name: string;
@@ -31,8 +32,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null); // Estado para almacenar datos del usuario autenticado
+    const [isLoading, setIsLoading] = useState(true); // Estado para indicar si se está verificando la autenticación
 
     const isAuthenticated = !!user;
 

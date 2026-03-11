@@ -3,10 +3,8 @@ import '../css/app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
- BrowserRouter, Routes, Route, Navigate,
+    BrowserRouter, Routes, Route, Navigate,
 } from 'react-router-dom';
-
-// Importamos la librería de los Toasts 🚀
 import { Toaster } from 'sonner';
 
 // Hooks y Contextos
@@ -63,7 +61,7 @@ if (el) {
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/shop" element={<PacksView />} />
                             <Route path="/profile" element={<Profile />} />
-                            <Route path="/inventory" element={ <Inventory /> } />
+                            <Route path="/inventory" element={<Inventory />} />
 
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                         </Route>
