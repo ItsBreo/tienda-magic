@@ -17,8 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // 1. AQUÍ ESTÁ LA LÍNEA MÁGICA PARA SANCTUM Y TU SPA (REACT)
-        $middleware->statefulApi();
+        // Configuración para autenticación stateless con Bearer Tokens
+        // Sanctum emitirá Opaque Tokens utilizados como Bearer Tokens estándar
+        // El middleware auth:sanctum validará exclusivamente la cabecera Authorization
+        // Sin statefulApi() para evitar cookies y forzar token explícito
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 

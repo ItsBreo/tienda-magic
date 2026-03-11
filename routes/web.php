@@ -4,20 +4,17 @@ use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
-use App\Http\Controllers\Shop\CatalogController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use App\Http\Controllers\Shop\DepositController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - Hybrid SPA + Backend Routes
+| Web Routes - SPA Only
 |--------------------------------------------------------------------------
 |
-| Estructura híbrida para SPA con React Router + Tests de Laravel:
-| - Rutas GET devuelven view('app') para React Router pero con nombres para tests
-| - Rutas POST/PUT/DELETE apuntan a controladores para JSON/Axios
-| - Catch-all final sirve la SPA para cualquier ruta no definida
+| Todas las rutas GET sirven la vista principal de React.
+| La lógica de la API está en routes/api.php
 |
 */
 
@@ -30,7 +27,9 @@ Route::get('/dashboard', function () {
     return view('app');
 })->name('dashboard')->middleware('auth');
 
-Route::get('/shop', [CatalogController::class, 'index'])->name('shop.index');
+Route::get('/shop', function () {
+    return view('app');
+})->name('shop.index');
 
 // Rutas de perfil (GET para vistas, POST/PUT/DELETE para lógica)
 Route::middleware('auth')->group(function () {
@@ -43,7 +42,9 @@ Route::middleware('auth')->group(function () {
         return view('app');
     })->name('user-password.edit');
 
-    Route::get('/settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])->name('two-factor.show');
+    Route::get('/settings/two-factor', function () {
+        return view('app');
+    })->name('two-factor.show');
 
     // Rutas de perfil - POST/PUT/DELETE para lógica del backend
     Route::patch('/settings/profile', [ProfileController::class, 'update'])->name('profile.update');
