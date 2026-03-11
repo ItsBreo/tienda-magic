@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import apiService from '@/services/ApiService';
 
-// Importar componentes modulares
 import PacksHeader from '@/components/packs/PacksHeader';
 import PacksGrid from '@/components/packs/PacksGrid';
+import PackDialog from '@/components/packs/PackDialog';
 
-// Interfaces
 interface Pack {
     id: number;
     name: string;
@@ -16,163 +16,158 @@ interface Pack {
     card_set_id: string;
     type: string;
     image_url?: string;
-    config: {
-        commons?: number;
-        uncommons?: number;
-        rares?: number;
-        mythics?: number;
-        foil?: boolean;
-        total_cards?: number;
-        description?: string;
-    };
+    config: any;
 }
 
 export default function PacksView() {
-    // Estados principales
+    const location = useLocation();
     const [packs, setPacks] = useState<Pack[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('newest');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    // Cargar packs desde API real
+    // Estados Paginación
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalPacks, setTotalPacks] = useState(0);
+
+    // Cargar datos
     useEffect(() => {
         const loadPacks = async () => {
             try {
                 setLoading(true);
-                const packsData = await apiService.getPacks();
-                setPacks(packsData || []);
+                const response = await apiService.getPacks(currentPage);
+
+                const packsArray = response?.data?.packs?.data || response?.data?.data || [];
+                const current = response?.data?.current_page || response?.current_page || response?.data?.packs?.current_page || 1;
+                const last = response?.data?.last_page || response?.last_page || response?.data?.packs?.last_page || 1;
+                const total = response?.data?.total || response?.total || response?.data?.packs?.total || 0;
+
+                setPacks(Array.isArray(packsArray) ? packsArray : []);
+                setCurrentPage(current);
+                setTotalPages(last);
+                setTotalPacks(total);
             } catch (error) {
                 toast.error('Error al cargar los packs disponibles');
+                setPacks([]);
             } finally {
                 setLoading(false);
             }
         };
 
         loadPacks();
-    }, []);
+    }, [currentPage]);
 
-    // Filtrar y ordenar packs con useMemo
+    // Interceptar openPackId del estado del router
+    useEffect(() => {
+        const openPackId = location.state?.openPackId;
+        if (openPackId && packs.length > 0) {
+            const pack = packs.find(p => p.id === openPackId);
+            if (pack) {
+                setSelectedPack(pack);
+                setIsDialogOpen(true);
+                // Limpiar estado del router para evitar reapertura en F5
+                window.history.replaceState({}, document.title);
+            }
+        }
+    }, [location.state, packs]);
+
+    // Filtrado
     const filteredPacks = useMemo(() => {
+        if (!packs || !Array.isArray(packs)) return [];
         let filtered = packs;
 
-        // Aplicar filtro de búsqueda
         if (searchTerm.trim()) {
             const searchLower = searchTerm.toLowerCase();
-            filtered = packs.filter(
-                (pack) => pack.name.toLowerCase().includes(searchLower)
-                    || pack.type.toLowerCase().includes(searchLower)
-                    || pack.card_set_id.toLowerCase().includes(searchLower),
+            filtered = packs.filter((pack) =>
+                pack.name.toLowerCase().includes(searchLower) ||
+                pack.type.toLowerCase().includes(searchLower) ||
+                pack.card_set_id.toLowerCase().includes(searchLower)
             );
         }
 
-        // Aplicar ordenación
         switch (sortBy) {
-            case 'price-low-high':
-                filtered = [...filtered].sort((a, b) => a.price - b.price);
-                break;
-            case 'price-high-low':
-                filtered = [...filtered].sort((a, b) => b.price - a.price);
-                break;
-            case 'name-az':
-                filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
-                break;
-            case 'newest':
-            default:
-                filtered = [...filtered].sort((a, b) => b.id - a.id);
-                break;
+            case 'price-low-high': return [...filtered].sort((a, b) => a.price - b.price);
+            case 'price-high-low': return [...filtered].sort((a, b) => b.price - a.price);
+            case 'name-az': return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+            case 'newest': default: return [...filtered].sort((a, b) => b.id - a.id);
         }
-
-        return filtered;
     }, [packs, searchTerm, sortBy]);
 
-    // Manejar compra de pack
     const handleBuyPack = (pack: Pack) => {
         toast.promise(
-            new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve('Pack comprado');
-                }, 1500);
-            }),
-            {
-                loading: 'Procesando compra...',
-                success: `¡Has comprado ${pack.name}!`,
-                error: 'Error al procesar la compra',
-            },
+            new Promise((resolve) => setTimeout(() => resolve('Pack comprado'), 1500)),
+            { loading: 'Procesando...', success: `¡Has comprado ${pack.name}!`, error: 'Error' }
         );
     };
 
     return (
         <div className="min-h-screen bg-black">
-            {/* Background gradient consistente */}
-            <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+            <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
 
-            {/* Header */}
             <PacksHeader />
 
-            {/* Toolbar de Filtros */}
+            {/* Toolbar */}
             <div className="bg-zinc-900/90 backdrop-blur-sm border-b border-zinc-800 sticky top-0 z-40">
-                <div className="max-w-7xl mx-auto px-4 py-4">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        {/* Buscador */}
-                        <div className="relative flex-1 sm:max-w-md">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
-                            <Input
-                                type="text"
-                                placeholder="Buscar packs por nombre o set..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 bg-zinc-900 border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-                            />
-                        </div>
-
-                        {/* Ordenación */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-zinc-400 text-sm mr-2">Ordenar por:</span>
-                            <div className="relative">
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="appearance-none bg-zinc-900 border border-zinc-700 text-zinc-100 px-4 py-2 pr-8 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-emerald-500/20"
-                                >
-                                    <option value="newest">Novedades</option>
-                                    <option value="price-low-high">Precio: Menor a Mayor</option>
-                                    <option value="price-high-low">Precio: Mayor a Menor</option>
-                                    <option value="name-az">Nombre: A-Z</option>
-                                </select>
-                                <ChevronDown className="absolute right-2 top-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
-                            </div>
-                        </div>
+                <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="relative flex-1 sm:max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                        <Input
+                            type="text"
+                            placeholder="Buscar packs..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 bg-zinc-900 border-zinc-700 text-zinc-100"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-zinc-400 text-sm">Ordenar por:</span>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="bg-zinc-900 border border-zinc-700 text-zinc-100 px-4 py-2 rounded-lg"
+                        >
+                            <option value="newest">Novedades</option>
+                            <option value="price-low-high">Menor a Mayor</option>
+                            <option value="price-high-low">Mayor a Menor</option>
+                            <option value="name-az">A-Z</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            {/* Mensaje de búsqueda */}
-            {searchTerm && (
-                <div className="text-center px-4">
-                    <p className="text-sm text-zinc-500 mt-2">
-                        Se encontraron
-                        {' '}
-                        {filteredPacks.length}
-                        {' '}
-                        packs para "
-                        {searchTerm}
-                        "
-                    </p>
-                </div>
-            )}
-
-            {/* Grid de Packs con paginación integrada */}
+            {/* Grid y Paginación */}
             <div className="max-w-7xl mx-auto px-4 pt-16 pb-8">
-                <PacksGrid
-                    packs={filteredPacks}
-                    loading={loading}
-                    currentPage={currentPage}
-                    setCurrentPage={setCurrentPage}
-                    onPackClick={() => { }} // Implementar si es necesario
-                    onBuyPack={handleBuyPack}
-                />
+                {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <Loader2 className="animate-spin text-emerald-500 w-12 h-12" />
+                    </div>
+                ) : packs.length === 0 ? (
+                    <div className="text-center py-20 text-zinc-400">No hay packs disponibles.</div>
+                ) : (
+                    <PacksGrid
+                        packs={filteredPacks}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalPacks={totalPacks}
+                        onPageChange={setCurrentPage}
+                        onPackClick={() => {}}
+                        onBuyPack={handleBuyPack}
+                    />
+                )}
             </div>
+
+            {/* Pack Dialog */}
+            <PackDialog
+                pack={selectedPack}
+                isOpen={isDialogOpen}
+                onClose={() => {
+                    setIsDialogOpen(false);
+                    setSelectedPack(null);
+                }}
+            />
         </div>
     );
 }

@@ -1,200 +1,133 @@
-import {
-    CreditCard, Minus, Plus, ShoppingBag, Trash2,
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import TiendaMagicLayout from '@/layouts/TiendaLayout';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-    Card, CardContent, CardHeader, CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
-
-interface CartItem {
-    id: number;
-    quantity: number;
-    booster_pack: {
-        id: number;
-        name: string;
-        price: number;
-        type: string;
-        card_set: {
-            name: string;
-        };
-    };
-}
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Package, Loader2, ShoppingCart } from 'lucide-react';
+import { toast } from 'sonner';
+import apiService from '@/services/ApiService';
+import CartItem from '@/components/cart/CartItem';
+import CartSummary from '@/components/cart/CartSummary';
 
 export default function Cart() {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const [processing, setProcessing] = useState(false);
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [items, setItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // TODO: Fetch cart items from API
-        setCartItems([]);
+        fetchCart();
     }, []);
 
-    const calculateTotal = () => cartItems.reduce((total: number, item: CartItem) => total + item.booster_pack.price * item.quantity, 0);
+    const fetchCart = async () => {
+        try {
+            setLoading(true);
+            const response = await apiService.axiosInstance.get('/api/cart');
+            const cartData = response.data?.data?.items || response.data?.items || response.data || [];
+            setItems(Array.isArray(cartData) ? cartData : []);
+        } catch (error) {
+            console.error('Error al cargar carrito:', error);
+            toast.error('Error al sincronizar el carrito');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const updateQuantity = (itemId: number, newQuantity: number) => {
+    const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
         if (newQuantity < 1) return;
 
-        setCartItems((prev) => prev.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)));
-        // TODO: Update cart via API
+        try {
+            await apiService.axiosInstance.put(`/api/cart/${itemId}`, { quantity: newQuantity });
+
+            setItems(prevItems =>
+                prevItems.map(item =>
+                    item.id === itemId ? { ...item, quantity: newQuantity } : item
+                )
+            );
+        } catch (error) {
+            console.error('Error al actualizar cantidad:', error);
+            toast.error('Error al actualizar la cantidad');
+        }
     };
 
-    const removeItem = (itemId: number) => {
-        setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-        // TODO: Remove from cart via API
+    const handleRemoveItem = async (itemId: number) => {
+        try {
+            await apiService.axiosInstance.delete(`/api/cart/${itemId}`);
+
+            setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+            toast.success('Producto eliminado del carrito');
+        } catch (error) {
+            console.error('Error al eliminar item:', error);
+            toast.error('Error al eliminar el producto');
+        }
     };
 
-    const proceedToCheckout = () => {
-        setProcessing(true);
-        navigate('/checkout');
+    const calculateTotal = () => {
+        return items.reduce((total, item) => {
+            const price = item.booster_pack?.price || item.unit_price || 0;
+            return total + (price * item.quantity);
+        }, 0).toFixed(2);
     };
 
-    const canAfford = calculateTotal() <= Number(user?.wallet_balance ?? 0);
+    const handleCheckout = () => {
+        toast.info('Pasarela de pago en desarrollo para Fase 2.');
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col justify-center items-center">
+                <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
+                <p className="text-zinc-400">Cargando tu carrito...</p>
+            </div>
+        );
+    }
 
     return (
-        <TiendaMagicLayout>
-            <div className="px-6 py-12">
-                <div className="mx-auto max-w-4xl">
-                    <h1 className="text-3xl font-serif font-bold text-zinc-100 mb-8 border-b border-zinc-800 pb-4">
-                        Carrito de Compras
-                    </h1>
+        <div className="min-h-screen bg-black text-zinc-100 pb-20">
+            <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
 
-                    {cartItems.length === 0 ? (
-                        <Card className="text-center py-12">
-                            <CardContent>
-                                <ShoppingBag className="mx-auto h-16 w-16 text-zinc-400 mb-4" />
-                                <h2 className="text-xl font-semibold text-zinc-100 mb-2">Tu carrito está vacío</h2>
-                                <p className="text-zinc-400 mb-6">Parece que aún no has añadido ningún sobre a tu carrito.</p>
-                                <Button onClick={() => navigate('/shop')} className="bg-emerald-600 hover:bg-emerald-700">
-                                    Explorar Tienda
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Cart Items */}
-                            <div className="lg:col-span-2 space-y-4">
-                                {cartItems.map((item) => (
-                                    <Card key={item.id} className="p-6">
-                                        <CardContent className="p-0">
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="flex-1">
-                                                    <h3 className="text-lg font-semibold text-zinc-100 mb-2">
-                                                        {item.booster_pack.name}
-                                                    </h3>
-                                                    <p className="text-sm text-zinc-400 mb-4">
-                                                        {item.booster_pack.card_set.name}
-                                                    </p>
-                                                    <div className="flex items-center gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                            disabled={processing}
-                                                        >
-                                                            <Minus className="h-4 w-4" />
-                                                        </Button>
-                                                        <span className="w-12 text-center font-medium text-zinc-100">
-                                                            {item.quantity}
-                                                        </span>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                            disabled={processing}
-                                                        >
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() => removeItem(item.id)}
-                                                            disabled={processing}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-sm text-zinc-400">Precio unitario</p>
-                                                    <p className="text-lg font-semibold text-zinc-100">
-                                                        €
-                                                        {item.booster_pack.price.toFixed(2)}
-                                                    </p>
-                                                    <p className="text-sm text-zinc-400">Total</p>
-                                                    <p className="text-xl font-bold text-emerald-400">
-                                                        €
-                                                        {(item.booster_pack.price * item.quantity).toFixed(2)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
+            <div className="max-w-6xl mx-auto px-4 pt-24">
+                <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
+                    <ShoppingCart className="text-emerald-500" />
+                    Tu Carrito de Compras
+                </h1>
 
-                            {/* Order Summary */}
-                            <div className="lg:col-span-1">
-                                <Card className="sticky top-6">
-                                    <CardHeader>
-                                        <CardTitle>Resumen del Pedido</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="flex justify-between">
-                                            <span>Subtotal</span>
-                                            <span>
-                                                €
-                                                {calculateTotal().toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Envío</span>
-                                            <span>Gratis</span>
-                                        </div>
-                                        <Separator />
-                                        <div className="flex justify-between text-lg font-semibold">
-                                            <span>Total</span>
-                                            <span className="text-emerald-400">
-                                                €
-                                                {calculateTotal().toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="space-y-2 pt-4">
-                                            <p className="text-sm text-zinc-400">
-                                                Saldo disponible:
-                                                {' '}
-                                                <span className="text-zinc-100">
-                                                    €
-                                                    {Number(user?.wallet_balance ?? 0).toFixed(2)}
-                                                </span>
-                                            </p>
-                                            <Button
-                                                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-600 disabled:cursor-not-allowed"
-                                                onClick={proceedToCheckout}
-                                                disabled={!canAfford || processing}
-                                            >
-                                                {processing ? 'Procesando...' : 'Proceder al Pago'}
-                                            </Button>
-                                            {!canAfford && (
-                                                <p className="text-sm text-amber-400 mt-2">
-                                                    No tienes saldo suficiente para completar esta compra.
-                                                </p>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-                    )}
+                <div className="flex items-center justify-between mb-8 text-sm">
+                    <Link to="/shop" className="text-zinc-400 hover:text-zinc-100 transition-colors">
+                        ← Seguir explorando el catálogo
+                    </Link>
+                    <Link to="/dashboard" className="text-zinc-400 hover:text-emerald-400 transition-colors">
+                        Ir a mi Panel (Dashboard) →
+                    </Link>
                 </div>
+
+                {items.length === 0 ? (
+                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-12 text-center max-w-2xl mx-auto mt-12">
+                        <Package className="w-20 h-20 text-zinc-600 mx-auto mb-6" />
+                        <h2 className="text-2xl font-bold mb-4">Tu carrito está vacío</h2>
+                        <p className="text-zinc-400 mb-8">Parece que aún no has añadido ningún sobre legendario a tu colección.</p>
+                        <a href="/shop" className="inline-flex items-center justify-center px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all">
+                            Explorar Tienda
+                        </a>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-8 space-y-4">
+                            {items.map((item, index) => (
+                                <CartItem
+                                    key={item.id || index}
+                                    item={item}
+                                    onUpdateQuantity={handleUpdateQuantity}
+                                    onRemove={handleRemoveItem}
+                                />
+                            ))}
+                        </div>
+
+                        <div className="lg:col-span-4">
+                            <CartSummary
+                                itemCount={items.length}
+                                total={calculateTotal()}
+                                onCheckout={handleCheckout}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
-        </TiendaMagicLayout>
+        </div>
     );
 }
