@@ -25,11 +25,14 @@ class RegisterController extends Controller
     /**
      * Registra un nuevo usuario y genera token de acceso.
      *
+     * Arquitectura stateless: No utiliza sesiones, solo Bearer Tokens.
+     * Sanctum emite Opaque Tokens de 64 caracteres utilizados como Bearer estándar.
+     *
      * @param Request $request Petición con datos del usuario y reCAPTCHA
      * @return JsonResponse Respuesta JSON con token Bearer y datos del usuario
      * @throws ValidationException Si los datos son inválidos
      */
-    public function store(Request $request): JsonResponse|RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         // Validación estricta para prevenir datos maliciosos
         $validated = $request->validate([
@@ -53,18 +56,13 @@ class RegisterController extends Controller
         // Disparamos evento para notificaciones posteriores (email verification, etc.)
         event(new Registered($user));
 
-        // Autenticamos al usuario recién creado
-        Auth::login($user);
-
-        // Regeneramos ID de sesión para evitar session fixation
-        $request->session()->regenerate();
-
-        // Generamos token Sanctum con client_token del frontend
-        // Cumple con rúbrica académica y permite trazabilidad de sesiones
+        // Generamos token Sanctum - Opaque Token de 64 caracteres
+        // Este token se utiliza como Bearer Token estándar en cabecera Authorization
         $clientToken = $request->input('client_token');
         $token = $user->createToken('auth_token', ['client_token' => $clientToken])->plainTextToken;
 
-        // Siempre devolvemos JSON para API REST pura
+        // En arquitectura stateless no mantenemos sesión
+        // Solo el token Bearer es suficiente para autenticación
 
         // Devolvemos respuesta con token y datos limitados del usuario (para API)
         return response()->json([
@@ -72,10 +70,11 @@ class RegisterController extends Controller
                 'name' => $user->name,
                 'username' => $user->username,
                 'email' => $user->email,
-                'saldo' => $user->wallet_balance,
+                'wallet_balance' => $user->wallet_balance,
             ],
             'access_token' => $token,
-            'token_type' => 'Bearer'
+            'token_type' => 'Bearer',
+            'expires_in' => config('sanctum.expiration', 525600) // 1 año por defecto
         ], 201);
     }
 }

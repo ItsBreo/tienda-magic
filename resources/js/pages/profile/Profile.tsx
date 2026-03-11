@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiService from '@/services/ApiService';
 import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,7 @@ export default function Profile() {
         const fetchProfile = async () => {
             try {
                 // Llamamos a la ruta protegida que creamos en api.php
-                const response = await axios.get('/api/profile');
+                const response = await apiService.axiosInstance.get('/api/profile');
                 const userData = response.data.user;
 
                 if (userData.profile) {
@@ -76,11 +76,11 @@ export default function Profile() {
         try {
             if (hasProfile) {
                 // Si ya tiene perfil, actualizamos (PATCH)
-                await axios.patch('/api/profile', formData);
+                await apiService.axiosInstance.patch('/api/profile', formData);
                 setMessage({ text: 'Perfil actualizado con éxito en la base de datos.', type: 'success' });
             } else {
                 // Si no tiene perfil, lo creamos (POST)
-                await axios.post('/api/profile', formData);
+                await apiService.axiosInstance.post('/api/profile', formData);
                 setHasProfile(true);
                 setMessage({ text: 'Perfil creado con éxito.', type: 'success' });
             }

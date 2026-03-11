@@ -20,6 +20,9 @@ class LoginController extends Controller
     /**
      * Autentica al usuario y genera token de acceso.
      *
+     * Arquitectura stateless: No utiliza sesiones, solo Bearer Tokens.
+     * Sanctum emite Opaque Tokens de 64 caracteres utilizados como Bearer estándar.
+     *
      * @param Request $request Petición con credenciales y reCAPTCHA
      * @return JsonResponse Respuesta JSON con token Bearer
      * @throws ValidationException Si las credenciales son inválidas
@@ -37,10 +40,9 @@ class LoginController extends Controller
 
         // Extraemos credenciales de forma segura (solo email y password)
         $credentials = $request->only('email', 'password');
-        $remember = $request->boolean('remember');
 
-        // Verificamos credenciales usando Auth::attempt (bcrypt implícito)
-        if (!Auth::attempt($credentials, $remember)) {
+        // Verificamos credenciales usando Auth::attempt sin remember (stateless)
+        if (!Auth::attempt($credentials)) {
             // Error genérico para no revelar si el email existe o no
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas no coinciden con nuestros registros.'],
@@ -49,36 +51,35 @@ class LoginController extends Controller
 
         $user = Auth::user();
 
-        // Regeneramos ID de sesión para evitar session fixation attacks
-        $request->session()->regenerate();
-
-        // Generamos token Sanctum manualmente con client_token del frontend
-        // Esto cumple con la rúbrica de "token manual" y permite trazabilidad
+        // Generamos token Sanctum manualmente - Opaque Token de 64 caracteres
+        // Este token se utiliza como Bearer Token estándar en cabecera Authorization
         $clientToken = $request->input('client_token');
         $token = $user->createToken('auth_token', ['client_token' => $clientToken])->plainTextToken;
 
-        // Devolvemos token en formato JSON estándar (no cookies)
+        // Logout de cualquier sesión existente para mantener pureza stateless
+        Auth::guard('web')->logout();
+
+        // Devolvemos token en formato JSON estándar (sin cookies)
         return response()->json([
             'data' => $user,
             'access_token' => $token,
-            'token_type' => 'Bearer'
+            'token_type' => 'Bearer',
+            'expires_in' => config('sanctum.expiration', 525600) // 1 año por defecto
         ]);
     }
 
     /**
      * Cierra la sesión del usuario y revoca tokens.
      *
+     * En arquitectura stateless, revoca el token actual para invalidar acceso.
+     *
      * @param Request $request Petición de logout
      * @return JsonResponse Confirmación de logout
      */
     public function destroy(Request $request): JsonResponse
     {
-        // Cerramos sesión del guard web
-        Auth::guard('web')->logout();
-
-        // Invalidamos sesión actual y generamos nuevo CSRF token
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Revocamos el token actual que realizó la petición
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'Sesión cerrada correctamente.'

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
 import { Trash2, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ export default function AdminUsers() {
 
     const fetchUsers = async () => {
         try {
-            const { data } = await axios.get('/api/admin/users');
+            const { data } = await apiService.axiosInstance.get('/api/admin/users');
             setUsers(data.data || data); // Laravel pagination returns data array
         } catch (error) {
             toast.error('Error al cargar usuarios');
@@ -43,7 +43,7 @@ export default function AdminUsers() {
         if (!window.confirm('¿Seguro que deseas eliminar este usuario? Esa acción no se puede deshacer.')) return;
 
         try {
-            await axios.delete(`/api/admin/users/${id}`);
+            await apiService.axiosInstance.delete(`/api/admin/users/${id}`);
             toast.success('Usuario eliminado');
             fetchUsers();
         } catch (error: any) {
@@ -55,7 +55,7 @@ export default function AdminUsers() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await axios.post('/api/admin/users', form);
+            await apiService.axiosInstance.post('/api/admin/users', form);
             toast.success('Usuario creado');
             setShowForm(false);
             setForm({

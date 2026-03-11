@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
 import { Trash2, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ export default function AdminCards() {
 
     const fetchCards = async () => {
         try {
-            const { data } = await axios.get('/api/admin/cards');
+            const { data } = await apiService.axiosInstance.get('/api/admin/cards');
             setCards(data.data || data);
         } catch (error) {
             toast.error('Error al cargar cartas');
@@ -43,7 +43,7 @@ export default function AdminCards() {
         if (!window.confirm('¿Seguro que deseas eliminar esta carta?')) return;
 
         try {
-            await axios.delete(`/api/admin/cards/${id}`);
+            await apiService.axiosInstance.delete(`/api/admin/cards/${id}`);
             toast.success('Carta eliminada');
             fetchCards();
         } catch (error: any) {
@@ -55,7 +55,7 @@ export default function AdminCards() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await axios.post('/api/admin/cards', form);
+            await apiService.axiosInstance.post('/api/admin/cards', form);
             toast.success('Carta creada');
             setShowForm(false);
             setForm({

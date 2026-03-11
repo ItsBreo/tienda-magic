@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
 import { Trash2, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ export default function AdminSets() {
 
     const fetchSets = async () => {
         try {
-            const { data } = await axios.get('/api/admin/sets');
+            const { data } = await apiService.axiosInstance.get('/api/admin/sets');
             setSets(data.data || data);
         } catch (error) {
             toast.error('Error al cargar sets');
@@ -42,7 +42,7 @@ export default function AdminSets() {
         if (!window.confirm(`¿Seguro que deseas eliminar el set ${code}?`)) return;
 
         try {
-            await axios.delete(`/api/admin/sets/${code}`);
+            await apiService.axiosInstance.delete(`/api/admin/sets/${code}`);
             toast.success('Set eliminado');
             fetchSets();
         } catch (error: any) {
@@ -54,7 +54,7 @@ export default function AdminSets() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await axios.post('/api/admin/sets', form);
+            await apiService.axiosInstance.post('/api/admin/sets', form);
             toast.success('Set creado');
             setShowForm(false);
             setForm({

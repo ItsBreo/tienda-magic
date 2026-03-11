@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiService from '@/services/ApiService';
 import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,7 +57,7 @@ export default function Inventory() {
         setLoading(true);
         try {
             // Llamamos a nuestro index() refactorizado en InventoryController
-            const response = await axios.get(`/api/inventory?page=${page}`);
+            const response = await apiService.axiosInstance.get(`/api/inventory?page=${page}`);
 
             setItems(response.data.inventoryCards.data);
             setCurrentPage(response.data.inventoryCards.current_page);

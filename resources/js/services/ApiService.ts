@@ -184,8 +184,8 @@ class MagicApi {
     /**
      * Obtiene todos los packs disponibles en la tienda.
      */
-    async getPacks(): Promise<any[]> {
-        const response = await this.api.get('/api/packs');
+    async getPacks(page: number = 1): Promise<any> {
+        const response = await this.api.get(`/api/shop?page=${page}`);
         return response.data;
     }
 
@@ -196,6 +196,8 @@ class MagicApi {
         const response = await this.api.get(`/api/cards/set/${setCode}`);
         return response.data;
     }
+
+
 
     /**
      * Expone instancia de Axios para uso directo si es necesario.
