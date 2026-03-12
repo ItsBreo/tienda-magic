@@ -10,11 +10,18 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Controlador de configuración de perfil de usuario.
+ *
+ * Maneja la actualización y eliminación del perfil del usuario autenticado.
+ */
 class ProfileController extends Controller
 {
     /**
-     * En la API, el método 'edit' suele sustituirse por uno que
-     * devuelve los datos actuales del usuario para rellenar el formulario.
+     * Devuelve datos actuales del usuario para formulario de perfil.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function edit(Request $request): JsonResponse
     {
@@ -26,7 +33,10 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile settings.
+     * Actualiza configuración del perfil del usuario.
+     *
+     * @param ProfileUpdateRequest $request
+     * @return RedirectResponse
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -43,7 +53,10 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Elimina cuenta de usuario.
+     *
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse
     {

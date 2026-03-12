@@ -9,12 +9,21 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Deck;
 
+/**
+ * Controlador principal de gestión de usuarios.
+ *
+ * Maneja operaciones CRUD del usuario autenticado y funciones de perfil.
+ */
 class UserController extends Controller
 {
 
     // Funciones CRUD
 
-    // Mostrar info para el perfil (Propio usuario)
+    /**
+     * Muestra información básica del usuario autenticado.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function show()
     {
         $user = auth()->user();
@@ -35,7 +44,13 @@ class UserController extends Controller
         ]);
     }
 
-    // Actualizar cuenta (nombre de usuario, email)
+    /**
+     * Actualiza datos básicos del perfil del usuario.
+     *
+     * @param Request $request
+     * @param User $user
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function updateProfile(Request $request, User $user)
     {
         $user = auth()->user();
@@ -55,7 +70,13 @@ class UserController extends Controller
         ]);
     }
 
-    // Actualizar contraseña
+    /**
+     * Actualiza contraseña del usuario autenticado.
+     *
+     * @param Request $request
+     * @param User $user
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function updatePassword(Request $request, User $user)
     {
         $user = auth()->user();
@@ -76,20 +97,37 @@ class UserController extends Controller
         return response()->json(['message' => 'Contraseña cambiada con éxito']);
     }
 
-    // Eliminar usuario
+    /**
+     * Elimina cuenta de usuario.
+     *
+     * @param Request $request
+     * @param User $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroyUser(Request $request, User $user)
     {
         $user->delete();
         return redirect()->route('$index}'); // TODO: pendiente cambiar el Index
     }
 
-    // Mostrar sus decks
+    /**
+     * Muestra decks del usuario.
+     *
+     * @param Request $request
+     * @param User $user
+     * @return void
+     */
     public function showDecks(Request $request, User $user)
     {
         $user->load('decks');
     }
 
-    // Cartas favoritas
+    /**
+     * Muestra cartas favoritas del usuario.
+     *
+     * @param User $user
+     * @return \Illuminate\View\View
+     */
     public function showFavoriteCards(User $user)
     {
         $user->load('favoriteCards');
@@ -97,14 +135,22 @@ class UserController extends Controller
         return view('usuarios.favorites', compact('user'));
     }
 
-    // 1. Mostrar ventas realizadas (como vendedor)
+    /**
+     * Muestra ventas realizadas como vendedor.
+     *
+     * @return \Illuminate\View\View
+     */
     public function sales()
     {
         $sales = auth()->user()->sales()->with(['buyer', 'item'])->latest()->get();
         return view('user.sales.index', compact('sales'));
     }
 
-    // 2. Estadísticas de venta
+    /**
+     * Muestra estadísticas de ventas del usuario.
+     *
+     * @return \Illuminate\View\View
+     */
     public function salesStats()
     {
         $user = auth()->user();
@@ -118,21 +164,33 @@ class UserController extends Controller
         ]);
     }
 
-    // 3. Historial de compras (como comprador)
+    /**
+     * Muestra historial de compras como comprador.
+     *
+     * @return \Illuminate\View\View
+     */
     public function orderHistory()
     {
         $orders = auth()->user()->orders()->with(['seller', 'item'])->latest()->get();
         return view('user.purchases.history', compact('purchases'));
     }
 
-    // 4. Saldo actual del Wallet
+    /**
+     * Obtiene saldo actual del wallet del usuario.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getBalance()
     {
         $balance = auth()->user()->balance;
         return response()->json(['balance' => $balance]);
     }
 
-    // 5. Transacciones (Recargas y Gastos totales)
+    /**
+     * Muestra transacciones del wallet y estadísticas.
+     *
+     * @return \Illuminate\View\View
+     */
     public function transactions()
     {
         $user = auth()->user();
