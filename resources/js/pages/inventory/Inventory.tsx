@@ -15,6 +15,15 @@ interface SetData {
     icon_svg_uri?: string;
 }
 
+interface BoosterPackData {
+    id: number;
+    name: string;
+    price: number;
+    image_uri?: string;
+    type: string;
+    card_set: SetData;
+}
+
 interface CardData {
     id: number;
     name: string;
@@ -34,6 +43,12 @@ interface InventoryItem {
     card: CardData;
 }
 
+interface InventoryPack {
+    id: number;
+    quantity: number;
+    booster_pack: BoosterPackData;
+}
+
 interface InventoryStats {
     totalCards: number;
     totalPacks: number;
@@ -42,6 +57,7 @@ interface InventoryStats {
 export default function Inventory() {
     // Estados
     const [items, setItems] = useState<InventoryItem[]>([]);
+    const [packs, setPacks] = useState<InventoryPack[]>([]);
     const [stats, setStats] = useState<InventoryStats>({ totalCards: 0, totalPacks: 0 });
     const [loading, setLoading] = useState(true);
 
@@ -60,6 +76,7 @@ export default function Inventory() {
             const response = await apiService.axiosInstance.get(`/api/inventory?page=${page}`);
 
             setItems(response.data.inventoryCards.data);
+            setPacks(response.data.inventoryPacks || []);
             setCurrentPage(response.data.inventoryCards.current_page);
             setLastPage(response.data.inventoryCards.last_page);
             setStats(response.data.stats);
@@ -86,9 +103,16 @@ export default function Inventory() {
         return colors[condition] || 'text-zinc-400 bg-zinc-800 border-zinc-700';
     };
 
+    // Constantes derivadas para filtrado
+    const filteredSobres = packs.filter(pack =>
+        pack.booster_pack.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    const filteredCartas = items.filter(item =>
+        item.card.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <TiendaMagicLayout breadcrumbs={[{ title: 'Mi Colección', href: '/inventory' }]}>
-
             {/* CABECERA Y ESTADÍSTICAS */}
             <div className="bg-zinc-900 border-b border-zinc-800">
                 <div className="max-w-7xl mx-auto px-6 py-8">
@@ -155,7 +179,7 @@ export default function Inventory() {
                             <div key={i} className="aspect-[2.5/3.5] bg-zinc-900 rounded-lg border border-zinc-800"></div>
                         ))}
                     </div>
-                ) : items.length === 0 ? (
+                ) : items.length === 0 && packs.length === 0 ? (
                     <div className="text-center py-20 bg-zinc-900/50 border border-zinc-800 rounded-sm border-dashed">
                         <Layers className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
                         <h3 className="text-lg font-serif text-zinc-300 mb-2">Tu bóveda está vacía</h3>
@@ -166,69 +190,154 @@ export default function Inventory() {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
-                            {items.map((item) => (
-                                <div key={item.id} className="group relative flex flex-col bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden hover:border-zinc-600 transition-colors">
-
-                                    {/* Imagen de la Carta */}
-                                    <div className="relative aspect-[2.5/3.5] bg-zinc-900 flex items-center justify-center p-2">
-                                        {item.card.image_url ? (
-                                            <img
-                                                src={item.card.image_url}
-                                                alt={item.card.name}
-                                                className="w-full h-full object-contain rounded drop-shadow-md"
-                                                loading="lazy"
-                                            />
-                                        ) : (
-                                            <div className="text-center">
-                                                <ImageIcon className="h-8 w-8 text-zinc-700 mx-auto mb-2" />
-                                                <span className="text-xs text-zinc-600 font-serif px-2">{item.card.name}</span>
-                                            </div>
-                                        )}
-
-                                        {/* Overlay de Cantidad */}
-                                        <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm border border-zinc-700 text-zinc-100 text-xs font-bold px-2 py-1 rounded-sm shadow-lg">
-                                            x{item.quantity}
-                                        </div>
-
-                                        {/* Overlay de Bloqueo (Si está en venta) */}
-                                        {item.quantity_locked > 0 && (
-                                            <div className="absolute top-2 left-2 bg-red-950/80 backdrop-blur-sm border border-red-900/50 text-red-400 text-xs px-1.5 py-1 rounded-sm shadow-lg" title={`${item.quantity_locked} en venta`}>
-                                                <Lock className="h-3.5 w-3.5" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Metadatos de la copia */}
-                                    <div className="p-3 border-t border-zinc-800 flex flex-col gap-2 flex-1">
-                                        <h3 className="text-sm font-semibold text-zinc-200 truncate" title={item.card.name}>
-                                            {item.card.name}
-                                        </h3>
-
-                                        <div className="flex flex-wrap items-center gap-1.5 mt-auto">
-                                            {/* Condición */}
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-sm border ${getConditionColor(item.condition)}`}>
-                                                {item.condition}
-                                            </span>
-
-                                            {/* Idioma */}
-                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-zinc-800 border border-zinc-700 text-zinc-400 uppercase">
-                                                {item.language}
-                                            </span>
-
-                                            {/* Foil */}
-                                            {item.is_foil && (
-                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center gap-0.5" title="Foil">
-                                                    <Sparkles className="h-3 w-3" />
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
+                        {/* SECCIÓN DE SOBRES */}
+                        {packs.length > 0 && (
+                            <div className="mb-12">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Package className="h-5 w-5 text-blue-400" />
+                                    <h2 className="text-xl font-serif font-bold text-zinc-100">Sobres en tu Inventario</h2>
+                                    <span className="text-sm text-zinc-500 bg-zinc-800 px-2 py-1 rounded-sm">
+                                        {packs.reduce((total, pack) => total + pack.quantity, 0)} sobres
+                                    </span>
                                 </div>
-                            ))}
-                        </div>
+                                {filteredSobres.length === 0 ? (
+                                    <div className="text-center py-12 bg-zinc-900/50 border border-zinc-800 rounded-sm border-dashed">
+                                        <Package className="h-8 w-8 text-zinc-600 mx-auto mb-3" />
+                                        <p className="text-zinc-400">No se encontraron sobres con ese nombre</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+                                        {filteredSobres.map((pack) => (
+                                        <div key={pack.id} className="group relative flex flex-col bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden hover:border-zinc-600 transition-colors">
+                                            {/* Imagen del Sobre */}
+                                            <div className="relative aspect-[2.5/3.5] bg-zinc-900 flex items-center justify-center p-2">
+                                                {pack.booster_pack.image_uri ? (
+                                                    <img
+                                                        src={pack.booster_pack.image_uri}
+                                                        alt={pack.booster_pack.name}
+                                                        className="w-full h-full object-contain rounded drop-shadow-md"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <div className="text-center">
+                                                        <Package className="h-8 w-8 text-zinc-700 mx-auto mb-2" />
+                                                        <span className="text-xs text-zinc-600 font-serif px-2">{pack.booster_pack.name}</span>
+                                                    </div>
+                                                )}
 
-                        {/* Controles de Paginación */}
+                                                {/* Overlay de Cantidad */}
+                                                <div className="absolute top-2 right-2 bg-blue-600/90 backdrop-blur-sm border border-blue-700 text-white text-xs font-bold px-2 py-1 rounded-sm shadow-lg">
+                                                    x{pack.quantity}
+                                                </div>
+                                            </div>
+
+                                            {/* Metadatos del Sobre */}
+                                            <div className="p-3 border-t border-zinc-800 flex flex-col gap-2 flex-1">
+                                                <h3 className="text-sm font-semibold text-zinc-200 truncate" title={pack.booster_pack.name}>
+                                                    {pack.booster_pack.name}
+                                                </h3>
+
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-auto">
+                                                    {/* Tipo */}
+                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 uppercase">
+                                                        {pack.booster_pack.type}
+                                                    </span>
+
+                                                    {/* Set */}
+                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-zinc-800 border border-zinc-700 text-zinc-400">
+                                                        {pack.booster_pack.card_set?.name || 'Unknown'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* SECCIÓN DE CARTAS */}
+                        {items.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Layers className="h-5 w-5 text-amber-400" />
+                                    <h2 className="text-xl font-serif font-bold text-zinc-100">Cartas en tu Colección</h2>
+                                    <span className="text-sm text-zinc-500 bg-zinc-800 px-2 py-1 rounded-sm">
+                                        {items.reduce((total, item) => total + item.quantity, 0)} cartas
+                                    </span>
+                                </div>
+                                {filteredCartas.length === 0 ? (
+                                    <div className="text-center py-12 bg-zinc-900/50 border border-zinc-800 rounded-sm border-dashed">
+                                        <Layers className="h-8 w-8 text-zinc-600 mx-auto mb-3" />
+                                        <p className="text-zinc-400">No se encontraron cartas con ese nombre</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+                                        {filteredCartas.map((item) => (
+                                        <div key={item.id} className="group relative flex flex-col bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden hover:border-zinc-600 transition-colors">
+
+                                            {/* Imagen de la Carta */}
+                                            <div className="relative aspect-[2.5/3.5] bg-zinc-900 flex items-center justify-center p-2">
+                                                {item.card.image_url ? (
+                                                    <img
+                                                        src={item.card.image_url}
+                                                        alt={item.card.name}
+                                                        className="w-full h-full object-contain rounded drop-shadow-md"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <div className="text-center">
+                                                        <ImageIcon className="h-8 w-8 text-zinc-700 mx-auto mb-2" />
+                                                        <span className="text-xs text-zinc-600 font-serif px-2">{item.card.name}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Overlay de Cantidad */}
+                                                <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm border border-zinc-700 text-zinc-100 text-xs font-bold px-2 py-1 rounded-sm shadow-lg">
+                                                    x{item.quantity}
+                                                </div>
+
+                                                {/* Overlay de Bloqueo (Si está en venta) */}
+                                                {item.quantity_locked > 0 && (
+                                                    <div className="absolute top-2 left-2 bg-red-950/80 backdrop-blur-sm border border-red-900/50 text-red-400 text-xs px-1.5 py-1 rounded-sm shadow-lg" title={`${item.quantity_locked} en venta`}>
+                                                        <Lock className="h-3.5 w-3.5" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Metadatos de la copia */}
+                                            <div className="p-3 border-t border-zinc-800 flex flex-col gap-2 flex-1">
+                                                <h3 className="text-sm font-semibold text-zinc-200 truncate" title={item.card.name}>
+                                                    {item.card.name}
+                                                </h3>
+
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-auto">
+                                                    {/* Condición */}
+                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-sm border ${getConditionColor(item.condition)}`}>
+                                                        {item.condition}
+                                                    </span>
+
+                                                    {/* Idioma */}
+                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-zinc-800 border border-zinc-700 text-zinc-400 uppercase">
+                                                        {item.language}
+                                                    </span>
+
+                                                    {/* Foil */}
+                                                    {item.is_foil && (
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center gap-0.5" title="Foil">
+                                                            <Sparkles className="h-3 w-3" />
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Controles de Paginación (solo para cartas) */}
                         {lastPage > 1 && (
                             <div className="flex items-center justify-center gap-2 mt-12 pt-6 border-t border-zinc-800">
                                 <Button
