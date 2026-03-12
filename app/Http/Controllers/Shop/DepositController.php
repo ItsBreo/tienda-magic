@@ -47,7 +47,11 @@ class DepositController extends Controller
                 ]);
             });
 
-            return response()->json(['message' => 'Depósito realizado con éxito!'], 200);
+            return response()->json([
+                'message' => 'Depósito realizado con éxito!',
+                'new_balance' => $user->fresh()->wallet_balance,
+                'amount' => $amount
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

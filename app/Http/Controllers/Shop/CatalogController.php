@@ -9,6 +9,12 @@ use App\Models\CardSet;
 
 class CatalogController extends Controller
 {
+    /**
+     * Display shop catalog with filtered booster packs and metadata.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
         // Obtain filters from request

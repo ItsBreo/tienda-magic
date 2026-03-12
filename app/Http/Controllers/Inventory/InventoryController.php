@@ -15,7 +15,10 @@ use App\Models\Market;
 class InventoryController extends Controller
 {
     /**
-     * Ver el inventario del usuario autenticado
+     * Display authenticated user's inventory with cards and statistics.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
@@ -40,7 +43,10 @@ class InventoryController extends Controller
     }
 
     /**
-     * Ver el inventario de otro usuario (si es público)
+     * Display another user's public inventory if accessible.
+     *
+     * @param int $userId
+     * @return \Illuminate\Http\JsonResponse
      */
     public function userInventory($userId)
     {
@@ -74,7 +80,9 @@ class InventoryController extends Controller
     }
 
     /**
-     * Inventario puesto en venta del usuario autenticado
+     * Display authenticated user's inventory items currently for sale.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function showInventoryInSale()
     {
@@ -95,7 +103,10 @@ class InventoryController extends Controller
     }
 
     /**
-     * Ver cartas en venta de otro usuario
+     * Display another user's inventory items currently for sale.
+     *
+     * @param int $userId
+     * @return \Illuminate\Http\JsonResponse
      */
     public function userInSale($userId)
     {
@@ -117,7 +128,9 @@ class InventoryController extends Controller
     }
 
     /**
-     * Estadísticas del inventario del usuario autenticado
+     * Display comprehensive inventory statistics for authenticated user.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function stats()
     {
@@ -150,7 +163,10 @@ class InventoryController extends Controller
     }
 
     /**
-     * Filtrar y buscar en el inventario
+     * Filter and search within authenticated user's inventory.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function filter(Request $request)
     {
@@ -199,7 +215,10 @@ class InventoryController extends Controller
     }
 
     /**
-     * Agregar cartas al inventario
+     * Add cards to authenticated user's inventory.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function addCard(Request $request)
     {
@@ -239,7 +258,11 @@ class InventoryController extends Controller
     }
 
     /**
-     * Actualizar cartas en el inventario
+     * Update card details in authenticated user's inventory.
+     *
+     * @param Request $request
+     * @param int $inventoryCardId
+     * @return \Illuminate\Http\JsonResponse
      */
     public function updateCard(Request $request, $inventoryCardId)
     {
@@ -265,7 +288,11 @@ class InventoryController extends Controller
     }
 
     /**
-     * Listar carta para venta en el mercado
+     * List inventory card for sale on marketplace.
+     *
+     * @param Request $request
+     * @param int $inventoryCardId
+     * @return \Illuminate\Http\JsonResponse
      */
     public function listForSale(Request $request, $inventoryCardId)
     {
@@ -305,7 +332,10 @@ class InventoryController extends Controller
     }
 
     /**
-     * Quitar carta de la venta
+     * Remove card from marketplace sale.
+     *
+     * @param int $marketListingId
+     * @return \Illuminate\Http\JsonResponse
      */
     public function removeFromSale($marketListingId)
     {
@@ -332,7 +362,10 @@ class InventoryController extends Controller
     }
 
     /**
-     * Eliminar cartas del inventario
+     * Delete card from authenticated user's inventory.
+     *
+     * @param int $inventoryCardId
+     * @return \Illuminate\Http\JsonResponse
      */
     public function deleteCard($inventoryCardId)
     {

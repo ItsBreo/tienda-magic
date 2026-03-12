@@ -83,6 +83,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
 
+    // ========== CHECKOUT ==========
+    Route::post('/checkout', [CheckoutController::class, 'processFakeCheckout']);
+
+    // ========== BILLETERA ==========
+    Route::post('/wallet/deposit', [DepositController::class, 'store']);
+
     // ========== USUARIO (Cuenta Base y Billetera) ==========
     Route::prefix('user')->group(function () {
         Route::get('/', [UserController::class, 'show']);

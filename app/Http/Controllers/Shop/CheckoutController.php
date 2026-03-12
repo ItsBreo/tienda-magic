@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Http\Requests\Shop\CheckoutProcessRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,12 @@ use App\Models\OrderItem;
 
 class CheckoutController extends Controller
 {
+    /**
+     * Display checkout summary with calculated totals and validation.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function index()
     {
         $user = Auth::user();
@@ -96,6 +103,13 @@ class CheckoutController extends Controller
         ]);
     }
 
+    /**
+     * Process checkout with payment validation and order creation.
+     *
+     * @param CheckoutProcessRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function process(CheckoutProcessRequest $request)
     {
         try {
@@ -165,22 +179,22 @@ class CheckoutController extends Controller
                     ], 400);
                 }
 
-                // Validación anti-fraude: límite de compra
+                // Validación anti-fraude: limite de compra
                 if ($total > 1000) {
                     return response()->json([
                         'message' => 'El monto de la compra excede el límite permitido'
                     ], 400);
                 }
 
-                // Procesar pago según método
+                // Procesar pago segun el metodo
                 if ($paymentMethod === 'wallet') {
                     // Descontar fondos del wallet
                     $user->wallet_balance -= $total;
                     $user->save();
                 }
-                // Aquí se integraría Stripe para pago con tarjeta
+                // Aqui se integraria Stripe para pago con tarjeta
 
-                // Crear orden
+                // Crear pedido
                 $order = Order::create([
                     'user_id' => $user->id,
                     'subtotal' => $subtotal,
@@ -242,6 +256,88 @@ class CheckoutController extends Controller
         }
     }
 
+    /**
+     * Process fake checkout for demo/testing purposes.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
+    public function processFakeCheckout(Request $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json(['message' => 'Usuario no autenticado'], 401);
+            }
+
+            // Obtener carrito del usuario
+            $cart = \App\Models\Cart::where('user_id', $user->id)->first();
+
+            if (!$cart) {
+                return response()->json(['message' => 'Carrito no encontrado'], 400);
+            }
+
+            // Obtener items del carrito con sus packs
+            $cartItems = \App\Models\CartItem::with('boosterPack')
+                            ->where('cart_id', $cart->id)
+                            ->get();
+
+            if ($cartItems->isEmpty()) {
+                return response()->json(['message' => 'El carrito está vacío'], 400);
+            }
+
+            // Calcular total
+            $total = $cartItems->sum(function ($item) {
+                return $item->quantity * ($item->boosterPack->price ?? $item->unit_price ?? 0);
+            });
+
+            // Crear el Order (Ticket maestro)
+            $order = \App\Models\Order::create([
+                'user_id' => $user->id,
+                'total_price' => $total,
+                'status' => 'completed'
+            ]);
+
+            // Crear los OrderItems (Líneas del ticket) y actualizar inventario
+            foreach ($cartItems as $item) {
+                \App\Models\OrderItem::create([
+                    'order_id' => $order->id,
+                    'booster_pack_id' => $item->booster_pack_id,
+                    'quantity' => $item->quantity,
+                    'price_at_purchase' => $item->boosterPack->price ?? 0
+                ]);
+
+                // Actualizar inventario del usuario
+                $inventoryItem = \App\Models\InventoryPack::firstOrNew([
+                    'user_id' => $user->id,
+                    'booster_pack_id' => $item->booster_pack_id
+                ]);
+
+                $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
+                $inventoryItem->save();
+            }
+
+            // Crítico: Vaciar el carrito
+            \App\Models\CartItem::where('cart_id', $cart->id)->delete();
+
+            return response()->json([
+                'message' => '¡Pedido completado con éxito! (Modo Demo)',
+                'order_id' => $order->id,
+                'total' => $total,
+                'items_count' => $cartItems->count()
+            ], 200);
+        });
+    }
+
+    /**
+     * Display order details for the authenticated user.
+     *
+     * @param int $orderId
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function show($orderId)
     {
         try {

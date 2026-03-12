@@ -14,6 +14,11 @@ use App\Models\BoosterPack;
 
 class CartController extends Controller
 {
+    /**
+     * Display user cart with items and calculated totals.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
         $user = Auth::user();
@@ -69,6 +74,13 @@ class CartController extends Controller
         ]);
     }
 
+    /**
+     * Add item to cart or update existing item quantity.
+     *
+     * @param CartItemStoreRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function store(CartItemStoreRequest $request)
     {
         try {
@@ -148,6 +160,14 @@ class CartController extends Controller
         }
     }
 
+    /**
+     * Update cart item quantity.
+     *
+     * @param int $id
+     * @param CartItemUpdateRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function update($id, CartItemUpdateRequest $request)
     {
         try {
@@ -207,6 +227,13 @@ class CartController extends Controller
         }
     }
 
+    /**
+     * Remove item from cart.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function destroy($id)
     {
         try {
