@@ -15,7 +15,7 @@ use App\Models\Market;
 class InventoryController extends Controller
 {
     /**
-     * Display authenticated user's inventory with cards and statistics.
+     * Muestra inventario del usuario autenticado con cartas y estadísticas.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -29,12 +29,18 @@ class InventoryController extends Controller
             ->with('card.set')
             ->paginate(24);
 
+        // Obtenemos los sobres del inventario
+        $inventoryPacks = InventoryPack::where('user_id', $user->id)
+            ->with('boosterPack.cardSet')
+            ->get();
+
         // Sumas directas en base de datos (sin cargar colecciones en memoria)
         $totalCards = InventoryCard::where('user_id', $user->id)->sum('quantity');
         $totalPacks = InventoryPack::where('user_id', $user->id)->sum('quantity');
 
         return response()->json([
             'inventoryCards' => $inventoryCards,
+            'inventoryPacks' => $inventoryPacks,
             'stats' => [
                 'totalCards' => $totalCards,
                 'totalPacks' => $totalPacks,
@@ -43,7 +49,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Display another user's public inventory if accessible.
+     * Muestra inventario público de otro usuario si es accesible.
      *
      * @param int $userId
      * @return \Illuminate\Http\JsonResponse
@@ -80,7 +86,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Display authenticated user's inventory items currently for sale.
+     * Muestra items del inventario del usuario actualmente en venta.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -103,7 +109,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Display another user's inventory items currently for sale.
+     * Muestra items en venta de otro usuario.
      *
      * @param int $userId
      * @return \Illuminate\Http\JsonResponse
@@ -128,7 +134,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Display comprehensive inventory statistics for authenticated user.
+     * Muestra estadísticas completas del inventario del usuario autenticado.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -163,7 +169,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Filter and search within authenticated user's inventory.
+     * Filtra y busca dentro del inventario del usuario autenticado.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -215,7 +221,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Add cards to authenticated user's inventory.
+     * Añade cartas al inventario del usuario autenticado.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -258,7 +264,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Update card details in authenticated user's inventory.
+     * Actualiza detalles de carta en inventario del usuario autenticado.
      *
      * @param Request $request
      * @param int $inventoryCardId
@@ -288,7 +294,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * List inventory card for sale on marketplace.
+     * Lista carta de inventario para venta en marketplace.
      *
      * @param Request $request
      * @param int $inventoryCardId
@@ -332,7 +338,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Remove card from marketplace sale.
+     * Quita carta de venta en marketplace.
      *
      * @param int $marketListingId
      * @return \Illuminate\Http\JsonResponse
@@ -362,7 +368,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Delete card from authenticated user's inventory.
+     * Elimina carta del inventario del usuario autenticado.
      *
      * @param int $inventoryCardId
      * @return \Illuminate\Http\JsonResponse

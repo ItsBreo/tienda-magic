@@ -10,7 +10,7 @@ use App\Models\CardSet;
 class CatalogController extends Controller
 {
     /**
-     * Display shop catalog with filtered booster packs and metadata.
+     * Muestra catálogo de tienda con booster packs filtrados y metadatos.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse

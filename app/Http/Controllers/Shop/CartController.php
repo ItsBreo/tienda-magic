@@ -15,7 +15,7 @@ use App\Models\BoosterPack;
 class CartController extends Controller
 {
     /**
-     * Display user cart with items and calculated totals.
+     * Muestra carrito del usuario con items y totales calculados.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -75,7 +75,7 @@ class CartController extends Controller
     }
 
     /**
-     * Add item to cart or update existing item quantity.
+     * Añade item al carrito o actualiza cantidad existente.
      *
      * @param CartItemStoreRequest $request
      * @return \Illuminate\Http\JsonResponse
@@ -161,7 +161,7 @@ class CartController extends Controller
     }
 
     /**
-     * Update cart item quantity.
+     * Actualiza cantidad de item del carrito.
      *
      * @param int $id
      * @param CartItemUpdateRequest $request
@@ -228,7 +228,7 @@ class CartController extends Controller
     }
 
     /**
-     * Remove item from cart.
+     * Elimina item del carrito.
      *
      * @param int $id
      * @return \Illuminate\Http\JsonResponse

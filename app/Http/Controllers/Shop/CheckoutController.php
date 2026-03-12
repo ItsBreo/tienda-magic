@@ -17,7 +17,7 @@ use App\Models\OrderItem;
 class CheckoutController extends Controller
 {
     /**
-     * Display checkout summary with calculated totals and validation.
+     * Muestra resumen de checkout con totales calculados y validación.
      *
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
@@ -104,7 +104,7 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Process checkout with payment validation and order creation.
+     * Procesa checkout con validación de pago y creación de pedido.
      *
      * @param CheckoutProcessRequest $request
      * @return \Illuminate\Http\JsonResponse
@@ -257,7 +257,7 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Process fake checkout for demo/testing purposes.
+     * Procesa checkout fake para demo/pruebas.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -332,7 +332,7 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Display order details for the authenticated user.
+     * Muestra detalles del pedido para el usuario autenticado.
      *
      * @param int $orderId
      * @return \Illuminate\Http\JsonResponse
