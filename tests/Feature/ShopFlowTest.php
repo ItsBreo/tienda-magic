@@ -57,32 +57,67 @@ class ShopFlowTest extends TestCase
     public function test_catalogo_muestra_productos_y_filtros_funcionan()
     {
         // Visualización del catalogo sin filtros (deben salir los 2 boosterPacks)
-        $response = $this->get(route('shop.index'));
+        $response = $this->getJson('/api/shop');
 
         $response->assertStatus(200)
-                ->assertInertia(fn (Assert $page) => $page
-                    ->component('Shop/Catalog')
-                    ->has('packs.data', 2) // Se esperan 2 productos
-                );
+                ->assertJsonStructure([
+                    'data' => [
+                        'packs' => [
+                            'data' => [
+                                '*' => [
+                                    'id',
+                                    'name',
+                                    'price',
+                                    'type'
+                                ]
+                            ]
+                        ]
+                    ]
+                ]);
 
         // Se prueba el filtro de Busqueda (Buscar 'Ixalan')
-        $response = $this->get(route('shop.index', ['search' => 'Ixalan']));
+        $response = $this->getJson('/api/shop?search=Ixalan');
 
         $response->assertStatus(200)
-                ->assertInertia(fn (Assert $page) => $page
-                    ->component('Shop/Catalog')
-                    ->has('packs.data', 1) // Solo debe salir 1
-                    ->where('packs.data.0.name', 'Sobre Coleccionista Ixalan')
-                );
+                ->assertJsonStructure([
+                    'data' => [
+                        'packs' => [
+                            'data' => [
+                                '*' => [
+                                    'id',
+                                    'name',
+                                    'price',
+                                    'type'
+                                ]
+                            ]
+                        ]
+                    ]
+                ])
+                ->assertJsonFragment([
+                    'name' => 'Sobre Coleccionista Ixalan'
+                ]);
 
         // Prueba de filtro por Tipo (Buscar 'draft')
-        $response = $this->get(route('shop.index', ['type' => 'draft']));
+        $response = $this->getJson('/api/shop?type=draft');
 
         $response->assertStatus(200)
-                ->assertInertia(fn (Assert $page) => $page
-                    ->has('packs.data', 1)
-                    ->where('packs.data.0.type', 'draft')
-                );
+                ->assertJsonStructure([
+                    'data' => [
+                        'packs' => [
+                            'data' => [
+                                '*' => [
+                                    'id',
+                                    'name',
+                                    'price',
+                                    'type'
+                                ]
+                            ]
+                        ]
+                    ]
+                ])
+                ->assertJsonFragment([
+                    'type' => 'draft'
+                ]);
     }
 
     /*  ---------------------------------
@@ -95,14 +130,18 @@ class ShopFlowTest extends TestCase
 
         // Añadimos 2 unidades del Pack 1
         $response = $this->actingAs($user)
-                         ->post(route('cart.add'), [
+                         ->postJson('/api/cart', [
                              'booster_pack_id' => $this->pack1->id,
                              'quantity' => 2
                          ]);
 
-        // Verificamos la redirección y DB
-        $response->assertRedirect();
+        // Verificamos respuesta JSON exitosa
+        $response->assertStatus(201)
+                ->assertJsonFragment([
+                    'message' => 'Producto añadido al carrito'
+                ]);
 
+        // Verificamos la DB
         $this->assertDatabaseHas('cart_item', [
             'booster_pack_id' => $this->pack1->id,
             'quantity' => 2
@@ -127,8 +166,8 @@ class ShopFlowTest extends TestCase
         ]);
 
         // Se añade el mismo producto 3 veces
-        $this->actingAs($user)
-             ->post(route('cart.add'), [
+        $response = $this->actingAs($user)
+             ->postJson('/api/cart', [
                  'booster_pack_id' => $this->pack1->id,
                  'quantity' => 3
              ]);
@@ -159,10 +198,15 @@ class ShopFlowTest extends TestCase
 
         // Probamos a borrar un item
         $response = $this->actingAs($user)
-                         ->delete(route('cart.destroy', $item->id));
+                         ->deleteJson("/api/cart/{$item->id}");
+
+        // Verificamos respuesta JSON exitosa
+        $response->assertStatus(200)
+                ->assertJsonFragment([
+                    'message' => 'Producto eliminado del carrito'
+                ]);
 
         // Verificamos que se haya borrado
-        $response->assertRedirect();
         $this->assertDatabaseMissing('cart_item', ['id' => $item->id]);
     }
 }

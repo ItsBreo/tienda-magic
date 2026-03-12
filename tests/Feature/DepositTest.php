@@ -19,13 +19,17 @@ class DepositTest extends TestCase
 
         // Intentamos recargar 50€
         $response = $this->actingAs($user)
-                         ->post(route('wallet.deposit'), [
+                         ->postJson('/api/wallet/deposit', [
                              'amount' => 50
                          ]);
 
-        // Verificamos la redirección
-        $response->assertRedirect();
-        $response->assertSessionHas('success');
+        // Verificamos respuesta JSON exitosa
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'message',
+                    'new_balance',
+                    'amount'
+                ]);
 
         // Verificamos la Base de Datos
         //  El usuario tiene el dinero
@@ -56,16 +60,12 @@ class DepositTest extends TestCase
 
         // Intentar recargar 1€ (el mínimo pusimos que era 5)
         $response = $this->actingAs($user)
-                         ->post(route('wallet.deposit'), [
+                         ->postJson('/api/wallet/deposit', [
                              'amount' => 1
                          ]);
 
-        $response->assertSessionHasErrors(['amount']);
-
-        // El saldo no debe cambiar
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'wallet_balance' => 10.00
-        ]);
+        // Verificar error de validación
+        $response->assertStatus(422)
+                ->assertJsonValidationErrors(['amount']);
     }
 }

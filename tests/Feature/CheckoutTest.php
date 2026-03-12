@@ -9,6 +9,9 @@ use App\Models\BoosterPack;
 use App\Models\CardSet;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\InventoryPack;
 
 class CheckoutTest extends TestCase
 {
@@ -30,65 +33,149 @@ class CheckoutTest extends TestCase
 
     public function test_usuario_puede_realizar_checkout_exitosamente()
     {
-        // Usuario rico
-        $user = User::factory()->create([
-            'wallet_balance' => 100.00
-        ]);
+        // Usuario autenticado
+        $user = User::factory()->create();
 
-        // Producto (Usamos el code del Set creado en setUp)
+        // Producto
         $pack = BoosterPack::create([
             'name' => 'Sobre Kamigawa',
             'price' => 10.00,
-            'card_set_id' => $this->cardSet->code, // <--- USO CORRECTO DEL CODE
+            'card_set_id' => $this->cardSet->code,
             'type' => 'draft',
             'config' => json_encode(['cards' => 15])
         ]);
 
-        // Carrito
+        // Carrito con items
         $cart = Cart::create(['user_id' => $user->id]);
-
         CartItem::create([
             'cart_id' => $cart->id,
             'booster_pack_id' => $pack->id,
             'quantity' => 2
         ]);
 
-        // Acción
-        $response = $this->actingAs($user)->post(route('checkout.process'), [
-            'total' => 20.00
+        // Acción - Petición JSON a API
+        $response = $this->actingAs($user)->postJson('/api/checkout');
+
+        // Verificaciones de API REST
+        $response->assertStatus(200)
+                ->assertJsonFragment([
+                    'message' => '¡Pedido completado con éxito! (Modo Demo)',
+                    'total' => 20.00,
+                    'items_count' => 1
+                ])
+                ->assertJsonStructure([
+                    'message',
+                    'order_id',
+                    'total',
+                    'items_count'
+                ]);
+
+        // Verificaciones en base de datos
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'total_price' => 20.00,
+            'status' => 'completed'
         ]);
 
-        // Verificación
-        $response->assertRedirect(route('dashboard'));
-        $this->assertDatabaseHas('orders', ['total_price' => 20.00]);
-        $this->assertDatabaseHas('users', ['id' => $user->id, 'wallet_balance' => 80.00]);
+        $this->assertDatabaseHas('order_items', [
+            'booster_pack_id' => $pack->id,
+            'quantity' => 2,
+            'price_at_purchase' => 10.00
+        ]);
+
+        $this->assertDatabaseHas('inventory_pack', [
+            'user_id' => $user->id,
+            'booster_pack_id' => $pack->id,
+            'quantity' => 2
+        ]);
+
+        // Verificar que el carrito está vacío
+        $this->assertDatabaseMissing('cart_item', [
+            'cart_id' => $cart->id
+        ]);
     }
 
-    public function test_impide_compra_sin_saldo()
+    public function test_impide_checkout_con_carrito_vacio()
     {
-        // Usuario pobre
-        $user = User::factory()->create(['wallet_balance' => 5.00]);
+        // Usuario sin carrito
+        $user = User::factory()->create();
 
-        // Producto (Usamos el code del Set creado en setUp)
-        $pack = BoosterPack::create([
-            'name' => 'Pack Caro',
-            'price' => 10.00,
-            'card_set_id' => $this->cardSet->code, // <--- USO CORRECTO DEL CODE
-            'type' => 'x',
-            'config' => '{}'
-        ]);
+        // Intentar checkout sin carrito
+        $response = $this->actingAs($user)->postJson('/api/checkout');
 
-        // Carrito
+        // Verificar error 400
+        $response->assertStatus(400)
+                ->assertJsonFragment([
+                    'message' => 'Carrito no encontrado'
+                ]);
+    }
+
+    public function test_impide_checkout_con_carrito_sin_items()
+    {
+        // Usuario con carrito vacío
+        $user = User::factory()->create();
         $cart = Cart::create(['user_id' => $user->id]);
-        CartItem::create(['cart_id' => $cart->id, 'booster_pack_id' => $pack->id, 'quantity' => 1]);
 
-        // Intentar comprar
-        $response = $this->actingAs($user)->post(route('checkout.process'), [
-            'total' => 10.00
+        // Intentar checkout con carrito vacío
+        $response = $this->actingAs($user)->postJson('/api/checkout');
+
+        // Verificar error 400
+        $response->assertStatus(400)
+                ->assertJsonFragment([
+                    'message' => 'El carrito está vacío'
+                ]);
+    }
+
+    public function test_usuario_no_autenticado_no_puede_hacer_checkout()
+    {
+        // Intentar checkout sin autenticación
+        $response = $this->postJson('/api/checkout');
+
+        // Verificar error 401
+        $response->assertStatus(401)
+                ->assertJsonFragment([
+                    'message' => 'Unauthenticated.'
+                ]);
+    }
+
+    public function test_checkout_actualiza_inventario_existente()
+    {
+        // Usuario con inventario previo
+        $user = User::factory()->create();
+        $pack = BoosterPack::create([
+            'name' => 'Sobre Kamigawa',
+            'price' => 10.00,
+            'card_set_id' => $this->cardSet->code,
+            'type' => 'draft',
+            'config' => json_encode(['cards' => 15])
         ]);
 
-        // Verificar fallo
-        $response->assertSessionHasErrors(['error']);
-        $this->assertDatabaseHas('users', ['id' => $user->id, 'wallet_balance' => 5.00]);
+        // Inventario previo: 3 unidades
+        InventoryPack::create([
+            'user_id' => $user->id,
+            'booster_pack_id' => $pack->id,
+            'quantity' => 3
+        ]);
+
+        // Carrito con 2 unidades más
+        $cart = Cart::create(['user_id' => $user->id]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'booster_pack_id' => $pack->id,
+            'quantity' => 2
+        ]);
+
+        // Checkout
+        $response = $this->actingAs($user)->postJson('/api/checkout');
+
+        // Verificar éxito
+        $response->assertStatus(200);
+
+        // Verificar que el inventario se actualizó (3 + 2 = 5)
+        $this->assertDatabaseHas('inventory_pack', [
+            'user_id' => $user->id,
+            'booster_pack_id' => $pack->id,
+            'quantity' => 5
+        ]);
     }
 }
