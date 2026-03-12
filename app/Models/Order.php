@@ -4,6 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Modelo de Pedido de compra.
+ *
+ * Representa pedidos completados con sus items, totales y estado.
+ * Relaciones: User (pertenece) y OrderItems (tiene muchos).
+ */
 class Order extends Model
 {
     protected $fillable = [

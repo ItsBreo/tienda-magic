@@ -11,6 +11,12 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 // use Tymon\JWTAuth\Contracts\JWTSubject; // Descomentado temporalmente
 
+/**
+ * Modelo de Usuario del sistema.
+ *
+ * Representa a los usuarios con autenticación Sanctum, wallet y relaciones
+ * con inventario, pedidos, decks y perfil extendido.
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */

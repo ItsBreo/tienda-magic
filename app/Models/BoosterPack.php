@@ -5,6 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * Modelo de Booster Pack (Sobre de cartas).
+ *
+ * Representa los sobres de cartas disponibles en la tienda con su precio,
+ * configuración y relación con el set de cartas al que pertenecen.
+ */
 class BoosterPack extends Model
 {
 

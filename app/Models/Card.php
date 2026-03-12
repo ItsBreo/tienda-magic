@@ -4,6 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Modelo de Carta Magic.
+ *
+ * Representa cartas individuales con sus atributos, precios de mercado
+ * y relación con el set al que pertenecen.
+ * Relaciones: CardSet (pertenece), InventoryCard (tiene muchos).
+ */
 class Card extends Model
 {
     // Permitir asignación masiva para todos los campos

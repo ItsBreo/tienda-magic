@@ -4,6 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Modelo de Carrito de compras.
+ *
+ * Representa el carrito activo de un usuario con sus items.
+ * Relación principal: User y CartItems.
+ */
 class Cart extends Model
 {
     protected $table = 'cart';
