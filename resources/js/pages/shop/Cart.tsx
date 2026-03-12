@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Package, Loader2, ShoppingCart } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ShoppingCart, Package, Loader2 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import CartItem from '@/components/cart/CartItem';
 import CartSummary from '@/components/cart/CartSummary';
 
 export default function Cart() {
+    const navigate = useNavigate();
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     useEffect(() => {
         fetchCart();
@@ -64,8 +66,31 @@ export default function Cart() {
         }, 0).toFixed(2);
     };
 
-    const handleCheckout = () => {
-        toast.info('Pasarela de pago en desarrollo para Fase 2.');
+    const handleCheckout = async () => {
+        if (items.length === 0) {
+            toast.error('Tu carrito está vacío');
+            return;
+        }
+
+        setIsCheckingOut(true);
+
+        try {
+            const response = await apiService.axiosInstance.post('/api/checkout');
+
+            toast.success('¡Pedido completado! (Modo Demo)');
+
+            // Limpiar estado local
+            setItems([]);
+
+            // Redirigir a dashboard
+            navigate('/dashboard');
+
+        } catch (error: any) {
+            console.error('Error en checkout:', error);
+            toast.error(error.response?.data?.message || 'Error al procesar el pedido');
+        } finally {
+            setIsCheckingOut(false);
+        }
     };
 
     if (loading) {
@@ -123,6 +148,7 @@ export default function Cart() {
                                 itemCount={items.length}
                                 total={calculateTotal()}
                                 onCheckout={handleCheckout}
+                                isCheckingOut={isCheckingOut}
                             />
                         </div>
                     </div>

@@ -1,12 +1,14 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface CartSummaryProps {
     itemCount: number;
     total: string;
     onCheckout: () => void;
+    isCheckingOut?: boolean;
 }
 
-export default function CartSummary({ itemCount, total, onCheckout }: CartSummaryProps) {
+export default function CartSummary({ itemCount, total, onCheckout, isCheckingOut = false }: CartSummaryProps) {
     return (
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 sticky top-24">
             <h2 className="text-xl font-bold mb-6 pb-4 border-b border-zinc-800">Resumen del Pedido</h2>
@@ -29,9 +31,17 @@ export default function CartSummary({ itemCount, total, onCheckout }: CartSummar
 
             <button
                 onClick={onCheckout}
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(5,150,105,0.15)] active:scale-95 flex justify-center items-center gap-2"
+                disabled={isCheckingOut}
+                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(5,150,105,0.15)] active:scale-95 flex justify-center items-center gap-2"
             >
-                Proceder al Pago
+                {isCheckingOut ? (
+                    <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Procesando pago...
+                    </>
+                ) : (
+                    'Proceder al Pago'
+                )}
             </button>
         </div>
     );
