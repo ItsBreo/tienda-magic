@@ -6,9 +6,39 @@ use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class UserProfileController extends Controller
 {
+    /**
+     * Sube una imagen al disco público y devuelve la URL pública.
+     * Si ya existía una imagen anterior la borra para no acumular archivos huérfanos.
+     */
+    private function uploadImage($file, ?string $oldPath, string $folder): string
+    {
+        if ($oldPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $path = $file->store($folder, 'public');
+
+        return Storage::disk('public')->url($path);
+    }
+
+    /**
+     * Extrae la ruta relativa a partir de una URL pública almacenada en BD.
+     * Ej: "http://localhost/storage/avatars/abc.jpg" → "avatars/abc.jpg"
+     */
+    private function getStoragePath(?string $url): ?string
+    {
+        if (!$url) return null;
+
+        $marker = '/storage/';
+        $pos = strpos($url, $marker);
+
+        return $pos !== false ? substr($url, $pos + strlen($marker)) : null;
+    }
+
     /**
      * Obtener el perfil del usuario autenticado
      */
@@ -16,16 +46,14 @@ class UserProfileController extends Controller
     {
         $user = auth()->user();
 
-        // Cargamos la relación 'profile'.
-        // Si no tiene perfil, $user->profile será null, pero React al menos recibe los datos base del usuario.
         return response()->json([
             'message' => 'Datos obtenidos correctamente',
-            'user' => $user->load('profile')
+            'user'    => $user->load('profile')
         ]);
     }
 
     /**
-     * Obtener el perfil de un usuario específico
+     * Obtener el perfil de un usuario específico (público)
      */
     public function show($userId)
     {
@@ -37,12 +65,13 @@ class UserProfileController extends Controller
 
         return response()->json([
             'message' => 'Perfil obtenido correctamente',
-            'user' => $user
+            'user'    => $user
         ]);
     }
 
     /**
-     * Crear el perfil para el usuario autenticado
+     * Crear el perfil para el usuario autenticado.
+     * Acepta archivos (multipart/form-data) o URLs de texto.
      */
     public function store(Request $request)
     {
@@ -54,31 +83,52 @@ class UserProfileController extends Controller
 
         $validated = $request->validate([
             'display_name' => 'required|string|max:255',
-            'avatar_url' => 'nullable|url',
-            'banner_url' => 'nullable|url',
-            'bio' => 'nullable|string|max:500',
-            'country' => 'nullable|string|max:100',
-            'trade_terms' => 'nullable|string|max:500',
+            'avatar'       => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:2048',
+            'avatar_url'   => 'nullable|url|max:2048',
+            'banner'       => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+            'banner_url'   => 'nullable|url|max:2048',
+            'bio'          => 'nullable|string|max:500',
+            'country'      => 'nullable|string|max:100',
+            'trade_terms'  => 'nullable|string|max:500',
         ]);
 
-        // Añadimos la reputación inicial a los datos validados
-        $validated['reputation_score'] = 0;
+        $data = [
+            'display_name'     => $validated['display_name'],
+            'bio'              => $validated['bio'] ?? null,
+            'country'          => $validated['country'] ?? null,
+            'trade_terms'      => $validated['trade_terms'] ?? null,
+            'reputation_score' => 0,
+        ];
 
-        // Magia de Laravel: Crea el perfil y le asigna el user_id automáticamente
-        $profile = $user->profile()->create($validated);
+        // Avatar: prioridad al archivo subido; si no, URL de texto
+        if ($request->hasFile('avatar')) {
+            $data['avatar_url'] = $this->uploadImage($request->file('avatar'), null, 'avatars');
+        } else {
+            $data['avatar_url'] = $validated['avatar_url'] ?? null;
+        }
+
+        // Banner: igual
+        if ($request->hasFile('banner')) {
+            $data['banner_url'] = $this->uploadImage($request->file('banner'), null, 'banners');
+        } else {
+            $data['banner_url'] = $validated['banner_url'] ?? null;
+        }
+
+        $user->profile()->create($data);
 
         return response()->json([
             'message' => 'Perfil creado correctamente',
-            'user' => $user->load('profile') // Devolvemos el usuario actualizado
+            'user'    => $user->load('profile')
         ], 201);
     }
 
     /**
-     * Actualizar el perfil del usuario autenticado
+     * Actualizar el perfil del usuario autenticado.
+     * Acepta archivos (multipart/form-data) o URLs de texto.
      */
     public function update(Request $request)
     {
-        $user = auth()->user();
+        $user    = auth()->user();
         $profile = $user->profile;
 
         if (!$profile) {
@@ -87,49 +137,41 @@ class UserProfileController extends Controller
 
         $validated = $request->validate([
             'display_name' => 'sometimes|string|max:255',
-            'avatar_url' => 'sometimes|nullable|url',
-            'banner_url' => 'sometimes|nullable|url',
-            'bio' => 'sometimes|nullable|string|max:500',
-            'country' => 'sometimes|nullable|string|max:100',
-            'trade_terms' => 'sometimes|nullable|string|max:500',
+            'avatar'       => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:2048',
+            'avatar_url'   => 'nullable|url|max:2048',
+            'banner'       => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+            'banner_url'   => 'nullable|url|max:2048',
+            'bio'          => 'sometimes|nullable|string|max:500',
+            'country'      => 'sometimes|nullable|string|max:100',
+            'trade_terms'  => 'sometimes|nullable|string|max:500',
         ]);
 
-        $profile->update($validated);
+        // Campos de texto simples
+        $data = collect($validated)
+            ->except(['avatar', 'avatar_url', 'banner', 'banner_url'])
+            ->toArray();
+
+        // Avatar
+        if ($request->hasFile('avatar')) {
+            $oldPath = $this->getStoragePath($profile->avatar_url);
+            $data['avatar_url'] = $this->uploadImage($request->file('avatar'), $oldPath, 'avatars');
+        } elseif ($request->has('avatar_url')) {
+            $data['avatar_url'] = $request->avatar_url ?: null;
+        }
+
+        // Banner
+        if ($request->hasFile('banner')) {
+            $oldPath = $this->getStoragePath($profile->banner_url);
+            $data['banner_url'] = $this->uploadImage($request->file('banner'), $oldPath, 'banners');
+        } elseif ($request->has('banner_url')) {
+            $data['banner_url'] = $request->banner_url ?: null;
+        }
+
+        $profile->update($data);
 
         return response()->json([
             'message' => 'Perfil actualizado correctamente',
-            'user' => $user->load('profile')
-        ]);
-    }
-
-    /**
-     * Actualizar solo información pública del perfil
-     */
-    public function updatePublicInfo(Request $request)
-    {
-        $user = auth()->user();
-        $profile = $user->profile;
-
-        if (!$profile) {
-            return response()->json([
-                'error' => 'Perfil no encontrado'
-            ], 404);
-        }
-
-        // Validar datos públicos
-        $validated = $request->validate([
-            'display_name' => 'sometimes|string|max:255',
-            'avatar_url' => 'sometimes|nullable|url',
-            'banner_url' => 'sometimes|nullable|url',
-            'bio' => 'sometimes|nullable|string|max:500',
-            'country' => 'sometimes|nullable|string|max:100',
-        ]);
-
-        $profile->update($validated);
-
-        return response()->json([
-            'message' => 'Información pública actualizada correctamente',
-            'profile' => $profile
+            'user'    => $user->load('profile')
         ]);
     }
 
@@ -141,17 +183,13 @@ class UserProfileController extends Controller
         $user = User::find($userId);
 
         if (!$user) {
-            return response()->json([
-                'error' => 'Usuario no encontrado'
-            ], 404);
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
 
         $profile = $user->profile;
 
         if (!$profile) {
-            return response()->json([
-                'error' => 'Perfil no encontrado'
-            ], 404);
+            return response()->json(['error' => 'Perfil no encontrado'], 404);
         }
 
         $validated = $request->validate([
@@ -167,23 +205,27 @@ class UserProfileController extends Controller
     }
 
     /**
-     * Eliminar el perfil del usuario (solo el usuario autenticado)
+     * Eliminar el perfil del usuario autenticado (y sus imágenes del disco)
      */
     public function destroy()
     {
-        $user = auth()->user();
+        $user    = auth()->user();
         $profile = $user->profile;
 
         if (!$profile) {
-            return response()->json([
-                'error' => 'Perfil no encontrado'
-            ], 404);
+            return response()->json(['error' => 'Perfil no encontrado'], 404);
+        }
+
+        // Limpiar archivos del disco antes de borrar el registro
+        if ($avatarPath = $this->getStoragePath($profile->avatar_url)) {
+            Storage::disk('public')->delete($avatarPath);
+        }
+        if ($bannerPath = $this->getStoragePath($profile->banner_url)) {
+            Storage::disk('public')->delete($bannerPath);
         }
 
         $profile->delete();
 
-        return response()->json([
-            'message' => 'Perfil eliminado correctamente'
-        ]);
+        return response()->json(['message' => 'Perfil eliminado correctamente']);
     }
 }
