@@ -79,13 +79,30 @@ class BoosterPack extends Model
             $query->where('type', $filters['type']);
         }
 
-        // Ordenar resultados por precio
+        // Ordenar resultados
         if ($filters['sort'] ?? false) {
-            if ($filters['sort'] === 'price_asc') {
-                $query->orderBy('price', 'asc');
-            } elseif ($filters['sort'] === 'price_desc') {
-                $query->orderBy('price', 'desc');
+            switch ($filters['sort']) {
+                case 'name_asc':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'name_desc':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'price_asc':
+                    $query->orderBy('price', 'asc');
+                    break;
+                case 'price_desc':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'newest':
+                    $query->orderBy('id', 'desc');
+                    break;
+                default:
+                    $query->orderBy('id', 'desc');
+                    break;
             }
+        } else {
+            $query->orderBy('id', 'desc');
         }
     }
 

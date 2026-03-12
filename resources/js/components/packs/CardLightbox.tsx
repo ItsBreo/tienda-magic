@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import TiltWrapper from '../ui/TiltWrapper';
 
 interface Card {
@@ -30,9 +30,10 @@ function CardLightbox({ card, onClose }: CardLightboxProps) {
     >
       <button
         onClick={onClose}
-        className="absolute top-10 right-10 text-white/50 hover:text-white transition-colors"
+        className="absolute top-10 left-10 flex items-center gap-3 text-white/70 hover:text-white transition-colors bg-zinc-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-zinc-700"
       >
-        <X size={48} />
+        <ArrowLeft size={24} />
+        <span className="text-sm font-medium">Volver al sobre</span>
       </button>
       <TiltWrapper className="max-h-[85vh]">
         <img

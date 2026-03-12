@@ -184,8 +184,10 @@ class MagicApi {
     /**
      * Obtiene todos los packs disponibles en la tienda.
      */
-    async getPacks(page: number = 1): Promise<any> {
-        const response = await this.api.get(`/api/shop?page=${page}`);
+    async getPacks(page: number = 1, sort: string = ''): Promise<any> {
+        const response = await this.api.get('/api/shop', {
+            params: { page, sort }
+        });
         return response.data;
     }
 

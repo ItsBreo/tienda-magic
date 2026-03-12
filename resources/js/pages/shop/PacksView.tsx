@@ -38,7 +38,7 @@ export default function PacksView() {
         const loadPacks = async () => {
             try {
                 setLoading(true);
-                const response = await apiService.getPacks(currentPage);
+                const response = await apiService.getPacks(currentPage, sortBy);
 
                 const packsArray = response?.data?.packs?.data || response?.data?.data || [];
                 const current = response?.data?.current_page || response?.current_page || response?.data?.packs?.current_page || 1;
@@ -58,7 +58,7 @@ export default function PacksView() {
         };
 
         loadPacks();
-    }, [currentPage]);
+    }, [currentPage, sortBy]);
 
     // Interceptar openPackId del estado del router
     useEffect(() => {
@@ -74,27 +74,7 @@ export default function PacksView() {
         }
     }, [location.state, packs]);
 
-    // Filtrado
-    const filteredPacks = useMemo(() => {
-        if (!packs || !Array.isArray(packs)) return [];
-        let filtered = packs;
-
-        if (searchTerm.trim()) {
-            const searchLower = searchTerm.toLowerCase();
-            filtered = packs.filter((pack) =>
-                pack.name.toLowerCase().includes(searchLower) ||
-                pack.type.toLowerCase().includes(searchLower) ||
-                pack.card_set_id.toLowerCase().includes(searchLower)
-            );
-        }
-
-        switch (sortBy) {
-            case 'price-low-high': return [...filtered].sort((a, b) => a.price - b.price);
-            case 'price-high-low': return [...filtered].sort((a, b) => b.price - a.price);
-            case 'name-az': return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
-            case 'newest': default: return [...filtered].sort((a, b) => b.id - a.id);
-        }
-    }, [packs, searchTerm, sortBy]);
+    // Eliminado ordenamiento local - ahora se maneja en backend
 
     const handleBuyPack = (pack: Pack) => {
         toast.promise(
@@ -126,13 +106,17 @@ export default function PacksView() {
                         <span className="text-zinc-400 text-sm">Ordenar por:</span>
                         <select
                             value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
+                            onChange={(e) => {
+                                setSortBy(e.target.value);
+                                setCurrentPage(1);
+                            }}
                             className="bg-zinc-900 border border-zinc-700 text-zinc-100 px-4 py-2 rounded-lg"
                         >
                             <option value="newest">Novedades</option>
-                            <option value="price-low-high">Menor a Mayor</option>
-                            <option value="price-high-low">Mayor a Menor</option>
-                            <option value="name-az">A-Z</option>
+                            <option value="price_asc">Menor a Mayor</option>
+                            <option value="price_desc">Mayor a Menor</option>
+                            <option value="name_asc">A-Z</option>
+                            <option value="name_desc">Z-A</option>
                         </select>
                     </div>
                 </div>
@@ -148,7 +132,7 @@ export default function PacksView() {
                     <div className="text-center py-20 text-zinc-400">No hay packs disponibles.</div>
                 ) : (
                     <PacksGrid
-                        packs={filteredPacks}
+                        packs={packs}
                         currentPage={currentPage}
                         totalPages={totalPages}
                         totalPacks={totalPacks}
