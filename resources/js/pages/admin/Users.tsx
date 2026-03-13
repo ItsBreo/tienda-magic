@@ -15,6 +15,7 @@ interface User {
 
 export default function AdminUsers() {
     const [users, setUsers] = useState<User[]>([]);
+    const [availableRoles, setAvailableRoles] = useState<{ id: number; name: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingUserId, setEditingUserId] = useState<number | null>(null);
@@ -27,7 +28,19 @@ export default function AdminUsers() {
 
     useEffect(() => {
         fetchUsers();
+        fetchRoles();
     }, []);
+
+    const fetchRoles = async () => {
+        try {
+            const { data } = await apiService.axiosInstance.get('/api/admin/roles');
+            setAvailableRoles(data.data || data);
+            // Si hay roles pero el formulario tiene el role_id '1' y no existe, podríamos ajustarlo. 
+            // Pero como por defecto ponemos '1', servirá.
+        } catch (error) {
+            console.error('Error fetching roles:', error);
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -118,10 +131,10 @@ export default function AdminUsers() {
                         <div>
                             <label className="text-xs text-zinc-400">Rol Predeterminado</label>
                             <select value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-md p-2 mt-1 text-sm text-zinc-100">
-                                {/* Suponiendo IDs fijos del seeder: 1=Admin, 2=User, 3=Seller. Si tienes dudas, asumo 2=User por ahora */}
-                                <option value="1">Admin</option>
-                                <option value="2">User Normal</option>
-                                <option value="3">Vendedor</option>
+                                {/* Mostramos los roles traídos dinámicamente de la base de datos */}
+                                {availableRoles.map(role => (
+                                    <option key={role.id} value={role.id}>{role.name}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="md:col-span-2 mt-2">
