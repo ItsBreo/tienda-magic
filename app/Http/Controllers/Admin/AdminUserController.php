@@ -51,6 +51,40 @@ class AdminUserController extends Controller
     }
 
     /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => ['required', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:8', // Opcional al editar
+            'role_id' => 'required|exists:roles,id',
+        ]);
+
+        // Actualizamos los campos básicos
+        $user->name = $validated['name'];
+        $user->username = $validated['username'];
+        $user->email = $validated['email'];
+
+        // Solo cambiamos la contraseña si se envió una nueva
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        // Sincronizamos los roles (borra los anteriores y pone este)
+        $user->roles()->sync([$validated['role_id']]);
+
+        return response()->json([
+            'message' => 'Usuario actualizado exitosamente',
+            'user' => $user->load('roles')
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(User $user)

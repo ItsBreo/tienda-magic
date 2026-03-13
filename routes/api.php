@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\DashboardController;
 
 // Controladores de Admin
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminSetController;
 use App\Http\Controllers\Admin\AdminCardController;
 
@@ -37,7 +38,7 @@ Route::post('/register', [RegisterController::class, 'store'])->name('register.s
 
 // Tienda y Catálogo
 Route::get('/shop', [CatalogController::class, 'index']);
-Route::get('/shop-debug', function() {
+Route::get('/shop-debug', function () {
     $packs = \App\Models\BoosterPack::with('cardSet')->paginate(6);
     return response()->json([
         'debug_info' => [
@@ -152,7 +153,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ========== ADMIN DASHBOARD ==========
     Route::prefix('admin')->middleware(['admin'])->group(function () {
-        Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'destroy']);
+        Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::apiResource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::apiResource('sets', AdminSetController::class)->only(['index', 'store', 'destroy']);
         Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
 

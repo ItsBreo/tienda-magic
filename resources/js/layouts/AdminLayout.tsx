@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
- Users, BookOpen, Layers, LogOut, LayoutDashboard,
+    Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -25,6 +25,7 @@ export default function AdminLayout() {
     const navigation = [
         { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
         { name: 'Usuarios', href: '/admin/users', icon: Users },
+        { name: 'Roles', href: '/admin/roles', icon: Shield },
         { name: 'Cartas', href: '/admin/cards', icon: BookOpen },
         { name: 'Sets', href: '/admin/sets', icon: Layers },
     ];
@@ -57,8 +58,8 @@ export default function AdminLayout() {
                             to={item.href}
                             // Aplicar estilos diferentes si la ruta está activa o no
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
-                                    ? 'bg-emerald-900/20 text-emerald-400 border border-emerald-500/20'
-                                    : 'text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-100'
+                                ? 'bg-emerald-900/20 text-emerald-400 border border-emerald-500/20'
+                                : 'text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-100'
                                 }`}
                         >
                             <item.icon className="h-4 w-4" />

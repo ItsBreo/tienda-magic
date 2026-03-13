@@ -24,6 +24,7 @@ import { AdminRoute } from './components/AdminRoute';
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
+import AdminRoles from './pages/admin/Roles';
 import AdminCards from './pages/admin/Cards';
 import AdminSets from './pages/admin/Sets';
 import Profile from './pages/profile/Profile';
@@ -73,6 +74,7 @@ if (el) {
                             <Route element={<AdminLayout />}>
                                 <Route path="/admin" element={<AdminDashboard />} />
                                 <Route path="/admin/users" element={<AdminUsers />} />
+                                <Route path="/admin/roles" element={<AdminRoles />} />
                                 <Route path="/admin/cards" element={<AdminCards />} />
                                 <Route path="/admin/sets" element={<AdminSets />} />
 
