@@ -69,6 +69,62 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($user) {
+            // Eliminar relaciones usando DB::table para saltar restricciones de nombres de tabla/columnas
+            $id = $user->id;
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($id) {
+                // Función auxiliar para borrar e ignorar errores si la tabla no existe
+                $deleteIgnoreError = function ($table, $column = 'user_id', $additionalWhere = null) use ($id) {
+                    try {
+                        $query = \Illuminate\Support\Facades\DB::table($table)->where($column, $id);
+                        if ($additionalWhere) {
+                            $additionalWhere($query);
+                        }
+                        $query->delete();
+                    } catch (\Exception $e) {
+                        // Ignoramos el error, típicamente de "Base table or view not found"
+                    }
+                };
+
+                // Tablas pivot o secundarias
+                $deleteIgnoreError('user_role');
+                $deleteIgnoreError('card_user');
+                $deleteIgnoreError('achievement_user');
+
+                // Tablas donde el usuario es autor
+                $deleteIgnoreError('threads');
+                $deleteIgnoreError('comments');
+
+                // Tienda/Economía
+                $deleteIgnoreError('carts');
+
+                $deleteIgnoreError('orders', 'buyer_id', function ($query) use ($id) {
+                    $query->orWhere('seller_id', $id);
+                });
+
+                $deleteIgnoreError('wallet_transaction');
+
+                // Inventario/Mazos
+                $deleteIgnoreError('deck');
+                $deleteIgnoreError('inventory_card');
+                $deleteIgnoreError('inventory_pack');
+
+                // Perfil (con chequeo de columna por si acaso, dado el error anterior)
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('profile') && \Illuminate\Support\Facades\Schema::hasColumn('profile', 'user_id')) {
+                        \Illuminate\Support\Facades\DB::table('profile')->where('user_id', $id)->delete();
+                    }
+                } catch (\Exception $e) {
+                }
+            });
+        });
+    }
+
     // Relaciones con tablas
     // Todos los JOIN que tiene la tabla usuario
 
