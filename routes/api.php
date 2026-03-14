@@ -76,6 +76,9 @@ Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver 
 */
 Route::middleware('auth:api')->group(function () {
 
+    // ========== PERFIL DE USUARIO JWT ==========
+    Route::get('/user-profile', [UserController::class, 'show']);
+
     Route::post('/logout', [LoginController::class, 'destroy']);
 
     // ========== TIENDA & CARRITO ==========

@@ -228,7 +228,17 @@ composer install
 
 Esto descarga todas las librerías de PHP que necesita Laravel. **Puede tardar un par de minutos.**
 
-### 3.2 Copiar el archivo `.env`
+### 3.2 Generar clave JWT
+
+Como el proyecto usa JWT para autenticación (en lugar de Inertia), necesitamos generar la clave secreta:
+
+```bash
+php artisan jwt:secret
+```
+
+Esto añadirá `JWT_SECRET` a tu archivo `.env`.
+
+### 3.3 Copiar el archivo `.env`
 
 ```bash
 cp .env.example .env
@@ -236,7 +246,7 @@ cp .env.example .env
 
 Esto crea un archivo de configuración local. Nunca compartas este archivo.
 
-### 3.3 Generar la clave de la aplicación
+### 3.4 Generar la clave de la aplicación
 
 ```bash
 php artisan key:generate
@@ -244,7 +254,7 @@ php artisan key:generate
 
 Esto rellena `APP_KEY` en el `.env` (necesario para encriptación).
 
-### 3.4 Configurar la base de datos
+### 3.5 Configurar la base de datos
 
 Abre el archivo `.env` en tu editor (VS Code):
 
@@ -292,7 +302,7 @@ psql -U postgres -d tienda_magic -c "\dt"
 
 No debería mostrar nada aún (las tablas se crean después).
 
-### 3.5 Ejecutar migraciones
+### 3.6 Ejecutar migraciones
 
 Las migraciones son archivos que "dibujan" la estructura de tu base de datos.
 
@@ -310,7 +320,7 @@ Migrated: 2024_01_01_000001_create_users_table
 
 Si ves errores, double-check tu `.env` (especialmente `DB_DATABASE`, `DB_USERNAME`, etc.).
 
-### 3.6 (Opcional) Importar datos de cartas
+### 3.7 (Opcional) Importar datos de cartas
 
 Si quieres cargar las cartas reales desde Scryfall:
 

@@ -41,13 +41,14 @@ class MagicApi {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
+            withCredentials: false, // Evitar cookies de Laravel que confundan middleware web
         });
 
-        // Interceptor de petición: inyecta automáticamente token Bearer
+        // Interceptor de petición: inyecta automáticamente token JWT
         this.api.interceptors.request.use(
             (config) => {
                 // Buscar token en localStorage primero, luego en sessionStorage
-                const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
                 if (token) {
                     // Inyectamos cabecera Authorization para rutas protegidas
                     config.headers.Authorization = `Bearer ${token}`;
@@ -62,11 +63,12 @@ class MagicApi {
             (response) => response,
             (error) => {
                 if (error.response?.status === 401) {
-                    // Token inválido: limpiamos ambos storages y redirigimos
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('client_token');
-                    sessionStorage.removeItem('auth_token');
-                    sessionStorage.removeItem('client_token');
+                    // Token JWT inválido: limpiamos ambos storages y redirigimos
+                    localStorage.removeItem('token');
+                    sessionStorage.removeItem('token');
+
+                    // Eliminamos cabecera global
+                    delete this.api.defaults.headers.common['Authorization'];
 
                     // Evitamos bucle de redirección si ya estamos en login
                     if (window.location.pathname !== '/login') {
@@ -97,77 +99,74 @@ class MagicApi {
     }
 
     /**
-     * Inicia sesión y almacena tokens.
+     * Inicia sesión y almacena tokens JWT.
      *
      * @param credentials Credenciales del usuario
-     * @returns Respuesta con token Bearer y datos del usuario
+     * @returns Respuesta con token JWT y datos del usuario
      */
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
-        await this.initializeCSRF();
-
-        // Generamos client_token para trazabilidad
-        const clientToken = this.generateClientToken();
+        // Eliminamos inicialización CSRF ya que JWT no lo necesita
+        // await this.initializeCSRF();
 
         const response: AxiosResponse<AuthResponse> = await this.api.post('/api/login', {
-            ...credentials,
-            client_token: clientToken,
+            ...credentials
         });
 
-        // Almacenamos tokens según preferencia "remember me"
+        // Almacenamos token JWT según preferencia "remember me"
         const { access_token } = response.data;
         if (credentials.remember) {
-            localStorage.setItem('auth_token', access_token);
-            localStorage.setItem('client_token', clientToken);
+            localStorage.setItem('token', access_token);
         } else {
-            sessionStorage.setItem('auth_token', access_token);
-            sessionStorage.setItem('client_token', clientToken);
+            sessionStorage.setItem('token', access_token);
         }
+
+        // Configuramos el token globalmente para persistencia
+        this.api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
         return response.data;
     }
 
     /**
-     * Registra usuario y almacena tokens.
+     * Registra usuario y almacena tokens JWT.
      *
      * @param data Datos del nuevo usuario
-     * @returns Respuesta con token Bearer y datos del usuario
+     * @returns Respuesta con token JWT y datos del usuario
      */
     async register(data: RegisterData): Promise<AuthResponse> {
-        await this.initializeCSRF();
-
-        // Generamos client_token para trazabilidad
-        const clientToken = this.generateClientToken();
+        // Eliminamos inicialización CSRF ya que JWT no lo necesita
+        // await this.initializeCSRF();
 
         const response: AxiosResponse<AuthResponse> = await this.api.post('/api/register', {
-            ...data,
-            client_token: clientToken,
+            ...data
         });
 
-        // Almacenamos tokens según preferencia "remember me"
+        // Almacenamos token JWT según preferencia "remember me"
         const { access_token } = response.data;
         if (data.remember) {
-            localStorage.setItem('auth_token', access_token);
-            localStorage.setItem('client_token', clientToken);
+            localStorage.setItem('token', access_token);
         } else {
-            sessionStorage.setItem('auth_token', access_token);
-            sessionStorage.setItem('client_token', clientToken);
+            sessionStorage.setItem('token', access_token);
         }
+
+        // Configuramos el token globalmente para persistencia
+        this.api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
         return response.data;
     }
 
     /**
-     * Cierra sesión y elimina tokens.
+     * Cierra sesión y elimina tokens JWT.
      */
     async logout(): Promise<void> {
         try {
             await this.api.post('/api/logout');
         } finally {
-            // Siempre limpiamos ambos storages, incluso si falla la llamada
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('client_token');
-            sessionStorage.removeItem('auth_token');
-            sessionStorage.removeItem('client_token');
+            // Limpiamos tokens de ambos storages
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+
+            // Eliminamos cabecera global
+            delete this.api.defaults.headers.common['Authorization'];
         }
     }
 

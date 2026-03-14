@@ -42,28 +42,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const initializeAuth = async () => {
             try {
                 // Comprobar si existe token en localStorage o sessionStorage
-                const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
                 if (token) {
-                    // Si existe token, recuperar datos del usuario
-                    const userData = await apiService.checkAuth();
-                    setUser(userData);
-                }
-            } catch (error: unknown) {
-                // Solo borrar token si es error 401 (Unauthorized)
-                if (error && typeof error === 'object' && 'response' in error) {
-                    const response = error as { response?: { status: number } };
-                    if (response.response?.status === 401) {
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('client_token');
-                        sessionStorage.removeItem('auth_token');
-                        sessionStorage.removeItem('client_token');
-                        setUser(null);
-                    } else {
-                        // Para otros errores (red, servidor, etc), mantener el token
+                    // Si existe token, configuramos cabecera global y verificamos con endpoint JWT
+                    apiService.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+                    try {
+                        const userData = await apiService.checkAuth();
+                        setUser(userData);
+                    } catch (error: any) {
+                        // Si el endpoint devuelve 401, limpiamos el token
+                        if (error.response?.status === 401) {
+                            localStorage.removeItem('token');
+                            sessionStorage.removeItem('token');
+                            delete apiService.axiosInstance.defaults.headers.common['Authorization'];
+                            setUser(null);
+                        }
+                        // Para otros errores (red, servidor), mantenemos el token
                     }
-                    // Para otros errores (red, servidor, etc), mantener el token
                 }
+            } catch (error) {
+                // Error general, limpiamos todo
+                localStorage.removeItem('token');
+                sessionStorage.removeItem('token');
+                delete apiService.axiosInstance.defaults.headers.common['Authorization'];
+                setUser(null);
             } finally {
                 // Siempre detener el loading, haya éxito o error
                 setIsLoading(false);
@@ -103,26 +107,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = async () => {
         try {
             await apiService.logout();
-            setUser(null);
-            window.location.href = '/login';
         } catch (error) {
+            // Ignorar error de logout, limpiar de todos modos
+        } finally {
+            // Limpiamos tokens de ambos storages
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+
+            // Eliminamos cabecera global
+            delete apiService.axiosInstance.defaults.headers.common['Authorization'];
+
             setUser(null);
             window.location.href = '/login';
         }
     };
 
-    const contextValue = useMemo(() => ({
-        user,
-        isLoading,
-        isAuthenticated,
-        login,
-        logout,
-        checkAuth,
-    }), [user, isLoading, isAuthenticated]);
+    const contextValue = useMemo(() => {
+        console.log('ESTADO AUTH:', { isLoading, isAuthenticated, user });
+        return {
+            user,
+            isLoading,
+            isAuthenticated,
+            login,
+            logout,
+            checkAuth,
+        };
+    }, [user, isLoading, isAuthenticated]);
 
     return (
         <AuthContext.Provider value={contextValue}>
-            {children}
+            {/* Mostrar pantalla de carga global mientras se verifica autenticación */}
+            {isLoading ? (
+                <div className="min-h-screen flex items-center justify-center bg-zinc-900">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                        <p className="text-zinc-100 text-lg">Verificando tu sesión...</p>
+                    </div>
+                </div>
+            ) : (
+                children
+            )}
         </AuthContext.Provider>
     );
 }

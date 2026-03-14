@@ -1,6 +1,6 @@
 // resources/js/app.tsx
 import '../css/app.css';
-import { StrictMode } from 'react';
+import { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
     BrowserRouter, Routes, Route, Navigate,
