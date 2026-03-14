@@ -123,7 +123,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const contextValue = useMemo(() => {
-        console.log('ESTADO AUTH:', { isLoading, isAuthenticated, user });
         return {
             user,
             isLoading,
