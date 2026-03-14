@@ -8,23 +8,24 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
  * Controlador de autenticación de usuarios.
  *
- * Maneja el proceso de login/logout con generación manual de tokens Sanctum
- * para cumplir con requisitos académicos de token explícito en respuesta JSON.
+ * Maneja el proceso de login/logout con generación de tokens JWT
+ * para autenticación stateless en API REST.
  */
 class LoginController extends Controller
 {
     /**
-     * Autentica al usuario y genera token de acceso.
+     * Autentica al usuario y genera token JWT.
      *
-     * Arquitectura stateless: No utiliza sesiones, solo Bearer Tokens.
-     * Sanctum emite Opaque Tokens de 64 caracteres utilizados como Bearer estándar.
+     * Arquitectura stateless: No utiliza sesiones, solo JWT Bearer Tokens.
+     * JWT emite tokens firmados con claims estándar y custom según configuración.
      *
      * @param Request $request Petición con credenciales y reCAPTCHA
-     * @return JsonResponse Respuesta JSON con token Bearer
+     * @return JsonResponse Respuesta JSON con token JWT
      * @throws ValidationException Si las credenciales son inválidas
      */
     public function store(Request $request): JsonResponse
@@ -41,8 +42,8 @@ class LoginController extends Controller
         // Extraemos credenciales de forma segura (solo email y password)
         $credentials = $request->only('email', 'password');
 
-        // Verificamos credenciales usando Auth::attempt sin remember (stateless)
-        if (!Auth::attempt($credentials)) {
+        // Verificamos credenciales usando JWTAuth::attempt
+        if (!$token = JWTAuth::attempt($credentials)) {
             // Error genérico para no revelar si el email existe o no
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas no coinciden con nuestros registros.'],
@@ -51,35 +52,30 @@ class LoginController extends Controller
 
         $user = Auth::user();
 
-        // Generamos token Sanctum manualmente - Opaque Token de 64 caracteres
-        // Este token se utiliza como Bearer Token estándar en cabecera Authorization
-        $clientToken = $request->input('client_token');
-        $token = $user->createToken('auth_token', ['client_token' => $clientToken])->plainTextToken;
-
         // Logout de cualquier sesión existente para mantener pureza stateless
         Auth::guard('web')->logout();
 
-        // Devolvemos token en formato JSON estándar (sin cookies)
+        // Devolvemos token JWT en formato JSON estándar
         return response()->json([
             'data' => $user,
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => config('sanctum.expiration', 525600) // 1 año por defecto
+            'expires_in' => config('jwt.ttl', 60) * 60 // TTL en segundos
         ]);
     }
 
     /**
-     * Cierra la sesión del usuario y revoca tokens.
+     * Cierra la sesión del usuario e invalida token JWT.
      *
-     * En arquitectura stateless, revoca el token actual para invalidar acceso.
+     * En arquitectura stateless, invalida el token actual en el blacklist.
      *
      * @param Request $request Petición de logout
      * @return JsonResponse Confirmación de logout
      */
     public function destroy(Request $request): JsonResponse
     {
-        // Revocamos el token actual que realizó la petición
-        $request->user()->currentAccessToken()->delete();
+        // Invalidamos el token JWT actual
+        JWTAuth::invalidate(JWTAuth::getToken());
 
         return response()->json([
             'message' => 'Sesión cerrada correctamente.'

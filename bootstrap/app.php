@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\HandleAppearance;
-use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -31,9 +30,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             HandleAppearance::class,
-            HandleInertiaRequests::class, // Nota: Si ya no usas Inertia, podrías quitar esta línea en el futuro
             AddLinkHeadersForPreloadedAssets::class,
             SecurityHeaders::class, // Headers de seguridad
+        ]);
+
+        $middleware->api(append: [
+            // \Illuminate\Http\Middleware\TrimStrings::class,
+            // \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-// use Tymon\JWTAuth\Contracts\JWTSubject; // Descomentado temporalmente
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
  * Modelo de Usuario del sistema.
@@ -17,10 +17,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Representa a los usuarios con autenticación Sanctum, wallet y relaciones
  * con inventario, pedidos, decks y perfil extendido.
  */
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

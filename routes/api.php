@@ -74,7 +74,7 @@ Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver 
 | Rutas Protegidas (Requieren Token/Sesión)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'destroy']);
 
