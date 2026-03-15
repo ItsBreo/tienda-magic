@@ -4,33 +4,22 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Role; // Importamos el modelo Role
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use App\Rules\RecaptchaCheck;
-use Illuminate\Validation\ValidationException;
 
-/**
- * Controlador de registro de usuarios.
- *
- * Procesa el registro con validación estricta, hash de contraseñas,
- * y generación manual de tokens Sanctum para cumplimiento académico.
- */
 class RegisterController extends Controller
 {
     /**
-     * Registra un nuevo usuario y genera token de acceso.
-     *
-     * Arquitectura stateless: No utiliza sesiones, solo Bearer Tokens.
-     * Sanctum emite Opaque Tokens de 64 caracteres utilizados como Bearer estándar.
+     * Registra un nuevo usuario, asigna rol por defecto e inicia sesión.
      *
      * @param Request $request Petición con datos del usuario y reCAPTCHA
-     * @return JsonResponse Respuesta JSON con token Bearer y datos del usuario
-     * @throws ValidationException Si los datos son inválidos
+     * @return JsonResponse Respuesta JSON confirmando el registro
      */
     public function store(Request $request): JsonResponse
     {
@@ -43,38 +32,41 @@ class RegisterController extends Controller
             'recaptcha_token' => ['required', new RecaptchaCheck],
         ]);
 
-        // Creamos usuario con hash seguro de contraseña (bcrypt)
-        // Nunca almacenamos contraseñas en texto plano
+        // Creamos usuario con hash seguro de contraseña
         $user = User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']), // Hash automático
+            'password' => Hash::make($validated['password']),
             'wallet_balance' => 0,
         ]);
+
+        // Asignar el rol 'user' por defecto al nuevo usuario
+        $defaultRole = Role::where('name', 'user')->first();
+        if ($defaultRole) {
+            $user->roles()->attach($defaultRole->id);
+        }
 
         // Disparamos evento para notificaciones posteriores (email verification, etc.)
         event(new Registered($user));
 
-        // Generamos token Sanctum - Opaque Token de 64 caracteres
-        // Este token se utiliza como Bearer Token estándar en cabecera Authorization
-        $clientToken = $request->input('client_token');
-        $token = $user->createToken('auth_token', ['client_token' => $clientToken])->plainTextToken;
+        // Iniciar sesión automáticamente tras el registro usando el guard por defecto (sesiones/cookies)
+        Auth::login($user);
 
-        // En arquitectura stateless no mantenemos sesión
-        // Solo el token Bearer es suficiente para autenticación
+        // Regenerar la sesión para prevenir ataques de fijación de sesión
+        $request->session()->regenerate();
 
-        // Devolvemos respuesta con token y datos limitados del usuario (para API)
+        // Devolvemos respuesta (Laravel enviará automáticamente la cookie de sesión en las cabeceras)
         return response()->json([
+            'message' => 'Usuario registrado e inicio de sesión exitoso.',
             'data' => [
+                'id' => $user->id,
                 'name' => $user->name,
                 'username' => $user->username,
                 'email' => $user->email,
                 'wallet_balance' => $user->wallet_balance,
-            ],
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'expires_in' => config('sanctum.expiration', 525600) // 1 año por defecto
+                'is_admin' => $user->is_admin,
+            ]
         ], 201);
     }
 }

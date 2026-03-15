@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LoginErrors {
-  email?: string;
-  password?: string;
+  email?: string[];
+  password?: string[];
+  recaptcha_token?: string[];
   general?: string;
 }
 
@@ -10,96 +12,61 @@ interface LoginFormData {
   email: string;
   password: string;
   remember: boolean;
+  recaptcha_token: string;
 }
 
 export function useLogin() {
+  const { login } = useAuth(); // Usamos el contexto centralizado
+
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
     remember: false,
+    recaptcha_token: '',
   });
 
   const [errors, setErrors] = useState<LoginErrors>({});
   const [loading, setLoading] = useState(false);
 
-  // Validación local básica
-  const validateForm = (): boolean => {
-    const newErrors: LoginErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = 'El email es requerido';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email inválido';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Mínimo 6 caracteres';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Manejo de cambios en inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const {
-      name, value, type, checked,
-    } = e.target;
+  // Manejo unificado de cambios en inputs y checkbox
+  const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [field]: value,
     }));
-    // Limpiar error cuando el usuario comienza a escribir
-    if (errors[name as keyof LoginErrors]) {
+
+    // Limpiar error específico cuando el usuario comienza a escribir
+    if (errors[field as keyof LoginErrors]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: undefined,
+        [field]: undefined,
       }));
     }
   };
 
   // Submit del formulario
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+  const handleSubmit = async () => {
     setLoading(true);
+    setErrors({});
 
     try {
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        },
-        body: JSON.stringify(formData),
-      });
+      // Llamamos a la función login de AuthContext (que usa apiService)
+      await login(formData);
+      return { success: true };
+    } catch (error: any) {
+      const responseData = error.response?.data;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Si hay errores del server
+      // Mapear errores de validación de Laravel al estado local
+      if (responseData?.errors) {
+        setErrors(responseData.errors);
+      } else {
         setErrors({
-          general: data.message || 'Error al iniciar sesión',
-          ...data.errors,
+          general: responseData?.message || 'Error de conexión. Intenta de nuevo.',
         });
-        return;
       }
 
-      // Si login fue exitoso
-      if (data.success) {
-        // Redirigir al dashboard
-        window.location.href = data.redirect || '/dashboard';
-      }
-    } catch (error) {
-      setErrors({
-        general: 'Error de conexión. Intenta de nuevo.',
-      });
+      // Lanzamos el error para que la UI (toast) lo pueda capturar
+      throw error;
     } finally {
       setLoading(false);
     }
