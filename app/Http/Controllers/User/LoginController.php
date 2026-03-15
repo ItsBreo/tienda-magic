@@ -20,6 +20,7 @@ class LoginController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        \Log::info('Login attempt for: ' . $request->email);
         // Validación estricta de entrada
         $request->validate([
             'email' => ['required', 'string', 'email'],
@@ -56,8 +57,9 @@ class LoginController extends Controller
      */
     public function destroy(Request $request): JsonResponse
     {
-        // Cierra la sesión web
-        Auth::logout();
+        // Cierra la sesión web explícitamente usando el guard 'web'
+        // Esto evita el error "Method RequestGuard::logout does not exist"
+        Auth::guard('web')->logout();
 
         // Invalida la sesión actual en el servidor
         $request->session()->invalidate();

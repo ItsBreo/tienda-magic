@@ -21,7 +21,14 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
     const [showPassword, setShowPassword] = useState(false);
 
     // Extraemos todo el estado y lógica del hook centralizado
-    const { formData, errors, loading, handleChange, handleSubmit } = useLogin();
+    const { isAuthenticated, formData, errors, loading, handleChange, handleSubmit } = useLogin();
+
+    // Redirigir automáticamente si ya está autenticado
+    React.useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();

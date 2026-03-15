@@ -64,7 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const login = async (credentials: LoginCredentials) => {
-        setIsLoading(true);
         try {
             const authResponse = await apiService.login(credentials);
             if (authResponse.two_factor) {
@@ -72,8 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
                 setUser(authResponse.data);
             }
-        } finally {
-            setIsLoading(false);
+        } catch (error) {
+            throw error;
         }
     };
 

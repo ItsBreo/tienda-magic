@@ -22,13 +22,15 @@ class MagicApi {
 
     constructor() {
         this.api = axios.create({
-            baseURL: 'http://127.0.0.1:8000',
+            baseURL: window.location.origin,
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
             // IMPORTANTE: Esto permite enviar y recibir cookies de sesión
             withCredentials: true,
+            xsrfCookieName: 'XSRF-TOKEN',
+            xsrfHeaderName: 'X-XSRF-TOKEN',
         });
 
         // Interceptor de respuesta: maneja errores de autenticación 401
@@ -86,8 +88,44 @@ class MagicApi {
         return response.data;
     }
 
-    async getPacks(page: number = 1, sort: string = ''): Promise<any> {
-        const response = await this.api.get('/api/shop', { params: { page, sort } });
+    async getPacks(page: number = 1, sort: string = '', set: string = '', search: string = ''): Promise<any> {
+        const response = await this.api.get('/api/shop', { 
+            params: { 
+                page, 
+                sort, 
+                set, 
+                search,
+                category: 'packs' 
+            } 
+        });
+        return response.data;
+    }
+
+    async getShopCards(page: number = 1, sort: string = '', set: string = '', search: string = ''): Promise<any> {
+        const response = await this.api.get('/api/shop', { 
+            params: { 
+                page, 
+                sort, 
+                set, 
+                search,
+                category: 'cards' 
+            } 
+        });
+        return response.data;
+    }
+
+    async getCart(): Promise<any> {
+        const response = await this.api.get('/api/cart');
+        return response.data;
+    }
+
+    async addToCart(data: { booster_pack_id?: number, card_id?: number, quantity: number }): Promise<any> {
+        const response = await this.api.post('/api/cart', data);
+        return response.data;
+    }
+
+    async removeCartItem(itemId: number): Promise<any> {
+        const response = await this.api.delete(`/api/cart/${itemId}`);
         return response.data;
     }
 

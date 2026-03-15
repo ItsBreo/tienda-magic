@@ -9,6 +9,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'booster_pack_id',
+        'card_id',
         'quantity',
         'price_at_purchase'
     ];
@@ -19,5 +20,9 @@ class OrderItem extends Model
 
     public function boosterPack() {
         return $this->belongsTo(BoosterPack::class);
+    }
+
+    public function card() {
+        return $this->belongsTo(Card::class);
     }
 }

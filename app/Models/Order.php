@@ -14,8 +14,12 @@ class Order extends Model
 {
     protected $fillable = [
         'user_id',
+        'subtotal',
+        'tax',
         'total_price',
-        'status'
+        'payment_method',
+        'status',
+        'currency'
     ];
 
     // Relación: Un pedido tiene muchos items
