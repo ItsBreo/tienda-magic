@@ -76,8 +76,12 @@ Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver 
 */
 Route::middleware('auth:api')->group(function () {
 
+    // ========== AUTH CHECK — usada por AuthContext en cada reload ==========
+    // ApiService.checkAuth() llama a GET /api/user → debe existir aquí
+    Route::get('/user', [UserController::class, 'show']);
+
     // ========== PERFIL DE USUARIO JWT ==========
-    Route::get('/user-profile', [UserController::class, 'show']);
+    Route::get('/user-profile', [UserController::class, 'show']); // alias mantenido por compatibilidad
 
     Route::post('/logout', [LoginController::class, 'destroy']);
 
@@ -94,7 +98,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
 
     // ========== USUARIO (Cuenta Base y Billetera) ==========
-    Route::prefix('user')->group(function () {
+    // Prefijo /account para no colisionar con GET /user de checkAuth
+    Route::prefix('account')->group(function () {
         Route::get('/', [UserController::class, 'show']);
         Route::patch('/password', [UserController::class, 'updatePassword']);
         Route::delete('/', [UserController::class, 'destroyUser']);

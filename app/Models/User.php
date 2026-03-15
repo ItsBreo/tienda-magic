@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+// HasApiTokens eliminado (era de Laravel\Sanctum, incompatible con JWT)
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -20,7 +20,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable, SoftDeletes;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
+    // HasApiTokens eliminado: era de Sanctum y genera conflicto con el JWTGuard
 
     /**
      * The attributes that are mass assignable.

@@ -12,18 +12,18 @@ use Illuminate\Validation\ValidationException;
 class LoginController extends Controller
 {
     /**
-     * Autentica al usuario creando una sesión y cookie tradicional.
+     * Autentica al usuario y devuelve un JWT.
+     * Usa tymon/jwt-auth bajo el capó con el guard 'api'.
      *
-     * @param Request $request Petición con credenciales y reCAPTCHA
-     * @return JsonResponse Respuesta JSON confirmando el login
-     * @throws ValidationException Si las credenciales son inválidas
+     * @param  Request $request
+     * @return JsonResponse
+     * @throws ValidationException
      */
     public function store(Request $request): JsonResponse
     {
-        // Validación estricta de entrada
         $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email'           => ['required', 'string', 'email'],
+            'password'        => ['required', 'string'],
             'recaptcha_token' => ['required', new RecaptchaCheck],
         ], [
             'recaptcha_token.required' => 'Por favor, completa el reCAPTCHA.',
@@ -31,42 +31,39 @@ class LoginController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        // Intentamos autenticar usando el sistema de sesiones nativo de Laravel
-        if (Auth::attempt($credentials)) {
-            // Regeneramos la sesión para mayor seguridad (previene session fixation)
-            $request->session()->regenerate();
+        // Auth::guard('api') usa JWTGuard (tymon/jwt-auth)
+        // attempt() valida credenciales y genera el token si son correctas
+        $token = Auth::guard('api')->attempt($credentials);
 
-            return response()->json([
-                'message' => 'Sesión iniciada correctamente.',
-                'data' => Auth::user()
+        if (!$token) {
+            throw ValidationException::withMessages([
+                'email' => ['Las credenciales proporcionadas no coinciden con nuestros registros.'],
             ]);
         }
 
-        // Error genérico si falla
-        throw ValidationException::withMessages([
-            'email' => ['Las credenciales proporcionadas no coinciden con nuestros registros.'],
+        $user = Auth::guard('api')->user();
+
+        return response()->json([
+            'message' => 'Sesión iniciada correctamente.',
+            'token'   => $token,          // 👈 El frontend guarda esto en localStorage
+            'data'    => $user,
         ]);
     }
 
     /**
-     * Cierra la sesión del usuario y destruye la cookie.
+     * Invalida el JWT actual en el servidor (lo añade a la blacklist).
+     * Requiere que JWT_BLACKLIST_ENABLED=true en .env
      *
-     * @param Request $request Petición de logout
-     * @return JsonResponse Confirmación de logout
+     * @param  Request $request
+     * @return JsonResponse
      */
     public function destroy(Request $request): JsonResponse
     {
-        // Cierra la sesión web
-        Auth::logout();
-
-        // Invalida la sesión actual en el servidor
-        $request->session()->invalidate();
-
-        // Regenera el token CSRF para evitar ataques de falsificación de peticiones
-        $request->session()->regenerateToken();
+        // invalidate() añade el token a la blacklist de Redis/cache
+        Auth::guard('api')->logout();
 
         return response()->json([
-            'message' => 'Sesión cerrada correctamente.'
+            'message' => 'Sesión cerrada correctamente.',
         ]);
     }
 }

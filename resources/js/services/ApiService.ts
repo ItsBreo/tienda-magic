@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 interface LoginCredentials {
     email: string;
@@ -17,26 +17,36 @@ interface RegisterData {
     remember?: boolean;
 }
 
+const TOKEN_KEY = 'auth_token';
+
 class MagicApi {
     private api: AxiosInstance;
 
     constructor() {
         this.api = axios.create({
-            baseURL: 'http://127.0.0.1:8000',
+            baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000',
             headers: {
                 Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
             },
-            // IMPORTANTE: Esto permite enviar y recibir cookies de sesión
-            withCredentials: true,
+            // Sin withCredentials: ya no dependemos de cookies de sesión
         });
 
-        // Interceptor de respuesta: maneja errores de autenticación 401
+        // Interceptor de REQUEST: inyecta el JWT en cada petición automáticamente
+        this.api.interceptors.request.use((config) => {
+            const token = this.getToken();
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
+
+        // Interceptor de RESPONSE: si el token expiró/es inválido, limpia y redirige
         this.api.interceptors.response.use(
             (response) => response,
             (error) => {
                 if (error.response?.status === 401) {
-                    // Ya no borramos localStorage, solo redirigimos si es necesario
+                    this.removeToken();
                     if (window.location.pathname !== '/login') {
                         window.location.href = '/login';
                     }
@@ -46,45 +56,56 @@ class MagicApi {
         );
     }
 
-    /**
-     * Inicializa protección CSRF. Obligatorio al usar sesiones basadas en cookies.
-     */
-    async initializeCSRF(): Promise<void> {
-        await this.api.get('/sanctum/csrf-cookie');
+    // ─── Gestión del token ────────────────────────────────────────────────────
+
+    getToken(): string | null {
+        return localStorage.getItem(TOKEN_KEY);
     }
 
+    setToken(token: string): void {
+        localStorage.setItem(TOKEN_KEY, token);
+    }
+
+    removeToken(): void {
+        localStorage.removeItem(TOKEN_KEY);
+    }
+
+    isAuthenticated(): boolean {
+        return !!this.getToken();
+    }
+
+    // ─── Auth ─────────────────────────────────────────────────────────────────
+
     async login(credentials: LoginCredentials): Promise<any> {
-        // Obligatorio obtener la cookie CSRF antes de hacer un POST de login
-        await this.initializeCSRF();
-
-        const response = await this.api.post('/api/login', {
-            ...credentials
-        });
-
+        const response = await this.api.post('/api/login', credentials);
+        // El backend devuelve { token, data: user }
+        const { token } = response.data;
+        if (token) this.setToken(token);
         return response.data;
     }
 
     async register(data: RegisterData): Promise<any> {
-        // Obligatorio obtener la cookie CSRF antes de hacer un POST de registro
-        await this.initializeCSRF();
-
-        const response = await this.api.post('/api/register', {
-            ...data
-        });
-
+        const response = await this.api.post('/api/register', data);
+        const { token } = response.data;
+        if (token) this.setToken(token);
         return response.data;
     }
 
     async logout(): Promise<void> {
-        await this.api.post('/api/logout');
-        // El navegador eliminará/invalidará la cookie automáticamente
-        // basándose en la respuesta del backend.
+        try {
+            // Invalida el token en el servidor
+            await this.api.post('/api/logout');
+        } finally {
+            this.removeToken();
+        }
     }
 
     async checkAuth(): Promise<any> {
         const response = await this.api.get('/api/user');
         return response.data;
     }
+
+    // ─── Recursos ─────────────────────────────────────────────────────────────
 
     async getPacks(page: number = 1, sort: string = ''): Promise<any> {
         const response = await this.api.get('/api/shop', { params: { page, sort } });

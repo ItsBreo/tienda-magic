@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    useMemo,
+    ReactNode,
+} from 'react';
 import apiService from '@/services/ApiService';
 
 interface User {
@@ -30,19 +37,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    // Empezamos en true SOLO si ya tenemos token guardado, evitando el flash innecesario
+    const [isLoading, setIsLoading] = useState(() => apiService.isAuthenticated());
 
     const isAuthenticated = !!user;
 
+    // Al montar: si hay token en localStorage, verificamos que siga siendo válido
     useEffect(() => {
+        if (!apiService.isAuthenticated()) {
+            // Sin token → no hay nada que verificar, cargamos directo
+            setIsLoading(false);
+            return;
+        }
+
         const initializeAuth = async () => {
             try {
-                // Al tener withCredentials: true, Axios enviará la cookie automáticamente.
-                // Si la sesión es válida, devolverá el usuario. Si no, lanzará error 401.
                 const userData = await apiService.checkAuth();
                 setUser(userData);
-            } catch (error: any) {
-                // Si hay error (ej. 401), asumimos que no hay sesión
+            } catch {
+                // Token inválido o expirado → el interceptor ya limpió el token
                 setUser(null);
             } finally {
                 setIsLoading(false);
@@ -56,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const userData = await apiService.checkAuth();
             setUser(userData);
-        } catch (error) {
+        } catch {
             setUser(null);
         } finally {
             setIsLoading(false);
@@ -66,12 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (credentials: LoginCredentials) => {
         setIsLoading(true);
         try {
+            // apiService.login ya guarda el token en localStorage internamente
             const authResponse = await apiService.login(credentials);
-            if (authResponse.two_factor) {
-                window.location.href = '/two-factor-challenge';
-            } else {
-                setUser(authResponse.data);
-            }
+            setUser(authResponse.data);
         } finally {
             setIsLoading(false);
         }
@@ -79,25 +89,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = async () => {
         try {
-            await apiService.logout();
-        } catch (error) {
-            // Ignorar
+            await apiService.logout(); // también elimina el token del localStorage
+        } catch {
+            // Si falla la petición, limpiamos igualmente en cliente
+            apiService.removeToken();
         } finally {
             setUser(null);
             window.location.href = '/login';
         }
     };
 
-    const contextValue = useMemo(() => {
-        return { user, isLoading, isAuthenticated, login, logout, checkAuth };
-    }, [user, isLoading, isAuthenticated]);
+    const contextValue = useMemo(
+        () => ({ user, isLoading, isAuthenticated, login, logout, checkAuth }),
+        [user, isLoading, isAuthenticated],
+    );
 
     return (
         <AuthContext.Provider value={contextValue}>
             {isLoading ? (
                 <div className="min-h-screen flex items-center justify-center bg-zinc-900">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4" />
                         <p className="text-zinc-100 text-lg">Verificando tu sesión...</p>
                     </div>
                 </div>
