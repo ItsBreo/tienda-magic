@@ -40,7 +40,7 @@ class RegisterController extends Controller
         ]);
 
         // Asignar rol por defecto
-        $defaultRole = Role::where('name', 'user')->first();
+        $defaultRole = Role::where('name', 'User')->first();
         if ($defaultRole) {
             $user->roles()->attach($defaultRole->id);
         }
