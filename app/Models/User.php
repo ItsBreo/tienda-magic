@@ -95,7 +95,7 @@ class User extends Authenticatable implements JWTSubject
                 // Tablas pivot o secundarias
                 $deleteIgnoreError('user_role');
                 $deleteIgnoreError('card_user');
-                $deleteIgnoreError('achievement_user');
+                $deleteIgnoreError('user_achievement');
 
                 // Tablas donde el usuario es autor
                 $deleteIgnoreError('threads');
@@ -207,7 +207,8 @@ class User extends Authenticatable implements JWTSubject
     // Relación M:M con logros
     public function achievements()
     {
-        return $this->belongsToMany(Achievement::class);
+        return $this->belongsToMany(Achievement::class, 'user_achievement')
+        ->withPivot('obtained_at');
     }
 
     public function isAdmin(): bool

@@ -3,28 +3,28 @@
 namespace App\Providers;
 
 use App\Events\DeckCreated;
-use App\Listeners\CheckFirstDeckAchievement;
+use App\Events\UserRegistered;
+use App\Events\EmailVerified;
+use App\Events\PackPurchased;
+use App\Events\CardPurchased;
+use App\Events\CardListed;
+use App\Events\TransactionCompleted;
+use App\Listeners\AchievementListener;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Registrar los listeners de eventos
-        \Illuminate\Support\Facades\Event::listen(
-            DeckCreated::class,
-            CheckFirstDeckAchievement::class
-        );
+        Event::listen(DeckCreated::class,         [AchievementListener::class, 'handleDeckCreated']);
+        Event::listen(UserRegistered::class,      [AchievementListener::class, 'handleUserRegistered']);
+        Event::listen(EmailVerified::class,       [AchievementListener::class, 'handleEmailVerified']);
+        Event::listen(PackPurchased::class,       [AchievementListener::class, 'handlePackPurchased']);
+        Event::listen(CardPurchased::class,       [AchievementListener::class, 'handleCardPurchased']);
+        Event::listen(CardListed::class,          [AchievementListener::class, 'handleCardListed']);
+        Event::listen(TransactionCompleted::class,[AchievementListener::class, 'handleTransactionCompleted']);
     }
 }

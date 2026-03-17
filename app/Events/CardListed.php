@@ -5,7 +5,7 @@ namespace App\Events;
 use App\Models\User;
 use Illuminate\Foundation\Events\Dispatchable;
 
-class DeckCreated
+class CardListed
 {
     use Dispatchable;
 

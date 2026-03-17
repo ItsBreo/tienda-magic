@@ -7,19 +7,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Achievement extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     */
+    public $timestamps = false; // 👈 la tabla no tiene created_at/updated_at
+
     protected $fillable = [
+        'slug',
         'name',
         'description',
+        'badge_icon',
+        'xp_points',
     ];
 
-    /**
-     * Get the users that have this achievement.
-     */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'user_achievement')
+                    ->withPivot('obtained_at');
     }
 }

@@ -29,6 +29,7 @@ import AdminCards from './pages/admin/Cards';
 import AdminSets from './pages/admin/Sets';
 import Profile from './pages/profile/Profile';
 import Inventory from './pages/inventory/Inventory';
+import Achievements from './pages/achievement/Achievement';
 
 // Asegúrate de importar las otras páginas que uses
 
@@ -65,7 +66,8 @@ if (el) {
                             <Route path="/cart" element={<Cart />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/inventory" element={<Inventory />} />
-
+                            <Route path="/achievements" element={<Achievements />} />
+                            
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                         </Route>
 
