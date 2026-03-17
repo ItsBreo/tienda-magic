@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 // Modelos
 use App\Models\User;
@@ -42,18 +43,18 @@ Route::get('/shop-debug', function () {
     $packs = \App\Models\BoosterPack::with('cardSet')->paginate(6);
     return response()->json([
         'debug_info' => [
-            'total_items' => $packs->total(),
-            'per_page' => $packs->perPage(),
-            'current_page' => $packs->currentPage(),
-            'last_page' => $packs->lastPage(),
-            'has_more_pages' => $packs->hasMorePages(),
+            'total_items'     => $packs->total(),
+            'per_page'        => $packs->perPage(),
+            'current_page'    => $packs->currentPage(),
+            'last_page'       => $packs->lastPage(),
+            'has_more_pages'  => $packs->hasMorePages(),
         ],
         'pagination_data' => [
-            'data' => $packs->items(),
+            'data'         => $packs->items(),
             'current_page' => $packs->currentPage(),
-            'last_page' => $packs->lastPage(),
-            'total' => $packs->total(),
-            'per_page' => $packs->perPage(),
+            'last_page'    => $packs->lastPage(),
+            'total'        => $packs->total(),
+            'per_page'     => $packs->perPage(),
         ]
     ]);
 });
@@ -62,28 +63,39 @@ Route::get('/packs', [PackController::class, 'index']);
 Route::get('/packs/{id}', [PackController::class, 'show']);
 Route::get('/cards/set/{setCode}', [PackController::class, 'getCardsBySet']);
 
-// --- RUTAS DEL DASHBOARD ---
+// Dashboard
 Route::get('/sets/latest', [SetController::class, 'latest']);
 Route::get('/store-stats', [DashboardController::class, 'getStats']);
 
-// --- PERFILES PÚBLICOS ---
-Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver el perfil de otro usuario
+// Perfiles públicos
+Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
-| Rutas Protegidas (Requieren Token/Sesión)
+| Rutas Protegidas (Requieren Token JWT)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:api')->group(function () {
 
-    // ========== AUTH CHECK — usada por AuthContext en cada reload ==========
-    // ApiService.checkAuth() llama a GET /api/user → debe existir aquí
+    // ========== AUTH CHECK ==========
     Route::get('/user', [UserController::class, 'show']);
-
-    // ========== PERFIL DE USUARIO JWT ==========
-    Route::get('/user-profile', [UserController::class, 'show']); // alias mantenido por compatibilidad
-
+    Route::get('/user-profile', [UserController::class, 'show']); // alias compatibilidad
     Route::post('/logout', [LoginController::class, 'destroy']);
+
+    // ========== LOGROS ==========
+    Route::get('/achievements', function () {
+        $user = Auth::user()->load('achievements');
+        return response()->json([
+            'achievements' => $user->achievements->map(fn($a) => [
+                'slug'        => $a->slug,
+                'name'        => $a->name,
+                'description' => $a->description,
+                'badge_icon'  => $a->badge_icon,
+                'xp_points'   => $a->xp_points,
+                'obtained_at' => $a->pivot->obtained_at,
+            ])
+        ]);
+    });
 
     // ========== TIENDA & CARRITO ==========
     Route::post('/cart', [CartController::class, 'store']);
@@ -97,8 +109,7 @@ Route::middleware('auth:api')->group(function () {
     // ========== BILLETERA ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
 
-    // ========== USUARIO (Cuenta Base y Billetera) ==========
-    // Prefijo /account para no colisionar con GET /user de checkAuth
+    // ========== CUENTA DE USUARIO ==========
     Route::prefix('account')->group(function () {
         Route::get('/', [UserController::class, 'show']);
         Route::patch('/password', [UserController::class, 'updatePassword']);
@@ -109,19 +120,31 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/transactions', [UserController::class, 'transactions']);
     });
 
-    // ========== PERFIL DE USUARIO (Avatar, Bio, País) ==========
+    // ========== PERFIL (Avatar, Bio, País) ==========
     Route::prefix('profile')->group(function () {
-        Route::get('/', [UserProfileController::class, 'showProfile']); // Obtener mi perfil
-        Route::post('/', [UserProfileController::class, 'store']); // Crear mi perfil
-        Route::patch('/', [UserProfileController::class, 'update']); // Actualizar mi perfil
-        Route::patch('/public-info', [UserProfileController::class, 'updatePublicInfo']); // Actualizar solo info pública
-        Route::delete('/', [UserProfileController::class, 'destroy']); // Borrar mi perfil
+        Route::get('/', [UserProfileController::class, 'showProfile']);
+        Route::post('/', [UserProfileController::class, 'store']);
+        Route::patch('/', [UserProfileController::class, 'update']);
+        Route::patch('/public-info', [UserProfileController::class, 'updatePublicInfo']);
+        Route::delete('/', [UserProfileController::class, 'destroy']);
     });
 
-    // ========== INVENTARIO & MAZOS ==========
+    // ========== INVENTARIO ==========
+    // ⚠️ Las rutas estáticas ANTES de las dinámicas ({user})
+    Route::get('/inventory/filter', [InventoryController::class, 'filter']);
+    Route::get('/inventory/stats', [InventoryController::class, 'stats']);
+    Route::get('/inventory/for-sale', [InventoryController::class, 'showInventoryInSale']);
     Route::get('/inventory', [InventoryController::class, 'index']);
     Route::get('/inventory/{user}', [InventoryController::class, 'userInventory']);
+    Route::get('/inventory/{user}/for-sale', [InventoryController::class, 'userInSale']);
 
+    Route::post('/inventory/cards', [InventoryController::class, 'addCard']);
+    Route::patch('/inventory/cards/{id}', [InventoryController::class, 'updateCard']);
+    Route::delete('/inventory/cards/{id}', [InventoryController::class, 'deleteCard']);
+    Route::post('/inventory/cards/{id}/list', [InventoryController::class, 'listForSale']);
+    Route::delete('/inventory/listings/{id}', [InventoryController::class, 'removeFromSale']);
+
+    // ========== MAZOS ==========
     Route::prefix('decks')->group(function () {
         Route::get('/', [DeckController::class, 'index']);
         Route::post('/', [DeckController::class, 'store']);
@@ -130,7 +153,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{deckId}/cards/{cardId}', [DeckController::class, 'removeCard']);
     });
 
-    // ========== MERCADO & CARTAS ==========
+    // ========== MERCADO ==========
     Route::prefix('market')->group(function () {
         Route::get('/', [MarketController::class, 'index']);
         Route::post('/cards', [MarketController::class, 'createListing']);
@@ -138,6 +161,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/transactions', [TransactionController::class, 'index']);
     });
 
+    // ========== CARTAS ==========
     Route::prefix('cards')->group(function () {
         Route::get('/', [CardController::class, 'index']);
         Route::get('/{id}', [CardController::class, 'show']);
@@ -145,7 +169,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}/favorite', [CardController::class, 'removeFromFavorites']);
     });
 
-    // ========== SOCIAL & FORO ==========
+    // ========== FORO & SOCIAL ==========
     Route::prefix('forum')->group(function () {
         Route::get('/', [ForumController::class, 'index']);
         Route::get('/categories', [ForumController::class, 'categories']);
@@ -159,14 +183,13 @@ Route::middleware('auth:api')->group(function () {
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);
 
-    // ========== ADMIN DASHBOARD ==========
+    // ========== ADMIN ==========
     Route::prefix('admin')->middleware(['admin'])->group(function () {
         Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::apiResource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::apiResource('sets', AdminSetController::class)->only(['index', 'store', 'destroy']);
         Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
 
-        // El Admin puede subir o bajar la reputación de los usuarios a mano
         Route::patch('/users/{userId}/reputation', [UserProfileController::class, 'updateReputation']);
     });
 });
