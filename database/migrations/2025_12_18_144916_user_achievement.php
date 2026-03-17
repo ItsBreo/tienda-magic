@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create("user_achievement", function (Blueprint $table) {
-            $table->foreignId("user_id");
-            $table->foreignId("achievement_id");
-            $table->date("obtained_at");
-        });
+        Schema::create('user_achievement', function (Blueprint $table) {
+        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+        $table->foreignId('achievement_id')->constrained()->cascadeOnDelete();
+        $table->timestamp('obtained_at')->useCurrent();
+        $table->primary(['user_id', 'achievement_id']);
+    });
     }
 
     /**

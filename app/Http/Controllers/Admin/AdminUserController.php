@@ -96,6 +96,6 @@ class AdminUserController extends Controller
 
         $user->delete();
 
-        return response()->json(['message' => 'Usuario eliminado exitosamente.']); 
+        return response()->json(['message' => 'Usuario eliminado exitosamente.']);
     }
 }

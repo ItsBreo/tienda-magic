@@ -11,11 +11,13 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('achievements', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('description');
-            $table->integer('xp_points');
-        });
+        $table->id();
+        $table->string('slug')->unique();
+        $table->string('name');
+        $table->string('description');
+        $table->string('badge_icon')->nullable();
+        $table->integer('xp_points');
+    });
     }
 
     /**
