@@ -31,11 +31,15 @@ export default function Achievements() {
     const [loading, setLoading]   = useState(true);
 
     useEffect(() => {
-        apiService.axiosInstance.get('/api/achievements')
-            .then(res => setUnlocked(res.data.achievements))
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
+    apiService.axiosInstance.get('/api/achievements')
+        .then(res => {
+            // Cubre los casos: { achievements: [] }, { data: [] }, o directamente []
+            const data = res.data?.achievements ?? res.data?.data ?? res.data ?? [];
+            setUnlocked(Array.isArray(data) ? data : []);
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false));
+}, []);
 
     const unlockedSlugs = new Set(unlocked.map(a => a.slug));
     const locked = ALL_ACHIEVEMENTS.filter(a => !unlockedSlugs.has(a.slug));
