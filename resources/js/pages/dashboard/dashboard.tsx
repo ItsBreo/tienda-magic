@@ -4,6 +4,7 @@ import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { HeroSection } from './components/HeroSection';
 import { StatsSection } from './components/StatsSection';
 import { QuickActionsSection } from './components/QuickActionsSection';
+import TradeSection from '@/components/tradesection/TradeSection';
 // import { FeaturedPacksSection } from './dashboard/components/FeaturedPacksSection';
 
 export default function Dashboard() {
@@ -14,12 +15,14 @@ export default function Dashboard() {
         <TiendaMagicLayout breadcrumbs={[{ title: 'Tienda', href: '/' }]}>
             <div className="min-h-screen bg-black text-zinc-100">
 
+
+
                 {/* 1. Bienvenida */}
                 <HeroSection />
 
                 {/* 2. Packs Destacados (Podemos separarlo igual que el resto si lo deseas) */}
                 {/* <FeaturedPacksSection /> */}
-
+                <TradeSection />
                 {/* 3. Acciones Rápidas */}
                 <QuickActionsSection />
 

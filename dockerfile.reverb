@@ -17,4 +17,4 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 EXPOSE 8080
 
-CMD ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+CMD sh -c "php artisan config:clear && php artisan reverb:start --host=0.0.0.0 --port=8080 --debug"

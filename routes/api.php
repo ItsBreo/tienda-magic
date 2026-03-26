@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 
 // Modelos
 use App\Models\User;
@@ -19,6 +20,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
 use App\Http\Controllers\Api\SetController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Exchange\ChatController;
 
 // Controladores de Admin
 use App\Http\Controllers\Admin\AdminUserController;
@@ -67,7 +69,7 @@ Route::get('/sets/latest', [SetController::class, 'latest']);
 Route::get('/store-stats', [DashboardController::class, 'getStats']);
 
 // --- PERFILES PÚBLICOS ---
-Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver el perfil de otro usuario
+Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
@@ -76,13 +78,74 @@ Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver 
 */
 Route::middleware('auth:api')->group(function () {
 
+    // ========== TRADE TEST (desarrollo) ==========
+    Route::get('/users/list', function () {
+        return \App\Models\User::where('id', '!=', auth()->id())
+            ->select('id', 'username', 'email')
+            ->limit(20)
+            ->get();
+    });
+
+    Route::post('/trade/start', function (\Illuminate\Http\Request $request) {
+        $myId       = auth()->id();
+        $receiverId = $request->receiver_id;
+
+        $existing = \App\Models\TradeSession::where('status', 'active')
+            ->where(function ($q) use ($myId, $receiverId) {
+                $q->where('proposer_id', $myId)->where('receiver_id', $receiverId);
+            })
+            ->orWhere(function ($q) use ($myId, $receiverId) {
+                $q->where('proposer_id', $receiverId)->where('receiver_id', $myId);
+            })
+            ->first();
+
+        if ($existing) {
+            return response()->json($existing, 200);
+        }
+
+        $session = \App\Models\TradeSession::create([
+            'proposer_id' => $myId,
+            'receiver_id' => $receiverId,
+            'status'      => 'active',
+            'expires_at'  => now()->addHours(24),
+        ]);
+
+        return response()->json($session, 201);
+    });
+
+
+Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+        $channelName = $request->channel_name;
+        $socketId = $request->socket_id;
+        $userId = auth()->id();
+
+        // 1. Validar autorización manualmente según el canal
+        $isAuthorized = false;
+        if (preg_match('/^private-trade\.(\d+)$/', $channelName, $matches)) {
+            $session = \App\Models\TradeSession::find($matches[1]);
+            $isAuthorized = $session && $session->isMember($userId);
+        } elseif (preg_match('/^private-App\.Models\.User\.(\d+)$/', $channelName, $matches)) {
+            $isAuthorized = ((int) $matches[1] === (int) $userId);
+        }
+
+        if (!$isAuthorized) {
+            return response()->json(['message' => 'No autorizado para este canal'], 403);
+        }
+
+        // 2. Generar la firma criptográfica para Reverb explícitamente
+        $secret = config('broadcasting.connections.reverb.secret');
+        $key = config('broadcasting.connections.reverb.key');
+
+        $signature = hash_hmac('sha256', $socketId . ':' . $channelName, $secret);
+
+        return response()->json(['auth' => $key . ':' . $signature]);
+    });
+
     // ========== AUTH CHECK — usada por AuthContext en cada reload ==========
-    // ApiService.checkAuth() llama a GET /api/user → debe existir aquí
     Route::get('/user', [UserController::class, 'show']);
 
     // ========== PERFIL DE USUARIO JWT ==========
-    Route::get('/user-profile', [UserController::class, 'show']); // alias mantenido por compatibilidad
-
+    Route::get('/user-profile', [UserController::class, 'show']);
     Route::post('/logout', [LoginController::class, 'destroy']);
 
     // ========== TIENDA & CARRITO ==========
@@ -98,7 +161,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
 
     // ========== USUARIO (Cuenta Base y Billetera) ==========
-    // Prefijo /account para no colisionar con GET /user de checkAuth
     Route::prefix('account')->group(function () {
         Route::get('/', [UserController::class, 'show']);
         Route::patch('/password', [UserController::class, 'updatePassword']);
@@ -111,11 +173,11 @@ Route::middleware('auth:api')->group(function () {
 
     // ========== PERFIL DE USUARIO (Avatar, Bio, País) ==========
     Route::prefix('profile')->group(function () {
-        Route::get('/', [UserProfileController::class, 'showProfile']); // Obtener mi perfil
-        Route::post('/', [UserProfileController::class, 'store']); // Crear mi perfil
-        Route::patch('/', [UserProfileController::class, 'update']); // Actualizar mi perfil
-        Route::patch('/public-info', [UserProfileController::class, 'updatePublicInfo']); // Actualizar solo info pública
-        Route::delete('/', [UserProfileController::class, 'destroy']); // Borrar mi perfil
+        Route::get('/', [UserProfileController::class, 'showProfile']);
+        Route::post('/', [UserProfileController::class, 'store']);
+        Route::patch('/', [UserProfileController::class, 'update']);
+        Route::patch('/public-info', [UserProfileController::class, 'updatePublicInfo']);
+        Route::delete('/', [UserProfileController::class, 'destroy']);
     });
 
     // ========== INVENTARIO & MAZOS ==========
@@ -159,6 +221,9 @@ Route::middleware('auth:api')->group(function () {
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);
 
+    Route::get('/trade/{id}/chat',  [ChatController::class, 'index']);
+    Route::post('/trade/{id}/chat', [ChatController::class, 'store']);
+
     // ========== ADMIN DASHBOARD ==========
     Route::prefix('admin')->middleware(['admin'])->group(function () {
         Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -166,7 +231,6 @@ Route::middleware('auth:api')->group(function () {
         Route::apiResource('sets', AdminSetController::class)->only(['index', 'store', 'destroy']);
         Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
 
-        // El Admin puede subir o bajar la reputación de los usuarios a mano
         Route::patch('/users/{userId}/reputation', [UserProfileController::class, 'updateReputation']);
     });
 });
