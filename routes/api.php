@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Models\User;
 
 // Importaciones de Controladores
-use App\Http\Controllers\Shop\{CatalogController, CartController, CheckoutController, PackOpeningController, PackDetailController, DepositController};
+use App\Http\Controllers\Shop\{CatalogController, CartController, CheckoutController, PackOpeningController, PackDetailController, DepositController, InvoiceController};
 use App\Http\Controllers\Inventory\{InventoryController, DeckController, WalletTransactionController};
 use App\Http\Controllers\User\{UserController, LoginController, RegisterController, UserProfileController};
 use App\Http\Controllers\Settings\ProfileController as SettingsProfileController;
@@ -93,6 +93,8 @@ Route::middleware('auth:api')->group(function () {
 
     // ========== CHECKOUT ==========
     Route::post('/checkout', [CheckoutController::class, 'processFakeCheckout']);
+    // Descarga de facturas
+    Route::get('/orders/{id}/invoice', [InvoiceController::class, 'download']);
 
     // ========== BILLETERA ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
