@@ -167,9 +167,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function itemsForSale()
     {
-        // Esto trae los registros del inventario que pertenecen al usuario
-        // pero solo aquellos donde 'is_for_sale' sea verdadero (true/1)
-        return $this->hasMany(Inventory::class)->where('is_for_sale', true);
+        return $this->hasMany(InventoryCard::class)->where('is_for_sale', true);
     }
 
     // Relación filtrada para lo que vende

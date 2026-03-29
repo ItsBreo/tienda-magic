@@ -52,6 +52,36 @@ class PackController extends Controller
     }
 
     /**
+     * Obtener todas las cartas disponibles para la tienda
+     */
+    public function getCards()
+    {
+        try {
+            $cards = \App\Models\Card::with('cardSet')
+                ->where('market_avg_price', '>', 0)
+                ->orderBy('id', 'desc')
+                ->paginate(40)
+                ->through(function ($card) {
+                    return [
+                        'id' => $card->id,
+                        'name' => $card->name,
+                        'price' => (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.00),
+                        'image_url' => $card->image_uri ?? '/placeholder-card.png',
+                        'rarity' => $card->rarity,
+                        'set_name' => $card->cardSet->name ?? 'Unknown Set',
+                        'type_line' => $card->data['type_line'] ?? null,
+                    ];
+                });
+
+            return response()->json($cards);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener cartas: ' . $e->getMessage());
+            return response()->json(['message' => 'Error al cargar las cartas'], 500);
+        }
+    }
+
+    /**
      * Obtener cartas de un set específico
      */
     public function getCardsBySet($setCode)

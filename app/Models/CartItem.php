@@ -11,6 +11,7 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'booster_pack_id',
+        'card_id',
         'quantity'
     ];
 
@@ -22,5 +23,10 @@ class CartItem extends Model
     public function boosterPack()
     {
         return $this->belongsTo(BoosterPack::class);
+    }
+
+    public function card()
+    {
+        return $this->belongsTo(Card::class);
     }
 }

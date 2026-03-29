@@ -32,9 +32,11 @@ use App\Http\Controllers\Admin\AdminCardController;
 |--------------------------------------------------------------------------
 */
 
-// Autenticación
-Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
-Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+// Autenticación (Requiere middleware 'web' para soporte de sesiones/cookies)
+Route::middleware('web')->group(function () {
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+});
 
 // Tienda y Catálogo
 Route::get('/shop', [CatalogController::class, 'index']);
@@ -74,7 +76,7 @@ Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver 
 | Rutas Protegidas (Requieren Token/Sesión)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     // ========== AUTH CHECK — usada por AuthContext en cada reload ==========
     // ApiService.checkAuth() llama a GET /api/user → debe existir aquí

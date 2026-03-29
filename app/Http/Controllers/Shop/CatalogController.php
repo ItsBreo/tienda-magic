@@ -18,25 +18,76 @@ class CatalogController extends Controller
     public function index(Request $request)
     {
         // Obtain filters from request
-        $filters = $request->only(['search', 'type', 'sort']);
+        $filters = $request->only(['search', 'type', 'sort', 'category', 'set']);
+        $category = $filters['category'] ?? 'packs';
 
-        // Query booster packs with applied filters and pagination
-        // El cover_image se generará automáticamente via el accessor del modelo
-        $packs = BoosterPack::with('cardSet')
-            ->filter($filters)
-            ->paginate(6)
-            ->withQueryString();
+        $items = [];
+        if ($category === 'cards') {
+            // Query individual cards
+            $items = \App\Models\Card::with('cardSet')
+                ->filter($filters)
+                ->when($filters['set'] ?? false, function($query, $set) {
+                    $query->where('card_set_id', $set);
+                })
+                ->paginate(48)
+                ->withQueryString()
+                ->through(function ($card) {
+                    return [
+                        'id' => $card->id,
+                        'card_id' => $card->id,
+                        'name' => $card->name,
+                        'price' => (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50),
+                        'image_url' => $card->image_uri ?? '/placeholder-card.png',
+                        'type' => 'Singles',
+                        'rarity' => $card->rarity,
+                        'card_set_id' => $card->cardSet->code ?? null,
+                        'config' => [
+                            'description' => $card->data['type_line'] ?? 'Magic Card',
+                            'foil' => $card->data['foil'] ?? false,
+                        ],
+                        'card_set' => $card->cardSet
+                    ];
+                });
+        } else {
+            // Query booster packs (default)
+            $items = BoosterPack::with('cardSet')
+                ->filter($filters)
+                ->when($filters['set'] ?? false, function($query, $set) {
+                    $query->where('card_set_id', $set);
+                })
+                ->paginate(48)
+                ->withQueryString()
+                ->through(function ($pack) {
+                    $config = is_string($pack->config) ? json_decode($pack->config, true) : $pack->config;
+                    return [
+                        'id' => $pack->id,
+                        'booster_pack_id' => $pack->id,
+                        'name' => $pack->name,
+                        'price' => (float) $pack->price,
+                        'image_url' => $pack->cover_image ?? '/placeholder-pack.png',
+                        'type' => $pack->type ?? 'Booster',
+                        'card_set_id' => $pack->card_set_id,
+                        'config' => [
+                            'description' => $config['description'] ?? 'Magic Booster Pack',
+                            'foil' => $config['foil'] ?? false,
+                            'total_cards' => $config['total_cards'] ?? 15,
+                        ],
+                        'card_set' => $pack->cardSet
+                    ];
+                });
+        }
 
         // List of sets and types for filter dropdowns
-        $sets = CardSet::select('code', 'name')->get();
+        $sets = CardSet::select('id', 'name', 'code')->get();
         $types = BoosterPack::select('type')->distinct()->pluck('type');
 
         return response()->json([
             'data' => [
-                'packs' => $packs,
+                'items' => $items,
                 'filters' => $filters,
                 'sets' => $sets,
                 'types' => $types,
+                'category' => $category
             ]
         ]);
     }

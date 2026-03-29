@@ -24,15 +24,17 @@ class MagicApi {
 
     constructor() {
         this.api = axios.create({
+            // Configuración segura: variable de entorno con fallback
             baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000',
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
-            // Sin withCredentials: ya no dependemos de cookies de sesión
+            // SIN withCredentials: arquitectura JWT pura, sin cookies
+            // Esto previene ataques CSRF y exposición de cookies
         });
 
-        // Interceptor de REQUEST: inyecta el JWT en cada petición automáticamente
+        // Interceptor de REQUEST: inyecta JWT automáticamente
         this.api.interceptors.request.use((config) => {
             const token = this.getToken();
             if (token) {
@@ -41,7 +43,7 @@ class MagicApi {
             return config;
         });
 
-        // Interceptor de RESPONSE: si el token expiró/es inválido, limpia y redirige
+        // Interceptor de RESPONSE: manejo seguro de 401
         this.api.interceptors.response.use(
             (response) => response,
             (error) => {
@@ -78,9 +80,12 @@ class MagicApi {
 
     async login(credentials: LoginCredentials): Promise<any> {
         const response = await this.api.post('/api/login', credentials);
-        // El backend devuelve { token, data: user }
-        const { token } = response.data;
-        if (token) this.setToken(token);
+        const { token, two_factor_required } = response.data;
+
+        if (token) {
+            this.setToken(token);
+        }
+
         return response.data;
     }
 
@@ -93,7 +98,6 @@ class MagicApi {
 
     async logout(): Promise<void> {
         try {
-            // Invalida el token en el servidor
             await this.api.post('/api/logout');
         } finally {
             this.removeToken();
@@ -107,8 +111,44 @@ class MagicApi {
 
     // ─── Recursos ─────────────────────────────────────────────────────────────
 
-    async getPacks(page: number = 1, sort: string = ''): Promise<any> {
-        const response = await this.api.get('/api/shop', { params: { page, sort } });
+    async getPacks(page: number = 1, sort: string = '', set: string = '', search: string = ''): Promise<any> {
+        const response = await this.api.get('/api/shop', {
+            params: {
+                page,
+                sort,
+                set,
+                search,
+                category: 'packs'
+            }
+        });
+        return response.data;
+    }
+
+    async getShopCards(page: number = 1, sort: string = '', set: string = '', search: string = ''): Promise<any> {
+        const response = await this.api.get('/api/shop', {
+            params: {
+                page,
+                sort,
+                set,
+                search,
+                category: 'cards'
+            }
+        });
+        return response.data;
+    }
+
+    async getCart(): Promise<any> {
+        const response = await this.api.get('/api/cart');
+        return response.data;
+    }
+
+    async addToCart(data: { booster_pack_id?: number, card_id?: number, quantity: number }): Promise<any> {
+        const response = await this.api.post('/api/cart', data);
+        return response.data;
+    }
+
+    async removeCartItem(itemId: number): Promise<any> {
+        const response = await this.api.delete(`/api/cart/${itemId}`);
         return response.data;
     }
 

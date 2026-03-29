@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Catch-all para React Router
+// Catch-all para React Router - Excluyendo API y Sanctum
 Route::get('/{any?}', function () {
     return view('app');
-})->where('any', '.*');
+})->where('any', '^(?!api|sanctum|_debugbar|storage|up).*$');

@@ -48,24 +48,37 @@ class CheckoutController extends Controller
         $validItems = [];
 
         foreach ($cart->items as $item) {
-            // Validar que el pack aún existe y obtener precio actual
-            $pack = BoosterPack::find($item->booster_pack_id);
-            if (!$pack) {
-                // Eliminar items huérfanos y continuar
-                $item->delete();
-                continue;
+            $unitPrice = 0;
+            if ($item->booster_pack_id) {
+                // Validar que el pack aún existe
+                $pack = BoosterPack::find($item->booster_pack_id);
+                if (!$pack) {
+                    $item->delete();
+                    continue;
+                }
+                $unitPrice = $pack->price;
+            } elseif ($item->card_id) {
+                // Validar que la carta aún existe
+                $card = \App\Models\Card::find($item->card_id);
+                if (!$card) {
+                    $item->delete();
+                    continue;
+                }
+                $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
             }
 
-            $itemTotal = $pack->price * $item->quantity;
+            $itemTotal = $unitPrice * $item->quantity;
             $subtotal += $itemTotal;
 
             $validItems[] = [
                 'id' => $item->id,
                 'booster_pack_id' => $item->booster_pack_id,
+                'card_id' => $item->card_id,
                 'quantity' => $item->quantity,
-                'unit_price' => $pack->price,
+                'unit_price' => $unitPrice,
                 'total_price' => $itemTotal,
-                'booster_pack' => $item->boosterPack
+                'booster_pack' => $item->boosterPack,
+                'card' => $item->card
             ];
         }
 
@@ -134,25 +147,36 @@ class CheckoutController extends Controller
                 $validItems = [];
 
                 foreach ($cart->items as $item) {
-                    $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
-                    if (!$pack) {
-                        // Eliminar items huérfanos
-                        $item->delete();
-                        continue;
+                    $unitPrice = 0;
+                    if ($item->booster_pack_id) {
+                        $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
+                        if (!$pack) {
+                            $item->delete();
+                            continue;
+                        }
+                        $unitPrice = $pack->price;
+                    } elseif ($item->card_id) {
+                        $card = \App\Models\Card::lockForUpdate()->find($item->card_id);
+                        if (!$card) {
+                            $item->delete();
+                            continue;
+                        }
+                        $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
                     }
 
                     // Validación adicional de integridad de precios
-                    if ($pack->price <= 0) {
-                        throw new \Exception('Precio inválido detectado para pack ID: ' . $pack->id);
+                    if ($unitPrice <= 0) {
+                        throw new \Exception('Precio inválido detectado para item ID: ' . ($item->booster_pack_id ?? $item->card_id));
                     }
 
-                    $itemTotal = $pack->price * $item->quantity;
+                    $itemTotal = $unitPrice * $item->quantity;
                     $subtotal += $itemTotal;
 
                     $validItems[] = [
                         'booster_pack_id' => $item->booster_pack_id,
+                        'card_id' => $item->card_id,
                         'quantity' => $item->quantity,
-                        'unit_price' => $pack->price,
+                        'unit_price' => $unitPrice,
                         'total_price' => $itemTotal
                     ];
                 }
@@ -210,6 +234,7 @@ class CheckoutController extends Controller
                     OrderItem::create([
                         'order_id' => $order->id,
                         'booster_pack_id' => $item['booster_pack_id'],
+                        'card_id' => $item['card_id'],
                         'quantity' => $item['quantity'],
                         'unit_price' => $item['unit_price'],
                         'total_price' => $item['total_price']
@@ -302,21 +327,37 @@ class CheckoutController extends Controller
 
             // Crear los OrderItems (Líneas del ticket) y actualizar inventario
             foreach ($cartItems as $item) {
+                $price = 0;
+                if ($item->booster_pack_id) {
+                    $price = $item->boosterPack->price;
+                } elseif ($item->card_id) {
+                    $price = (float) ($item->card->market_avg_price > 0 ? $item->card->market_avg_price : 1.00);
+                }
+
                 \App\Models\OrderItem::create([
                     'order_id' => $order->id,
                     'booster_pack_id' => $item->booster_pack_id,
+                    'card_id' => $item->card_id,
                     'quantity' => $item->quantity,
-                    'price_at_purchase' => $item->boosterPack->price ?? 0
+                    'price_at_purchase' => $price
                 ]);
 
                 // Actualizar inventario del usuario
-                $inventoryItem = \App\Models\InventoryPack::firstOrNew([
-                    'user_id' => $user->id,
-                    'booster_pack_id' => $item->booster_pack_id
-                ]);
-
-                $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
-                $inventoryItem->save();
+                if ($item->booster_pack_id) {
+                    $inventoryItem = \App\Models\InventoryPack::firstOrNew([
+                        'user_id' => $user->id,
+                        'booster_pack_id' => $item->booster_pack_id
+                    ]);
+                    $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
+                    $inventoryItem->save();
+                } elseif ($item->card_id) {
+                    $inventoryCard = \App\Models\InventoryCard::firstOrNew([
+                        'user_id' => $user->id,
+                        'card_id' => $item->card_id
+                    ]);
+                    $inventoryCard->quantity = ($inventoryCard->quantity ?? 0) + $item->quantity;
+                    $inventoryCard->save();
+                }
             }
 
             // Crítico: Vaciar el carrito

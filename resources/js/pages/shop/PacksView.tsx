@@ -8,6 +8,7 @@ import apiService from '@/services/ApiService';
 import PacksHeader from '@/components/packs/PacksHeader';
 import PacksGrid from '@/components/packs/PacksGrid';
 import PackDialog from '@/components/packs/PackDialog';
+import CardLightbox from '@/components/packs/CardLightbox';
 
 interface Pack {
     id: number;
@@ -21,12 +22,15 @@ interface Pack {
 
 export default function PacksView() {
     const location = useLocation();
-    const [packs, setPacks] = useState<Pack[]>([]);
+    const [packs, setPacks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [category, setCategory] = useState<'packs' | 'cards'>('packs');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('newest');
     const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
+    const [selectedCard, setSelectedCard] = useState<any | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isCardLightboxOpen, setIsCardLightboxOpen] = useState(false);
 
     // Estados Paginación
     const [currentPage, setCurrentPage] = useState(1);
@@ -38,19 +42,21 @@ export default function PacksView() {
         const loadPacks = async () => {
             try {
                 setLoading(true);
-                const response = await apiService.getPacks(currentPage, sortBy);
+                const response = category === 'packs' 
+                    ? await apiService.getPacks(currentPage, sortBy)
+                    : await apiService.getShopCards(currentPage, sortBy);
 
-                const packsArray = response?.data?.packs?.data || response?.data?.data || [];
-                const current = response?.data?.current_page || response?.current_page || response?.data?.packs?.current_page || 1;
-                const last = response?.data?.last_page || response?.last_page || response?.data?.packs?.last_page || 1;
-                const total = response?.data?.total || response?.total || response?.data?.packs?.total || 0;
+                const packsArray = response?.data?.items?.data || response?.data?.packs?.data || response?.data || [];
+                const current = response?.data?.items?.current_page || response?.data?.packs?.current_page || response?.current_page || 1;
+                const last = response?.data?.items?.last_page || response?.data?.packs?.last_page || response?.last_page || 1;
+                const total = response?.data?.items?.total || response?.data?.packs?.total || response?.total || 0;
 
                 setPacks(Array.isArray(packsArray) ? packsArray : []);
                 setCurrentPage(current);
                 setTotalPages(last);
                 setTotalPacks(total);
             } catch (error) {
-                toast.error('Error al cargar los packs disponibles');
+                toast.error(`Error al cargar los ${category === 'packs' ? 'sobres' : 'cartas'} disponibles`);
                 setPacks([]);
             } finally {
                 setLoading(false);
@@ -58,7 +64,7 @@ export default function PacksView() {
         };
 
         loadPacks();
-    }, [currentPage, sortBy]);
+    }, [currentPage, sortBy, category]);
 
     // Interceptar openPackId del estado del router
     useEffect(() => {
@@ -76,11 +82,17 @@ export default function PacksView() {
 
     // Eliminado ordenamiento local - ahora se maneja en backend
 
-    const handleBuyPack = (pack: Pack) => {
-        toast.promise(
-            new Promise((resolve) => setTimeout(() => resolve('Pack comprado'), 1500)),
-            { loading: 'Procesando...', success: `¡Has comprado ${pack.name}!`, error: 'Error' }
-        );
+    const handleAddToCart = async (item: any) => {
+        try {
+            const isPack = !!item.booster_pack_id || !item.rarity;
+            await apiService.addToCart({
+                [isPack ? 'booster_pack_id' : 'card_id']: item.id,
+                quantity: 1
+            });
+            toast.success(`${item.name} añadido al carrito`);
+        } catch (error) {
+            toast.error('Error al añadir al carrito');
+        }
     };
 
     return (
@@ -96,11 +108,30 @@ export default function PacksView() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
                         <Input
                             type="text"
-                            placeholder="Buscar packs..."
+                            placeholder={category === 'packs' ? "Buscar packs..." : "Buscar cartas..."}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 pr-4 bg-zinc-900 border-zinc-700 text-zinc-100"
                         />
+                    </div>
+
+                    <div className="flex bg-zinc-800 p-1 rounded-lg">
+                        <button
+                            onClick={() => { setCategory('packs'); setCurrentPage(1); }}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                category === 'packs' ? 'bg-emerald-600 text-black shadow-lg' : 'text-zinc-400 hover:text-white'
+                            }`}
+                        >
+                            Sobres
+                        </button>
+                        <button
+                            onClick={() => { setCategory('cards'); setCurrentPage(1); }}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                category === 'cards' ? 'bg-emerald-600 text-black shadow-lg' : 'text-zinc-400 hover:text-white'
+                            }`}
+                        >
+                            Cartas Sueltas
+                        </button>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-zinc-400 text-sm">Ordenar por:</span>
@@ -137,8 +168,16 @@ export default function PacksView() {
                         totalPages={totalPages}
                         totalPacks={totalPacks}
                         onPageChange={setCurrentPage}
-                        onPackClick={() => {}}
-                        onBuyPack={handleBuyPack}
+                        onPackClick={(item) => {
+                            if (category === 'packs') {
+                                setSelectedPack(item);
+                                setIsDialogOpen(true);
+                            } else {
+                                setSelectedCard(item);
+                                setIsCardLightboxOpen(true);
+                            }
+                        }}
+                        onBuyPack={handleAddToCart}
                     />
                 )}
             </div>
@@ -150,6 +189,14 @@ export default function PacksView() {
                 onClose={() => {
                     setIsDialogOpen(false);
                     setSelectedPack(null);
+                }}
+            />
+
+            <CardLightbox
+                card={selectedCard}
+                onClose={() => {
+                    setIsCardLightboxOpen(false);
+                    setSelectedCard(null);
                 }}
             />
         </div>
