@@ -50,10 +50,14 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset automático de cantidad cuando se cierra el modal
+  // Bug 3 Fix: Reset completo de estado cuando se cierra el modal
   useEffect(() => {
     if (!isOpen) {
       setQuantity(1);
+      setPackCards([]);
+      setLoadingCards(false);
+      setSelectedCardFullscreen(null);
+      setIsSubmitting(false);
     }
   }, [isOpen]);
 
@@ -62,7 +66,16 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
       const loadCards = async () => {
         try {
           setLoadingCards(true);
-          const cardsData = await apiService.getCardsBySet(pack.card_set_id);
+
+          // Bug 2 Fix: Extraer código del set de forma segura
+          const setCode = pack.card_set?.code || pack.card_set_id;
+          if (!setCode) {
+            console.warn('No set code available for pack:', pack);
+            setPackCards([]);
+            return;
+          }
+
+          const cardsData = await apiService.getCardsBySet(setCode);
           setPackCards(cardsData || []);
         } catch (error) {
           console.error('Error cargando cartas del pack:', error);
@@ -169,18 +182,30 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
             <div className="flex-1 flex flex-col p-6">
               {/* Portada del sobre */}
               <div className="w-full h-48 bg-zinc-800 rounded-xl mb-6 overflow-hidden border border-zinc-700">
-                {pack.cover_image || pack.image_uri ? (
-                  <img
-                    src={pack.cover_image || pack.image_uri}
-                    alt={pack.name}
-                    className="w-full h-full object-contain p-4"
-                    onError={() => {}}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
-                    <Package className="w-12 h-12 text-zinc-600" />
-                  </div>
-                )}
+                {(() => {
+                  // Bug 1 Fix: Priorizar nuevas fuentes de imagen del backend
+                  const imageSrc = pack.image_uri ||
+                                 pack.cover_image ||
+                                 pack.card_set?.icon_svg_uri;
+                  const hasImage = !!imageSrc;
+
+                  return hasImage ? (
+                    <img
+                      src={imageSrc}
+                      alt={pack.name}
+                      className="w-full h-full object-contain p-4"
+                      onError={(e) => {
+                        // Bug 1 Fix: Fallback si la imagen falla
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
+                      <Package className="w-12 h-12 text-zinc-600" />
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Información del pack */}

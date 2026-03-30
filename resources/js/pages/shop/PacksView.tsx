@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Search, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import apiService from '@/services/ApiService';
 
@@ -17,32 +17,34 @@ interface Pack {
     card_set_id: string;
     type: string;
     image_url?: string;
-    config: any;
+    config: Record<string, unknown>;
 }
 
 export default function PacksView() {
     const location = useLocation();
-    const [packs, setPacks] = useState<any[]>([]);
+    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
+    const [selectedCard, setSelectedCard] = useState<Record<string, unknown> | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isCardLightboxOpen, setIsCardLightboxOpen] = useState(false);
+
+    const [packsData, setPacksData] = useState<Pack[]>([]);
+    const [cardsData, setCardsData] = useState<Record<string, unknown>[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [category, setCategory] = useState<'packs' | 'cards'>('packs');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('newest');
-    const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
-    const [selectedCard, setSelectedCard] = useState<any | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isCardLightboxOpen, setIsCardLightboxOpen] = useState(false);
-
-    // Estados Paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalPacks, setTotalPacks] = useState(0);
 
-    // Cargar datos
     useEffect(() => {
         const loadPacks = async () => {
             try {
                 setLoading(true);
-                const response = category === 'packs' 
+                const response = category === 'packs'
                     ? await apiService.getPacks(currentPage, sortBy)
                     : await apiService.getShopCards(currentPage, sortBy);
 
@@ -51,13 +53,18 @@ export default function PacksView() {
                 const last = response?.data?.items?.last_page || response?.data?.packs?.last_page || response?.last_page || 1;
                 const total = response?.data?.items?.total || response?.data?.packs?.total || response?.total || 0;
 
-                setPacks(Array.isArray(packsArray) ? packsArray : []);
+                if (category === 'packs') {
+                    setPacksData(Array.isArray(packsArray) ? packsArray : []);
+                } else {
+                    setCardsData(Array.isArray(packsArray) ? packsArray : []);
+                }
                 setCurrentPage(current);
                 setTotalPages(last);
                 setTotalPacks(total);
             } catch (error) {
                 toast.error(`Error al cargar los ${category === 'packs' ? 'sobres' : 'cartas'} disponibles`);
-                setPacks([]);
+                setPacksData([]);
+                setCardsData([]);
             } finally {
                 setLoading(false);
             }
@@ -65,35 +72,79 @@ export default function PacksView() {
 
         loadPacks();
     }, [currentPage, sortBy, category]);
-
-    // Interceptar openPackId del estado del router
     useEffect(() => {
-        const openPackId = location.state?.openPackId;
-        if (openPackId && packs.length > 0) {
-            const pack = packs.find(p => p.id === openPackId);
+        const categoryParam = searchParams.get('category');
+        if (categoryParam === 'cards' || categoryParam === 'packs') {
+            setCategory(categoryParam);
+            setCurrentPage(1);
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        const openCard = searchParams.get('openCard');
+        const openPack = searchParams.get('openPack');
+
+        if (!openCard && !openPack) return;
+
+        if (openPack && packsData && packsData.length > 0) {
+            const pack = packsData.find(p => p.id === parseInt(openPack, 10));
             if (pack) {
                 setSelectedPack(pack);
                 setIsDialogOpen(true);
-                // Limpiar estado del router para evitar reapertura en F5
+                setSearchParams(prev => {
+                    prev.delete('openPack');
+                    return prev;
+                }, { replace: true });
+            }
+        }
+
+        if (openCard && cardsData && cardsData.length > 0) {
+            const card = cardsData.find(c => c.id === parseInt(openCard, 10));
+            if (card) {
+                setSelectedPack(null);
+                setSelectedCard(card);
+                setIsCardLightboxOpen(true);
+                setSearchParams(prev => {
+                    prev.delete('openCard');
+                    return prev;
+                }, { replace: true });
+            }
+        }
+    }, [searchParams, packsData, cardsData, setSearchParams]);
+
+    useEffect(() => {
+        const openPackId = location.state?.openPackId;
+        if (openPackId && packsData.length > 0) {
+            const pack = packsData.find(p => p.id === openPackId);
+            if (pack) {
+                setSelectedPack(pack);
+                setSelectedCard(null);
+                setIsDialogOpen(true);
+                setCategory('packs');
                 window.history.replaceState({}, document.title);
             }
         }
-    }, [location.state, packs]);
+    }, [location.state, packsData]);
 
-    // Eliminado ordenamiento local - ahora se maneja en backend
-
-    const handleAddToCart = async (item: any) => {
+    const handleAddToCart = async (item: Record<string, unknown>) => {
         try {
             const isPack = !!item.booster_pack_id || !item.rarity;
             await apiService.addToCart({
                 [isPack ? 'booster_pack_id' : 'card_id']: item.id,
-                quantity: 1
+                quantity: 1,
             });
-            toast.success(`${item.name} añadido al carrito`);
+            toast.success(`${item.name} añadido`, {
+                action: {
+                    label: 'Ver Carrito',
+                    onClick: () => navigate('/cart'),
+                },
+            });
         } catch (error) {
             toast.error('Error al añadir al carrito');
         }
     };
+
+    const currentData = category === 'packs' ? packsData : cardsData;
 
     return (
         <div className="min-h-screen bg-black">
@@ -108,7 +159,7 @@ export default function PacksView() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
                         <Input
                             type="text"
-                            placeholder={category === 'packs' ? "Buscar packs..." : "Buscar cartas..."}
+                            placeholder={category === 'packs' ? 'Buscar packs...' : 'Buscar cartas...'}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 pr-4 bg-zinc-900 border-zinc-700 text-zinc-100"
@@ -159,11 +210,13 @@ export default function PacksView() {
                     <div className="flex justify-center items-center py-20">
                         <Loader2 className="animate-spin text-emerald-500 w-12 h-12" />
                     </div>
-                ) : packs.length === 0 ? (
-                    <div className="text-center py-20 text-zinc-400">No hay packs disponibles.</div>
+                ) : currentData.length === 0 ? (
+                    <div className="text-center py-20 text-zinc-400">
+                        {category === 'packs' ? 'No hay packs disponibles.' : 'No hay cartas disponibles.'}
+                    </div>
                 ) : (
                     <PacksGrid
-                        packs={packs}
+                        packs={currentData}
                         currentPage={currentPage}
                         totalPages={totalPages}
                         totalPacks={totalPacks}
@@ -171,9 +224,11 @@ export default function PacksView() {
                         onPackClick={(item) => {
                             if (category === 'packs') {
                                 setSelectedPack(item);
+                                setSelectedCard(null);
                                 setIsDialogOpen(true);
                             } else {
                                 setSelectedCard(item);
+                                setSelectedPack(null);
                                 setIsCardLightboxOpen(true);
                             }
                         }}
@@ -182,23 +237,26 @@ export default function PacksView() {
                 )}
             </div>
 
-            {/* Pack Dialog */}
-            <PackDialog
-                pack={selectedPack}
-                isOpen={isDialogOpen}
-                onClose={() => {
-                    setIsDialogOpen(false);
-                    setSelectedPack(null);
-                }}
-            />
+            {selectedPack && (
+                <PackDialog
+                    pack={selectedPack}
+                    isOpen={isDialogOpen}
+                    onClose={() => {
+                        setIsDialogOpen(false);
+                        setSelectedPack(null);
+                    }}
+                />
+            )}
 
-            <CardLightbox
-                card={selectedCard}
-                onClose={() => {
-                    setIsCardLightboxOpen(false);
-                    setSelectedCard(null);
-                }}
-            />
+            {selectedCard && (
+                <CardLightbox
+                    card={selectedCard}
+                    onClose={() => {
+                        setIsCardLightboxOpen(false);
+                        setSelectedCard(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

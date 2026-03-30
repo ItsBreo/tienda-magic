@@ -7,6 +7,7 @@ interface CardItemProps {
         id: number;
         name: string;
         image_url?: string;
+        image_uri?: string; // Bug 2 Fix: Add support for image_uri
         rarity: string;
         mana_cost?: string;
         type_line?: string;
@@ -62,18 +63,27 @@ export default function CardItem({ card, onClick, className = '' }: CardItemProp
                 }}
             >
                 {/* Imagen de la carta */}
-                {card.image_url ? (
-                    <img
-                        src={card.image_url}
-                        alt={card.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
-                        <Sparkles className="w-12 h-12 text-zinc-600" />
-                    </div>
-                )}
+                {(() => {
+                    // Bug 2 Fix: Priorizar image_uri (backend) sobre image_url (legacy)
+                    const imageSrc = card.image_uri || card.image_url;
+                    return imageSrc ? (
+                        <img
+                            src={imageSrc}
+                            alt={card.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                                // Bug 2 Fix: Fallback si la imagen falla
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                            }}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
+                            <Sparkles className="w-12 h-12 text-zinc-600" />
+                        </div>
+                    );
+                })()}
 
                 {/* Overlay con información - más limpio y sutil */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">

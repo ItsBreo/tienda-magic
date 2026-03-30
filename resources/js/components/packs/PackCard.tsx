@@ -10,6 +10,10 @@ interface Pack {
   type: string;
   cover_image?: string;
   image_uri?: string;
+  card_set?: {
+    icon_svg_uri?: string;
+    code?: string;
+  };
   config: {
     commons?: number;
     uncommons?: number;
@@ -30,6 +34,16 @@ interface PackCardProps {
 export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
   const shouldShowImage = (imageSrc?: string) => !!imageSrc;
 
+  const getImageSrc = () => {
+    // Logica para Cartas Sueltas
+    if (pack.type === 'Singles' || pack.card_id !== undefined) {
+      return pack.image_uri || pack.image_url;
+    }
+
+    // Logica para Sobres / Packs
+    return pack.card_set?.icon_svg_uri || pack.cover_image || pack.image_uri;
+  };
+
   return (
     <div
       key={pack.id}
@@ -44,12 +58,16 @@ export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
         className="w-full h-48 bg-zinc-900 rounded-lg mb-4 overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 p-4"
         onClick={() => onClick(pack)}
       >
-        {shouldShowImage(pack.cover_image || pack.image_uri) ? (
+        {shouldShowImage(getImageSrc()) ? (
           <img
-            src={pack.cover_image || pack.image_uri}
+            src={getImageSrc()}
             alt={pack.name}
             className="w-full h-full object-contain"
-            onError={() => {}}
+            onError={(e) => {
+              // Bug 4 Fix: Fallback si la imagen falla
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">

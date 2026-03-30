@@ -41,6 +41,9 @@ export default function Cart() {
                     item.id === itemId ? { ...item, quantity: newQuantity } : item
                 )
             );
+
+            // Bug 4 Fix: Add visual feedback for successful quantity update
+            toast.success('Cantidad actualizada correctamente');
         } catch (error) {
             console.error('Error al actualizar cantidad:', error);
             toast.error('Error al actualizar la cantidad');

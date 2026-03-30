@@ -24,8 +24,8 @@ class CartController extends Controller
     {
         $user = Auth::user();
 
-        $cart = Cart::with(['items.boosterPack.cardSet', 'items.card.cardSet'])
-                    ->where('user_id', $user->id)
+        $cart = Cart::with(['items.card', 'items.boosterPack.cardSet'])
+                    ->where('user_id', Auth::id())
                     ->first();
 
         if (!$cart) {
@@ -46,23 +46,13 @@ class CartController extends Controller
         foreach ($cart->items as $item) {
             $unitPrice = 0;
             $name = '';
-            
-            if ($item->booster_pack_id) {
-                $pack = BoosterPack::find($item->booster_pack_id);
-                if (!$pack) {
-                    $item->delete();
-                    continue;
-                }
-                $unitPrice = $pack->price;
-                $name = $pack->name;
-            } elseif ($item->card_id) {
-                $card = \App\Models\Card::find($item->card_id);
-                if (!$card) {
-                    $item->delete();
-                    continue;
-                }
-                $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.00);
-                $name = $card->name;
+
+            if ($item->booster_pack_id && $item->boosterPack) {
+                $unitPrice = $item->boosterPack->price;
+                $name = $item->boosterPack->name;
+            } elseif ($item->card_id && $item->card) {
+                $unitPrice = (float) ($item->card->market_avg_price > 0 ? $item->card->market_avg_price : 1.00);
+                $name = $item->card->name;
             } else {
                 $item->delete();
                 continue;
@@ -79,7 +69,9 @@ class CartController extends Controller
                 'quantity' => $item->quantity,
                 'unit_price' => $unitPrice,
                 'total_price' => $itemTotal,
-                'booster_pack' => $item->boosterPack,
+                'booster_pack' => $item->booster_pack_id && $item->boosterPack
+                    ? array_merge($item->boosterPack->toArray(), ['card_set' => $item->boosterPack->cardSet])
+                    : null,
                 'card' => $item->card
             ];
         }
@@ -203,7 +195,7 @@ class CartController extends Controller
                     'user_id' => $user->id,
                     'cart_item_id' => $id,
                     'new_quantity' => $quantity,
-                    'unit_price' => $pack->price
+                    'unit_price' => $price
                 ]);
 
                 return response()->json([

@@ -76,7 +76,7 @@ Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver 
 | Rutas Protegidas (Requieren Token/Sesión)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
 
     // ========== AUTH CHECK — usada por AuthContext en cada reload ==========
     // ApiService.checkAuth() llama a GET /api/user → debe existir aquí
