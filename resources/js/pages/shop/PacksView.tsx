@@ -45,8 +45,8 @@ export default function PacksView() {
             try {
                 setLoading(true);
                 const response = category === 'packs'
-                    ? await apiService.getPacks(currentPage, sortBy)
-                    : await apiService.getShopCards(currentPage, sortBy);
+                    ? await apiService.getPacks(currentPage, sortBy, '', searchTerm)
+                    : await apiService.getShopCards(currentPage, sortBy, '', searchTerm);
 
                 const packsArray = response?.data?.items?.data || response?.data?.packs?.data || response?.data || [];
                 const current = response?.data?.items?.current_page || response?.data?.packs?.current_page || response?.current_page || 1;
@@ -71,7 +71,7 @@ export default function PacksView() {
         };
 
         loadPacks();
-    }, [currentPage, sortBy, category]);
+    }, [currentPage, sortBy, category, searchTerm]);
     useEffect(() => {
         const categoryParam = searchParams.get('category');
         if (categoryParam === 'cards' || categoryParam === 'packs') {
@@ -221,6 +221,7 @@ export default function PacksView() {
                         totalPages={totalPages}
                         totalPacks={totalPacks}
                         onPageChange={setCurrentPage}
+                        category={category}
                         onPackClick={(item) => {
                             if (category === 'packs') {
                                 setSelectedPack(item);

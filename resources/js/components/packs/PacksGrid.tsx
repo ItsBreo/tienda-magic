@@ -36,10 +36,11 @@ interface PacksGridProps {
   onPageChange: (page: number) => void;
   onPackClick: (pack: Pack) => void;
   onBuyPack: (pack: Pack) => void;
+  category?: 'packs' | 'cards';
 }
 
 function PacksGrid({
-  packs, currentPage, totalPages, totalPacks, onPageChange, onPackClick, onBuyPack,
+  packs, currentPage, totalPages, totalPacks, onPageChange, onPackClick, onBuyPack, category = 'packs',
 }: PacksGridProps) {
   return (
     <>
@@ -62,6 +63,7 @@ function PacksGrid({
           totalPages={totalPages}
           totalPacks={totalPacks}
           onPageChange={onPageChange}
+          category={category}
         />
       )}
     </>
