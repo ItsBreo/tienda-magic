@@ -29,3 +29,18 @@ yarn-error.log
 main.py
 .continue/agents/config.yaml
 .continue/agents/rules
+
+# Stripe CLI y archivos temporales
+*.exe
+*.zip
+*.rar
+*.7z
+*.tar.gz
+stripe.exe
+stripe-cli.zip
+
+# Archivos temporales de desarrollo
+*.tmp
+*.temp
+*.log
+*.cache
