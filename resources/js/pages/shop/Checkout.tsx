@@ -7,11 +7,14 @@ import {
     Card, CardContent, CardHeader, CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { apiService } from '@/services/ApiService';
 
 interface CartItem {
     id: number;
     quantity: number;
-    booster_pack: {
+    booster_pack_id?: number;
+    card_id?: number;
+    booster_pack?: {
         id: number;
         name: string;
         price: number;
@@ -20,25 +23,47 @@ interface CartItem {
             name: string;
         };
     };
+    card?: {
+        id: number;
+        name: string;
+        market_avg_price: number;
+        rarity: string;
+        image_uri?: string;
+    };
 }
 
 export default function Checkout() {
     const navigate = useNavigate();
     const [processing, setProcessing] = useState(false);
-    const [cartItems] = useState<CartItem[]>([]);
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
-    // Mock data - replace with actual cart data
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.booster_pack.price * item.quantity), 0);
-    const tax = subtotal * 0.21; // 21% tax
+    const subtotal = cartItems.reduce((sum, item) => {
+        const price = item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0;
+        return sum + (price * item.quantity);
+    }, 0);
+    const tax = subtotal * 0.21;
     const total = subtotal + tax;
 
     const handlePayment = async () => {
+        if (cartItems.length === 0) return;
+
         setProcessing(true);
-        // TODO: Implement payment processing
-        setTimeout(() => {
-            setProcessing(false);
+        setError(null);
+
+        try {
+            await apiService.processCheckout();
+            setCartItems([]);
             navigate('/dashboard');
-        }, 2000);
+        } catch (err: any) {
+            if (err.response?.status === 422) {
+                setError(err.response.data.message || 'Error en el checkout');
+            } else {
+                setError('Error al procesar el pago. Inténtalo nuevamente.');
+            }
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
@@ -74,20 +99,24 @@ export default function Checkout() {
                                         cartItems.map((item) => (
                                             <div key={item.id} className="flex justify-between items-center py-3 border-b border-zinc-700">
                                                 <div>
-                                                    <p className="font-medium text-zinc-100">{item.booster_pack.name}</p>
-                                                    <p className="text-sm text-zinc-400">{item.booster_pack.card_set.name}</p>
+                                                    <p className="font-medium text-zinc-100">
+                                                        {item.booster_pack_id ? item.booster_pack?.name : item.card?.name}
+                                                    </p>
+                                                    <p className="text-sm text-zinc-400">
+                                                        {item.booster_pack_id ? item.booster_pack?.card_set?.name : `Rarity: ${item.card?.rarity}`}
+                                                    </p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-sm text-zinc-400">
                                                         €
-                                                        {item.booster_pack.price.toFixed(2)}
+                                                        {(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0).toFixed(2)}
                                                         {' '}
                                                         ×
                                                         {item.quantity}
                                                     </p>
                                                     <p className="font-medium text-zinc-100">
                                                         €
-                                                        {(item.booster_pack.price * item.quantity).toFixed(2)}
+                                                        {((item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0) * item.quantity).toFixed(2)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -177,6 +206,11 @@ export default function Checkout() {
                                                 {total.toFixed(2)}
                                             </span>
                                         </div>
+                                        {error && (
+                                            <div className="mb-4 p-4 bg-red-900 border border-red-700 rounded-md">
+                                                <p className="text-red-200">{error}</p>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <Button

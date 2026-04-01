@@ -30,8 +30,7 @@ class MagicApi {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
-            // SIN withCredentials: arquitectura JWT pura, sin cookies
-            // Esto previene ataques CSRF y exposición de cookies
+            withCredentials: true, // Necesario para Sanctum CSRF cookies
         });
 
         // Interceptor de REQUEST: inyecta JWT automáticamente
@@ -79,8 +78,9 @@ class MagicApi {
     // ─── Auth ─────────────────────────────────────────────────────────────────
 
     async login(credentials: LoginCredentials): Promise<any> {
+        await this.api.get('/sanctum/csrf-cookie');
         const response = await this.api.post('/api/login', credentials);
-        const { token, two_factor_required } = response.data;
+        const { token } = response.data;
 
         if (token) {
             this.setToken(token);
@@ -90,6 +90,7 @@ class MagicApi {
     }
 
     async register(data: RegisterData): Promise<any> {
+        await this.api.get('/sanctum/csrf-cookie');
         const response = await this.api.post('/api/register', data);
         const { token } = response.data;
         if (token) this.setToken(token);
@@ -129,10 +130,10 @@ class MagicApi {
             params: {
                 page,
                 sort,
+                category: 'cards',
                 set,
                 search,
-                category: 'cards'
-            }
+            },
         });
         return response.data;
     }
@@ -154,6 +155,16 @@ class MagicApi {
 
     async getCardsBySet(setCode: string): Promise<any[]> {
         const response = await this.api.get(`/api/cards/set/${setCode}`);
+        return response.data;
+    }
+
+    async processCheckout(): Promise<any> {
+        const response = await this.api.post('/api/checkout/process');
+        return response.data;
+    }
+
+    async rechargeWallet(amount: number): Promise<any> {
+        const response = await this.api.post('/api/wallet/recharge', { amount });
         return response.data;
     }
 
