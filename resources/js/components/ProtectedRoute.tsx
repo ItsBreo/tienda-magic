@@ -1,21 +1,25 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import TiendaMagicLayout from '@/layouts/TiendaLayout';
 
 export function ProtectedLayout() {
     const { isAuthenticated, isLoading } = useAuth();
 
-
-    // Si esta cargando, no renderizar nada (AuthProvider ya muestra pantalla de carga)
+    // Si está cargando, no renderizar nada (AuthProvider ya muestra pantalla de carga)
     if (isLoading) {
         return <h1>CARGANDO SEGURIDAD...</h1>;
     }
 
-    // Si no esta autenticado después de la verificación, redirigir al login
+    // Si no está autenticado después de la verificación, redirigir al login
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
-    // Si esta autenticado, permitir acceso
-    return <Outlet />;
+    // Si está autenticado, renderizar con TiendaMagicLayout que incluye el Navbar
+    return (
+        <TiendaMagicLayout>
+            <Outlet />
+        </TiendaMagicLayout>
+    );
 }

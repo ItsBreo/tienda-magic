@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BoosterPack;
+use App\Models\Card;
 
 class CartItem extends Model
 {

@@ -18,6 +18,7 @@ import { ProtectedLayout } from './components/ProtectedRoute';
 import Dashboard from './pages/dashboard/dashboard';
 import PacksView from './pages/shop/PacksView';
 import Cart from './pages/shop/Cart';
+import WalletPage from './pages/shop/Wallet';
 
 // Admin Components & Pages
 import { AdminRoute } from './components/AdminRoute';
@@ -63,6 +64,7 @@ if (el) {
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/shop" element={<PacksView />} />
                             <Route path="/cart" element={<Cart />} />
+                            <Route path="/wallet" element={<WalletPage />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/inventory" element={<Inventory />} />
 

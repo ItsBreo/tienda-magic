@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '@/services/ApiService';
-import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -112,7 +111,7 @@ export default function Inventory() {
     );
 
     return (
-        <TiendaMagicLayout breadcrumbs={[{ title: 'Mi Colección', href: '/inventory' }]}>
+        <div className="px-6 py-12">
             {/* CABECERA Y ESTADÍSTICAS */}
             <div className="bg-zinc-900 border-b border-zinc-800">
                 <div className="max-w-7xl mx-auto px-6 py-8">
@@ -366,6 +365,6 @@ export default function Inventory() {
                     </>
                 )}
             </div>
-        </TiendaMagicLayout>
+        </div>
     );
 }

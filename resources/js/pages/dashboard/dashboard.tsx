@@ -1,5 +1,4 @@
 import React from 'react';
-import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { HeroSection } from './components/HeroSection';
 import { StatsSection } from './components/StatsSection';
@@ -11,7 +10,7 @@ export default function Dashboard() {
     const { stats, loading } = useDashboardStats();
 
     return (
-        <TiendaMagicLayout breadcrumbs={[{ title: 'Tienda', href: '/' }]}>
+        <div className="px-6 py-12">
             <div className="min-h-screen bg-black text-zinc-100">
 
                 {/* 1. Bienvenida */}
@@ -27,6 +26,6 @@ export default function Dashboard() {
                 <StatsSection stats={stats} loading={loading} />
 
             </div>
-        </TiendaMagicLayout>
+        </div>
     );
 }

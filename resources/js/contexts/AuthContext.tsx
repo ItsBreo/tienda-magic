@@ -32,6 +32,7 @@ interface AuthContextType {
     login: (_credentials: LoginCredentials) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
+    updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,16 +44,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isAuthenticated = !!user;
 
     useEffect(() => {
-        if (!apiService.isAuthenticated()) {
-            setIsLoading(false);
-            return;
-        }
-
         const initializeAuth = async () => {
+            // Si no hay token, no hacemos nada
+            if (!apiService.isAuthenticated()) {
+                setIsLoading(false);
+                return;
+            }
+
             try {
+                // Llamamos al endpoint para verificar y obtener datos del usuario
                 const userData = await apiService.checkAuth();
                 setUser(userData);
-            } catch {
+            } catch (error) {
+                console.error('Error al verificar sesión:', error);
+                // Si falla la verificación, limpiamos el token
+                apiService.removeToken();
                 setUser(null);
             } finally {
                 setIsLoading(false);
@@ -105,8 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const updateUser = (userData: Partial<User>) => {
+        if (user) {
+            setUser({ ...user, ...userData });
+        }
+    };
+
     const contextValue = useMemo(
-        () => ({ user, isLoading, isAuthenticated, login, logout, checkAuth }),
+        () => ({ user, isLoading, isAuthenticated, login, logout, checkAuth, updateUser }),
         [user, isLoading, isAuthenticated],
     );
 

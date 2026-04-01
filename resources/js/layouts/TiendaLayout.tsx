@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
 import { type BreadcrumbItem } from '@/types';
+import { Navbar } from '@/components/Navbar';
 
 interface TiendaLayoutProps {
   children: ReactNode;
@@ -16,64 +17,8 @@ export default function TiendaLayout({
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
-      {/* Header Navigation */}
-      <header className="bg-zinc-900 border-b border-zinc-800">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-emerald-600 rounded-lg">
-                <div className="p-2 bg-black rounded-lg">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                    <div className="text-2xl font-bold text-black">TM</div>
-                  </div>
-                </div>
-              </div>
-              <h1 className="text-2xl font-bold text-white">Tienda Magic</h1>
-            </div>
-
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <a
-                href="/dashboard"
-                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-              >
-                Inicio
-              </a>
-              <a
-                href="/shop"
-                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-              >
-                Tienda
-              </a>
-              <a
-                href="/cart"
-                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-              >
-                Carrito
-              </a>
-            </nav>
-
-            {/* User Menu */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
-                <a
-                  href="/login"
-                  className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-                >
-                  Iniciar Sesión
-                </a>
-                <a
-                  href="/register"
-                  className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-                >
-                  Registrarse
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header Navigation con Navbar dinámico */}
+      <Navbar />
 
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
@@ -108,7 +53,7 @@ export default function TiendaLayout({
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center">
-              <p className="text-zinc-500 text-sm">© 2024 Tienda Magic. Todos los derechos reservados.</p>
+              <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.</p>
               <p className="text-zinc-600 text-xs mt-1">
                 Tu tienda especializada en cartas Magic: The Gathering
               </p>
