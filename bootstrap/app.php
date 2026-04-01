@@ -35,6 +35,11 @@ return Application::configure(basePath: dirname(__DIR__))
             // \Illuminate\Http\Middleware\TrimStrings::class,
             // \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         ]);
+
+        // Excluir ruta de webhook de CSRF
+        $middleware->validateCsrfTokens(except: [
+            'api/webhooks/stripe',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
