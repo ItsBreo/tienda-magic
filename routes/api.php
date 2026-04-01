@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Models\User;
 
 // Importaciones de Controladores
-use App\Http\Controllers\Shop\{CatalogController, CartController, CheckoutController, PackOpeningController, PackDetailController, DepositController};
+use App\Http\Controllers\Shop\{CatalogController, CartController, PackOpeningController, PackDetailController, DepositController};
 use App\Http\Controllers\Inventory\{InventoryController, DeckController, WalletTransactionController};
 use App\Http\Controllers\User\{UserController, LoginController, RegisterController, UserProfileController};
 use App\Http\Controllers\Settings\ProfileController as SettingsProfileController;
@@ -19,6 +19,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
 use App\Http\Controllers\Api\SetController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\StripeWebhookController;
 
 // Controladores de Admin
 use App\Http\Controllers\Admin\AdminUserController;
@@ -71,6 +72,9 @@ Route::get('/store-stats', [DashboardController::class, 'getStats']);
 // --- PERFILES PÚBLICOS ---
 Route::get('/profile/{userId}', [UserProfileController::class, 'show']); // Ver el perfil de otro usuario
 
+// --- WEBHOOKS DE STRIPE (Sin autenticación) ---
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook']);
+
 /*
 |--------------------------------------------------------------------------
 | Rutas Protegidas (Requieren Token/Sesión)
@@ -94,7 +98,10 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
 
     // ========== CHECKOUT ==========
-    Route::post('/checkout', [CheckoutController::class, 'processFakeCheckout']);
+    Route::post('/checkout/process', [\App\Http\Controllers\Api\CheckoutController::class, 'process']);
+
+    // ========== WALLET RECARGA ==========
+    Route::post('/wallet/recharge', [\App\Http\Controllers\Api\WalletController::class, 'createRechargeSession']);
 
     // ========== BILLETERA ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
