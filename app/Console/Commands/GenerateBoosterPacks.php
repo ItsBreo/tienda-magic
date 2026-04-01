@@ -23,9 +23,8 @@ class GenerateBoosterPacks extends Command
         $this->info('📦 Creating packs for sets with existing cards');
 
         try {
-            // Get all card sets that have at least one associated card
             $this->info('🔍 Finding card sets with cards...');
-            
+
             $cardSets = CardSet::whereHas('cards', function ($query) {
                 $query->whereNotNull('scryfall_id');
             })
@@ -38,8 +37,7 @@ class GenerateBoosterPacks extends Command
             }
 
             $this->info("📊 Found {$cardSets->count()} card sets with cards");
-            
-            // Start progress bar
+
             $this->output->progressStart($cardSets->count());
 
             DB::transaction(function () use ($cardSets) {
@@ -69,11 +67,8 @@ class GenerateBoosterPacks extends Command
     {
         $this->totalProcessed++;
 
-        // Determine price based on set type (assuming set_type exists in card_sets table)
-        // If not, we'll need to add this column or determine it another way
         $price = $this->calculatePriceBySetType($cardSet);
 
-        // Prepare pack data
         $packData = [
             'name' => "{$cardSet->name} Draft Booster",
             'price' => $price,
@@ -91,7 +86,6 @@ class GenerateBoosterPacks extends Command
             'updated_at' => now(),
         ];
 
-        // Create or update the booster pack
         $boosterPack = BoosterPack::updateOrCreate(
             ['card_set_id' => $cardSet->code],
             $packData
@@ -108,13 +102,9 @@ class GenerateBoosterPacks extends Command
 
     private function calculatePriceBySetType(CardSet $cardSet): float
     {
-        // Since the migration doesn't show set_type column, we'll determine price by set characteristics
-        // This is a fallback logic that can be enhanced once set_type is available
-        
         $setName = strtolower($cardSet->name);
         $setCode = strtolower($cardSet->code);
-        
-        // Masters sets (typically have "Masters" in name or specific codes)
+
         if (
             str_contains($setName, 'masters') ||
             str_contains($setName, 'masterpiece') ||
@@ -123,8 +113,7 @@ class GenerateBoosterPacks extends Command
         ) {
             return 11.99;
         }
-        
-        // Commander sets
+
         if (
             str_contains($setName, 'commander') ||
             str_contains($setName, 'commander') ||
@@ -132,8 +121,7 @@ class GenerateBoosterPacks extends Command
         ) {
             return 6.99;
         }
-        
-        // Standard price for regular expansions, core sets, etc.
+
         return 4.49;
     }
 }

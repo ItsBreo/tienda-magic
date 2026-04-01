@@ -31,10 +31,7 @@ class ScryfallSyncMaster extends Command
         $this->info('📊 Batch size: ' . $this->batchSize);
 
         try {
-            // Step 1: Extract - Get bulk data URL and download
             $this->extractBulkData();
-
-            // Step 2: Transform & Load - Process JSON stream and update database
             $this->transformAndLoad();
 
             $this->info('✅ Sync completed successfully!');
@@ -49,7 +46,6 @@ class ScryfallSyncMaster extends Command
             $this->error('❌ Sync failed: ' . $e->getMessage());
             return 1;
         } finally {
-            // Step 3: Cleanup
             $this->cleanup();
         }
     }
@@ -58,7 +54,6 @@ class ScryfallSyncMaster extends Command
     {
         $this->info('📥 Step 1: Extracting bulk data from Scryfall...');
 
-        // Get bulk data information
         $response = Http::withHeaders(['User-Agent' => 'TiendaMagicApp/1.0', 'Accept' => 'application/json'])->timeout(30)->get('https://api.scryfall.com/bulk-data');
 
         if (!$response->successful()) {
@@ -75,13 +70,11 @@ class ScryfallSyncMaster extends Command
         $this->bulkDataUrl = $defaultCards['download_uri'];
         $this->info("📡 Download URI: {$this->bulkDataUrl}");
 
-        // Create directory if it doesn't exist
         $directory = dirname($this->tempFilePath);
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
 
-        // Download the file using streaming to avoid memory issues
         $this->info('⬇️  Downloading bulk data file...');
         $this->info('📁 Saving to: ' . $this->tempFilePath);
 
@@ -108,13 +101,11 @@ class ScryfallSyncMaster extends Command
             throw new Exception('Bulk data file not found: ' . $this->tempFilePath);
         }
 
-        // Open file for streaming
         $fileHandle = fopen($this->tempFilePath, 'r');
         if (!$fileHandle) {
             throw new Exception('Failed to open bulk data file for reading');
         }
 
-        // Skip opening bracket
         $firstChar = fread($fileHandle, 1);
         if ($firstChar !== '[') {
             fclose($fileHandle);
@@ -124,7 +115,6 @@ class ScryfallSyncMaster extends Command
         $batch = [];
         $cardIndex = 0;
 
-        // Start progress bar (we'll update it as we go)
         $this->output->progressStart();
 
         try {
@@ -132,16 +122,15 @@ class ScryfallSyncMaster extends Command
                 $cardJson = $this->readNextJsonObject($fileHandle);
 
                 if ($cardJson === null) {
-                    break; // End of array
+                    break;
                 }
 
                 $card = json_decode($cardJson, true);
 
                 if (!$card || !isset($card['id'])) {
-                    continue; // Skip invalid entries
+                    continue;
                 }
 
-                // Transform data
                 $transformedCard = $this->transformCard($card);
 
                 if ($transformedCard) {
@@ -150,7 +139,6 @@ class ScryfallSyncMaster extends Command
                     $this->totalProcessed++;
                 }
 
-                // Process batch when it reaches the specified size
                 if (count($batch) >= $this->batchSize) {
                     $this->processBatch($batch);
                     $batch = [];
@@ -160,7 +148,6 @@ class ScryfallSyncMaster extends Command
                 }
             }
 
-            // Process remaining cards in the last batch
             if (!empty($batch)) {
                 $this->processBatch($batch);
                 $this->output->progressAdvance(count($batch));
@@ -210,7 +197,6 @@ class ScryfallSyncMaster extends Command
                     $bracketCount--;
 
                     if ($bracketCount === 0) {
-                        // Read until we find the comma or end of array
                         while (!feof($fileHandle)) {
                             $nextChar = fread($fileHandle, 1);
                             if ($nextChar === ',' || $nextChar === ']') {
@@ -228,12 +214,10 @@ class ScryfallSyncMaster extends Command
 
     private function transformCard(array $card): ?array
     {
-        // Skip tokens and non-game pieces
         if (isset($card['layout']) && in_array($card['layout'], ['token', 'double_faced_token', 'emblem'])) {
             return null;
         }
 
-        // Extract image URI
         $imageUri = null;
         if (isset($card['image_uris']['normal'])) {
             $imageUri = $card['image_uris']['normal'];
@@ -241,7 +225,6 @@ class ScryfallSyncMaster extends Command
             $imageUri = $card['card_faces'][0]['image_uris']['normal'];
         }
 
-        // Calculate market average price
         $marketAvgPrice = 0.50;
         if (isset($card['prices']['eur']) && $card['prices']['eur'] !== null) {
             $marketAvgPrice = (float) $card['prices']['eur'];
@@ -249,7 +232,6 @@ class ScryfallSyncMaster extends Command
             $marketAvgPrice = (float) $card['prices']['usd'];
         }
 
-        // Find card set ID
         $cardSetId = null;
         $setCode = $card['set'] ?? null;
         if ($setCode) {
@@ -295,7 +277,6 @@ class ScryfallSyncMaster extends Command
             }
         });
 
-        // Show batch progress
         $this->line(" Processed batch: {$this->totalProcessed} cards ({$this->totalInserted} new, {$this->totalUpdated} updated)");
     }
 
