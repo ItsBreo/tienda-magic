@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ShoppingCart, Package, Loader2 } from 'lucide-react';
 import apiService from '@/services/ApiService';
+import { useAuth } from '@/contexts/AuthContext';
 import CartItem from '@/components/cart/CartItem';
 import CartSummary from '@/components/cart/CartSummary';
 
 export default function Cart() {
     const navigate = useNavigate();
+    const { updateUser } = useAuth();
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -78,9 +80,14 @@ export default function Cart() {
         setIsCheckingOut(true);
 
         try {
-            const response = await apiService.axiosInstance.post('/api/checkout');
+            const response = await apiService.processCheckout();
 
-            toast.success('¡Pedido completado! (Modo Demo)');
+            toast.success('¡Pedido completado exitosamente!');
+
+            // Actualizar saldo del usuario en el estado global
+            if (response?.remaining_balance !== undefined) {
+                updateUser({ wallet_balance: response.remaining_balance });
+            }
 
             // Limpiar estado local
             setItems([]);
@@ -89,8 +96,12 @@ export default function Cart() {
             navigate('/dashboard');
 
         } catch (error: any) {
-            console.error('Error en checkout:', error);
-            toast.error(error.response?.data?.message || 'Error al procesar el pedido');
+            if (error.response?.status === 422) {
+                toast.error(error.response.data.message || 'Error en el proceso de compra');
+            } else {
+                console.error('Error en checkout:', error);
+                toast.error('Error al procesar el pedido. Inténtalo nuevamente.');
+            }
         } finally {
             setIsCheckingOut(false);
         }
