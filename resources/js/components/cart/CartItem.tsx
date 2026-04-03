@@ -1,13 +1,12 @@
 import React from 'react';
 import {
-    useNavigate
+    useNavigate,
 } from 'react-router-dom';
 import {
     Package,
     Trash2,
-    Plus,
-    Minus
 } from 'lucide-react';
+import SimpleCounter from '@/components/ui/SimpleCounter';
 
 interface CartItemProps {
     item: {
@@ -19,15 +18,19 @@ interface CartItemProps {
         booster_pack?: any;
         card?: any;
         pack?: any;
+        stock?: number;
     };
     onUpdateQuantity: (id: number, newQuantity: number) => void;
     onRemove: (id: number) => void;
+    isUpdating?: boolean;
 }
 
-export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
+export default function CartItem({ item, onUpdateQuantity, onRemove, isUpdating = false }: CartItemProps) {
     const navigate = useNavigate();
+
     const pack = item.booster_pack || item.pack || item;
     const price = pack.price || item.unit_price || 0;
+    const stock = item.stock || (item.card?.stock) || 0;
 
     const getImageSrc = () => {
         if (item.card_id || item.card) {
@@ -61,25 +64,15 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
             </div>
 
             <div className="flex items-center gap-4">
-                <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1">
-                    <span className="text-zinc-400 text-sm mr-3">Cant:</span>
-                    <span className="font-bold text-lg w-8 text-center">{item.quantity}</span>
-                </div>
-
-                <button
-                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                    className="p-3 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"
-                >
-                    <Plus className="w-5 h-5" />
-                </button>
-
-                <button
-                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                    disabled={item.quantity <= 1}
-                    className="p-3 text-zinc-500 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                    <Minus className="w-5 h-5" />
-                </button>
+                <SimpleCounter
+                    value={item.quantity}
+                    onChange={(newQuantity: number) => onUpdateQuantity(item.id, newQuantity)}
+                    min={1}
+                    max={99}
+                    stock={stock}
+                    disabled={isUpdating}
+                    className="w-auto"
+                />
 
                 <button
                     onClick={() => onRemove(item.id)}
