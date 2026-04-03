@@ -25,7 +25,7 @@ class CartItemStoreRequest extends FormRequest
                 'required',
                 'integer',
                 'min:1',
-                'max:99' // Límite de seguridad para evitar abusos
+                'max:100' // Límite de seguridad para evitar abusos
             ]
         ];
     }
@@ -38,7 +38,7 @@ class CartItemStoreRequest extends FormRequest
             'quantity.required' => 'La cantidad es requerida',
             'quantity.integer' => 'La cantidad debe ser un número entero',
             'quantity.min' => 'La cantidad mínima es 1',
-            'quantity.max' => 'La cantidad máxima por pack es 99'
+            'quantity.max' => 'La cantidad máxima por pack es 100'
         ];
     }
 
