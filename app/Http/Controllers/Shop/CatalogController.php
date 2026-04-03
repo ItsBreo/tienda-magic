@@ -41,6 +41,7 @@ class CatalogController extends Controller
                         'type' => 'Singles',
                         'rarity' => $card->rarity,
                         'card_set_id' => $card->cardSet->code ?? null,
+                        'stock' => $card->stock ?? 0,
                         'config' => [
                             'description' => $card->data['type_line'] ?? 'Magic Card',
                             'foil' => $card->data['foil'] ?? false,

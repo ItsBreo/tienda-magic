@@ -94,8 +94,8 @@ class PackController extends Controller
                 return response()->json(['error' => 'Set not found'], 404);
             }
 
-            $cards = Card::where('card_set_id', $cardSet->id)
-                ->limit(50) // Limitar para no sobrecargar
+            $cards = Card::where('set_code', $cardSet->code)
+                ->limit(50)
                 ->get()
                 ->map(function ($card) {
                     return [
@@ -106,6 +106,7 @@ class PackController extends Controller
                         'mana_cost' => $card->data['mana_cost'] ?? null,
                         'type_line' => $card->data['type_line'] ?? null,
                         'oracle_text' => $card->data['oracle_text'] ?? null,
+                        'stock' => $card->stock ?? 0,
                     ];
                 });
 

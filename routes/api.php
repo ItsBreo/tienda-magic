@@ -98,7 +98,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
 
     // ========== CHECKOUT ==========
-    Route::post('/checkout/process', [\App\Http\Controllers\Api\CheckoutController::class, 'process']);
+    Route::post('/checkout/process', [\App\Http\Controllers\Api\CheckoutController::class, 'processCheckout']);
 
     // ========== WALLET RECARGA ==========
     Route::post('/wallet/recharge', [\App\Http\Controllers\Api\WalletController::class, 'createRechargeSession']);
