@@ -144,7 +144,26 @@ class MagicApi {
     }
 
     async addToCart(data: { booster_pack_id?: number, card_id?: number, quantity: number }): Promise<any> {
+        // Validar cantidad antes de enviar
+        if (data.quantity < 1) {
+            throw new Error('La cantidad mínima es 1');
+        }
+
         const response = await this.api.post('/api/cart', data);
+        return response.data;
+    }
+
+    async updateCartItemQuantity(itemId: number, quantity: number, availableStock?: number): Promise<any> {
+        // Validación estricta antes de la llamada API
+        if (quantity < 1) {
+            throw new Error('La cantidad mínima es 1');
+        }
+
+        if (availableStock && quantity > availableStock) {
+            throw new Error(`Solo hay ${availableStock} unidades disponibles`);
+        }
+
+        const response = await this.api.put(`/api/cart/${itemId}`, { quantity });
         return response.data;
     }
 
