@@ -191,9 +191,9 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // Pedidos que ESTE usuario ha COMPRADO
-    public function purchases()
+    public function orders()
     {
-        return $this->hasMany(Order::class, 'buyer_id'); // Clave foránea explícita
+        return $this->hasMany(Order::class, 'user_id');
     }
 
     // Pedidos que ESTE usuario ha VENDIDO (a otros)

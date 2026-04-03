@@ -28,6 +28,11 @@ class Card extends Model
         return $this->belongsTo(CardSet::class);
     }
 
+    // Relación polimórfica inversa con OrderItems
+    public function orderItems() {
+        return $this->morphMany(OrderItem::class, 'purchasable');
+    }
+
     public function scopeFilter($query, array $filters) {
         if ($filters['search'] ?? false) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');

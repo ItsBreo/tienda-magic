@@ -25,11 +25,21 @@ class BoosterPack extends Model
         'image_uri',
     ];
 
+    protected $casts = [
+        'config' => 'array',
+        'price' => 'decimal:2',
+    ];
+
     protected $appends = ['cover_image'];
 
     public function cardSet()
     {
         return $this->belongsTo(CardSet::class, 'card_set_id', 'code');
+    }
+
+    // Relación polimórfica inversa con OrderItems
+    public function orderItems() {
+        return $this->morphMany(OrderItem::class, 'purchasable');
     }
 
     /**
