@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\BoosterPack;
+use App\Models\Card;
 
 class CartController extends Controller
 {
@@ -108,7 +109,7 @@ class CartController extends Controller
 
                 $cart = Cart::firstOrCreate(['user_id' => $user->id]);
 
-                // Buscar item existente
+                // Buscar item existente con bloqueo para evitar race conditions
                 $existingItem = CartItem::where('cart_id', $cart->id)
                                       ->when($boosterPackId, function($q) use ($boosterPackId) {
                                           return $q->where('booster_pack_id', $boosterPackId);
@@ -118,6 +119,36 @@ class CartController extends Controller
                                       })
                                       ->lockForUpdate()
                                       ->first();
+
+                // Validar stock disponible
+                $currentQuantity = $existingItem ? $existingItem->quantity : 0;
+                $newTotalQuantity = $currentQuantity + $quantity;
+
+                if ($cardId) {
+                    // Validar stock para carta
+                    $card = Card::lockForUpdate()->find($cardId);
+                    if (!$card) {
+                        return response()->json(['message' => 'La carta ya no está disponible'], 404);
+                    }
+
+                    if ($newTotalQuantity > $card->stock) {
+                        return response()->json([
+                            'error' => "No puedes añadir más unidades. Límite de stock alcanzado (Máximo: {$card->stock})"
+                        ], 422);
+                    }
+                } elseif ($boosterPackId) {
+                    // Validar stock para booster pack
+                    $pack = BoosterPack::lockForUpdate()->find($boosterPackId);
+                    if (!$pack) {
+                        return response()->json(['message' => 'El pack ya no está disponible'], 404);
+                    }
+
+                    if ($newTotalQuantity > $pack->stock) {
+                        return response()->json([
+                            'error' => "No puedes añadir más unidades. Límite de stock alcanzado (Máximo: {$pack->stock})"
+                        ], 422);
+                    }
+                }
 
                 if ($existingItem) {
                     $existingItem->quantity += $quantity;
@@ -172,6 +203,7 @@ class CartController extends Controller
                 }
 
                 $price = 0;
+                $stock = 0;
                 if ($item->booster_pack_id) {
                     $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
                     if (!$pack) {
@@ -179,6 +211,7 @@ class CartController extends Controller
                         return response()->json(['message' => 'El pack ya no está disponible'], 404);
                     }
                     $price = $pack->price;
+                    $stock = $pack->stock;
                 } else {
                     $card = \App\Models\Card::lockForUpdate()->find($item->card_id);
                     if (!$card) {
@@ -186,6 +219,14 @@ class CartController extends Controller
                         return response()->json(['message' => 'La carta ya no está disponible'], 404);
                     }
                     $price = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
+                    $stock = $card->stock;
+                }
+
+                // Validar stock total
+                if ($quantity > $stock) {
+                    return response()->json([
+                        'error' => "No puedes añadir más unidades. Límite de stock alcanzado (Máximo: {$stock})"
+                    ], 422);
                 }
 
                 $item->quantity = $quantity;
