@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Package, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PackQuantitySelector from './PackQuantitySelector';
 
 interface Pack {
   id: number;
@@ -10,6 +11,8 @@ interface Pack {
   type: string;
   cover_image?: string;
   image_uri?: string;
+  card_id?: number;
+  stock?: number;
   card_set?: {
     icon_svg_uri?: string;
     code?: string;
@@ -28,10 +31,12 @@ interface Pack {
 interface PackCardProps {
   pack: Pack;
   onClick: (pack: Pack) => void;
-  onBuyPack: (pack: Pack) => void;
+  onBuyPack: (pack: Pack, quantity: number) => void;
 }
 
 export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
+  const [quantity, setQuantity] = useState(1);
+
   const shouldShowImage = (imageSrc?: string) => !!imageSrc;
 
   const getImageSrc = () => {
@@ -42,6 +47,11 @@ export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
 
     // Logica para Sobres / Packs
     return pack.card_set?.icon_svg_uri || pack.cover_image || pack.image_uri;
+  };
+
+  const handleBuyPack = () => {
+    const finalQuantity = pack.type === 'Singles' ? quantity : 1;
+    onBuyPack(pack, finalQuantity);
   };
 
   return (
@@ -87,22 +97,45 @@ export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
             Foil
           </span>
         )}
+        {/* Stock indicator for cards */}
+        {pack.type === 'Singles' && pack.stock !== undefined && (
+          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+            pack.stock > 0
+              ? 'bg-green-600/20 text-green-400'
+              : 'bg-red-600/20 text-red-400'
+          }`}>
+            Stock: {pack.stock}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
         <div className="text-xl font-bold text-emerald-400">
           €{pack.price.toFixed(2)}
         </div>
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            onBuyPack(pack);
-          }}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          Comprar
-        </Button>
+        <div className="flex flex-col gap-3">
+          {/* Quantity Selector - Only for Cards */}
+          <PackQuantitySelector
+            pack={pack}
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+            className="w-full"
+          />
+
+          {/* Buy Button */}
+          <Button
+            onClick={handleBuyPack}
+            disabled={pack.type === 'Singles' && pack.stock === 0}
+            className={`w-full px-4 py-2 rounded-lg transition-colors ${
+              pack.type === 'Singles' && pack.stock === 0
+                ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+            }`}
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            {pack.type === 'Singles' && pack.stock === 0 ? 'Agotado' : 'Comprar'}
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -7,17 +7,19 @@ interface CardItemProps {
         id: number;
         name: string;
         image_url?: string;
-        image_uri?: string; // Bug 2 Fix: Add support for image_uri
+        image_uri?: string;
         rarity: string;
         mana_cost?: string;
         type_line?: string;
         oracle_text?: string;
+        stock?: number;
     };
     onClick?: () => void;
     className?: string;
+    showStock?: boolean;
 }
 
-export default function CardItem({ card, onClick, className = '' }: CardItemProps) {
+export default function CardItem({ card, onClick, className = '', showStock = false }: CardItemProps) {
     // Determinar color de rareza
     const getRarityColor = (rarity: string) => {
         switch (rarity?.toLowerCase()) {
@@ -64,7 +66,6 @@ export default function CardItem({ card, onClick, className = '' }: CardItemProp
             >
                 {/* Imagen de la carta */}
                 {(() => {
-                    // Bug 2 Fix: Priorizar image_uri (backend) sobre image_url (legacy)
                     const imageSrc = card.image_uri || card.image_url;
                     return imageSrc ? (
                         <img
@@ -73,14 +74,14 @@ export default function CardItem({ card, onClick, className = '' }: CardItemProp
                             className="w-full h-full object-cover"
                             loading="lazy"
                             onError={(e) => {
-                                // Bug 2 Fix: Fallback si la imagen falla
                                 const target = e.target as HTMLImageElement;
                                 target.style.display = 'none';
                             }}
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
-                            <Sparkles className="w-12 h-12 text-zinc-600" />
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
+                            <Sparkles className="w-8 h-8 text-zinc-600 mb-2" />
+                            <span className="text-xs text-zinc-500 text-center px-2">Sin imagen</span>
                         </div>
                     );
                 })()}
@@ -104,6 +105,17 @@ export default function CardItem({ card, onClick, className = '' }: CardItemProp
                 <div className="absolute top-2 right-2">
                     <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${getRarityColor(card.rarity)} shadow-md`} />
                 </div>
+
+                {/* Indicador de stock */}
+                {showStock && (
+                    <div className="absolute top-2 left-2">
+                        <div className={`w-3 h-3 rounded-full shadow-md ${
+                            (card.stock || 0) > 0
+                                ? 'bg-green-500'
+                                : 'bg-red-500'
+                        }`} />
+                    </div>
+                )}
             </div>
             </TiltWrapper>
         </div>

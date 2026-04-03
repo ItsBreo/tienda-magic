@@ -1,13 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Package } from 'lucide-react';
-import apiService from '@/services/ApiService';
+import React from 'react';
 
 // Importar componentes modulares
 import PackCard from './PackCard';
 import PacksPagination from './PacksPagination';
-import PackDialog from './PackDialog';
 
 interface Pack {
   id: number;
@@ -35,7 +30,7 @@ interface PacksGridProps {
   totalPacks: number;
   onPageChange: (page: number) => void;
   onPackClick: (pack: Pack) => void;
-  onBuyPack: (pack: Pack) => void;
+  onBuyPack: (pack: Pack, quantity: number) => void;
   category?: 'packs' | 'cards';
 }
 
@@ -51,7 +46,7 @@ function PacksGrid({
             key={pack.id}
             pack={pack}
             onClick={() => onPackClick(pack)}
-            onBuyPack={() => onBuyPack(pack)}
+            onBuyPack={(item, quantity) => onBuyPack(item, quantity)}
           />
         ))}
       </div>

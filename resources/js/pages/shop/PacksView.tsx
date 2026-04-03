@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import apiService from '@/services/ApiService';
+import { showAddToCartToast } from '@/utils/toastUtils';
 
 import PacksHeader from '@/components/packs/PacksHeader';
 import PacksGrid from '@/components/packs/PacksGrid';
@@ -17,6 +18,10 @@ interface Pack {
     card_set_id: string;
     type: string;
     image_url?: string;
+    rarity?: string;
+    booster_pack_id?: number;
+    card_id?: number;
+    stock?: number;
     config: Record<string, unknown>;
 }
 
@@ -126,21 +131,35 @@ export default function PacksView() {
         }
     }, [location.state, packsData]);
 
-    const handleAddToCart = async (item: Record<string, unknown>) => {
+    const handleAddToCart = async (item: Pack, quantity: number = 1) => {
         try {
             const isPack = !!item.booster_pack_id || !item.rarity;
             await apiService.addToCart({
                 [isPack ? 'booster_pack_id' : 'card_id']: item.id,
-                quantity: 1,
+                quantity,
             });
-            toast.success(`${item.name} añadido`, {
-                action: {
-                    label: 'Ver Carrito',
-                    onClick: () => navigate('/cart'),
-                },
-            });
-        } catch (error) {
-            toast.error('Error al añadir al carrito');
+            showAddToCartToast(`${item.name}`, quantity, isPack ? 'pack' : 'card');
+        } catch (error: any) {
+            console.error('Error al añadir al carrito:', error);
+
+            // Manejo específico de errores de stock
+            if (error.response?.status === 422) {
+                const errorMessage = error.response.data?.error || error.response.data?.message;
+                if (errorMessage) {
+                    toast.error(errorMessage);
+                } else {
+                    toast.error('Error de validación al añadir al carrito');
+                }
+
+                // Forzar actualización del carrito para sincronizar el estado
+                try {
+                    await apiService.getCart();
+                } catch (cartError) {
+                    console.error('Error al refrescar carrito:', cartError);
+                }
+            } else {
+                toast.error('Error al añadir al carrito');
+            }
         }
     };
 
