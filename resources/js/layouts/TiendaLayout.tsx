@@ -1,5 +1,9 @@
 import { type ReactNode, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { type BreadcrumbItem } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface TiendaLayoutProps {
   children: ReactNode;
@@ -10,6 +14,18 @@ export default function TiendaLayout({
   children,
   breadcrumbs = [],
 }: TiendaLayoutProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      // Error silenciado en logout
+    }
+  };
+
   useEffect(() => {
     document.title = 'Tienda Magic';
   }, []);
@@ -56,20 +72,49 @@ export default function TiendaLayout({
 
             {/* User Menu */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
-                <a
-                  href="/login"
-                  className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-                >
-                  Iniciar Sesión
-                </a>
-                <a
-                  href="/register"
-                  className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
-                >
-                  Registrarse
-                </a>
-              </div>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-zinc-300">
+                    {user.name}
+                  </span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-lg border border-zinc-700">
+                    <span className="text-sm font-medium text-emerald-400">
+                      {Number(user.wallet_balance ?? 0).toFixed(2)}€
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg h-9 w-9"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-zinc-300 hover:text-red-400 hover:bg-red-950/30 rounded-lg h-9 w-9"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
+                  <Link
+                    to="/login"
+                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                  >
+                    Iniciar Sesión
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                  >
+                    Registrarse
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

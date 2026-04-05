@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Conversation extends Model
@@ -47,6 +48,11 @@ class Conversation extends Model
     public function users(): BelongsToMany
     {
         return $this->participants();
+    }
+
+    public function trade(): BelongsTo
+    {
+        return $this->belongsTo(Trade::class);
     }
 
     public function hasUser(int $userId): bool

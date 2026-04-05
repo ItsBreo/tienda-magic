@@ -237,6 +237,10 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         });
     });
 
+    // ========== TRADES ==========
+    Route::get('/trades', [\App\Http\Controllers\TradeController::class, 'index'])->middleware('auth:api');
+    Route::post('/trades/test', [\App\Http\Controllers\TradeController::class, 'storeTest'])->middleware('auth:api');
+
     // ========== TRADES CHAT ==========
     Route::post('/trades/{tradeId}/chat', [ConversationController::class, 'getOrCreateForTrade'])->middleware('auth:api');
 

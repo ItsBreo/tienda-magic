@@ -232,6 +232,18 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return mixed
      */
+    // Relación M:M con trades enviados
+    public function sentTrades()
+    {
+        return $this->hasMany(Trade::class, 'sender_id');
+    }
+
+    // Relación M:M con trades recibidos
+    public function receivedTrades()
+    {
+        return $this->hasMany(Trade::class, 'receiver_id');
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
