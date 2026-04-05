@@ -10,6 +10,8 @@ use App\Events\CardPurchased;
 use App\Events\CardListed;
 use App\Events\TransactionCompleted;
 use App\Listeners\AchievementListener;
+use App\Models\Message;
+use App\Observers\MessageObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 
@@ -26,5 +28,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CardPurchased::class,       [AchievementListener::class, 'handleCardPurchased']);
         Event::listen(CardListed::class,          [AchievementListener::class, 'handleCardListed']);
         Event::listen(TransactionCompleted::class,[AchievementListener::class, 'handleTransactionCompleted']);
+
+        Message::observe(MessageObserver::class);
     }
 }

@@ -20,7 +20,8 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
 use App\Http\Controllers\Api\SetController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Exchange\ChatController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\MessageController;
 
 // Controladores de Admin
 use App\Http\Controllers\Admin\AdminUserController;
@@ -126,6 +127,9 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
             $isAuthorized = $session && $session->isMember($userId);
         } elseif (preg_match('/^private-App\.Models\.User\.(\d+)$/', $channelName, $matches)) {
             $isAuthorized = ((int) $matches[1] === (int) $userId);
+        } elseif (preg_match('/^private-conversation\.([a-f0-9-]{36})$/', $channelName, $matches)) {
+            // Conversaciones: permitir acceso si usuario está autenticado
+            $isAuthorized = $userId !== null;
         }
 
         if (!$isAuthorized) {
@@ -221,8 +225,25 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);
 
-    Route::get('/trade/{id}/chat',  [ChatController::class, 'index']);
-    Route::post('/trade/{id}/chat', [ChatController::class, 'store']);
+    // ========== CONVERSATIONS & CHAT ==========
+    Route::prefix('conversations')->middleware('auth:api')->group(function () {
+        Route::get('/', [ConversationController::class, 'index']);
+        Route::post('/', [ConversationController::class, 'store']);
+        Route::get('/{conversation}', [ConversationController::class, 'show']);
+
+        Route::prefix('/{conversation}/messages')->group(function () {
+            Route::get('/', [MessageController::class, 'index']);
+            Route::post('/', [MessageController::class, 'store']);
+        });
+    });
+
+    // ========== TRADES CHAT ==========
+    Route::post('/trades/{tradeId}/chat', [ConversationController::class, 'getOrCreateForTrade'])->middleware('auth:api');
+
+    Route::prefix('messages')->middleware('auth:api')->group(function () {
+        Route::patch('/{message}', [MessageController::class, 'update']);
+        Route::delete('/{message}', [MessageController::class, 'destroy']);
+    });
 
     // ========== ADMIN DASHBOARD ==========
     Route::prefix('admin')->middleware(['admin'])->group(function () {

@@ -30,4 +30,9 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    build: {
+        rollupOptions: {
+            external: ['laravel-echo', 'pusher-js'],
+        },
+    },
 });
