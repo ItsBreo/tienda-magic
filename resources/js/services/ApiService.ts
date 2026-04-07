@@ -187,6 +187,58 @@ class MagicApi {
         return response.data;
     }
 
+    // ─── Intercambios (Exchanges) ─────────────────────────────────────────────
+
+    async getExchanges(): Promise<any> {
+        const response = await this.api.get('/api/exchanges');
+        return response.data;
+    }
+
+    async createExchange(data: { offered_inventory_card_id: number; requested_card_id?: number | null }): Promise<any> {
+        const response = await this.api.post('/api/exchanges', data);
+        return response.data;
+    }
+
+    async requestExchange(exchangeId: number, data: { offered_inventory_card_id: number }): Promise<any> {
+        const response = await this.api.post(`/api/exchanges/${exchangeId}/request`, data);
+        return response.data;
+    }
+
+    async getMyRequests(): Promise<any> {
+        const response = await this.api.get('/api/exchange-requests');
+        return response.data;
+    }
+
+    async acceptTradeRequest(requestId: number): Promise<any> {
+        const response = await this.api.post(`/api/exchange-requests/${requestId}/accept`);
+        return response.data;
+    }
+
+    async rejectTradeRequest(requestId: number): Promise<any> {
+        const response = await this.api.post(`/api/exchange-requests/${requestId}/reject`);
+        return response.data;
+    }
+
+    async getTradeRoom(roomId: number): Promise<any> {
+        const response = await this.api.get(`/api/trade-sessions/${roomId}`);
+        return response.data;
+    }
+
+    async confirmTrade(roomId: number): Promise<any> {
+        const response = await this.api.post(`/api/trade-sessions/${roomId}/confirm`);
+        return response.data;
+    }
+
+    async getMyInventory(): Promise<any> {
+        const response = await this.api.get('/api/inventory');
+        return response.data;
+    }
+
+    async getAllCards(): Promise<any> {
+        const response = await this.api.get('/api/cards');
+        return response.data;
+    }
+
     get axiosInstance(): AxiosInstance {
         return this.api;
     }

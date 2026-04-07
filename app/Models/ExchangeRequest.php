@@ -4,14 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Exchange extends Model
+class ExchangeRequest extends Model
 {
     protected $fillable = [
+        'exchange_id',
         'user_id',
         'offered_inventory_card_id',
-        'requested_card_id',
         'status',
     ];
+
+    public function exchange()
+    {
+        return $this->belongsTo(Exchange::class);
+    }
 
     public function user()
     {
@@ -23,13 +28,8 @@ class Exchange extends Model
         return $this->belongsTo(InventoryCard::class, 'offered_inventory_card_id');
     }
 
-    public function requestedCard()
+    public function tradeSession()
     {
-        return $this->belongsTo(Card::class, 'requested_card_id');
-    }
-
-    public function requests()
-    {
-        return $this->hasMany(ExchangeRequest::class);
+        return $this->hasOne(TradeSession::class);
     }
 }

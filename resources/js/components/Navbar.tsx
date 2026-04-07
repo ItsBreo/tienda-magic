@@ -44,11 +44,16 @@ export function Navbar() {
               Carrito
             </Link>
 
-            {/* 🌟 NUEVO ENLACE: Inventario (Solo visible si hay sesión iniciada) */}
+            {/* 🌟 NUEVO ENLACE: Inventario y Trades (Solo visible si hay sesión iniciada) */}
             {user && (
-              <Link to="/inventory" className="text-zinc-400 hover:text-amber-500 transition-colors duration-200 font-medium">
-                Mi Colección
-              </Link>
+              <>
+                <Link to="/inventory" className="text-zinc-400 hover:text-amber-500 transition-colors duration-200 font-medium">
+                  Mi Colección
+                </Link>
+                <Link to="/exchanges" className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200 font-bold bg-indigo-500/10 px-3 py-1 rounded-sm border border-indigo-500/30">
+                  Intercambios
+                </Link>
+              </>
             )}
 
             {user?.is_admin && (
