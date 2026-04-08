@@ -5,15 +5,11 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Database\Seeders\BoosterPackSeeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([
-            BoosterPackSeeder::class,
-        ]);
 
         // 1. Crear los roles fijos primero
         $adminRole = Role::create(['name' => 'Admin']);
@@ -40,5 +36,8 @@ class DatabaseSeeder extends Seeder
             $roleToAssign = fake()->randomElement([$userRole->id, $userRole->id, $sellerRole->id]);
             $user->roles()->attach($roleToAssign);
         }
+
+        // 5. Ejecutar el seeder del Foro (Foros, Hilos, Comentarios)
+        $this->call([ForumSeeder::class]);
     }
 }

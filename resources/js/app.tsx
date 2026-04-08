@@ -20,6 +20,7 @@ import PacksView from './pages/shop/PacksView';
 import Cart from './pages/shop/Cart';
 import CheckoutSuccess from './pages/shop/CheckoutSuccess';
 import WalletPage from './pages/shop/Wallet';
+import Forum from './pages/forum/Forum';
 
 // Admin Components & Pages
 import { AdminRoute } from './components/AdminRoute';
@@ -69,6 +70,7 @@ if (el) {
                             <Route path="/wallet" element={<WalletPage />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/inventory" element={<Inventory />} />
+                            <Route path="/forum" element={<Forum />} />
 
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                         </Route>

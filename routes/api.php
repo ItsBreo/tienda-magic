@@ -14,7 +14,8 @@ use App\Http\Controllers\Settings\ProfileController as SettingsProfileController
 use App\Http\Controllers\Card\{CardController, CardSetController, PackController};
 use App\Http\Controllers\Market\{MarketController, TransactionController};
 use App\Http\Controllers\Exchange\{ExchangeController, TradeController};
-use App\Http\Controllers\Social\{ForumController, ThreadController, CommentController, ProfileController as SocialProfileController};
+use App\Http\Controllers\Forum\{ForumController, ThreadController, CommentController, ProfileController as SocialProfileController};
+use App\Http\Controllers\Forum\{VoteController, SavedThreadController};
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
 use App\Http\Controllers\Api\SetController;
@@ -155,15 +156,30 @@ Route::middleware('auth:api')->group(function () {
     });
 
     // ========== SOCIAL & FORO ==========
-    Route::prefix('forum')->group(function () {
-        Route::get('/', [ForumController::class, 'index']);
-        Route::get('/categories', [ForumController::class, 'categories']);
-        Route::post('/threads', [ForumController::class, 'createThread']);
-    });
 
-    Route::post('/comments', [CommentController::class, 'store']);
-    Route::patch('/comments/{id}', [CommentController::class, 'update']);
-    Route::delete('/comments/{id}', [CommentController::class, 'delete']);
+    // Foro (Lectura autenticada)
+    Route::get('/forums', [ForumController::class, 'index']);
+    Route::get('/forums/{forum}', [ForumController::class, 'show']);
+    Route::get('/threads', [ThreadController::class, 'index']);
+    Route::get('/threads/{thread}', [ThreadController::class, 'show']);
+
+    // Threads (escritura privada)
+    Route::post('/threads', [ThreadController::class, 'store']);
+    Route::put('/threads/{thread}', [ThreadController::class, 'update']);
+    Route::delete('/threads/{thread}', [ThreadController::class, 'destroy']);
+
+    // Comentarios
+    Route::post('/threads/{thread}/comments', [CommentController::class, 'store']);
+    Route::put('/comments/{comment}', [CommentController::class, 'update']);
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+    // Votos (threads y comentarios — polimórfico)
+    Route::post('/votes', [VoteController::class, 'store']);
+
+    // Guardados
+    Route::get('/saved', [SavedThreadController::class, 'index']);
+    Route::post('/saved/{thread}', [SavedThreadController::class, 'store']);
+    Route::delete('/saved/{thread}', [SavedThreadController::class, 'destroy']);
 
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);

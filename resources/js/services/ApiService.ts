@@ -30,7 +30,6 @@ class MagicApi {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
-            withCredentials: true, // Necesario para Sanctum CSRF cookies
         });
 
         // Interceptor de REQUEST: inyecta JWT automáticamente
@@ -78,7 +77,6 @@ class MagicApi {
     // ─── Auth ─────────────────────────────────────────────────────────────────
 
     async login(credentials: LoginCredentials): Promise<any> {
-        await this.api.get('/sanctum/csrf-cookie');
         const response = await this.api.post('/api/login', credentials);
         const { token } = response.data;
 
@@ -90,7 +88,6 @@ class MagicApi {
     }
 
     async register(data: RegisterData): Promise<any> {
-        await this.api.get('/sanctum/csrf-cookie');
         const response = await this.api.post('/api/register', data);
         const { token } = response.data;
         if (token) this.setToken(token);
@@ -184,6 +181,69 @@ class MagicApi {
 
     async rechargeWallet(amount: number): Promise<any> {
         const response = await this.api.post('/api/wallet/recharge', { amount });
+        return response.data;
+    }
+
+    // ─── Red Social y Foro ───────────────────────────────────────────────────
+
+    async getForums(): Promise<any> {
+        const response = await this.api.get('/api/forums');
+        return response.data;
+    }
+
+    async getForumThreads(forumSlug: string, sort: string = 'hot', page: number = 1): Promise<any> {
+        const response = await this.api.get(`/api/forums/${forumSlug}`, { params: { sort, page } });
+        console.log(`[ApiService] getForumThreads (${forumSlug}) recibidos:`, response.data);
+        return response.data;
+    }
+
+    async getThreads(sort: string = 'hot', page: number = 1): Promise<any> {
+        const response = await this.api.get('/api/threads', { params: { sort, page } });
+        console.log('[ApiService] getThreads recibidos:', response.data);
+        return response.data;
+    }
+
+    async getThread(threadId: number): Promise<any> {
+        const response = await this.api.get(`/api/threads/${threadId}`);
+        return response.data;
+    }
+
+    async createThread(data: { forum_id: number, title: string, body: string, tags?: string[] }): Promise<any> {
+        const response = await this.api.post('/api/threads', data);
+        return response.data;
+    }
+
+    async createComment(threadId: number, data: { body: string, parent_id?: number }): Promise<any> {
+        const response = await this.api.post(`/api/threads/${threadId}/comments`, data);
+        return response.data;
+    }
+
+    async saveThread(threadId: number): Promise<any> {
+        const response = await this.api.post(`/api/saved/${threadId}`);
+        return response.data;
+    }
+
+    async unsaveThread(threadId: number): Promise<any> {
+        const response = await this.api.delete(`/api/saved/${threadId}`);
+        return response.data;
+    }
+
+    async getSavedThreads(page: number = 1): Promise<any> {
+        const response = await this.api.get('/api/saved', { params: { page } });
+        return response.data;
+    }
+
+    async vote(votableId: number, votableType: 'thread' | 'comment', value: number): Promise<any> {
+        const response = await this.api.post('/api/votes', {
+            votable_id: votableId,
+            votable_type: votableType,
+            value: value
+        });
+        return response.data;
+    }
+
+    async getProfile(userId: number): Promise<any> {
+        const response = await this.api.get(`/api/profile/${userId}`);
         return response.data;
     }
 

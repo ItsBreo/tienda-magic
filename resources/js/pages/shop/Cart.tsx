@@ -45,7 +45,7 @@ export default function Cart() {
             return;
         }
 
-        const stock = currentItem.stock || (currentItem.card?.stock) || 0;
+        const stock = currentItem.stock || currentItem.booster_pack?.stock || currentItem.card?.stock || 0;
 
         if (newQuantity < 1) {
             await handleRemoveItem(itemId);
@@ -114,7 +114,8 @@ export default function Cart() {
 
     const hasStockIssues = () => {
         return items.some(item => {
-            const stock = item.stock || (item.card?.stock) || 0;
+            const stock = item.stock || item.booster_pack?.stock || item.card?.stock || 0;
+            console.log('Verificando stock para item:', item, 'Stock disponible:', stock);
             return item.quantity > stock;
         });
     };

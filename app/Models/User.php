@@ -10,6 +10,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Modelo de Usuario del sistema.
@@ -243,4 +245,29 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    // Threads creados por el usuario
+public function threads(): HasMany
+{
+    return $this->hasMany(Thread::class);
+}
+
+// Comentarios del usuario
+public function comments(): HasMany
+{
+    return $this->hasMany(Comment::class);
+}
+
+// Votos emitidos por el usuario
+public function votes(): HasMany
+{
+    return $this->hasMany(Vote::class);
+}
+
+// Threads guardados por el usuario
+public function savedThreads(): BelongsToMany
+{
+    return $this->belongsToMany(Thread::class, 'saved_threads')->withTimestamps();
+}
+
 }

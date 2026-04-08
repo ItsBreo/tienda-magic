@@ -154,14 +154,24 @@ class CheckoutController extends Controller
                             $item->delete();
                             continue;
                         }
+                        if ($pack->stock < $item->quantity) {
+                            throw new \Exception("Stock insuficiente para el sobre: {$pack->name}");
+                        }
                         $unitPrice = $pack->price;
+                        $pack->stock -= $item->quantity;
+                        $pack->save();
                     } elseif ($item->card_id) {
                         $card = \App\Models\Card::lockForUpdate()->find($item->card_id);
                         if (!$card) {
                             $item->delete();
                             continue;
                         }
+                        if ($card->stock < $item->quantity) {
+                            throw new \Exception("Stock insuficiente para la carta: {$card->name}");
+                        }
                         $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
+                        $card->stock -= $item->quantity;
+                        $card->save();
                     }
 
                     // Validación adicional de integridad de precios
@@ -273,6 +283,14 @@ class CheckoutController extends Controller
                 'request_data' => $request->validated()
             ]);
 
+            // Devolver mensaje específico al frontend si es por falta de stock
+            if (str_starts_with($e->getMessage(), 'Stock insuficiente')) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'error_code' => 'INSUFFICIENT_STOCK'
+                ], 400);
+            }
+
             // No exponer detalles del error al cliente por seguridad
             return response()->json([
                 'message' => 'Error al procesar el pago. Por favor, inténtalo de nuevo.',
@@ -350,67 +368,8 @@ class CheckoutController extends Controller
                     ]);
                     $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
                     $inventoryItem->save();
-                } elseif ($item->card_id) {
-                    $inventoryCard = \App\Models\InventoryCard::firstOrNew([
-                        'user_id' => $user->id,
-                        'card_id' => $item->card_id
-                    ]);
-                    $inventoryCard->quantity = ($inventoryCard->quantity ?? 0) + $item->quantity;
-                    $inventoryCard->save();
                 }
             }
-
-            // Crítico: Vaciar el carrito
-            \App\Models\CartItem::where('cart_id', $cart->id)->delete();
-
-            return response()->json([
-                'message' => '¡Pedido completado con éxito! (Modo Demo)',
-                'order_id' => $order->id,
-                'total' => $total,
-                'items_count' => $cartItems->count()
-            ], 200);
         });
-    }
-
-    /**
-     * Muestra detalles del pedido para el usuario autenticado.
-     *
-     * @param int $orderId
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
-     */
-    public function show($orderId)
-    {
-        try {
-            $user = Auth::user();
-
-            $order = Order::with(['items.boosterPack.cardSet'])
-                          ->where('id', $orderId)
-                          ->where('user_id', $user->id)
-                          ->first();
-
-            if (!$order) {
-                return response()->json([
-                    'message' => 'Pedido no encontrado'
-                ], 404);
-            }
-
-            return response()->json([
-                'data' => [
-                    'order' => $order
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al obtener detalles del pedido', [
-                'user_id' => Auth::id(),
-                'order_id' => $orderId,
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'message' => 'Error al obtener los detalles del pedido'
-            ], 500);
-        }
     }
 }
