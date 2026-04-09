@@ -28,6 +28,10 @@ use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminSetController;
 use App\Http\Controllers\Admin\AdminCardController;
 
+// Controladores de Torneos
+use App\Http\Controllers\Tournament\TournamentController;
+use App\Http\Controllers\Tournament\TournamentRegistrationController;
+
 /*
 |--------------------------------------------------------------------------
 | Rutas Públicas
@@ -180,6 +184,25 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/saved', [SavedThreadController::class, 'index']);
     Route::post('/saved/{thread}', [SavedThreadController::class, 'store']);
     Route::delete('/saved/{thread}', [SavedThreadController::class, 'destroy']);
+
+    // ========== TORNEOS ==========
+
+    // Públicas (autenticado)
+    Route::get('/tournaments',          [TournamentController::class, 'index']);
+    Route::get('/tournaments/{tournament}', [TournamentController::class, 'show']);
+
+    // CRUD
+    Route::post('/tournaments',             [TournamentController::class, 'store']);
+    Route::patch('/tournaments/{tournament}', [TournamentController::class, 'update']);
+    Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy']);
+
+    // Inscripciones
+    Route::post('/tournaments/{tournament}/register',   [TournamentController::class, 'register']);
+    Route::delete('/tournaments/{tournament}/register', [TournamentController::class, 'unregister']);
+
+    // Gestión (creador/admin)
+    Route::get('/tournaments/{tournament}/registrations',                          [TournamentController::class, 'registrations']);
+    Route::patch('/tournaments/{tournament}/registrations/{registration}/confirm', [TournamentController::class, 'confirmRegistration']);
 
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);

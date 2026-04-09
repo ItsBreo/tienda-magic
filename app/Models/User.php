@@ -270,4 +270,21 @@ public function savedThreads(): BelongsToMany
     return $this->belongsToMany(Thread::class, 'saved_threads')->withTimestamps();
 }
 
+public function createdTournaments()
+{
+    return $this->hasMany(Tournament::class, 'created_by');
+}
+
+public function tournamentRegistrations()
+{
+    return $this->hasMany(TournamentRegistration::class);
+}
+
+public function tournaments()
+{
+    return $this->belongsToMany(Tournament::class, 'tournament_registrations')
+                ->withPivot('status', 'registered_at', 'confirmed_at')
+                ->withTimestamps();
+}
+
 }

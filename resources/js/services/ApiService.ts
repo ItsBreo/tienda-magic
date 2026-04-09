@@ -247,9 +247,44 @@ class MagicApi {
         return response.data;
     }
 
+    async getTournaments(): Promise<any> {
+        const response = await this.api.get('/api/tournaments');
+        return response.data;
+    }
+
+    async createTournament(data: {
+        name: string;
+        description?: string;
+        starts_at: string;
+        location: string;
+        format: string;
+        max_players: number;
+        entry_fee?: number;
+        prize?: string;
+    }): Promise<any> {
+        const response = await this.api.post('/api/tournaments', data);
+        return response.data;
+    }
+
+    async registerTournament(id: number): Promise<any> {
+        const response = await this.api.post(`/api/tournaments/${id}/register`);
+        return response.data;
+    }
+
+    async unregisterTournament(id: number): Promise<any> {
+        const response = await this.api.delete(`/api/tournaments/${id}/register`);
+        return response.data;
+    }
+
+    async getTournamentDetail(id: number): Promise<any> {
+    const response = await this.api.get(`/api/tournaments/${id}`);
+    return response.data;
+    }
+
     get axiosInstance(): AxiosInstance {
         return this.api;
     }
+
 }
 
 export const apiService = new MagicApi();

@@ -19,5 +19,6 @@ export interface Comment {
 }
 
 export interface Tournament {
+    id(id: any): void;
   name: string; status: "live" | "soon"; date: string;
 }

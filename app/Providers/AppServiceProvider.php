@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Events\DeckCreated;
 use App\Listeners\CheckFirstDeckAchievement;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Tournament;
+use App\Policies\TournamentPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,5 +29,7 @@ class AppServiceProvider extends ServiceProvider
             DeckCreated::class,
             CheckFirstDeckAchievement::class
         );
+
+        Gate::policy(Tournament::class, TournamentPolicy::class);
     }
 }
