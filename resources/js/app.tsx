@@ -18,6 +18,9 @@ import { ProtectedLayout } from './components/ProtectedRoute';
 import Dashboard from './pages/dashboard/dashboard';
 import PacksView from './pages/shop/PacksView';
 import Cart from './pages/shop/Cart';
+import CheckoutSuccess from './pages/shop/CheckoutSuccess';
+import WalletPage from './pages/shop/Wallet';
+import Forum from './pages/forum/Forum';
 
 // Admin Components & Pages
 import { AdminRoute } from './components/AdminRoute';
@@ -64,10 +67,12 @@ if (el) {
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/shop" element={<PacksView />} />
                             <Route path="/cart" element={<Cart />} />
+                            <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                            <Route path="/wallet" element={<WalletPage />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/inventory" element={<Inventory />} />
-                            <Route path="/achievements" element={<Achievements />} />
-                            
+<Route path="/achievements" element={<Achievements />} />
+                            <Route path="/forum" element={<Forum />} />
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                         </Route>
 

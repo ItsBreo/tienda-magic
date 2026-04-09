@@ -24,15 +24,15 @@ class MagicApi {
 
     constructor() {
         this.api = axios.create({
+            // Configuración segura: variable de entorno con fallback
             baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000',
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
-            // Sin withCredentials: ya no dependemos de cookies de sesión
         });
 
-        // Interceptor de REQUEST: inyecta el JWT en cada petición automáticamente
+        // Interceptor de REQUEST: inyecta JWT automáticamente
         this.api.interceptors.request.use((config) => {
             const token = this.getToken();
             if (token) {
@@ -41,7 +41,7 @@ class MagicApi {
             return config;
         });
 
-        // Interceptor de RESPONSE: si el token expiró/es inválido, limpia y redirige
+        // Interceptor de RESPONSE: manejo seguro de 401
         this.api.interceptors.response.use(
             (response) => response,
             (error) => {
@@ -78,9 +78,12 @@ class MagicApi {
 
     async login(credentials: LoginCredentials): Promise<any> {
         const response = await this.api.post('/api/login', credentials);
-        // El backend devuelve { token, data: user }
         const { token } = response.data;
-        if (token) this.setToken(token);
+
+        if (token) {
+            this.setToken(token);
+        }
+
         return response.data;
     }
 
@@ -93,7 +96,6 @@ class MagicApi {
 
     async logout(): Promise<void> {
         try {
-            // Invalida el token en el servidor
             await this.api.post('/api/logout');
         } finally {
             this.removeToken();
@@ -107,8 +109,63 @@ class MagicApi {
 
     // ─── Recursos ─────────────────────────────────────────────────────────────
 
-    async getPacks(page: number = 1, sort: string = ''): Promise<any> {
-        const response = await this.api.get('/api/shop', { params: { page, sort } });
+    async getPacks(page: number = 1, sort: string = '', set: string = '', search: string = ''): Promise<any> {
+        const response = await this.api.get('/api/shop', {
+            params: {
+                page,
+                sort,
+                set,
+                search,
+                category: 'packs'
+            }
+        });
+        return response.data;
+    }
+
+    async getShopCards(page: number = 1, sort: string = '', set: string = '', search: string = ''): Promise<any> {
+        const response = await this.api.get('/api/shop', {
+            params: {
+                page,
+                sort,
+                category: 'cards',
+                set,
+                search,
+            },
+        });
+        return response.data;
+    }
+
+    async getCart(): Promise<any> {
+        const response = await this.api.get('/api/cart');
+        return response.data;
+    }
+
+    async addToCart(data: { booster_pack_id?: number, card_id?: number, quantity: number }): Promise<any> {
+        // Validar cantidad antes de enviar
+        if (data.quantity < 1) {
+            throw new Error('La cantidad mínima es 1');
+        }
+
+        const response = await this.api.post('/api/cart', data);
+        return response.data;
+    }
+
+    async updateCartItemQuantity(itemId: number, quantity: number, availableStock?: number): Promise<any> {
+        // Validación estricta antes de la llamada API
+        if (quantity < 1) {
+            throw new Error('La cantidad mínima es 1');
+        }
+
+        if (availableStock && quantity > availableStock) {
+            throw new Error(`Solo hay ${availableStock} unidades disponibles`);
+        }
+
+        const response = await this.api.put(`/api/cart/${itemId}`, { quantity });
+        return response.data;
+    }
+
+    async removeCartItem(itemId: number): Promise<any> {
+        const response = await this.api.delete(`/api/cart/${itemId}`);
         return response.data;
     }
 
@@ -117,9 +174,117 @@ class MagicApi {
         return response.data;
     }
 
+    async processCheckout(): Promise<any> {
+        const response = await this.api.post('/api/checkout/process');
+        return response.data;
+    }
+
+    async rechargeWallet(amount: number): Promise<any> {
+        const response = await this.api.post('/api/wallet/recharge', { amount });
+        return response.data;
+    }
+
+    // ─── Red Social y Foro ───────────────────────────────────────────────────
+
+    async getForums(): Promise<any> {
+        const response = await this.api.get('/api/forums');
+        return response.data;
+    }
+
+    async getForumThreads(forumSlug: string, sort: string = 'hot', page: number = 1): Promise<any> {
+        const response = await this.api.get(`/api/forums/${forumSlug}`, { params: { sort, page } });
+        console.log(`[ApiService] getForumThreads (${forumSlug}) recibidos:`, response.data);
+        return response.data;
+    }
+
+    async getThreads(sort: string = 'hot', page: number = 1): Promise<any> {
+        const response = await this.api.get('/api/threads', { params: { sort, page } });
+        console.log('[ApiService] getThreads recibidos:', response.data);
+        return response.data;
+    }
+
+    async getThread(threadId: number): Promise<any> {
+        const response = await this.api.get(`/api/threads/${threadId}`);
+        return response.data;
+    }
+
+    async createThread(data: { forum_id: number, title: string, body: string, tags?: string[] }): Promise<any> {
+        const response = await this.api.post('/api/threads', data);
+        return response.data;
+    }
+
+    async createComment(threadId: number, data: { body: string, parent_id?: number }): Promise<any> {
+        const response = await this.api.post(`/api/threads/${threadId}/comments`, data);
+        return response.data;
+    }
+
+    async saveThread(threadId: number): Promise<any> {
+        const response = await this.api.post(`/api/saved/${threadId}`);
+        return response.data;
+    }
+
+    async unsaveThread(threadId: number): Promise<any> {
+        const response = await this.api.delete(`/api/saved/${threadId}`);
+        return response.data;
+    }
+
+    async getSavedThreads(page: number = 1): Promise<any> {
+        const response = await this.api.get('/api/saved', { params: { page } });
+        return response.data;
+    }
+
+    async vote(votableId: number, votableType: 'thread' | 'comment', value: number): Promise<any> {
+        const response = await this.api.post('/api/votes', {
+            votable_id: votableId,
+            votable_type: votableType,
+            value: value
+        });
+        return response.data;
+    }
+
+    async getProfile(userId: number): Promise<any> {
+        const response = await this.api.get(`/api/profile/${userId}`);
+        return response.data;
+    }
+
+    async getTournaments(): Promise<any> {
+        const response = await this.api.get('/api/tournaments');
+        return response.data;
+    }
+
+    async createTournament(data: {
+        name: string;
+        description?: string;
+        starts_at: string;
+        location: string;
+        format: string;
+        max_players: number;
+        entry_fee?: number;
+        prize?: string;
+    }): Promise<any> {
+        const response = await this.api.post('/api/tournaments', data);
+        return response.data;
+    }
+
+    async registerTournament(id: number): Promise<any> {
+        const response = await this.api.post(`/api/tournaments/${id}/register`);
+        return response.data;
+    }
+
+    async unregisterTournament(id: number): Promise<any> {
+        const response = await this.api.delete(`/api/tournaments/${id}/register`);
+        return response.data;
+    }
+
+    async getTournamentDetail(id: number): Promise<any> {
+    const response = await this.api.get(`/api/tournaments/${id}`);
+    return response.data;
+    }
+
     get axiosInstance(): AxiosInstance {
         return this.api;
     }
+
 }
 
 export const apiService = new MagicApi();

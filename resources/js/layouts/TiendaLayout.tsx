@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Navbar } from '@/components/Navbar';
 
 interface TiendaLayoutProps {
   children: ReactNode;
@@ -153,7 +154,7 @@ export default function TiendaLayout({
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center">
-              <p className="text-zinc-500 text-sm">© 2024 Tienda Magic. Todos los derechos reservados.</p>
+              <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.</p>
               <p className="text-zinc-600 text-xs mt-1">
                 Tu tienda especializada en cartas Magic: The Gathering
               </p>

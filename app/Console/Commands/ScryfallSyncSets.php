@@ -2,56 +2,92 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Services\Scryfall\ScryfallService;
 use App\Models\CardSet;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ScryfallSyncSets extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
     protected $signature = 'scryfall:sync-sets';
-    protected $description = 'Import sets from Scryfall';
 
-    public function handle(ScryfallService $scryfallService)
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Sincronizar todos los sets de Magic desde la API de Scryfall';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
     {
-        $this->info('--- Downloading sets list from Scryfall ---');
+        $this->info('Iniciando sincronización de sets desde Scryfall...');
 
-        $sets = $scryfallService->getSets();
+        try {
+            // Obtener datos de la API
+            $response = Http::withHeaders([
+                'User-Agent' => 'TiendaMagicApp/1.0',
+                'Accept' => 'application/json'
+            ])->timeout(30)->get('https://api.scryfall.com/sets');
 
-        if (!$sets) {
-            $this->error('Failed to retrieve sets from Scryfall');
-            return 1;
-        }
-
-        $this->info('Sets encontrados: ' . count($sets));
-
-        $bar = $this->output->createProgressBar(count($sets));
-
-        foreach ($sets as $set) {
-            // Skip meme/invalid sets
-            if (!in_array($set['set_type'], ['expansion', 'core', 'masters', 'commander', 'draft_innovation'])) {
-                $bar->advance(); // Avanzamos la barra aunque no guardemos
-                continue;
+            if (!$response->successful()) {
+                $this->error('Error al obtener datos de Scryfall: ' . $response->status());
+                return 1;
             }
 
-            CardSet::updateOrCreate(
-                ['code' => $set['code']],
-                [
-                    'name' => $set['name'],
-                    'released_at' => $set['released_at'] ?? null,
-                    'card_count' => $set['card_count'],
-                    'icon_svg_uri' => $set['icon_svg_uri'],
-                ]
-            );
-            $bar->advance();
+            $sets = $response->json('data');
+            $totalSets = count($sets);
 
-            // Pequeña pausa entre sets
-            usleep(50000); // 50ms
+            $this->info("Procesando {$totalSets} sets...");
+
+            // Crear barra de progreso
+            $progressBar = $this->output->createProgressBar($totalSets);
+            $progressBar->start();
+
+            $syncedCount = 0;
+
+            foreach ($sets as $setData) {
+                // Mapear campos de Scryfall a nuestro modelo
+                $setMapping = [
+                    'code' => $setData['code'],
+                    'name' => $setData['name'],
+                    'released_at' => $setData['released_at'] ?? null,
+                    'icon_svg_uri' => $setData['icon_svg_uri'] ?? null,
+                ];
+
+                // Usar updateOrCreate para evitar duplicados
+                CardSet::updateOrCreate(['code' => $setData['code']], $setMapping);
+
+                $syncedCount++;
+                $progressBar->advance();
+            }
+
+            $progressBar->finish();
+            $this->newLine();
+
+            $this->info("✅ Sincronización completada: {$syncedCount}/{$totalSets} sets procesados");
+
+            Log::info("Scryfall sets sync completed", [
+                'total_sets' => $totalSets,
+                'synced_count' => $syncedCount
+            ]);
+
+            return 0;
+
+        } catch (\Exception $e) {
+            $this->error('❌ Error durante la sincronización: ' . $e->getMessage());
+            Log::error('Scryfall sets sync failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return 1;
         }
-
-        $bar->finish();
-        $this->newLine();
-        $this->info('Expansions updated successfully!');
-
-        return 0;
     }
 }

@@ -17,10 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // Configuración para autenticación stateless con Bearer Tokens
-        // Sanctum emitirá Opaque Tokens utilizados como Bearer Tokens estándar
-        // El middleware auth:sanctum validará exclusivamente la cabecera Authorization
-        // Sin statefulApi() para evitar cookies y forzar token explícito
+        $middleware->statefulApi();
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
@@ -38,6 +35,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             // \Illuminate\Http\Middleware\TrimStrings::class,
             // \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        ]);
+
+        // Excluir ruta de webhook de CSRF
+        $middleware->validateCsrfTokens(except: [
+            'api/webhooks/stripe',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

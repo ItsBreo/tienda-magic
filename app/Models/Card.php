@@ -28,6 +28,11 @@ class Card extends Model
         return $this->belongsTo(CardSet::class);
     }
 
+    // Relación polimórfica inversa con OrderItems
+    public function orderItems() {
+        return $this->morphMany(OrderItem::class, 'purchasable');
+    }
+
     public function scopeFilter($query, array $filters) {
         if ($filters['search'] ?? false) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
@@ -37,6 +42,32 @@ class Card extends Model
         }
         if ($filters['rarity'] ?? false) {
             $query->where('rarity', $filters['rarity']);
+        }
+
+        // Ordenar resultados
+        if ($filters['sort'] ?? false) {
+            switch ($filters['sort']) {
+                case 'name_asc':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'name_desc':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'price_asc':
+                    $query->orderBy('market_avg_price', 'asc');
+                    break;
+                case 'price_desc':
+                    $query->orderBy('market_avg_price', 'desc');
+                    break;
+                case 'newest':
+                    $query->orderBy('id', 'desc');
+                    break;
+                default:
+                    $query->orderBy('id', 'desc');
+                    break;
+            }
+        } else {
+            $query->orderBy('id', 'desc');
         }
     }
 }

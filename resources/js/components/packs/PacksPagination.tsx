@@ -6,6 +6,7 @@ interface PacksPaginationProps {
   totalPages: number;
   totalPacks: number;
   onPageChange: (page: number) => void;
+  category?: 'packs' | 'cards';
 }
 
 export default function PacksPagination({
@@ -13,6 +14,7 @@ export default function PacksPagination({
   totalPages,
   totalPacks,
   onPageChange,
+  category = 'packs',
 }: PacksPaginationProps) {
   // Seguridad de tipos: forzar casteo a números
   const current = Number(currentPage);
@@ -40,8 +42,13 @@ export default function PacksPagination({
 
       {/* Texto de información */}
       <div className="text-zinc-400 font-medium bg-zinc-900/50 px-6 py-2 rounded-full border border-zinc-800/50">
-        Página <span className="text-emerald-400 font-bold mx-1">{current}</span> de <span className="text-zinc-100 mx-1">{total}</span>
-        <span className="text-zinc-500 text-sm ml-2">({totalPacks} sobres)</span>
+        Página
+        <span className="text-emerald-400 font-bold mx-1">{current}</span>
+        de
+        <span className="text-zinc-100 mx-1">{total}</span>
+        <span className="text-zinc-500 text-sm ml-2">
+          ({totalPacks} {category === 'cards' ? 'cartas' : 'sobres'})
+        </span>
       </div>
 
       {/* Botón Siguiente */}

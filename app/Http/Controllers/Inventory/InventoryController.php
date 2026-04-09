@@ -24,10 +24,33 @@ class InventoryController extends Controller
     {
         $user = Auth::user();
 
-        // Paginamos y evitamos el N+1 cargando la carta y su set
-        $inventoryCards = InventoryCard::where('user_id', $user->id)
-            ->with('card.set')
+        // Paginamos y transformamos para que el frontend reciba lo que espera
+        $inventoryCardsPaginated = InventoryCard::where('user_id', $user->id)
+            ->with('card.cardSet')
             ->paginate(24);
+
+        $inventoryCards = $inventoryCardsPaginated->through(function($item) {
+            return [
+                'id' => $item->id,
+                'user_id' => $item->user_id,
+                'card_id' => $item->card_id,
+                'quantity' => $item->quantity,
+                'quantity_locked' => $item->quantity_locked,
+                'is_foil' => $item->is_foil,
+                'condition' => $item->condition,
+                'language' => $item->language,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+                'card' => $item->card ? [
+                    'id' => $item->card->id,
+                    'name' => $item->card->name,
+                    'image_url' => $item->card->image_url,
+                    'rarity' => $item->card->rarity,
+                    'market_avg_price' => $item->card->market_avg_price,
+                    'set' => $item->card->cardSet
+                ] : null
+            ];
+        });
 
         // Obtenemos los sobres del inventario
         $inventoryPacks = InventoryPack::where('user_id', $user->id)
@@ -37,6 +60,15 @@ class InventoryController extends Controller
         // Sumas directas en base de datos (sin cargar colecciones en memoria)
         $totalCards = InventoryCard::where('user_id', $user->id)->sum('quantity');
         $totalPacks = InventoryPack::where('user_id', $user->id)->sum('quantity');
+
+        \Illuminate\Support\Facades\Log::debug('Inventory data for user ' . $user->id, [
+            'cards_count' => $inventoryCards->count(),
+            'packs_count' => count($inventoryPacks),
+            'stats' => [
+                'totalCards' => $totalCards,
+                'totalPacks' => $totalPacks,
+            ]
+        ]);
 
         return response()->json([
             'inventoryCards' => $inventoryCards,
@@ -156,8 +188,8 @@ class InventoryController extends Controller
         // Antes cargabas todas las cartas en RAM para multiplicarlas.
         // Ahora le decimos a la base de datos que haga la multiplicación por nosotros usando JOIN.
         $totalValue = InventoryCard::where('user_id', $user->id)
-            ->join('cards', 'inventory_cards.card_id', '=', 'cards.id')
-            ->sum(DB::raw('inventory_cards.quantity * COALESCE(cards.market_avg_price, 0)'));
+            ->join('cards', 'inventory_card.card_id', '=', 'cards.id')
+            ->sum(DB::raw('inventory_card.quantity * COALESCE(cards.market_avg_price, 0)'));
 
         return response()->json([
             'totalCards' => $totalCards,

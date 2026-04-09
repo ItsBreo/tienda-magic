@@ -8,20 +8,22 @@ use Illuminate\Support\Facades\Broadcast;
 use App\Models\User;
 
 // Importaciones de Controladores
-use App\Http\Controllers\Shop\{CatalogController, CartController, CheckoutController, PackOpeningController, PackDetailController, DepositController};
+use App\Http\Controllers\Shop\{CatalogController, CartController, PackOpeningController, PackDetailController, DepositController};
 use App\Http\Controllers\Inventory\{InventoryController, DeckController, WalletTransactionController};
 use App\Http\Controllers\User\{UserController, LoginController, RegisterController, UserProfileController};
 use App\Http\Controllers\Settings\ProfileController as SettingsProfileController;
 use App\Http\Controllers\Card\{CardController, CardSetController, PackController};
 use App\Http\Controllers\Market\{MarketController, TransactionController};
 use App\Http\Controllers\Exchange\{ExchangeController, TradeController};
-use App\Http\Controllers\Social\{ForumController, ThreadController, CommentController, ProfileController as SocialProfileController};
+use App\Http\Controllers\Forum\{ForumController, ThreadController, CommentController, ProfileController as SocialProfileController};
+use App\Http\Controllers\Forum\{VoteController, SavedThreadController};
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\CookieController;
 use App\Http\Controllers\Api\SetController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\Api\StripeWebhookController;
 
 // Controladores de Admin
 use App\Http\Controllers\Admin\AdminUserController;
@@ -29,15 +31,21 @@ use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminSetController;
 use App\Http\Controllers\Admin\AdminCardController;
 
+// Controladores de Torneos
+use App\Http\Controllers\Tournament\TournamentController;
+use App\Http\Controllers\Tournament\TournamentRegistrationController;
+
 /*
 |--------------------------------------------------------------------------
 | Rutas Públicas
 |--------------------------------------------------------------------------
 */
 
-// Autenticación
-Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
-Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+// Autenticación (Requiere middleware 'web' para soporte de sesiones/cookies)
+Route::middleware('web')->group(function () {
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+});
 
 // Tienda y Catálogo
 Route::get('/shop', [CatalogController::class, 'index']);
@@ -71,6 +79,9 @@ Route::get('/store-stats', [DashboardController::class, 'getStats']);
 
 // --- PERFILES PÚBLICOS ---
 Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
+
+// --- WEBHOOKS DE STRIPE (Sin autenticación) ---
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook']);
 
 /*
 |--------------------------------------------------------------------------
@@ -159,7 +170,10 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
 
     // ========== CHECKOUT ==========
-    Route::post('/checkout', [CheckoutController::class, 'processFakeCheckout']);
+    Route::post('/checkout/process', [\App\Http\Controllers\Api\CheckoutController::class, 'processCheckout']);
+
+    // ========== WALLET RECARGA ==========
+    Route::post('/wallet/recharge', [\App\Http\Controllers\Api\WalletController::class, 'createRechargeSession']);
 
     // ========== BILLETERA ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
@@ -212,15 +226,49 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     });
 
     // ========== SOCIAL & FORO ==========
-    Route::prefix('forum')->group(function () {
-        Route::get('/', [ForumController::class, 'index']);
-        Route::get('/categories', [ForumController::class, 'categories']);
-        Route::post('/threads', [ForumController::class, 'createThread']);
-    });
 
-    Route::post('/comments', [CommentController::class, 'store']);
-    Route::patch('/comments/{id}', [CommentController::class, 'update']);
-    Route::delete('/comments/{id}', [CommentController::class, 'delete']);
+    // Foro (Lectura autenticada)
+    Route::get('/forums', [ForumController::class, 'index']);
+    Route::get('/forums/{forum}', [ForumController::class, 'show']);
+    Route::get('/threads', [ThreadController::class, 'index']);
+    Route::get('/threads/{thread}', [ThreadController::class, 'show']);
+
+    // Threads (escritura privada)
+    Route::post('/threads', [ThreadController::class, 'store']);
+    Route::put('/threads/{thread}', [ThreadController::class, 'update']);
+    Route::delete('/threads/{thread}', [ThreadController::class, 'destroy']);
+
+    // Comentarios
+    Route::post('/threads/{thread}/comments', [CommentController::class, 'store']);
+    Route::put('/comments/{comment}', [CommentController::class, 'update']);
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+    // Votos (threads y comentarios — polimórfico)
+    Route::post('/votes', [VoteController::class, 'store']);
+
+    // Guardados
+    Route::get('/saved', [SavedThreadController::class, 'index']);
+    Route::post('/saved/{thread}', [SavedThreadController::class, 'store']);
+    Route::delete('/saved/{thread}', [SavedThreadController::class, 'destroy']);
+
+    // ========== TORNEOS ==========
+
+    // Públicas (autenticado)
+    Route::get('/tournaments',          [TournamentController::class, 'index']);
+    Route::get('/tournaments/{tournament}', [TournamentController::class, 'show']);
+
+    // CRUD
+    Route::post('/tournaments',             [TournamentController::class, 'store']);
+    Route::patch('/tournaments/{tournament}', [TournamentController::class, 'update']);
+    Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy']);
+
+    // Inscripciones
+    Route::post('/tournaments/{tournament}/register',   [TournamentController::class, 'register']);
+    Route::delete('/tournaments/{tournament}/register', [TournamentController::class, 'unregister']);
+
+    // Gestión (creador/admin)
+    Route::get('/tournaments/{tournament}/registrations',                          [TournamentController::class, 'registrations']);
+    Route::patch('/tournaments/{tournament}/registrations/{registration}/confirm', [TournamentController::class, 'confirmRegistration']);
 
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);

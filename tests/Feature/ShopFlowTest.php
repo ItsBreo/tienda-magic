@@ -10,7 +10,7 @@ use App\Models\BoosterPack;
 use App\Models\CardSet;
 use App\Models\Cart;
 use App\Models\CartItem;
-use Inertia\Testing\AssertableInertia as Assert;
+// use Inertia\Testing\AssertableInertia as Assert;
 
 class ShopFlowTest extends TestCase
 {
@@ -22,7 +22,7 @@ class ShopFlowTest extends TestCase
 
         // Evitamos que el test falle por faltar el 'npm run build' o archivos .tsx
         $this->withoutVite();
-        config()->set('inertia.testing.ensure_pages_exist', false);
+        // config()->set('inertia.testing.ensure_pages_exist', false);
 
 
         // Creamos datos base para todos los tests

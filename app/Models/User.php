@@ -10,6 +10,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Modelo de Usuario del sistema.
@@ -167,9 +169,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function itemsForSale()
     {
-        // Esto trae los registros del inventario que pertenecen al usuario
-        // pero solo aquellos donde 'is_for_sale' sea verdadero (true/1)
-        return $this->hasMany(Inventory::class)->where('is_for_sale', true);
+        return $this->hasMany(InventoryCard::class)->where('is_for_sale', true);
     }
 
     // Relación filtrada para lo que vende
@@ -193,9 +193,9 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // Pedidos que ESTE usuario ha COMPRADO
-    public function purchases()
+    public function orders()
     {
-        return $this->hasMany(Order::class, 'buyer_id'); // Clave foránea explícita
+        return $this->hasMany(Order::class, 'user_id');
     }
 
     // Pedidos que ESTE usuario ha VENDIDO (a otros)
@@ -258,4 +258,46 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    // Threads creados por el usuario
+public function threads(): HasMany
+{
+    return $this->hasMany(Thread::class);
+}
+
+// Comentarios del usuario
+public function comments(): HasMany
+{
+    return $this->hasMany(Comment::class);
+}
+
+// Votos emitidos por el usuario
+public function votes(): HasMany
+{
+    return $this->hasMany(Vote::class);
+}
+
+// Threads guardados por el usuario
+public function savedThreads(): BelongsToMany
+{
+    return $this->belongsToMany(Thread::class, 'saved_threads')->withTimestamps();
+}
+
+public function createdTournaments()
+{
+    return $this->hasMany(Tournament::class, 'created_by');
+}
+
+public function tournamentRegistrations()
+{
+    return $this->hasMany(TournamentRegistration::class);
+}
+
+public function tournaments()
+{
+    return $this->belongsToMany(Tournament::class, 'tournament_registrations')
+                ->withPivot('status', 'registered_at', 'confirmed_at')
+                ->withTimestamps();
+}
+
 }

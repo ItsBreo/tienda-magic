@@ -48,24 +48,37 @@ class CheckoutController extends Controller
         $validItems = [];
 
         foreach ($cart->items as $item) {
-            // Validar que el pack aún existe y obtener precio actual
-            $pack = BoosterPack::find($item->booster_pack_id);
-            if (!$pack) {
-                // Eliminar items huérfanos y continuar
-                $item->delete();
-                continue;
+            $unitPrice = 0;
+            if ($item->booster_pack_id) {
+                // Validar que el pack aún existe
+                $pack = BoosterPack::find($item->booster_pack_id);
+                if (!$pack) {
+                    $item->delete();
+                    continue;
+                }
+                $unitPrice = $pack->price;
+            } elseif ($item->card_id) {
+                // Validar que la carta aún existe
+                $card = \App\Models\Card::find($item->card_id);
+                if (!$card) {
+                    $item->delete();
+                    continue;
+                }
+                $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
             }
 
-            $itemTotal = $pack->price * $item->quantity;
+            $itemTotal = $unitPrice * $item->quantity;
             $subtotal += $itemTotal;
 
             $validItems[] = [
                 'id' => $item->id,
                 'booster_pack_id' => $item->booster_pack_id,
+                'card_id' => $item->card_id,
                 'quantity' => $item->quantity,
-                'unit_price' => $pack->price,
+                'unit_price' => $unitPrice,
                 'total_price' => $itemTotal,
-                'booster_pack' => $item->boosterPack
+                'booster_pack' => $item->boosterPack,
+                'card' => $item->card
             ];
         }
 
@@ -134,25 +147,46 @@ class CheckoutController extends Controller
                 $validItems = [];
 
                 foreach ($cart->items as $item) {
-                    $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
-                    if (!$pack) {
-                        // Eliminar items huérfanos
-                        $item->delete();
-                        continue;
+                    $unitPrice = 0;
+                    if ($item->booster_pack_id) {
+                        $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
+                        if (!$pack) {
+                            $item->delete();
+                            continue;
+                        }
+                        if ($pack->stock < $item->quantity) {
+                            throw new \Exception("Stock insuficiente para el sobre: {$pack->name}");
+                        }
+                        $unitPrice = $pack->price;
+                        $pack->stock -= $item->quantity;
+                        $pack->save();
+                    } elseif ($item->card_id) {
+                        $card = \App\Models\Card::lockForUpdate()->find($item->card_id);
+                        if (!$card) {
+                            $item->delete();
+                            continue;
+                        }
+                        if ($card->stock < $item->quantity) {
+                            throw new \Exception("Stock insuficiente para la carta: {$card->name}");
+                        }
+                        $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
+                        $card->stock -= $item->quantity;
+                        $card->save();
                     }
 
                     // Validación adicional de integridad de precios
-                    if ($pack->price <= 0) {
-                        throw new \Exception('Precio inválido detectado para pack ID: ' . $pack->id);
+                    if ($unitPrice <= 0) {
+                        throw new \Exception('Precio inválido detectado para item ID: ' . ($item->booster_pack_id ?? $item->card_id));
                     }
 
-                    $itemTotal = $pack->price * $item->quantity;
+                    $itemTotal = $unitPrice * $item->quantity;
                     $subtotal += $itemTotal;
 
                     $validItems[] = [
                         'booster_pack_id' => $item->booster_pack_id,
+                        'card_id' => $item->card_id,
                         'quantity' => $item->quantity,
-                        'unit_price' => $pack->price,
+                        'unit_price' => $unitPrice,
                         'total_price' => $itemTotal
                     ];
                 }
@@ -210,6 +244,7 @@ class CheckoutController extends Controller
                     OrderItem::create([
                         'order_id' => $order->id,
                         'booster_pack_id' => $item['booster_pack_id'],
+                        'card_id' => $item['card_id'],
                         'quantity' => $item['quantity'],
                         'unit_price' => $item['unit_price'],
                         'total_price' => $item['total_price']
@@ -247,6 +282,14 @@ class CheckoutController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->validated()
             ]);
+
+            // Devolver mensaje específico al frontend si es por falta de stock
+            if (str_starts_with($e->getMessage(), 'Stock insuficiente')) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'error_code' => 'INSUFFICIENT_STOCK'
+                ], 400);
+            }
 
             // No exponer detalles del error al cliente por seguridad
             return response()->json([
@@ -302,74 +345,31 @@ class CheckoutController extends Controller
 
             // Crear los OrderItems (Líneas del ticket) y actualizar inventario
             foreach ($cartItems as $item) {
+                $price = 0;
+                if ($item->booster_pack_id) {
+                    $price = $item->boosterPack->price;
+                } elseif ($item->card_id) {
+                    $price = (float) ($item->card->market_avg_price > 0 ? $item->card->market_avg_price : 1.00);
+                }
+
                 \App\Models\OrderItem::create([
                     'order_id' => $order->id,
                     'booster_pack_id' => $item->booster_pack_id,
+                    'card_id' => $item->card_id,
                     'quantity' => $item->quantity,
-                    'price_at_purchase' => $item->boosterPack->price ?? 0
+                    'price_at_purchase' => $price
                 ]);
 
                 // Actualizar inventario del usuario
-                $inventoryItem = \App\Models\InventoryPack::firstOrNew([
-                    'user_id' => $user->id,
-                    'booster_pack_id' => $item->booster_pack_id
-                ]);
-
-                $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
-                $inventoryItem->save();
+                if ($item->booster_pack_id) {
+                    $inventoryItem = \App\Models\InventoryPack::firstOrNew([
+                        'user_id' => $user->id,
+                        'booster_pack_id' => $item->booster_pack_id
+                    ]);
+                    $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
+                    $inventoryItem->save();
+                }
             }
-
-            // Crítico: Vaciar el carrito
-            \App\Models\CartItem::where('cart_id', $cart->id)->delete();
-
-            return response()->json([
-                'message' => '¡Pedido completado con éxito! (Modo Demo)',
-                'order_id' => $order->id,
-                'total' => $total,
-                'items_count' => $cartItems->count()
-            ], 200);
         });
-    }
-
-    /**
-     * Muestra detalles del pedido para el usuario autenticado.
-     *
-     * @param int $orderId
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
-     */
-    public function show($orderId)
-    {
-        try {
-            $user = Auth::user();
-
-            $order = Order::with(['items.boosterPack.cardSet'])
-                          ->where('id', $orderId)
-                          ->where('user_id', $user->id)
-                          ->first();
-
-            if (!$order) {
-                return response()->json([
-                    'message' => 'Pedido no encontrado'
-                ], 404);
-            }
-
-            return response()->json([
-                'data' => [
-                    'order' => $order
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al obtener detalles del pedido', [
-                'user_id' => Auth::id(),
-                'order_id' => $orderId,
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'message' => 'Error al obtener los detalles del pedido'
-            ], 500);
-        }
     }
 }

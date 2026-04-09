@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Package, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PackQuantitySelector from './PackQuantitySelector';
 
 interface Pack {
   id: number;
@@ -10,6 +11,12 @@ interface Pack {
   type: string;
   cover_image?: string;
   image_uri?: string;
+  card_id?: number;
+  stock?: number;
+  card_set?: {
+    icon_svg_uri?: string;
+    code?: string;
+  };
   config: {
     commons?: number;
     uncommons?: number;
@@ -24,11 +31,28 @@ interface Pack {
 interface PackCardProps {
   pack: Pack;
   onClick: (pack: Pack) => void;
-  onBuyPack: (pack: Pack) => void;
+  onBuyPack: (pack: Pack, quantity: number) => void;
 }
 
 export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
+  const [quantity, setQuantity] = useState(1);
+
   const shouldShowImage = (imageSrc?: string) => !!imageSrc;
+
+  const getImageSrc = () => {
+    // Logica para Cartas Sueltas
+    if (pack.type === 'Singles' || pack.card_id !== undefined) {
+      return pack.image_uri || pack.image_url;
+    }
+
+    // Logica para Sobres / Packs
+    return pack.card_set?.icon_svg_uri || pack.cover_image || pack.image_uri;
+  };
+
+  const handleBuyPack = () => {
+    const finalQuantity = pack.type === 'Singles' ? quantity : 1;
+    onBuyPack(pack, finalQuantity);
+  };
 
   return (
     <div
@@ -44,12 +68,16 @@ export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
         className="w-full h-48 bg-zinc-900 rounded-lg mb-4 overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 p-4"
         onClick={() => onClick(pack)}
       >
-        {shouldShowImage(pack.cover_image || pack.image_uri) ? (
+        {shouldShowImage(getImageSrc()) ? (
           <img
-            src={pack.cover_image || pack.image_uri}
+            src={getImageSrc()}
             alt={pack.name}
             className="w-full h-full object-contain"
-            onError={() => {}}
+            onError={(e) => {
+              // Bug 4 Fix: Fallback si la imagen falla
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
@@ -69,22 +97,45 @@ export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
             Foil
           </span>
         )}
+        {/* Stock indicator for cards */}
+        {pack.type === 'Singles' && pack.stock !== undefined && (
+          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+            pack.stock > 0
+              ? 'bg-green-600/20 text-green-400'
+              : 'bg-red-600/20 text-red-400'
+          }`}>
+            Stock: {pack.stock}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
         <div className="text-xl font-bold text-emerald-400">
           €{pack.price.toFixed(2)}
         </div>
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            onBuyPack(pack);
-          }}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          Comprar
-        </Button>
+        <div className="flex flex-col gap-3">
+          {/* Quantity Selector - Only for Cards */}
+          <PackQuantitySelector
+            pack={pack}
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+            className="w-full"
+          />
+
+          {/* Buy Button */}
+          <Button
+            onClick={handleBuyPack}
+            disabled={pack.type === 'Singles' && pack.stock === 0}
+            className={`w-full px-4 py-2 rounded-lg transition-colors ${
+              pack.type === 'Singles' && pack.stock === 0
+                ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+            }`}
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            {pack.type === 'Singles' && pack.stock === 0 ? 'Agotado' : 'Comprar'}
+          </Button>
+        </div>
       </div>
     </div>
   );

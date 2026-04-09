@@ -29,14 +29,14 @@ class PackDetailController extends Controller
             ELSE 5
         END";
 
-        $possibleCards = Card::where('card_set_id', $pack->card_set_id)
+        $possibleCards = Card::where('set_code', $pack->card_set_id)
             ->orderByRaw($rarityOrder)
             ->orderBy('id', 'asc')
             ->take(20)
             ->get();
 
         // Buscar cartas con imagen para mostrar
-        $chaseCards = Card::where('card_set_id', $pack->card_set_id)
+        $chaseCards = Card::where('set_code', $pack->card_set_id)
             ->whereNotNull('image_uri')
             ->select('id', 'name', 'rarity', 'image_uri')
             ->orderBy('rarity', 'desc')

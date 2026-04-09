@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
- Package, LogOut, Settings, Shield,
+  Package, LogOut, Settings, Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatEuro } from '@/utils/formatMoney';
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -68,11 +69,14 @@ export function Navbar() {
                 <span className="text-sm text-zinc-400 hidden sm:inline">
                   {user.name}
                 </span>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-sm border border-zinc-800">
-                  <span className="text-sm font-medium text-amber-500">
-                    {Number(user.wallet_balance ?? 0).toFixed(2)}€
+                <Link
+                  to="/wallet"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-sm border border-zinc-800 hover:border-emerald-600 hover:bg-emerald-600/10 transition-all duration-200 group"
+                >
+                  <span className="text-sm font-medium text-amber-500 group-hover:text-emerald-400 transition-colors">
+                    {formatEuro(user.wallet_balance)}
                   </span>
-                </div>
+                </Link>
                 <Button
                   variant="ghost"
                   size="icon"

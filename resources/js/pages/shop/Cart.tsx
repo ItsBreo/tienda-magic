@@ -1,56 +1,97 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ShoppingCart, Package, Loader2 } from 'lucide-react';
+import { ShoppingCart, Package, Loader2, CreditCard, Wallet } from 'lucide-react';
 import apiService from '@/services/ApiService';
+import { useAuth } from '@/contexts/AuthContext';
 import CartItem from '@/components/cart/CartItem';
 import CartSummary from '@/components/cart/CartSummary';
 
 export default function Cart() {
     const navigate = useNavigate();
+    const { user, updateUser } = useAuth();
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'wallet' | 'stripe'>('wallet');
+    const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
     useEffect(() => {
         fetchCart();
     }, []);
 
-    const fetchCart = async () => {
+    const fetchCart = async (showLoader = true) => {
         try {
-            setLoading(true);
+            if (showLoader) setLoading(true);
             const response = await apiService.axiosInstance.get('/api/cart');
             const cartData = response.data?.data?.items || response.data?.items || response.data || [];
             setItems(Array.isArray(cartData) ? cartData : []);
         } catch (error) {
             console.error('Error al cargar carrito:', error);
-            toast.error('Error al sincronizar el carrito');
+            if (showLoader) toast.error('Error al sincronizar el carrito');
         } finally {
-            setLoading(false);
+            if (showLoader) setLoading(false);
         }
     };
 
     const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
-        if (newQuantity < 1) return;
+        if (updatingItems.has(itemId)) {
+            return;
+        }
+
+        const currentItem = items.find((item) => item.id === itemId);
+        if (!currentItem) {
+            toast.error('Producto no encontrado en el carrito');
+            return;
+        }
+
+        const stock = currentItem.stock || currentItem.booster_pack?.stock || currentItem.card?.stock || 0;
+
+        if (newQuantity < 1) {
+            await handleRemoveItem(itemId);
+            return;
+        }
+
+        if (newQuantity > stock) {
+            toast.error(`Solo hay ${stock} unidades disponibles`);
+            setItems([...items]);
+            return;
+        }
+
+        setUpdatingItems(prev => new Set(prev).add(itemId));
 
         try {
-            await apiService.axiosInstance.put(`/api/cart/${itemId}`, { quantity: newQuantity });
-
-            setItems(prevItems =>
-                prevItems.map(item =>
-                    item.id === itemId ? { ...item, quantity: newQuantity } : item
-                )
-            );
-        } catch (error) {
+            await apiService.updateCartItemQuantity(itemId, newQuantity, stock);
+            await fetchCart(false);
+            toast.success('Cantidad actualizada correctamente');
+        } catch (error: any) {
             console.error('Error al actualizar cantidad:', error);
-            toast.error('Error al actualizar la cantidad');
+
+            if (error.response?.status === 422) {
+                const backendMessage = error.response.data?.message ||
+                                       error.response.data?.error ||
+                                       'Límite de stock alcanzado para esta carta';
+                toast.error(backendMessage);
+                await fetchCart(false);
+            } else if (error.message) {
+                toast.error(error.message);
+                await fetchCart(false);
+            } else {
+                toast.error('Error al actualizar la cantidad');
+                await fetchCart(false);
+            }
+        } finally {
+            setUpdatingItems(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(itemId);
+                return newSet;
+            });
         }
     };
 
     const handleRemoveItem = async (itemId: number) => {
         try {
             await apiService.axiosInstance.delete(`/api/cart/${itemId}`);
-
             setItems(prevItems => prevItems.filter(item => item.id !== itemId));
             toast.success('Producto eliminado del carrito');
         } catch (error) {
@@ -66,28 +107,84 @@ export default function Cart() {
         }, 0).toFixed(2);
     };
 
-    const handleCheckout = async () => {
+    const isWalletBalanceInsufficient = () => {
+        const total = parseFloat(calculateTotal());
+        return (user?.wallet_balance || 0) < total;
+    };
+
+    const hasStockIssues = () => {
+        return items.some(item => {
+            const stock = item.stock || item.booster_pack?.stock || item.card?.stock || 0;
+            console.log('Verificando stock para item:', item, 'Stock disponible:', stock);
+            return item.quantity > stock;
+        });
+    };
+
+    const mapItemsToPayload = () => {
+        return items.map(item => {
+            if (item.card_id) {
+                return {
+                    purchasable_type: 'App\\Models\\Card',
+                    purchasable_id: item.card_id,
+                    quantity: item.quantity
+                };
+            } else if (item.booster_pack_id) {
+                return {
+                    purchasable_type: 'App\\Models\\BoosterPack',
+                    purchasable_id: item.booster_pack_id,
+                    quantity: item.quantity
+                };
+            }
+            return null;
+        }).filter(Boolean);
+    };
+
+    const handleCheckout = async (paymentMethod: 'wallet' | 'stripe') => {
         if (items.length === 0) {
             toast.error('Tu carrito está vacío');
+            return;
+        }
+
+        if (paymentMethod === 'wallet' && isWalletBalanceInsufficient()) {
+            toast.error('Saldo insuficiente en la billetera');
             return;
         }
 
         setIsCheckingOut(true);
 
         try {
-            const response = await apiService.axiosInstance.post('/api/checkout');
+            const payload = {
+                payment_method: paymentMethod,
+                items: mapItemsToPayload()
+            };
 
-            toast.success('¡Pedido completado! (Modo Demo)');
+            const response = await apiService.axiosInstance.post('/api/checkout/process', payload);
 
-            // Limpiar estado local
-            setItems([]);
+            if (paymentMethod === 'wallet') {
+                toast.success('¡Pedido completado con tu billetera!');
 
-            // Redirigir a dashboard
-            navigate('/dashboard');
+                if (response.data?.total_amount !== undefined) {
+                    const newBalance = (user?.wallet_balance || 0) - parseFloat(response.data.total_amount);
+                    updateUser({ wallet_balance: newBalance });
+                }
+
+                setItems([]);
+                navigate('/checkout/success');
+            } else {
+                if (response.data?.checkout_url) {
+                    window.location.href = response.data.checkout_url;
+                } else {
+                    throw new Error('No se recibió URL de checkout de Stripe');
+                }
+            }
 
         } catch (error: any) {
             console.error('Error en checkout:', error);
-            toast.error(error.response?.data?.message || 'Error al procesar el pedido');
+            if (error.response?.status === 422) {
+                toast.error(error.response.data.message || 'Error en el proceso de compra');
+            } else {
+                toast.error('Error al procesar el pedido. Inténtalo nuevamente.');
+            }
         } finally {
             setIsCheckingOut(false);
         }
@@ -139,6 +236,7 @@ export default function Cart() {
                                     item={item}
                                     onUpdateQuantity={handleUpdateQuantity}
                                     onRemove={handleRemoveItem}
+                                    isUpdating={updatingItems.has(item.id)}
                                 />
                             ))}
                         </div>
@@ -147,8 +245,13 @@ export default function Cart() {
                             <CartSummary
                                 itemCount={items.length}
                                 total={calculateTotal()}
+                                selectedPaymentMethod={selectedPaymentMethod}
+                                onPaymentMethodChange={setSelectedPaymentMethod}
                                 onCheckout={handleCheckout}
                                 isCheckingOut={isCheckingOut}
+                                walletBalance={user?.wallet_balance || 0}
+                                isWalletInsufficient={isWalletBalanceInsufficient()}
+                                hasStockIssues={hasStockIssues()}
                             />
                         </div>
                     </div>

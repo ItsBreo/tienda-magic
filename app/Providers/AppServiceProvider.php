@@ -14,6 +14,9 @@ use App\Models\Message;
 use App\Observers\MessageObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Tournament;
+use App\Policies\TournamentPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,5 +33,13 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(TransactionCompleted::class,[AchievementListener::class, 'handleTransactionCompleted']);
 
         Message::observe(MessageObserver::class);
+
+        // Registrar los listeners de eventos adicionales
+        Event::listen(
+            DeckCreated::class,
+            CheckFirstDeckAchievement::class
+        );
+
+        Gate::policy(Tournament::class, TournamentPolicy::class);
     }
 }

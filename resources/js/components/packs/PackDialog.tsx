@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Loader2, Package } from 'lucide-react';
 import { toast } from 'sonner';
-import { Plus, Minus, ShoppingCart, Loader2, Package } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import CardItem from '@/components/ui/CardItem';
 import CardLightbox from './CardLightbox';
+import SimpleCounter from '@/components/ui/SimpleCounter';
 import apiService from '@/services/ApiService';
+import { showAddToCartToast, showErrorToast } from '@/utils/toastUtils';
 
 interface Pack {
   id: number;
@@ -16,6 +18,7 @@ interface Pack {
   type: string;
   cover_image?: string;
   image_uri?: string;
+  stock?: number;
   config: {
     commons?: number;
     uncommons?: number;
@@ -24,6 +27,11 @@ interface Pack {
     foil?: boolean;
     total_cards?: number;
     description?: string;
+  };
+  chaseCards?: Card[];
+  card_set?: {
+    code?: string;
+    icon_svg_uri?: string;
   };
 }
 
@@ -50,10 +58,14 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset automático de cantidad cuando se cierra el modal
+  // Bug 3 Fix: Reset completo de estado cuando se cierra el modal
   useEffect(() => {
     if (!isOpen) {
       setQuantity(1);
+      setPackCards([]);
+      setLoadingCards(false);
+      setSelectedCardFullscreen(null);
+      setIsSubmitting(false);
     }
   }, [isOpen]);
 
@@ -62,11 +74,28 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
       const loadCards = async () => {
         try {
           setLoadingCards(true);
-          const cardsData = await apiService.getCardsBySet(pack.card_set_id);
+
+          // Usar las chaseCards que ya vienen en el pack del backend
+          if (pack.chaseCards) {
+            console.log('Using chaseCards from pack:', pack.chaseCards);
+            setPackCards(pack.chaseCards);
+            return;
+          }
+
+          // Fallback: Extraer código del set de forma segura
+          const setCode = pack.card_set?.code || pack.card_set_id || pack.set_code;
+          if (!setCode) {
+            console.warn('No set code available for pack:', pack);
+            setPackCards([]);
+            return;
+          }
+
+          const cardsData = await apiService.getCardsBySet(setCode);
+          console.log('Cards from API:', cardsData);
           setPackCards(cardsData || []);
         } catch (error) {
           console.error('Error cargando cartas del pack:', error);
-          toast.error('Error al cargar las cartas de este sobre');
+          showErrorToast('Error al cargar las cartas de este sobre');
           setPackCards([]);
         } finally {
           setLoadingCards(false);
@@ -93,25 +122,31 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
         quantity: quantity,
       });
 
-      toast.success('¡Añadido al carrito con éxito!');
+      showAddToCartToast(pack.name, quantity, 'pack');
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error añadiendo al carrito:', error);
-      toast.error('Error al añadir al carrito');
+
+      // Manejo específico de errores de stock
+      if (error.response?.status === 422) {
+        const errorMessage = error.response.data?.error || error.response.data?.message;
+        if (errorMessage) {
+          toast.error(errorMessage);
+        } else {
+          showErrorToast('Error de validación al añadir al carrito');
+        }
+
+        // Forzar actualización del carrito para sincronizar el estado
+        try {
+          await apiService.getCart();
+        } catch (cartError) {
+          console.error('Error al refrescar carrito:', cartError);
+        }
+      } else {
+        showErrorToast('Error al añadir al carrito');
+      }
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-
-  const increaseQuantity = () => {
-    if (quantity < 99) {
-      setQuantity(quantity + 1);
     }
   };
 
@@ -169,18 +204,30 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
             <div className="flex-1 flex flex-col p-6">
               {/* Portada del sobre */}
               <div className="w-full h-48 bg-zinc-800 rounded-xl mb-6 overflow-hidden border border-zinc-700">
-                {pack.cover_image || pack.image_uri ? (
-                  <img
-                    src={pack.cover_image || pack.image_uri}
-                    alt={pack.name}
-                    className="w-full h-full object-contain p-4"
-                    onError={() => {}}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
-                    <Package className="w-12 h-12 text-zinc-600" />
-                  </div>
-                )}
+                {(() => {
+                  // Bug 1 Fix: Priorizar nuevas fuentes de imagen del backend
+                  const imageSrc = pack.image_uri ||
+                                 pack.cover_image ||
+                                 pack.card_set?.icon_svg_uri;
+                  const hasImage = !!imageSrc;
+
+                  return hasImage ? (
+                    <img
+                      src={imageSrc}
+                      alt={pack.name}
+                      className="w-full h-full object-contain p-4"
+                      onError={(e) => {
+                        // Bug 1 Fix: Fallback si la imagen falla
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
+                      <Package className="w-12 h-12 text-zinc-600" />
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Información del pack */}
@@ -225,25 +272,14 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
                   <label className="text-zinc-400 text-sm font-medium mb-2 block">
                     Cantidad
                   </label>
-                  <div className="flex items-center gap-3 bg-zinc-800 rounded-lg px-4 py-3 border border-zinc-700">
-                    <button
-                      onClick={decreaseQuantity}
-                      disabled={quantity <= 1 || isSubmitting}
-                      className="p-2 rounded-lg hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Minus className="w-4 h-4 text-zinc-300" />
-                    </button>
-                    <span className="text-zinc-100 font-bold text-lg min-w-[3rem] text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={increaseQuantity}
-                      disabled={quantity >= 99 || isSubmitting}
-                      className="p-2 rounded-lg hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Plus className="w-4 h-4 text-zinc-300" />
-                    </button>
-                  </div>
+                  <SimpleCounter
+                    value={quantity}
+                    onChange={setQuantity}
+                    min={1}
+                    max={99}
+                    stock={pack.stock}
+                    disabled={isSubmitting}
+                  />
                 </div>
 
                 <div className="space-y-3">

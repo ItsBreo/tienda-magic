@@ -73,6 +73,7 @@ export function useLogin() {
   };
 
   return {
+    isAuthenticated: !!useAuth().user,
     formData,
     errors,
     loading,

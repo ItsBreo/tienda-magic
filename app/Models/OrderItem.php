@@ -8,7 +8,8 @@ class OrderItem extends Model
 {
     protected $fillable = [
         'order_id',
-        'booster_pack_id',
+        'purchasable_type',
+        'purchasable_id',
         'quantity',
         'price_at_purchase'
     ];
@@ -17,7 +18,8 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function boosterPack() {
-        return $this->belongsTo(BoosterPack::class);
+    // Relación polimórfica con productos (Cards, BoosterPacks, etc.)
+    public function purchasable() {
+        return $this->morphTo();
     }
 }

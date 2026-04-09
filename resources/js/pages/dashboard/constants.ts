@@ -1,5 +1,5 @@
 import {
- ShoppingBag, Package, Gift, Sparkles,
+ ShoppingBag, Package, Gift, Sparkles, Wallet,
 } from 'lucide-react';
 
 export const FEATURED_PACKS = [
@@ -16,17 +16,20 @@ export const FEATURED_PACKS = [
 
 export const QUICK_ACTIONS = [
     {
- title: 'Explorar Tienda', description: 'Descubre booster packs', icon: ShoppingBag, theme: 'mtg-theme-green', href: '/shop',
-},
+        title: 'Explorar Tienda', description: 'Descubre booster packs', icon: ShoppingBag, theme: 'mtg-theme-green', href: '/shop',
+    },
     {
- title: 'Mi Carrito', description: 'Gestiona tus compras', icon: Package, theme: 'mtg-theme-blue', href: '/cart',
-},
+        title: 'Mi Carrito', description: 'Gestiona tus compras', icon: Package, theme: 'mtg-theme-blue', href: '/cart',
+    },
     {
- title: 'Abrir Packs', description: 'Descubre cartas épicas', icon: Gift, theme: 'mtg-theme-mythic', href: '#', disabled: true,
-},
+        title: 'Mi Billetera', description: 'Recarga saldo y gestiona fondos', icon: Wallet, theme: 'mtg-theme-emerald', href: '/wallet',
+    },
     {
- title: 'Mi Colección', description: 'Explora tu inventario', icon: Sparkles, theme: 'mtg-theme-rare', href: '#', disabled: true,
-},
+        title: 'Abrir Packs', description: 'Descubre cartas épicas', icon: Gift, theme: 'mtg-theme-mythic', href: '#', disabled: true,
+    },
+    {
+        title: 'Mi Colección', description: 'Explora tu inventario', icon: Sparkles, theme: 'mtg-theme-rare', href: '#', disabled: true,
+    },
 ];
 
 export const getColorClasses = (color: string) => {
