@@ -20,7 +20,7 @@ class Exchange extends Model
 
     public function offeredCard()
     {
-        return $this->belongsTo(InventoryCard::class, 'offered_inventory_card_id');
+        return $this->belongsTo(InventoryCard::class, 'offered_inventory_card_id')->withTrashed();
     }
 
     public function requestedCard()

@@ -30,9 +30,22 @@ class TradeController extends Controller
             ->where('status', 'pending')
             ->get();
 
+        // Completados: Historial (yo pedí o me pidieron)
+        $completed = ExchangeRequest::with(['exchange.offeredCard.card', 'offeredCard.card', 'user', 'exchange.user', 'tradeSession'])
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->orWhereHas('exchange', function ($q) use ($user) {
+                          $q->where('user_id', $user->id);
+                      });
+            })
+            ->where('status', 'completed')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
         return response()->json([
             'sent' => $sent,
-            'received' => $received
+            'received' => $received,
+            'completed' => $completed
         ]);
     }
 
@@ -212,13 +225,37 @@ class TradeController extends Controller
 
                 $exchange->status = 'completed';
                 $exchange->save();
+
+                // ---------- AUDIT LOG ----------
+                $timestamp = now()->format('Y-m-d_H-i-s');
+                $creatorUsername = $exchange->user->username ?? $exchange->user->name ?? 'unknown';
+                $creatorUsernameSafe = preg_replace('/[^A-Za-z0-9_]/', '', str_replace(' ', '_', $creatorUsername));
+                $logFilename = "{$timestamp}_{$creatorUsernameSafe}.log";
+
+                $logContent = "TRADE SESSION CONFIRMED\n";
+                $logContent .= "===============================\n";
+                $logContent .= "Date: " . now()->toDateTimeString() . "\n";
+                $logContent .= "Session ID: {$session->id}\n";
+                $logContent .= "Exchange ID: {$exchange->id}\n\n";
+
+                $logContent .= "--- USER 1 (Creator) ---\n";
+                $logContent .= "Name: {$exchange->user->name} (ID: {$exchange->user->id})\n";
+                $logContent .= "Gave: {$card1->card->name} [{$card1->condition} / {$card1->language}]\n\n";
+
+                $logContent .= "--- USER 2 (Requester) ---\n";
+                $logContent .= "Name: {$req->user->name} (ID: {$req->user->id})\n";
+                $logContent .= "Gave: {$card2->card->name} [{$card2->condition} / {$card2->language}]\n\n";
+
+                $logContent .= "Status: COMPLETED\n";
+                
+                \Illuminate\Support\Facades\Storage::disk('local')->put("trade_logs/{$logFilename}", $logContent);
             }
 
             DB::commit();
             return response()->json($session);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Error al confirmar'], 500);
+            return response()->json(['message' => 'Error al confirmar: ' . $e->getMessage() . ' - File: ' . $e->getFile() . ' - Line: ' . $e->getLine()], 500);
         }
     }
 }

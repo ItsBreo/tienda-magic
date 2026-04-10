@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 export default function ManageExchanges() {
   const [sent, setSent] = useState([]);
   const [received, setReceived] = useState([]);
+  const [completed, setCompleted] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,6 +18,7 @@ export default function ManageExchanges() {
       const data = await apiService.getMyRequests();
       setSent(data.sent);
       setReceived(data.received);
+      setCompleted(data.completed || []);
     } catch (e) {
       toast.error('Error al cargar tus peticiones');
     }
@@ -49,9 +51,8 @@ export default function ManageExchanges() {
         <p className="text-zinc-400 mt-2">Revisa las ofertas que te han enviado o las que has propuesto a otros.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Recibidas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        {/* Recibidas (Código Omitido por Brevedad, mantenemos el mismo de antes) */}
         <div>
           <h2 className="text-xl font-semibold mb-4 text-emerald-400 flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
@@ -167,6 +168,50 @@ export default function ManageExchanges() {
           </div>
         </div>
 
+      </div>
+
+      {/* HISTORIAL DE INTERCAMBIOS */}
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2 border-b border-zinc-800 pb-4">
+          <svg className="w-6 h-6 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Historial de Intercambios
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {completed.length === 0 && (
+            <div className="col-span-full py-10 bg-zinc-800/30 border border-zinc-800 border-dashed rounded-xl text-center text-zinc-500">
+              Todavía no has completado ningún intercambio.
+            </div>
+          )}
+
+          {completed.map((hist: any) => {
+            const date = new Date(hist.updated_at).toLocaleDateString();
+            return (
+              <div key={`hist-${hist.id}`} className="bg-zinc-800/50 border border-zinc-700/50 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                <div className="flex-1 bg-zinc-900/50 p-3 rounded-lg border border-zinc-700/50">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Carta Entregada</p>
+                  <p className="text-sm text-white font-medium truncate">{hist.exchange?.user_id === hist.user_id ? hist.exchange?.offered_card?.card?.name : hist.offered_card?.card?.name}</p>
+                </div>
+                
+                <div className="px-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                  </div>
+                </div>
+
+                <div className="flex-1 bg-zinc-900/50 p-3 rounded-lg border border-zinc-700/50">
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Carta Recibida</p>
+                  <p className="text-sm text-indigo-300 font-medium truncate">{hist.exchange?.user_id === hist.user_id ? hist.offered_card?.card?.name : hist.exchange?.offered_card?.card?.name}</p>
+                </div>
+                
+                <div className="ml-4 text-right min-w-[70px]">
+                  <p className="text-xs text-zinc-400">{date}</p>
+                  <p className="text-[10px] text-emerald-500 font-bold uppercase mt-1">Completado</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
