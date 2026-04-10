@@ -1,0 +1,316 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Tienda Magic API",
+        "description": "Documentación de la API de Tienda Magic Swagger OpenApi",
+        "contact": {
+            "email": "soporte@tiendamagic.com"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/sets/latest": {
+            "get": {
+                "tags": [
+                    "Sets"
+                ],
+                "summary": "Obtener el último set (expansión)",
+                "description": "Devuelve la información del set de cartas más reciente.",
+                "operationId": "b530390af3077199a6f1f86748fad44b",
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa"
+                    }
+                }
+            }
+        },
+        "/api/cart": {
+            "get": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Ver el carrito del usuario",
+                "description": "Devuelve los items del carrito actual calculando los subtotales.",
+                "operationId": "696ee701284616e88b7f3ca704ec235d",
+                "responses": {
+                    "200": {
+                        "description": "Carrito obtenido con éxito"
+                    },
+                    "401": {
+                        "description": "No autorizado (Falta Token JWT)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Añadir producto al carrito",
+                "description": "Añade un Booster Pack o una Carta Suelta al carrito. Si el producto ya existe, suma la cantidad.",
+                "operationId": "d8147034f361939fffc3ecb770d3d7ec",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "booster_pack_id": {
+                                        "type": "integer",
+                                        "example": 5,
+                                        "nullable": true
+                                    },
+                                    "card_id": {
+                                        "type": "integer",
+                                        "example": null,
+                                        "nullable": true
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Producto añadido al carrito con éxito"
+                    },
+                    "400": {
+                        "description": "Producto no especificado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Iniciar sesión de usuario",
+                "description": "Autentica al usuario con email y contraseña, devoliendo un token JWT para peticiones protegidas.",
+                "operationId": "f8f9e9dde19a816a36ac1ae9d704d6eb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password",
+                                    "recaptcha_token"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "usuario@ejemplo.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreta123"
+                                    },
+                                    "recaptcha_token": {
+                                        "type": "string",
+                                        "example": "token_generado_por_google"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login exitoso, devuelve JWT",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sesión iniciada correctamente."
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGci..."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Saul"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "usuario@ejemplo.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (contraseña incorrecta, falta captcha, etc)"
+                    }
+                }
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Registrar un usuario",
+                "description": "Crea un usuario nuevo, le asigna el rol 'user' y lo autentica automáticamente devolviendo el JWT.",
+                "operationId": "dcbd07d28fe60878864011b9fd551690",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "username",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "recaptcha_token"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Nuevo Usuario"
+                                    },
+                                    "username": {
+                                        "type": "string",
+                                        "example": "nuevoUser99"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "nuevo@ejemplo.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreta123",
+                                        "minLength": 8
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreta123"
+                                    },
+                                    "recaptcha_token": {
+                                        "type": "string",
+                                        "example": "token_generado_por_google"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario registrado con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuario registrado e inicio de sesión exitoso."
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJ..."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Nuevo Usuario"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "nuevoUser99"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "nuevo@ejemplo.com"
+                                                },
+                                                "wallet_balance": {
+                                                    "type": "integer",
+                                                    "example": 0
+                                                },
+                                                "is_admin": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (email en uso, contraseñas no coinciden, etc.)"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Sets",
+            "description": "Sets"
+        },
+        {
+            "name": "Cart",
+            "description": "Cart"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        }
+    ]
+}
