@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Broadcast;
 use App\Models\User;
 
 // Importaciones de Controladores
-use App\Http\Controllers\Shop\{CatalogController, CartController, PackOpeningController, PackDetailController, DepositController};
+use App\Http\Controllers\Shop\{CatalogController, CartController, CheckoutController, PackOpeningController, PackDetailController, DepositController, InvoiceController};
 use App\Http\Controllers\Inventory\{InventoryController, DeckController, WalletTransactionController};
 use App\Http\Controllers\User\{UserController, LoginController, RegisterController, UserProfileController};
 use App\Http\Controllers\Settings\ProfileController as SettingsProfileController;
@@ -174,6 +174,9 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
 
     // ========== WALLET RECARGA ==========
     Route::post('/wallet/recharge', [\App\Http\Controllers\Api\WalletController::class, 'createRechargeSession']);
+    Route::post('/checkout', [CheckoutController::class, 'processFakeCheckout']);
+    // Descarga de facturas
+    Route::get('/orders/{id}/invoice', [InvoiceController::class, 'download']);
 
     // ========== BILLETERA ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
