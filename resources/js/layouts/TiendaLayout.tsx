@@ -32,85 +32,104 @@ export default function TiendaLayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] font-sans flex flex-col">
       {/* Header Navigation */}
-      <header className="bg-zinc-900 border-b border-zinc-800">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <header className="bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-50">
+        <div className="max-w-[1600px] mx-auto px-6 py-3.5">
           <div className="flex items-center justify-between">
+
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-emerald-600 rounded-lg">
-                <div className="p-2 bg-black rounded-lg">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                    <div className="text-2xl font-bold text-black">TM</div>
-                  </div>
-                </div>
+              {/* Icono de cubo estilo la imagen */}
+              <div className="w-8 h-8 flex items-center justify-center text-[var(--accent)]">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                   <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                   <line x1="12" y1="22.08" x2="12" y2="12" />
+                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-white">Tienda Magic</h1>
+              <h1 className="text-[17px] font-bold text-[var(--text-primary)] tracking-tight">Tienda Magic</h1>
             </div>
 
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <a
-                href="/dashboard"
-                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+            {/* Navigation (Ajustada a la imagen) */}
+            <nav className="hidden md:flex items-center gap-7 text-[14px]">
+              <Link
+                to="/dashboard"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-medium"
               >
                 Inicio
-              </a>
-              <a
-                href="/shop"
-                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+              </Link>
+              <Link
+                to="/shop"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-medium"
               >
-                Tienda
-              </a>
-              <a
-                href="/cart"
-                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                Catálogo
+              </Link>
+              <Link
+                to="/cart"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-medium"
               >
                 Carrito
-              </a>
+              </Link>
+              <Link
+                to="/collection"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-medium"
+              >
+                Mi Colección
+              </Link>
+              <Link
+                to="/vault"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-md border border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors font-medium"
+              >
+                <span className="text-lg leading-none">⬡</span> Bóveda
+              </Link>
             </nav>
 
             {/* User Menu */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5 text-[14px]">
               {user ? (
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-zinc-300">
+                <div className="flex items-center gap-4">
+                  <span className="text-[var(--text-secondary)] font-medium">
                     {user.name}
                   </span>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-lg border border-zinc-700">
-                    <span className="text-sm font-medium text-emerald-400">
-                      {Number(user.wallet_balance ?? 0).toFixed(2)}€
+
+                  {/* Balance estilo imagen */}
+                  <div className="flex items-center px-3 py-1.5 bg-[var(--surface-2)] rounded-md border border-[var(--border)]">
+                    <span className="font-semibold text-[var(--accent)]">
+                      €{Number(user.wallet_balance ?? 0).toFixed(2)}
                     </span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg h-9 w-9"
-                    onClick={() => navigate('/profile')}
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-zinc-300 hover:text-red-400 hover:bg-red-950/30 rounded-lg h-9 w-9"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
+
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] rounded-md h-8 w-8 cursor-pointer transition-colors"
+                      onClick={() => navigate('/profile')}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] rounded-md h-8 w-8 cursor-pointer transition-colors"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
+                <div className="flex items-center gap-3">
                   <Link
                     to="/login"
-                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-medium"
                   >
                     Iniciar Sesión
                   </Link>
                   <Link
                     to="/register"
-                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                    className="bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors px-4 py-1.5 rounded-md font-medium"
                   >
                     Registrarse
                   </Link>
@@ -123,17 +142,17 @@ export default function TiendaLayout({
 
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <div className="bg-zinc-900/50 border-b border-zinc-800">
-          <div className="max-w-7xl mx-auto px-6 py-3">
-            <nav className="flex items-center gap-2 text-sm">
+        <div className="bg-[var(--surface)]/50 border-b border-[var(--border)]">
+          <div className="max-w-[1600px] mx-auto px-6 py-2.5">
+            <nav className="flex items-center gap-2 text-[13px]">
               {breadcrumbs.map((breadcrumb, index) => (
                 <div key={index} className="flex items-center gap-2">
                   {index > 0 && (
-                    <span className="text-zinc-600">/</span>
+                    <span className="text-[var(--text-muted)]">/</span>
                   )}
                   <a
                     href={breadcrumb.href}
-                    className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                   >
                     {breadcrumb.title}
                   </a>
@@ -150,39 +169,33 @@ export default function TiendaLayout({
       </main>
 
       {/* Footer */}
-      <footer className="bg-zinc-900 border-t border-zinc-800 mt-auto">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+      <footer className="bg-[var(--surface)] border-t border-[var(--border)] mt-auto">
+        <div className="max-w-[1600px] mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-center">
-              <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.</p>
-              <p className="text-zinc-600 text-xs mt-1">
+            <div className="text-center md:text-left">
+              <p className="text-[var(--text-muted)] text-[13px]">© {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.</p>
+              <p className="text-[var(--text-muted)] opacity-70 text-[12px] mt-1">
                 Tu tienda especializada en cartas Magic: The Gathering
               </p>
             </div>
-            <div className="flex items-center gap-6 text-xs text-zinc-600">
-              {/* eslint-disable-next-line @typescript-eslint/no-empty-function */}
+            <div className="flex items-center gap-6 text-[12px]">
               <button
                 type="button"
-                onClick={() => {}}
-                className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 Términos
               </button>
-              <span className="text-zinc-600">•</span>
-              {/* eslint-disable-next-line @typescript-eslint/no-empty-function */}
+              <span className="text-[var(--border)]">•</span>
               <button
                 type="button"
-                onClick={() => {}}
-                className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 Privacidad
               </button>
-              <span className="text-zinc-600">•</span>
-              {/* eslint-disable-next-line @typescript-eslint/no-empty-function */}
+              <span className="text-[var(--border)]">•</span>
               <button
                 type="button"
-                onClick={() => {}}
-                className="text-zinc-400 hover:text-emerald-400 transition-colors duration-200"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 Contacto
               </button>

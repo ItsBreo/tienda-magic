@@ -15,6 +15,7 @@ interface User {
     email: string;
     wallet_balance?: number;
     is_admin?: boolean;
+    role_name?: string;
     two_factor_enabled?: boolean;
 }
 
@@ -90,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
 
             setUser(authResponse.data);
-        } catch (error) {
+        } catch (error: any) {
             if (error.message === 'TWO_FACTOR_REQUIRED') {
                 throw error; // Propagar para manejo en componente
             }

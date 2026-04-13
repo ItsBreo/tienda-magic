@@ -11,12 +11,16 @@ use App\Events\CardListed;
 use App\Events\TransactionCompleted;
 use App\Listeners\AchievementListener;
 use App\Models\Message;
+use App\Models\Thread;
+use App\Models\Comment;
 use App\Observers\MessageObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Tournament;
 use App\Policies\TournamentPolicy;
+use App\Policies\ThreadPolicy;
+use App\Policies\CommentPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,22 +28,19 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Event::listen(DeckCreated::class,         [AchievementListener::class, 'handleDeckCreated']);
-        Event::listen(UserRegistered::class,      [AchievementListener::class, 'handleUserRegistered']);
-        Event::listen(EmailVerified::class,       [AchievementListener::class, 'handleEmailVerified']);
-        Event::listen(PackPurchased::class,       [AchievementListener::class, 'handlePackPurchased']);
-        Event::listen(CardPurchased::class,       [AchievementListener::class, 'handleCardPurchased']);
-        Event::listen(CardListed::class,          [AchievementListener::class, 'handleCardListed']);
-        Event::listen(TransactionCompleted::class,[AchievementListener::class, 'handleTransactionCompleted']);
+        Event::listen(DeckCreated::class,          [AchievementListener::class, 'handleDeckCreated']);
+        Event::listen(UserRegistered::class,       [AchievementListener::class, 'handleUserRegistered']);
+        Event::listen(EmailVerified::class,        [AchievementListener::class, 'handleEmailVerified']);
+        Event::listen(PackPurchased::class,        [AchievementListener::class, 'handlePackPurchased']);
+        Event::listen(CardPurchased::class,        [AchievementListener::class, 'handleCardPurchased']);
+        Event::listen(CardListed::class,           [AchievementListener::class, 'handleCardListed']);
+        Event::listen(TransactionCompleted::class, [AchievementListener::class, 'handleTransactionCompleted']);
 
         Message::observe(MessageObserver::class);
 
-        // Registrar los listeners de eventos adicionales
-        Event::listen(
-            DeckCreated::class,
-            CheckFirstDeckAchievement::class
-        );
-
+        // Policies del foro
         Gate::policy(Tournament::class, TournamentPolicy::class);
+        Gate::policy(Thread::class,     ThreadPolicy::class);
+        Gate::policy(Comment::class,    CommentPolicy::class);
     }
 }

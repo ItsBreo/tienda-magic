@@ -145,7 +145,7 @@ export default function Profile() {
 
                 if (userData.profile) {
                     setHasProfile(true);
-                    setReputation(userData.profile.reputation_score);
+                    setReputation(userData.reputation);
                     setFormData({
                         display_name: userData.profile.display_name || '',
                         bio: userData.profile.bio || '',
@@ -280,7 +280,6 @@ export default function Profile() {
 
     return (
         <TiendaMagicLayout breadcrumbs={[{ title: 'Mi Perfil', href: '/profile' }]}>
-
             {/* ── BANNER ─────────────────────────────────────────────────── */}
             <div className="relative h-56 bg-zinc-950">
                 <div className="absolute inset-0 overflow-hidden">

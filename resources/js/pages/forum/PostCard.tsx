@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { Post } from "./types";
 import { CAT_LABELS } from "./constants";
 import ApiService from "../../services/ApiService";
+import { useAuth } from "../../contexts/AuthContext";
+import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
+import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
 const CAT_CLASS: Record<string, string> = {
   noticias:   "cat-noticias",
@@ -44,16 +48,34 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   );
 }
 
-function ActionBtn({ label, onClick, active }: { label: string; onClick?: () => void; active?: boolean; }) {
+function ActionBtn({ label, onClick, active, variant = "default" }: { label: string | React.ReactNode; onClick?: () => void; active?: boolean; variant?: "default" | "danger" }) {
+  const baseClasses = "flex items-center gap-1.5 py-1 px-2 rounded border-none bg-transparent text-xs cursor-pointer transition-all duration-150";
+  const variants = {
+    default: `hover:bg-blue-500/10 hover:text-[var(--text-secondary)] ${active ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)] font-normal'}`,
+    danger: "hover:bg-red-500/10 text-[var(--red)] font-normal",
+  };
+
   return (
-    <button onClick={onClick} className={`flex items-center gap-1.5 py-1 px-2 rounded border-none bg-transparent text-xs cursor-pointer transition-all duration-150 hover:bg-blue-500/10 hover:text-[var(--text-secondary)] ${active ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)] font-normal'}`}>
+    <button onClick={onClick} className={`${baseClasses} ${variants[variant]}`}>
       {label}
     </button>
   );
 }
 
-export default function PostCard({ post, onOpen }: { post: Post; onOpen: () => void }) {
+export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post; onOpen: () => void; onDeleteSuccess?: () => void }) {
+  const { user } = useAuth();
   const [isSaved, setIsSaved] = useState((post as any).isSaved || false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Comprobación de permisos para borrar
+  const canDelete = user && (
+    user.id === post.author_id || 
+    user.is_admin || 
+    (user.role_name === 'mod_news' && post.forum_id === 2) ||
+    (user.role_name === 'mod_tournaments' && post.forum_id === 5) ||
+    (user.role_name === 'mod_general' && post.forum_id === 1)
+  );
 
   useEffect(() => {
     setIsSaved((post as any).isSaved || false);
@@ -71,6 +93,26 @@ export default function PostCard({ post, onOpen }: { post: Post; onOpen: () => v
     } catch (err) {
       console.error("Error al guardar/quitar hilo:", err);
       setIsSaved(!newVal);
+    }
+  };
+
+  const handleDelete = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await ApiService.deleteThread(post.id);
+      toast.success("Post eliminado correctamente");
+      setShowDeleteDialog(false);
+      if (onDeleteSuccess) onDeleteSuccess();
+    } catch (err) {
+      console.error("Error al eliminar post:", err);
+      toast.error("No se pudo eliminar el post");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -106,12 +148,31 @@ export default function PostCard({ post, onOpen }: { post: Post; onOpen: () => v
           ))}
         </div>
 
-        <div className="flex gap-0.5">
+        <div className="flex gap-0.5 mt-auto">
           <ActionBtn label={`💬 ${post.comments} comentarios`} onClick={onOpen} />
           <ActionBtn label="🔗 Compartir" />
           <ActionBtn label={isSaved ? "🔖 Guardado" : "🔖 Guardar"} onClick={toggleSave} active={isSaved} />
+          
+          {canDelete && (
+            <div className="ml-auto">
+              <ActionBtn 
+                label={<Trash2 size={14} />} 
+                variant="danger" 
+                onClick={handleDelete} 
+              />
+            </div>
+          )}
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        title="¿Eliminar publicación?"
+        description={`Estás a punto de eliminar "${post.title}". Esta acción es permanente y borrará todos los comentarios asociados.`}
+      />
     </div>
   );
 }

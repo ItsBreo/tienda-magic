@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('exchange_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('offered_inventory_card_id')->constrained('inventory_card')->cascadeOnDelete();
-            $table->enum('status', ['pending', 'accepted', 'rejected', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'rejected', 'cancelled', 'completed'])->default('pending');
             $table->timestamps();
         });
     }

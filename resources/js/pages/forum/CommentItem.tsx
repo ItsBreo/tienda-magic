@@ -1,16 +1,31 @@
 import { useState, useEffect } from "react";
 import { Comment, Reply } from "./types";
 import ApiService from "../../services/ApiService";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
+import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
-function ReplyItem({ reply }: { reply: Reply }) {
+function ReplyItem({ reply, forumId, onDelete }: { reply: Reply; forumId: number; onDelete: (id: number) => void }) {
+  const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(reply.score || 0);
   const [vote, setVote] = useState<1 | -1 | 0>((reply as any).userVote || 0);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setScore(reply.score || 0);
     setVote((reply as any).userVote || 0);
   }, [reply.score, (reply as any).userVote]);
+
+  const canDelete = user && (
+    user.id === reply.author_id || 
+    user.is_admin || 
+    (user.role_name === 'mod_news' && forumId === 2) ||
+    (user.role_name === 'mod_tournaments' && forumId === 5) ||
+    (user.role_name === 'mod_general' && forumId === 1)
+  );
 
   const cast = async (dir: 1 | -1) => {
     const newVote = vote === dir ? 0 : dir;
@@ -24,6 +39,24 @@ function ReplyItem({ reply }: { reply: Reply }) {
     } catch (err) {
       setScore(s => s - scoreDiff);
       setVote(vote);
+    }
+  };
+
+  const handleDelete = async () => {
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await ApiService.deleteComment(reply.id);
+      toast.success("Respuesta eliminada");
+      setShowDeleteDialog(false);
+      onDelete(reply.id);
+    } catch (err) {
+      toast.error("Error al eliminar");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -41,7 +74,7 @@ function ReplyItem({ reply }: { reply: Reply }) {
   }
 
   return (
-    <div className="py-2 pl-8 pr-3.5 border-b border-[var(--border)] flex gap-2.5 bg-white/5">
+    <div className="py-2 pl-8 pr-3.5 border-b border-[var(--border)] flex gap-2.5 bg-white/5 group">
       <div className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0" style={{ background: reply.avatarColor }}>
         {reply.initials}
       </div>
@@ -54,25 +87,53 @@ function ReplyItem({ reply }: { reply: Reply }) {
         <div className={`text-[13px] leading-relaxed mb-1.5 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
           {reply.body}
         </div>
-        <div className="flex gap-0.5">
+        <div className="flex gap-0.5 items-center">
           <button onClick={() => cast(1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
           <button onClick={() => cast(-1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
           <button className="py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">💬 Responder</button>
+          {canDelete && (
+            <button 
+              onClick={handleDelete}
+              className="ml-auto opacity-0 group-hover:opacity-100 p-1 text-[var(--red)] hover:bg-red-500/10 rounded transition-all cursor-pointer"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        title="¿Eliminar respuesta?"
+        description="Esta respuesta se borrará permanentemente."
+      />
     </div>
   );
 }
 
-export default function CommentItem({ comment }: { comment: Comment }) {
+export default function CommentItem({ comment, forumId, onDelete }: { comment: Comment; forumId: number; onDelete: (id: number) => void }) {
+  const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(comment.score || 0);
   const [vote, setVote] = useState<1 | -1 | 0>((comment as any).userVote || 0);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setScore(comment.score || 0);
     setVote((comment as any).userVote || 0);
   }, [comment.score, (comment as any).userVote]);
+
+  const canDelete = user && (
+    user.id === comment.author_id || 
+    user.is_admin || 
+    (user.role_name === 'mod_news' && forumId === 2) ||
+    (user.role_name === 'mod_tournaments' && forumId === 5) ||
+    (user.role_name === 'mod_general' && forumId === 1)
+  );
 
   const cast = async (dir: 1 | -1) => {
     const newVote = vote === dir ? 0 : dir;
@@ -89,7 +150,25 @@ export default function CommentItem({ comment }: { comment: Comment }) {
     }
   };
 
-  const isHidden = comment.hidden || score < -5;
+  const handleDelete = async () => {
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await ApiService.deleteComment(comment.id);
+      toast.success("Comentario eliminado");
+      setShowDeleteDialog(false);
+      onDelete(comment.id);
+    } catch (err) {
+      toast.error("Error al eliminar");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const isHidden = (comment as any).is_hidden || (comment as any).hidden || score < -5;
 
   if (isHidden && !revealed) {
     return (
@@ -104,7 +183,7 @@ export default function CommentItem({ comment }: { comment: Comment }) {
 
   return (
     <>
-      <div className="py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5">
+      <div className="py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5 group">
         <div className="flex flex-col items-center gap-1">
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{ background: comment.avatarColor }}>
             {comment.initials}
@@ -120,16 +199,33 @@ export default function CommentItem({ comment }: { comment: Comment }) {
           <div className={`text-[13px] leading-relaxed mb-2 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
             {comment.body}
           </div>
-          <div className="flex gap-0.5">
+          <div className="flex gap-0.5 items-center">
             <button onClick={() => cast(1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
             <button onClick={() => cast(-1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
             <button className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">💬 Responder</button>
+            {canDelete && (
+              <button 
+                onClick={handleDelete}
+                className="ml-auto opacity-0 group-hover:opacity-100 p-1 text-[var(--red)] hover:bg-red-500/10 rounded transition-all cursor-pointer"
+              >
+                <Trash2 size={12} />
+              </button>
+            )}
             <button className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">···</button>
           </div>
         </div>
       </div>
 
-      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} />)}
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        title="¿Eliminar comentario?"
+        description="Se eliminará el comentario y todas sus respuestas de forma permanente."
+      />
+
+      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} forumId={forumId} onDelete={onDelete} />)}
     </>
   );
 }

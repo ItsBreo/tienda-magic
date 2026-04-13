@@ -10,6 +10,7 @@ class Role extends Model
 {
     protected $fillable = [
         'name',
+        'description',
     ];
 
     /**
@@ -17,6 +18,8 @@ class Role extends Model
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_role', 'roles_id', 'user_id');
+        return $this->belongsToMany(User::class, 'user_role', 'roles_id', 'user_id')
+                    ->withPivot('forum_id')
+                    ->withTimestamps();
     }
 }

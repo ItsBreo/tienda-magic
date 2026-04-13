@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { Category, SortMode, View, Post, Comment, Tournament } from "./types";
 import { RULES, CAT_LABELS, SORT_LABELS } from "./constants";
 import PostCard from "./PostCard";
 import CommentItem from "./CommentItem";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import TournamentModal from "./TournamentModal";
 import TournamentDetailModal from "./TournamentDetailModal";
+import ForumFeedView from "./ForumFeed";
+import ThreadDetailView from "./ThreadDetail";
+import CreatePostView from "./CreatePost";
 
 /** Convierte fecha ISO a formato legible */
 function formatDate(iso: string): string {
@@ -53,7 +59,9 @@ function Widget({ title, children }: { title: string; children: React.ReactNode 
 
 export default function MagicForum() {
   const { user } = useAuth();
-  const [view, setView] = useState<View>("feed");
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [view, setView] = useState<View>("feed"); // The current view
   const [activePost, setActivePost] = useState<Post | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("hot");
@@ -64,105 +72,186 @@ export default function MagicForum() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Estados de creación
+  // Estado de búsqueda
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || "");
+
+  // Estado para la animación de transición entre vistas
+  const [isHiding, setIsHiding] = useState(false);
+
+  // Estados
   const [forumsList, setForumsList] = useState<any[]>([]);
-  const [createTitle, setCreateTitle] = useState("");
-  const [createBody, setCreateBody] = useState("");
-  const [createForumId, setCreateForumId] = useState("");
-  const [createTags, setCreateTags] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newCommentBody, setNewCommentBody] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   // Modales
   const [showTournamentModal, setShowTournamentModal] = useState(false);
   const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
 
+  // Función para cambiar de vista con animación
+  const handleSetView = (newView: View) => {
+    if (view === newView) return;
+    setIsHiding(true); // Inicia la animación de salida
+    setTimeout(() => {
+      setView(newView);
+      setIsHiding(false); // Termina la animación, mostrando la nueva vista
+    }, 200); // Duración de la transición (ej. 200ms)
+  };
+
   useEffect(() => {
-    ApiService.getForums().then(res => setForumsList(res.data || []));
+    ApiService.getForums()
+      .then(res => setForumsList(res.data || []))
+      .catch(err => console.error("Error al cargar la lista de foros:", err));
   }, []);
 
+  // Efecto para la búsqueda dinámica (con debounce)
   useEffect(() => {
+    const handler = setTimeout(() => {
+      const trimmedSearch = searchTerm.trim();
+      // Actualizamos la URL si el término es válido o si se ha borrado una búsqueda existente
+      if (trimmedSearch.length >= 3) {
+        navigate(`/forum?q=${encodeURIComponent(trimmedSearch)}`);
+      } else if (!trimmedSearch && searchParams.get('q')) {
+        navigate('/forum');
+      }
+    }, 500); // 500ms de espera antes de buscar
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm, navigate, searchParams]);
+
+  useEffect(() => {
+    const searchQuery = searchParams.get('q');
     setIsLoading(true);
-    const fetchThreads = activeSideNav === "guardados"
-      ? ApiService.getSavedThreads()
-      : (activeCategory
-          ? ApiService.getForumThreads(activeCategory, sortMode)
-          : ApiService.getThreads(sortMode));
 
-    fetchThreads.then(res => {
-      const mapped = (res.data || []).map((t: any) => ({
-        id: t.id, title: t.title, preview: t.body, author: t.author?.name || "Desconocido",
-        category: t.forum?.slug || "general", score: t.score || 0, userVote: t.user_vote || 0,
-        isSaved: t.is_saved || false, comments: t.comments_count || 0, timeAgo: t.created_at,
-        tags: Array.isArray(t.tags) ? t.tags : JSON.parse(t.tags || "[]"),
-      }));
-      setPosts(mapped);
-    }).finally(() => setIsLoading(false));
+    const mapThreadToPost = (t: any): Post => ({
+      id: t.id,
+      forum_id: t.forum_id,
+      title: t.title,
+      preview: t.body,
+      author: t.user?.username || t.author?.name || "Desconocido",
+      author_id: t.author?.id || t.user?.id || 0,
+      category: t.forum?.slug as Category,
+      score: t.score || 0,
+      userVote: t.user_vote || 0,
+      isSaved: t.is_saved || false,
+      comments: t.comments_count || 0,
+      timeAgo: t.created_at,
+      tags: (() => { 
+        if (Array.isArray(t.tags)) return t.tags;
+        try { return JSON.parse(t.tags || "[]"); } catch { return []; }
+      })(),
+    });
 
-    ApiService.getTournaments().then(res => setTournaments(res.data?.data || res.data || []));
-  }, [activeCategory, sortMode, refreshKey, activeSideNav]);
+    let fetcher;
+
+    if (searchQuery && searchQuery.length >= 3) {
+      if (view !== 'feed') handleSetView('feed'); // Asegurarnos que estamos en la vista de feed para mostrar resultados
+      if (activeCategory !== null) setActiveCategory(null);
+      if (activeSideNav !== 'search') setActiveSideNav('search');
+      fetcher = ApiService.axiosInstance.get(`/api/forum/search`, { params: { q: searchQuery } });
+    } else {
+      fetcher = activeSideNav === "guardados"
+        ? ApiService.getSavedThreads()
+        : (activeCategory
+            ? ApiService.getForumThreads(activeCategory, sortMode)
+            : ApiService.getThreads(sortMode));
+    }
+
+    fetcher
+      .then(res => {
+        // La respuesta de búsqueda está en res.data.data, las otras en res.data
+        const threads = res.data.data || res.data || [];
+        const mappedPosts = threads.map(mapThreadToPost);
+        setPosts(mappedPosts);
+      })
+      .catch(err => {
+        console.error("Error al cargar los hilos:", err);
+        setPosts([]);
+      })
+      .finally(() => setIsLoading(false));
+
+    ApiService.getTournaments()
+      .then(res => setTournaments(res.data?.data || res.data || []))
+      .catch(err => console.error("Error al cargar los torneos:", err));
+
+  }, [activeCategory, sortMode, refreshKey, activeSideNav, searchParams]);
 
   const openThread = (post: Post) => {
     setActivePost(post);
-    setView("thread");
+    handleSetView("thread");
     setComments([]);
     ApiService.getThread(post.id).then(res => {
       const mapped = (res.data?.comments || []).map((c: any) => ({
-        id: c.id, author: c.author?.name || "Desconocido", avatarColor: "var(--accent)",
+        id: c.id, 
+        author: c.author?.name || "Desconocido", 
+        author_id: c.author?.id || 0,
+        avatarColor: "var(--accent)",
         initials: (c.author?.name || "US").substring(0, 2).toUpperCase(),
-        timeAgo: c.created_at, score: c.score, userVote: c.user_vote || 0, body: c.body,
+        timeAgo: c.created_at, 
+        score: c.score, 
+        userVote: c.user_vote || 0, 
+        body: c.body,
         replies: (c.replies || []).map((r: any) => ({
-          id: r.id, author: r.author?.name || "Desconocido", avatarColor: "#10b981",
+          id: r.id, 
+          author: r.author?.name || "Desconocido", 
+          author_id: r.author?.id || 0,
+          avatarColor: "#10b981",
           initials: (r.author?.name || "US").substring(0, 2).toUpperCase(),
-          timeAgo: r.created_at, score: r.score, body: r.body,
+          timeAgo: r.created_at, 
+          score: r.score, 
+          body: r.body,
         })),
       }));
       setComments(mapped);
-    });
+    })
+    .catch(err => console.error(`Error al cargar el hilo ${post.id}:`, err));
   };
 
-  const handleCreatePost = () => {
-    if (!createTitle.trim() || !createBody.trim() || !createForumId) {
-        alert("Por favor, rellena el título, el contenido y selecciona una categoría.");
-        return;
-    }
+  const handleCreatePost = (data: { forum_id: number; title: string; body: string; tags?: string[] }) => {
     setIsSubmitting(true);
-    const tagsArray = createTags.split(",").map(t => t.trim()).filter(t => t !== "");
-    ApiService.createThread({
-        forum_id: Number(createForumId),
-        title: createTitle,
-        body: createBody,
-        tags: tagsArray.length > 0 ? tagsArray : undefined,
-    })
+    ApiService.createThread(data)
     .then(() => {
-        setView("feed");
+        handleSetView("feed");
         setActiveSideNav("reciente");
         setActiveCategory(null);
         setSortMode("nuevo");
-        setCreateTitle(""); setCreateBody(""); setCreateTags(""); setCreateForumId("");
         setRefreshKey(k => k + 1);
     })
     .catch(err => {
-        console.error("Error creando post:", err);
-        alert("Hubo un error al publicar el post. ¿Estás logueado?");
+        console.error("Error creando el post:", err.response?.data || err.message);
+        alert("Hubo un error al publicar el post. Revisa la consola para más detalles.");
     })
     .finally(() => setIsSubmitting(false));
   };
 
-  const handleCreateComment = () => {
-    if (!newCommentBody.trim() || !activePost) return;
+  const handleCreateComment = (body: string) => {
+    if (!activePost) return;
     setIsSubmittingComment(true);
-    ApiService.createComment(activePost.id, { body: newCommentBody })
+    ApiService.createComment(activePost.id, { body })
     .then(() => {
-        setNewCommentBody("");
         openThread(activePost);
     })
     .catch(err => {
-        console.error("Error creando comentario:", err);
-        alert("Hubo un error al publicar el comentario. ¿Estás logueado?");
+        console.error("Error creando el comentario:", err.response?.data || err.message);
+        alert("Hubo un error al publicar el comentario. Revisa la consola para más detalles.");
     })
     .finally(() => setIsSubmittingComment(false));
+  };
+
+  const renderContent = () => {
+    const searchQuery = searchParams.get('q');
+    if (view === 'create') {
+      return <CreatePostView forumsList={forumsList} isSubmitting={isSubmitting} onCancel={() => handleSetView('feed')} onSubmit={handleCreatePost} />;
+    }
+    if (view === 'thread' && activePost) {
+      return <ThreadDetailView post={activePost} comments={comments} isSubmitting={isSubmittingComment} onBack={() => handleSetView('feed')} onCommentSubmit={handleCreateComment} />;
+    }
+
+    const isSearch = !!searchQuery;
+    const feedTitle = isSearch ? `Resultados para: "${searchQuery}"` : undefined;
+
+    return <ForumFeedView posts={posts} isLoading={isLoading} activeSideNav={isSearch ? 'search' : activeSideNav} title={feedTitle} activeCategory={isSearch ? null : activeCategory} sortMode={sortMode} onSortModeChange={setSortMode} onOpenThread={openThread} onShowCreateView={() => handleSetView('create')} />;
   };
 
   return (
@@ -178,7 +267,32 @@ export default function MagicForum() {
             </div>
           </div>
 
-          <div className="py-2.5 px-4.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Categorías</div>
+          <div className="p-4 border-b border-[var(--border)]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+              <Input
+                placeholder="Buscar en el foro..."
+                className="pl-9 bg-[var(--surface-2)] border-[var(--border)] focus-visible:ring-[var(--accent)]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="py-2.5 px-4.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Mi Actividad</div>
+          <NavItem
+            active={activeSideNav === "guardados"}
+            icon="🔖"
+            label="Guardados"
+            onClick={() => {
+              navigate('/forum');
+              setActiveCategory(null);
+              handleSetView("feed");
+              setActiveSideNav("guardados");
+            }}
+          />
+
+          <div className="py-2.5 px-4.5 mt-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Categorías</div>
           {(["noticias", "estrategia", "general", "torneos"] as Category[]).map(cat => (
             <NavItem
               key={cat}
@@ -186,7 +300,12 @@ export default function MagicForum() {
               icon={cat === "noticias" ? "📰" : cat === "estrategia" ? "⚔️" : cat === "torneos" ? "🏆" : "💬"}
               label={CAT_LABELS[cat]}
               badge={cat === "torneos" ? 2 : undefined}
-              onClick={() => { setActiveCategory(cat); setView("feed"); setActiveSideNav(cat); }}
+              onClick={() => {
+                navigate('/forum');
+                setActiveCategory(cat);
+                handleSetView("feed");
+                setActiveSideNav(cat);
+              }}
             />
           ))}
 
@@ -205,128 +324,9 @@ export default function MagicForum() {
 
         {/* FEED */}
         <main className="p-4 overflow-y-auto">
-          {view === "feed" && (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-bold text-[var(--text-primary)]">
-                  {activeSideNav === "guardados" ? "Guardados" : (activeCategory ? CAT_LABELS[activeCategory] : "Inicio")}
-                  <span className="text-[var(--accent)] mx-1">·</span> Magic Forum
-                </h1>
-                <button onClick={() => setView("create")} className="bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-primary)] px-4.5 py-2 rounded-md text-[13px] font-bold cursor-pointer hover:bg-[var(--border)] transition-colors">
-                  + Nuevo post
-                </button>
-              </div>
-
-              {activeSideNav !== "guardados" && (
-                <div className="flex gap-1 mb-3.5 bg-[var(--surface)] border border-[var(--border)] rounded-lg p-1">
-                  {(["hot", "nuevo", "top"] as SortMode[]).map(mode => (
-                    <button
-                      key={mode}
-                      onClick={() => setSortMode(mode)}
-                      className={`flex-1 py-1.5 px-3.5 rounded-md text-[13px] transition-all cursor-pointer ${sortMode === mode ? 'bg-[var(--surface-2)] text-[var(--text-primary)] font-semibold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                    >
-                      {SORT_LABELS[mode]}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {isLoading ? (
-                <div className="text-center p-5 text-[var(--text-muted)]">Cargando datos...</div>
-              ) : (
-                posts.map(post => <PostCard key={post.id} post={post} onOpen={() => openThread(post)} />)
-              )}
-            </>
-          )}
-
-          {view === "thread" && activePost && (
-            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg overflow-hidden">
-               <div className="p-4 bg-[var(--surface-2)] border-b border-[var(--border)] flex justify-between items-center gap-4">
-                  <h2 className="font-semibold text-[15px] text-[var(--text-primary)] flex-1">{activePost.title}</h2>
-                  <button onClick={() => setView("feed")} className="text-xs text-[var(--text-secondary)] border border-[var(--border)] px-2.5 py-1 rounded-md bg-transparent hover:bg-[var(--surface)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0">
-                    ← Volver
-                  </button>
-               </div>
-
-               <div className="p-4 border-b border-[var(--border)]">
-                  <textarea
-                      value={newCommentBody}
-                      onChange={e => setNewCommentBody(e.target.value)}
-                      placeholder="Añade un comentario…"
-                      rows={3}
-                      className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-md py-2.5 px-3.5 text-[var(--text-primary)] text-[13px] resize-y outline-none focus:border-[var(--accent)] transition-colors mb-2"
-                  />
-                  <div className="flex justify-end">
-                      <button
-                        onClick={handleCreateComment}
-                        disabled={isSubmittingComment || !newCommentBody.trim()}
-                        className={`bg-[var(--accent)] text-white border-none py-1.5 px-3.5 rounded-md text-[13px] font-semibold transition-colors ${isSubmittingComment || !newCommentBody.trim() ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[var(--accent-hover)] cursor-pointer'}`}
-                      >
-                          {isSubmittingComment ? "Enviando..." : "Comentar"}
-                      </button>
-                  </div>
-              </div>
-
-               <div className="pb-4">
-                  {comments.map(c => <CommentItem key={c.id} comment={c} />)}
-               </div>
-            </div>
-          )}
-
-          {view === "create" && (
-            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-bold text-[var(--text-primary)] m-0">
-                  Crear nuevo post
-                </h2>
-                <button
-                  onClick={() => setView("feed")}
-                  className="text-xs text-[var(--text-secondary)] cursor-pointer py-1 px-2.5 rounded-md border border-[var(--border)] bg-transparent font-medium hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)] transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <select
-                  value={createForumId} onChange={e => setCreateForumId(e.target.value)}
-                  className="p-2.5 rounded-md border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-primary)] text-sm outline-none focus:border-[var(--accent)] transition-colors"
-                >
-                  <option value="">Selecciona una categoría...</option>
-                  {forumsList.map(f => (
-                    <option key={f.id} value={f.id}>{f.name}</option>
-                  ))}
-                </select>
-
-                <input
-                  type="text" placeholder="Título de tu publicación"
-                  value={createTitle} onChange={e => setCreateTitle(e.target.value)}
-                  className="p-2.5 rounded-md border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-primary)] text-sm outline-none focus:border-[var(--accent)] transition-colors"
-                />
-
-                <textarea
-                  placeholder="Escribe el contenido aquí..." rows={8}
-                  value={createBody} onChange={e => setCreateBody(e.target.value)}
-                  className="p-2.5 rounded-md border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-primary)] text-sm outline-none resize-y focus:border-[var(--accent)] transition-colors"
-                />
-
-                <input
-                  type="text" placeholder="Etiquetas (separadas por coma, ej: magic, torneo, duda)"
-                  value={createTags} onChange={e => setCreateTags(e.target.value)}
-                  className="p-2.5 rounded-md border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-primary)] text-sm outline-none focus:border-[var(--accent)] transition-colors"
-                />
-
-                <div className="flex justify-end mt-2">
-                  <button
-                    onClick={handleCreatePost} disabled={isSubmitting}
-                    className={`bg-[var(--accent)] text-white border-none py-2.5 px-6 rounded-md text-sm font-bold cursor-pointer transition-colors ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[var(--accent-hover)]'}`}
-                  >
-                    {isSubmitting ? "Publicando..." : "Publicar post"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className={`transition-opacity duration-200 ${isHiding ? 'opacity-0' : 'opacity-100'}`}>
+            {renderContent()}
+          </div>
         </main>
 
         {/* RIGHT SIDEBAR */}

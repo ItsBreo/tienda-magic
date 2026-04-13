@@ -26,6 +26,25 @@ class ThreadController extends Controller
         return ThreadResource::collection($threads);
     }
 
+    // Busca threads por título o contenido
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
+
+        if (strlen($query) < 3) {
+            return ThreadResource::collection([]);
+        }
+
+        $threads = Thread::with(['user', 'forum', 'votes'])
+            ->withCount('comments')
+            ->where('title', 'like', "%{$query}%")
+            ->orWhere('body', 'like', "%{$query}%")
+            ->latest()
+            ->paginate(20);
+
+        return ThreadResource::collection($threads);
+    }
+
     // Muestra un thread concreto con sus comentarios raíz
     public function show(Thread $thread)
     {

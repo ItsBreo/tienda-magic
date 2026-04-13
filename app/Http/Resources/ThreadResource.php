@@ -11,6 +11,7 @@ class ThreadResource extends JsonResource
     {
         return [
             'id'             => $this->id,
+            'forum_id'       => $this->forum_id,
             'title'          => $this->title,
             'body'           => $this->body,
             'score'          => $this->score,

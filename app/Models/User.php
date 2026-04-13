@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * Modelo de Usuario del sistema.
@@ -39,10 +40,36 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     /**
+     * Roles del sistema (en orden jerárquico de mayor a menor).
+     * super_admin > admin > mod_* > user
+     */
+    public const ROLE_SUPER_ADMIN    = 'super_admin';
+    public const ROLE_ADMIN          = 'admin';
+    public const ROLE_MOD_NEWS       = 'mod_news';
+    public const ROLE_MOD_TOURNAMENTS= 'mod_tournaments';
+    public const ROLE_MOD_GENERAL    = 'mod_general';
+    public const ROLE_USER           = 'user';
+
+    /** Slugs que se consideran moderadores sectoriales */
+    public const MOD_ROLES = [
+        self::ROLE_MOD_NEWS,
+        self::ROLE_MOD_TOURNAMENTS,
+        self::ROLE_MOD_GENERAL,
+    ];
+
+    /** Slugs con privilegios de administración del foro */
+    public const ADMIN_ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_SUPER_ADMIN,
+    ];
+
+    /**
      * Atributos dinámicos que siempre se adjuntarán al array/JSON del modelo
      */
     protected $appends = [
-        'is_admin'
+        'is_admin',
+        'reputation',
+        'role_name',
     ];
 
     /**
@@ -137,10 +164,12 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(UserProfile::class);
     }
 
-    // Usuario - roles M:M
+    // Usuario - roles M:M (con forum_id en el pivot para moderadores sectoriales)
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'roles_id');
+        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'roles_id')
+                    ->withPivot('forum_id')
+                    ->withTimestamps();
     }
 
     // Usuario - mazo 1:M
@@ -211,20 +240,120 @@ class User extends Authenticatable implements JWTSubject
         ->withPivot('obtained_at');
     }
 
+    // =========================================================================
+    // HELPERS DE ROL
+    // =========================================================================
+
+    /**
+     * Comprueba si el usuario tiene un rol concreto (por slug, case-insensitive).
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->roles->contains(
+            fn($r) => strtolower($r->name) === strtolower($role)
+        );
+    }
+
+    /**
+     * Es super_admin (control total de tienda + foro).
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(self::ROLE_SUPER_ADMIN);
+    }
+
+    /**
+     * Es admin o superior (admin + super_admin).
+     * Compatibilidad con el AdminMiddleware y el frontend.
+     */
     public function isAdmin(): bool
     {
-        // Verifica si alguno de sus roles se llama 'admin' (case-insensitive)
-        return $this->roles->contains(function ($role) {
-            return strtolower($role->name) === 'admin';
+        return $this->hasRole(self::ROLE_ADMIN) || $this->isSuperAdmin();
+    }
+
+    /**
+     * Es moderador sectorial (cualquier mod_*, sin ser admin).
+     */
+    public function isModerator(): bool
+    {
+        return $this->roles->contains(
+            fn($r) => in_array(strtolower($r->name), self::MOD_ROLES)
+        );
+    }
+
+    /**
+     * Es moderador con acceso a un foro concreto.
+     * Un admin/super_admin también puede moderar cualquier foro.
+     */
+    public function isModeratorOf(int $forumId): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->roles->contains(function ($role) use ($forumId) {
+            return in_array(strtolower($role->name), self::MOD_ROLES)
+                && (int) $role->pivot->forum_id === $forumId;
         });
     }
 
     /**
-     * Mutator para que el frontend reciba "is_admin" como un boolean
+     * Nivel numérico del rol más alto del usuario (útil para comparaciones).
+     */
+    public function roleLevel(): int
+    {
+        if ($this->isSuperAdmin()) return 4;
+        if ($this->isAdmin())      return 3;
+        if ($this->isModerator())  return 2;
+        return 1;
+    }
+
+    /**
+     * Nombre del rol principal (el de mayor jerarquía) para el frontend.
+     */
+    public function getRoleNameAttribute(): string
+    {
+        if ($this->isSuperAdmin()) return self::ROLE_SUPER_ADMIN;
+        if ($this->isAdmin())      return self::ROLE_ADMIN;
+
+        $modRole = $this->roles->first(
+            fn($r) => in_array(strtolower($r->name), self::MOD_ROLES)
+        );
+        if ($modRole) return strtolower($modRole->name);
+
+        return self::ROLE_USER;
+    }
+
+    /**
+     * Mutator para que el frontend reciba "is_admin" como un boolean.
      */
     public function getIsAdminAttribute(): bool
     {
         return $this->isAdmin();
+    }
+
+    /**
+     * FÓRMULA DE REPUTACIÓN SOCIAL (Karma)
+     * (V_p * 2) + V_c + sqrt(A)
+     */
+    protected function reputation(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                // Utilizar withSum() o recuperar directo
+                $votesOnPosts = $this->getAttribute('threads_sum_score') ?? $this->threads()->sum('score') ?? 0;
+                $votesOnComments = $this->getAttribute('comments_sum_score') ?? $this->comments()->sum('score') ?? 0;
+                
+                // Asegurarse de que created_at no sea nulo al registrar
+                $daysActive = max($this->created_at ? $this->created_at->diffInDays(now()) : 0, 0);
+                $stabilityFactor = sqrt($daysActive);
+
+                // Fórmula con base de 100 puntos
+                $formula = 100 + ($votesOnPosts * 2) + $votesOnComments + $stabilityFactor;
+                
+                return (int) round($formula);
+            }
+        );
     }
 
     /**

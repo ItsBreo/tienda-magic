@@ -68,8 +68,14 @@ class AdminRoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        // Evitar que se borren los roles básicos del sistema
-        if (in_array(strtolower($role->name), ['admin', 'admin', 'user', 'usuario', 'seller', 'vendedor'])) {
+        // Roles protegidos del sistema — nunca se pueden borrar
+        $protectedRoles = [
+            'super_admin', 'admin',
+            'mod_news', 'mod_tournaments', 'mod_general',
+            'user', 'usuario',
+        ];
+
+        if (in_array(strtolower($role->name), $protectedRoles)) {
             return response()->json(['message' => 'No puedes eliminar este rol protegido del sistema.'], 403);
         }
 

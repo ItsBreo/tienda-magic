@@ -3,22 +3,22 @@ export type SortMode = "hot" | "nuevo" | "top";
 export type View = "feed" | "thread" | "create";
 
 export interface Post {
-  id: number; title: string; preview: string; author: string;
-  isMod?: boolean; category: Category; score: number; userVote?: number;
+  id: number; forum_id: number; title: string; preview: string; author: string;
+  author_id: number; isMod?: boolean; category: Category; score: number; userVote?: number;
   comments: number; timeAgo: string; tags: string[];
 }
 
 export interface Reply {
-  id: number; author: string; avatarColor: string; initials: string;
+  id: number; author: string; author_id: number; avatarColor: string; initials: string;
   timeAgo: string; score: number; body: string; hidden?: boolean;
 }
 
 export interface Comment {
-  id: number; author: string; avatarColor: string; initials: string;
-  timeAgo: string; score: number; body: string; replies: Reply[];
+  id: number; author: string; author_id: number; avatarColor: string; initials: string;
+  timeAgo: string; score: number; body: string; replies: Reply[]; is_hidden?: boolean;
 }
 
 export interface Tournament {
-    id(id: any): void;
+  id: number;
   name: string; status: "live" | "soon"; date: string;
 }

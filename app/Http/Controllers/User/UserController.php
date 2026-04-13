@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
-use App\Models\Deck;
 
 /**
  * Controlador principal de gestión de usuarios.
@@ -24,9 +23,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show()
+    public function show(Request $request)
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'No autenticado'], 401);
@@ -39,6 +38,7 @@ class UserController extends Controller
             'email'          => $user->email,
             'wallet_balance' => $user->wallet_balance,
             'is_admin'       => $user->is_admin,
+            'reputation'     => $user->reputation,
             'created_at'     => $user->created_at,
             'updated_at'     => $user->updated_at
         ]);
@@ -53,7 +53,7 @@ class UserController extends Controller
      */
     public function updateProfile(Request $request, User $user)
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         // FIX: Faltaba la coma antes del ID — sin ella Laravel no puede ignorar
         // el propio registro del usuario al validar el unique y lanza un error 500
@@ -79,7 +79,7 @@ class UserController extends Controller
      */
     public function updatePassword(Request $request, User $user)
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         $request->validate([
             'current_password' => 'required',
@@ -140,9 +140,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function sales()
+    public function sales(Request $request)
     {
-        $sales = auth()->user()->sales()->with(['buyer', 'item'])->latest()->get();
+        $sales = $request->user()->sales()->with(['buyer', 'item'])->latest()->get();
         return view('user.sales.index', compact('sales'));
     }
 
@@ -151,9 +151,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function salesStats()
+    public function salesStats(Request $request)
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         $totalSalesCount = $user->sales()->count();
         $totalEarned     = $user->sales()->sum('price');
@@ -169,9 +169,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function orderHistory()
+    public function orderHistory(Request $request)
     {
-        $orders = auth()->user()->orders()->with(['seller', 'item'])->latest()->get();
+        $orders = $request->user()->orders()->with(['seller', 'item'])->latest()->get();
         return view('user.purchases.history', compact('purchases'));
     }
 
@@ -180,9 +180,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getBalance()
+    public function getBalance(Request $request)
     {
-        $balance = auth()->user()->balance;
+        $balance = $request->user()->balance;
         return response()->json(['balance' => $balance]);
     }
 
@@ -191,9 +191,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function transactions()
+    public function transactions(Request $request)
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         $allTransactions = $user->transactions()->latest()->get();
         $totalDeposits   = $user->transactions()->where('type', 'deposit')->sum('amount');

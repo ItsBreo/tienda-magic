@@ -21,9 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        // Registrar alias para nuestro AdminMiddleware
+        // Registrar alias de middlewares de roles
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'role'  => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
         $middleware->web(append: [

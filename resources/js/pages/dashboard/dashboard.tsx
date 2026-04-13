@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import TiendaLayout from '@/layouts/TiendaLayout';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { HeroSection } from './components/HeroSection';
 import { StatsSection } from './components/StatsSection';
@@ -76,7 +75,6 @@ export default function Dashboard() {
     };
 
     return (
-        <TiendaLayout breadcrumbs={[{ title: 'Tienda', href: '/' }]}>
             <div className="min-h-screen bg-black text-zinc-100">
 
                 {/* 1. Bienvenida */}
@@ -148,6 +146,5 @@ export default function Dashboard() {
                 <StatsSection stats={stats} loading={loading} />
 
             </div>
-        </TiendaLayout>
     );
 }

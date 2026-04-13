@@ -242,6 +242,16 @@ class MagicApi {
         return response.data;
     }
 
+    async deleteThread(threadId: number): Promise<any> {
+        const response = await this.api.delete(`/api/threads/${threadId}`);
+        return response.data;
+    }
+
+    async deleteComment(commentId: number): Promise<any> {
+        const response = await this.api.delete(`/api/comments/${commentId}`);
+        return response.data;
+    }
+
     async getProfile(userId: number): Promise<any> {
         const response = await this.api.get(`/api/profile/${userId}`);
         return response.data;

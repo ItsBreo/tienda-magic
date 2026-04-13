@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminSetController;
 use App\Http\Controllers\Admin\AdminCardController;
+use App\Http\Controllers\Admin\AdminForumModController;
 
 // Controladores de Torneos
 use App\Http\Controllers\Tournament\TournamentController;
@@ -91,15 +92,15 @@ Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook'
 Route::middleware('auth:api')->group(function () {
 
     // ========== TRADE TEST (desarrollo) ==========
-    Route::get('/users/list', function () {
-        return \App\Models\User::where('id', '!=', auth()->id())
+    Route::get('/users/list', function (\Illuminate\Http\Request $request) {
+        return \App\Models\User::where('id', '!=', $request->user()->id)
             ->select('id', 'username', 'email')
             ->limit(20)
             ->get();
     });
 
     Route::post('/trade/start', function (\Illuminate\Http\Request $request) {
-        $myId       = auth()->id();
+        $myId       = $request->user()->id;
         $receiverId = $request->receiver_id;
 
         $existing = \App\Models\TradeSession::where('status', 'active')
@@ -129,7 +130,7 @@ Route::middleware('auth:api')->group(function () {
 Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         $channelName = $request->channel_name;
         $socketId = $request->socket_id;
-        $userId = auth()->id();
+        $userId = $request->user()?->id;
 
         // 1. Validar autorización manualmente según el canal
         $isAuthorized = false;
@@ -252,6 +253,7 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     Route::get('/forums', [ForumController::class, 'index']);
     Route::get('/forums/{forum}', [ForumController::class, 'show']);
     Route::get('/threads', [ThreadController::class, 'index']);
+    Route::get('/forum/search', [ThreadController::class, 'search']);
     Route::get('/threads/{thread}', [ThreadController::class, 'show']);
 
     // Threads (escritura privada)
@@ -319,6 +321,7 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     });
 
     // ========== ADMIN DASHBOARD ==========
+    // Solo accesible por admin y super_admin
     Route::prefix('admin')->middleware(['admin'])->group(function () {
         Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::apiResource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -326,5 +329,23 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
 
         Route::patch('/users/{userId}/reputation', [UserProfileController::class, 'updateReputation']);
+
+        // Asignar / cambiar rol a un usuario (incluyendo forum_id para moderadores)
+        Route::post('/users/{user}/assign-role', [AdminUserController::class, 'assignRole']);
+    });
+
+    // ========== MODERACIÓN DEL FORO ==========
+    // Accesible para admin, super_admin y cualquier moderador sectorial
+    Route::prefix('mod')->middleware(['role:moderator'])->group(function () {
+        // Ver threads de un foro (el moderador solo ve los suyos; el admin ve cualquiera)
+        Route::get('/forums/{forumId}/threads', [AdminForumModController::class, 'threads']);
+
+        // Borrar contenido (la policy valida si tiene acceso al foro concreto)
+        Route::delete('/threads/{thread}',   [AdminForumModController::class, 'deleteThread']);
+        Route::delete('/comments/{comment}', [AdminForumModController::class, 'deleteComment']);
+
+        // Restaurar contenido (solo admin/super_admin — la comprobación está dentro del controlador)
+        Route::post('/threads/{threadId}/restore',   [AdminForumModController::class, 'restoreThread']);
+        Route::post('/comments/{commentId}/restore', [AdminForumModController::class, 'restoreComment']);
     });
 });

@@ -111,6 +111,7 @@ class RegisterController extends Controller
                 'email'          => $user->email,
                 'wallet_balance' => $user->wallet_balance,
                 'is_admin'       => $user->is_admin ?? false,
+                'reputation'     => $user->reputation,
             ],
         ], 201);
     }

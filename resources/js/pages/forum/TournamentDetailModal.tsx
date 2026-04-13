@@ -81,9 +81,9 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
                 {(tournament.confirmed_players || []).map((p: any) => (
                   <div key={p.id} className="flex items-center gap-2">
                     <div className="w-6.5 h-6.5 rounded-full bg-[var(--accent)] flex items-center justify-center text-[10px] font-bold text-white">
-                      {p.name.substring(0, 2).toUpperCase()}
+                      {(p.name || 'US').substring(0, 2).toUpperCase()}
                     </div>
-                    <span className="text-[13px]">{p.name}</span>
+                    <span className="text-[13px]">{p.name || 'Usuario'}</span>
                     {p.id === user?.id && <span className="ml-auto text-[10px] text-[var(--accent)] font-bold italic">tú</span>}
                   </div>
                 ))}
