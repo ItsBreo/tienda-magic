@@ -213,6 +213,24 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         Route::delete('/{deckId}/cards/{cardId}', [DeckController::class, 'removeCard']);
     });
 
+    // ========== EXCHANGES / INTERCAMBIOS ==========
+    Route::prefix('exchanges')->group(function () {
+        Route::get('/', [ExchangeController::class, 'index']);
+        Route::post('/', [ExchangeController::class, 'store']);
+        Route::post('/{id}/request', [ExchangeController::class, 'requestExchange']);
+    });
+
+    Route::prefix('exchange-requests')->group(function () {
+        Route::get('/', [TradeController::class, 'myRequests']);
+        Route::post('/{id}/accept', [TradeController::class, 'acceptRequest']);
+        Route::post('/{id}/reject', [TradeController::class, 'rejectRequest']);
+    });
+
+    Route::prefix('trade-sessions')->group(function () {
+        Route::get('/{id}', [TradeController::class, 'showRoom']);
+        Route::post('/{id}/confirm', [TradeController::class, 'confirmTrade']);
+    });
+
     // ========== MERCADO & CARTAS ==========
     Route::prefix('market')->group(function () {
         Route::get('/', [MarketController::class, 'index']);
