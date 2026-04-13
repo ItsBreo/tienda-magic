@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Package, LogOut, Settings, Shield,
+  Package, LogOut, Settings, Shield, ArrowLeftRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,9 @@ export function Navbar() {
       // Error silenciado en logout
     }
   };
+
+  // Admin si is_admin=true O si el role_name contiene 'admin'
+  const isAdmin = user?.is_admin || user?.role_name?.toLowerCase().includes('admin');
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800">
@@ -44,22 +47,25 @@ export function Navbar() {
               Carrito
             </Link>
 
-            {/* 🌟 NUEVO ENLACE: Inventario y Trades (Solo visible si hay sesión iniciada) */}
             {user && (
               <>
                 <Link to="/inventory" className="text-zinc-400 hover:text-amber-500 transition-colors duration-200 font-medium">
                   Mi Colección
                 </Link>
-                <Link to="/exchanges" className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200 font-bold bg-indigo-500/10 px-3 py-1 rounded-sm border border-indigo-500/30">
+                <Link
+                  to="/exchanges"
+                  className="flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 transition-colors duration-200 font-bold bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1 rounded-sm border border-indigo-500/30"
+                >
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
                   Intercambios
                 </Link>
               </>
             )}
 
-            {user?.is_admin && (
+            {isAdmin && (
               <Link
                 to="/admin"
-                className="flex items-center gap-2 text-amber-500 hover:text-amber-400 transition-colors duration-200 font-bold bg-amber-500/10 px-3 py-1.5 rounded-sm border border-amber-500/30"
+                className="flex items-center gap-2 text-amber-500 hover:text-amber-400 transition-colors duration-200 font-bold bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-sm border border-amber-500/30"
               >
                 <Shield className="h-4 w-4" />
                 Bóveda

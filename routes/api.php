@@ -230,6 +230,10 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     Route::prefix('trade-sessions')->group(function () {
         Route::get('/{id}', [TradeController::class, 'showRoom']);
         Route::post('/{id}/confirm', [TradeController::class, 'confirmTrade']);
+        // Chat de la sala
+        Route::get('/{id}/messages', [TradeController::class, 'getMessages']);
+        Route::post('/{id}/messages', [TradeController::class, 'sendMessage']);
+        Route::post('/{id}/chat', [TradeController::class, 'getOrCreateChat']);
     });
 
     // ========== MERCADO & CARTAS ==========

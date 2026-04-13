@@ -22,9 +22,12 @@ class ConversationController extends Controller
         $conversations = Conversation::whereHas('participants', function ($query) {
             $query->where('user_id', Auth::id());
         })
-            ->with(['participants.user', 'messages' => function ($query) {
-                $query->latest()->first();
-            }])
+            ->with([
+                'participants.user',
+                'messages' => function ($query) {
+                    $query->latest()->first();
+                }
+            ])
             ->orderBy('last_message_at', 'desc')
             ->paginate(20);
 
@@ -68,9 +71,12 @@ class ConversationController extends Controller
     {
         $this->authorize('view', $conversation);
 
-        $conversation->load(['participants.user', 'messages' => function ($query) {
-            $query->latest()->limit(50);
-        }]);
+        $conversation->load([
+            'participants.user',
+            'messages' => function ($query) {
+                $query->latest()->limit(50);
+            }
+        ]);
 
         return new ConversationResource($conversation);
     }

@@ -333,6 +333,16 @@ class MagicApi {
         return response.data;
     }
 
+    async getTradeMessages(roomId: number): Promise<any> {
+        const response = await this.api.get(`/api/trade-sessions/${roomId}/messages`);
+        return response.data;
+    }
+
+    async sendTradeMessage(roomId: number, content: string): Promise<any> {
+        const response = await this.api.post(`/api/trade-sessions/${roomId}/messages`, { content });
+        return response.data;
+    }
+
     async getMyInventory(): Promise<any> {
         const response = await this.api.get('/api/inventory');
         return response.data;

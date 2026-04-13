@@ -6,9 +6,13 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\ExchangeRequest;
 use App\Models\TradeSession;
+use App\Models\Conversation;
 use App\Models\InventoryCard;
+use App\Events\MessageSent;
+use App\Services\ProfanityFilter;
 use App\Notifications\TradeAcceptedNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TradeController extends Controller
 {
@@ -257,5 +261,139 @@ class TradeController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Error al confirmar: ' . $e->getMessage() . ' - File: ' . $e->getFile() . ' - Line: ' . $e->getLine()], 500);
         }
+    }
+
+    /**
+     * Obtener (o crear) la conversación asociada a una TradeSession.
+     */
+    public function getOrCreateChat($id)
+    {
+        $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
+        $user = auth()->user();
+
+        $req = $session->exchangeRequest;
+        $exchange = $req->exchange;
+
+        if ($req->user_id !== $user->id && $exchange->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Buscar conversación existente ligada a esta trade session
+        $conversation = Conversation::where('context_type', 'trade_session')
+            ->where('context_id', $session->id)
+            ->first();
+
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'title'        => "Trade #{$session->id}",
+                'type'         => 'direct',
+                'context_type' => 'trade_session',
+                'context_id'   => $session->id,
+            ]);
+        }
+
+        // Asegurar que ambos participantes estén en la conversación
+        $participantIds = [$req->user_id, $exchange->user_id];
+        foreach ($participantIds as $pid) {
+            if (!$conversation->users()->where('user_id', $pid)->exists()) {
+                $conversation->users()->attach($pid, ['role' => 'participant']);
+            }
+        }
+
+        return response()->json(['conversation_id' => $conversation->id]);
+    }
+
+    /**
+     * Obtener mensajes de la conversación asociada a una TradeSession.
+     */
+    public function getMessages($id)
+    {
+        $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
+        $user = auth()->user();
+
+        $req = $session->exchangeRequest;
+        $exchange = $req->exchange;
+
+        if ($req->user_id !== $user->id && $exchange->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $conversation = Conversation::where('context_type', 'trade_session')
+            ->where('context_id', $session->id)
+            ->first();
+
+        if (!$conversation) {
+            return response()->json(['data' => [], 'conversation_id' => null]);
+        }
+
+        $messages = $conversation->messages()
+            ->with('user:id,name,username')
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(fn ($m) => [
+                'id'         => $m->id,
+                'content'    => $m->content,
+                'user_id'    => $m->user_id,
+                'user_name'  => $m->user->name ?? 'Usuario',
+                'created_at' => $m->created_at->toIso8601String(),
+            ]);
+
+        return response()->json([
+            'conversation_id' => $conversation->id,
+            'data'            => $messages,
+        ]);
+    }
+
+    /**
+     * Enviar un mensaje a la conversación de una TradeSession.
+     */
+    public function sendMessage(Request $request, $id)
+    {
+        $request->validate(['content' => 'required|string|max:1000']);
+
+        $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
+        $user = auth()->user();
+
+        $req = $session->exchangeRequest;
+        $exchange = $req->exchange;
+
+        if ($req->user_id !== $user->id && $exchange->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Obtener o crear conversación
+        $conversation = Conversation::firstOrCreate(
+            ['context_type' => 'trade_session', 'context_id' => $session->id],
+            ['title' => "Trade #{$session->id}", 'type' => 'direct']
+        );
+
+        // Asegurar participantes
+        $participantIds = [$req->user_id, $exchange->user_id];
+        foreach ($participantIds as $pid) {
+            if (!$conversation->users()->where('user_id', $pid)->exists()) {
+                $conversation->users()->attach($pid, ['role' => 'participant']);
+            }
+        }
+
+        $cleanContent = ProfanityFilter::clean($request->content);
+
+        $message = $conversation->messages()->create([
+            'user_id' => $user->id,
+            'content' => $cleanContent,
+            'type'    => 'text',
+        ]);
+
+        $message->load('user:id,name,username');
+        $conversation->updateLastMessageAt();
+
+        broadcast(new MessageSent($message, $conversation))->toOthers();
+
+        return response()->json([
+            'id'         => $message->id,
+            'content'    => $message->content,
+            'user_id'    => $message->user_id,
+            'user_name'  => $message->user->name ?? 'Usuario',
+            'created_at' => $message->created_at->toIso8601String(),
+        ], 201);
     }
 }
