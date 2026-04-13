@@ -1,5 +1,9 @@
 import { type ReactNode, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { type BreadcrumbItem } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
 
 interface TiendaLayoutProps {
@@ -11,14 +15,111 @@ export default function TiendaLayout({
   children,
   breadcrumbs = [],
 }: TiendaLayoutProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      // Error silenciado en logout
+    }
+  };
+
   useEffect(() => {
     document.title = 'Tienda Magic';
   }, []);
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
-      {/* Header Navigation con Navbar dinámico */}
-      <Navbar />
+      {/* Header Navigation */}
+      <header className="bg-zinc-900 border-b border-zinc-800">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-emerald-600 rounded-lg">
+                <div className="p-2 bg-black rounded-lg">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <div className="text-2xl font-bold text-black">TM</div>
+                  </div>
+                </div>
+              </div>
+              <h1 className="text-2xl font-bold text-white">Tienda Magic</h1>
+            </div>
+
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
+              <a
+                href="/dashboard"
+                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+              >
+                Inicio
+              </a>
+              <a
+                href="/shop"
+                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+              >
+                Tienda
+              </a>
+              <a
+                href="/cart"
+                className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+              >
+                Carrito
+              </a>
+            </nav>
+
+            {/* User Menu */}
+            <div className="flex items-center gap-4">
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-zinc-300">
+                    {user.name}
+                  </span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-lg border border-zinc-700">
+                    <span className="text-sm font-medium text-emerald-400">
+                      {Number(user.wallet_balance ?? 0).toFixed(2)}€
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg h-9 w-9"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-zinc-300 hover:text-red-400 hover:bg-red-950/30 rounded-lg h-9 w-9"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800 rounded-lg border border-zinc-700">
+                  <Link
+                    to="/login"
+                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                  >
+                    Iniciar Sesión
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="text-zinc-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg font-medium"
+                  >
+                    Registrarse
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (

@@ -13,6 +13,8 @@ use App\Models\CartItem;
 use App\Models\BoosterPack;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Mail\OrderInvoiceMail;
+use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
@@ -255,6 +257,15 @@ class CheckoutController extends Controller
                 $cart->items()->delete();
                 $cart->delete();
 
+                // Enviar correo electrónico con la factura PDF en segundo plano (si hay colas) o síncrono
+                try {
+                    // Re-obtener los items como objetos con sus relaciones para la vista del correo
+                    $orderItems = OrderItem::with('boosterPack.cardSet')->where('order_id', $order->id)->get();
+                    Mail::to($user->email)->send(new OrderInvoiceMail($order, $user, $orderItems));
+                } catch (\Exception $e) {
+                    Log::error('No se pudo enviar el correo de factura', ['error' => $e->getMessage()]);
+                }
+
                 Log::info('Checkout completado exitosamente', [
                     'user_id' => $user->id,
                     'order_id' => $order->id,
@@ -269,7 +280,8 @@ class CheckoutController extends Controller
                         'order_id' => $order->id,
                         'total' => round($total, 2),
                         'payment_method' => $paymentMethod,
-                        'items_count' => count($validItems)
+                        'items_count' => count($validItems),
+                        'invoice_url' => url('/api/orders/' . $order->id . '/invoice')
                     ]
                 ], 201);
 
@@ -370,6 +382,24 @@ class CheckoutController extends Controller
                     $inventoryItem->save();
                 }
             }
+
+            // Crítico: Vaciar el carrito
+            \App\Models\CartItem::where('cart_id', $cart->id)->delete();
+
+            // Enviar correo electrónico
+            try {
+                Mail::to($user->email)->send(new OrderInvoiceMail($order, $user, $cartItems));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('No se pudo enviar el correo de factura (demo)', ['error' => $e->getMessage()]);
+            }
+
+            return response()->json([
+                'message' => '¡Pedido completado con éxito! (Modo Demo)',
+                'order_id' => $order->id,
+                'total' => $total,
+                'items_count' => $cartItems->count(),
+                'invoice_url' => url('/api/orders/' . $order->id . '/invoice')
+            ], 200);
         });
     }
 }

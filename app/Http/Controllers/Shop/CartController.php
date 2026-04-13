@@ -13,6 +13,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\BoosterPack;
 use App\Models\Card;
+use OpenApi\Attributes as OA;
 
 class CartController extends Controller
 {
@@ -21,6 +22,24 @@ class CartController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+
+        #[OA\Get(
+        path: "/api/cart",
+        summary: "Ver el carrito del usuario",
+        description: "Devuelve los items del carrito actual calculando los subtotales.",
+        tags: ["Cart"],
+        security: [["bearerAuth" => []]] // 👈 Exige enviar el Token JWT
+    )]
+    #[OA\Response(
+        response: 200,
+        description: "Carrito obtenido con éxito"
+    )]
+    #[OA\Response(
+        response: 401,
+        description: "No autorizado (Falta Token JWT)"
+    )]
+
+    
     public function index()
     {
         $user = Auth::user();
@@ -94,6 +113,34 @@ class CartController extends Controller
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
+
+    #[OA\Post(
+        path: "/api/cart",
+        summary: "Añadir producto al carrito",
+        description: "Añade un Booster Pack o una Carta Suelta al carrito. Si el producto ya existe, suma la cantidad.",
+        tags: ["Cart"],
+        security: [["bearerAuth" => []]] // 👈 Exige enviar el Token JWT
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "booster_pack_id", type: "integer", nullable: true, example: 5),
+                new OA\Property(property: "card_id", type: "integer", nullable: true, example: null),
+                new OA\Property(property: "quantity", type: "integer", example: 1)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 201,
+        description: "Producto añadido al carrito con éxito"
+    )]
+    #[OA\Response(
+        response: 400,
+        description: "Producto no especificado"
+    )]
+
+
     public function store(Request $request)
     {
         try {

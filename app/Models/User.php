@@ -97,7 +97,7 @@ class User extends Authenticatable implements JWTSubject
                 // Tablas pivot o secundarias
                 $deleteIgnoreError('user_role');
                 $deleteIgnoreError('card_user');
-                $deleteIgnoreError('achievement_user');
+                $deleteIgnoreError('user_achievement');
 
                 // Tablas donde el usuario es autor
                 $deleteIgnoreError('threads');
@@ -207,7 +207,8 @@ class User extends Authenticatable implements JWTSubject
     // Relación M:M con logros
     public function achievements()
     {
-        return $this->belongsToMany(Achievement::class);
+        return $this->belongsToMany(Achievement::class, 'user_achievement')
+        ->withPivot('obtained_at');
     }
 
     public function isAdmin(): bool
@@ -231,6 +232,18 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return mixed
      */
+    // Relación M:M con trades enviados
+    public function sentTrades()
+    {
+        return $this->hasMany(Trade::class, 'sender_id');
+    }
+
+    // Relación M:M con trades recibidos
+    public function receivedTrades()
+    {
+        return $this->hasMany(Trade::class, 'receiver_id');
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();

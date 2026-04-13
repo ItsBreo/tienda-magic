@@ -4,8 +4,9 @@ import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Image as ImageIcon, MapPin, BookOpen, Handshake, Save, Loader2, Shield, Upload, X } from 'lucide-react';
+import { User, Image as ImageIcon, MapPin, BookOpen, Handshake, Save, Loader2, Shield, Upload, X, Trophy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -114,24 +115,24 @@ function ImageDropZone({ label, currentUrl, previewUrl, onFileSelected, onClear,
 export default function Profile() {
     const { user: authUser } = useAuth();
 
-    const [loading, setLoading]       = useState(true);
-    const [saving, setSaving]         = useState(false);
-    const [message, setMessage]       = useState({ text: '', type: '' });
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState({ text: '', type: '' });
     const [hasProfile, setHasProfile] = useState(false);
     const [reputation, setReputation] = useState(0);
 
     const [formData, setFormData] = useState({
         display_name: '',
-        bio:          '',
-        country:      '',
-        trade_terms:  '',
-        avatar_url:   '',
-        banner_url:   '',
+        bio: '',
+        country: '',
+        trade_terms: '',
+        avatar_url: '',
+        banner_url: '',
     });
 
     // Archivos seleccionados (null = sin cambios)
-    const [avatarFile, setAvatarFile]     = useState<File | null>(null);
-    const [bannerFile, setBannerFile]     = useState<File | null>(null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [bannerFile, setBannerFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
@@ -147,11 +148,11 @@ export default function Profile() {
                     setReputation(userData.profile.reputation_score);
                     setFormData({
                         display_name: userData.profile.display_name || '',
-                        bio:          userData.profile.bio || '',
-                        country:      userData.profile.country || '',
-                        trade_terms:  userData.profile.trade_terms || '',
-                        avatar_url:   userData.profile.avatar_url || '',
-                        banner_url:   userData.profile.banner_url || '',
+                        bio: userData.profile.bio || '',
+                        country: userData.profile.country || '',
+                        trade_terms: userData.profile.trade_terms || '',
+                        avatar_url: userData.profile.avatar_url || '',
+                        banner_url: userData.profile.banner_url || '',
                     });
                 }
             } catch (error) {
@@ -211,9 +212,9 @@ export default function Profile() {
             const payload = new FormData();
 
             payload.append('display_name', formData.display_name);
-            payload.append('bio',          formData.bio);
-            payload.append('country',      formData.country);
-            payload.append('trade_terms',  formData.trade_terms);
+            payload.append('bio', formData.bio);
+            payload.append('country', formData.country);
+            payload.append('trade_terms', formData.trade_terms);
 
             if (avatarFile) {
                 payload.append('avatar', avatarFile);
@@ -321,6 +322,13 @@ export default function Profile() {
                                     <Shield className="h-3 w-3" />
                                     Reputación: {reputation}
                                 </span>
+                                <Link
+                                    to="/achievements"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-amber-400 hover:border-amber-500/40 text-xs font-semibold uppercase tracking-wider transition-colors"
+                                >
+                                    <Trophy className="h-3 w-3" />
+                                    Logros
+                                </Link>
                                 {formData.country && (
                                     <span className="inline-flex items-center gap-1 text-zinc-500 text-xs">
                                         <MapPin className="h-3 w-3" />
@@ -338,11 +346,10 @@ export default function Profile() {
                 <div className="border-t border-zinc-800/60 mb-8" />
 
                 {message.text && (
-                    <div className={`p-4 mb-8 rounded-md border text-sm ${
-                        message.type === 'success'
+                    <div className={`p-4 mb-8 rounded-md border text-sm ${message.type === 'success'
                             ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-400'
                             : 'bg-red-950/30 border-red-500/30 text-red-400'
-                    }`}>
+                        }`}>
                         {message.text}
                     </div>
                 )}

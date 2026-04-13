@@ -350,7 +350,6 @@ class InventoryController extends Controller
         $marketListing->seller_id = $user->id;
         $marketListing->inventory_card_id = $inventoryCardId;
 
-        // ¡LA CORRECCIÓN MÁGICA! Ahora guardamos cuántas cartas vende realmente
         $marketListing->quantity = $validated['quantity'];
 
         $marketListing->price_total = $validated['price_per_card'] * $validated['quantity'];

@@ -2,13 +2,37 @@ services:
   db:
     image: postgres:15
     ports:
-      - "5432:5432"  # Esto abre la puerta: [Puerto en tu PC] : [Puerto dentro del contenedor]
+      - "5432:5432"
     environment:
       POSTGRES_DB: tienda-magic
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - tienda-network
+
+  reverb:
+    build:
+      context: .
+      dockerfile: dockerfile.reverb
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+    networks:
+      - tienda-network
+
+networks:
+  tienda-network:
+    driver: bridge
 
 volumes:
   pgdata:

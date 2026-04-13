@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,11 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create("user_achievement", function (Blueprint $table) {
-            $table->foreignId("user_id");
-            $table->foreignId("achievement_id");
-            $table->date("obtained_at");
-        });
+        DB::statement("ALTER TABLE exchange_requests MODIFY COLUMN status ENUM('pending', 'accepted', 'rejected', 'cancelled', 'completed') DEFAULT 'pending'");
     }
 
     /**
@@ -23,6 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists("user_achievement");
+        DB::statement("ALTER TABLE exchange_requests MODIFY COLUMN status ENUM('pending', 'accepted', 'rejected', 'cancelled') DEFAULT 'pending'");
     }
 };

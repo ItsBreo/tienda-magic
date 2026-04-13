@@ -32,6 +32,12 @@ import AdminCards from './pages/admin/Cards';
 import AdminSets from './pages/admin/Sets';
 import Profile from './pages/profile/Profile';
 import Inventory from './pages/inventory/Inventory';
+import Achievements from './pages/achievement/Achievement';
+
+// Importaciones de Intercambios
+import Exchanges from './pages/exchange/Exchanges';
+import ManageExchanges from './pages/exchange/ManageExchanges';
+import TradeRoom from './pages/exchange/TradeRoom';
 
 initializeTheme();
 
@@ -73,8 +79,13 @@ if (el) {
                             <Route path="/wallet" element={<WalletPage />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/inventory" element={<Inventory />} />
+                            <Route path="/achievements" element={<Achievements />} />
                             <Route path="/forum" element={<Forum />} />
 
+                            {/* RUTAS DE INTERCAMBIO */}
+                            <Route path="/exchanges" element={<Exchanges />} />
+                            <Route path="/exchanges/manage" element={<ManageExchanges />} />
+                            <Route path="/trade/:id" element={<TradeRoom />} />
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                         </Route>
 
