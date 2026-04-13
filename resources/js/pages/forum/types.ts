@@ -1,5 +1,5 @@
 export type Category = "noticias" | "estrategia" | "torneos" | "general";
-export type SortMode = "hot" | "nuevo" | "top" | "comentado";
+export type SortMode = "hot" | "nuevo" | "top";
 export type View = "feed" | "thread" | "create";
 
 export interface Post {

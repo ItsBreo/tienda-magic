@@ -33,25 +33,28 @@ import AdminSets from './pages/admin/Sets';
 import Profile from './pages/profile/Profile';
 import Inventory from './pages/inventory/Inventory';
 
-// Asegúrate de importar las otras páginas que uses
-
 initializeTheme();
 
 const el = document.getElementById('root') || document.getElementById('app');
 
 if (el) {
+    // FIX 2: Garantizamos que el marco principal ocupe toda la ventana del navegador.
+    // Esto evita que componentes con 'height: 100%' como tu Foro colapsen visualmente.
+    el.classList.add('min-h-screen', 'flex', 'flex-col');
+
     const root = createRoot(el);
 
     root.render(
         <StrictMode>
             <AuthProvider>
+                {/* FIX 1: Hacemos que las notificaciones respeten el tema claro/oscuro */}
                 <Toaster
-                    theme="dark"
+                    theme="system"
                     position="top-right"
                     richColors
                     expand
                     toastOptions={{
-                        className: 'bg-zinc-900 border-zinc-800 text-zinc-100 shadow-2xl',
+                        className: 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xl',
                     }}
                 />
 
@@ -83,7 +86,6 @@ if (el) {
                                 <Route path="/admin/roles" element={<AdminRoles />} />
                                 <Route path="/admin/cards" element={<AdminCards />} />
                                 <Route path="/admin/sets" element={<AdminSets />} />
-
                             </Route>
                         </Route>
                     </Routes>

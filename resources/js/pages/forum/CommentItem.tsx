@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Comment, Reply } from "./types";
-import { C, FONT } from "./constants";
 import ApiService from "../../services/ApiService";
 
 function ReplyItem({ reply }: { reply: Reply }) {
@@ -8,7 +7,6 @@ function ReplyItem({ reply }: { reply: Reply }) {
   const [score, setScore] = useState(reply.score || 0);
   const [vote, setVote] = useState<1 | -1 | 0>((reply as any).userVote || 0);
 
-  // Sincroniza el estado si llegan nuevos datos del backend
   useEffect(() => {
     setScore(reply.score || 0);
     setVote((reply as any).userVote || 0);
@@ -19,13 +17,11 @@ function ReplyItem({ reply }: { reply: Reply }) {
     const scoreDiff = newVote - vote;
     setScore(s => s + scoreDiff);
     setVote(newVote);
-
     try {
-      const data = await ApiService.vote(reply.id, 'comment', dir);
+      const data = await ApiService.vote(reply.id, "comment", dir);
       setScore(data.score);
       setVote(data.user_vote || 0);
     } catch (err) {
-      console.error("Error al votar respuesta:", err);
       setScore(s => s - scoreDiff);
       setVote(vote);
     }
@@ -35,28 +31,33 @@ function ReplyItem({ reply }: { reply: Reply }) {
 
   if (isHidden && !revealed) {
     return (
-      <div style={{ padding:"8px 14px 8px 32px",borderBottom:`1px solid ${C.border}`, display:"flex",gap:10,alignItems:"center" }}>
-        <div style={{ width:18,height:18,borderRadius:"50%",background:C.surface2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:700,color:C.textMuted,flexShrink:0 }}>?</div>
-        <div onClick={() => setRevealed(true)}
-          style={{ background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.25)", borderRadius:6,padding:"6px 12px",fontSize:12,color:C.red, display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontFamily:FONT }}>
+      <div className="py-2 pl-8 pr-3.5 border-b border-[var(--border)] flex gap-2.5 items-center">
+        <div className="w-[18px] h-[18px] rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[8px] font-bold text-[var(--text-muted)] shrink-0">?</div>
+        <div onClick={() => setRevealed(true)} className="bg-red-400/10 border border-red-400/25 rounded-md py-1.5 px-3 text-xs text-[var(--red)] flex items-center gap-1.5 cursor-pointer">
           ⚠️ Comentario oculto · puntuación {score} · Haz clic para ver
         </div>
       </div>
     );
   }
+
   return (
-    <div style={{ padding:"8px 14px 8px 32px",borderBottom:`1px solid ${C.border}`, display:"flex",gap:10,background:"rgba(255,255,255,.01)" }}>
-      <div style={{ width:18,height:18,borderRadius:"50%",background:reply.avatarColor, display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:700,color:"#fff",flexShrink:0 }}>{reply.initials}</div>
-      <div style={{ flex:1 }}>
-        <div style={{ fontSize:11,color:C.textMuted,marginBottom:4,fontFamily:FONT }}>
-          <b style={{ color:C.textSecondary,fontWeight:600 }}>{reply.author}</b> · {reply.timeAgo} ·{" "}
-          <span style={{ color:score<0?C.red:C.accent }}>{score>0?`+${score}`:score}</span>
+    <div className="py-2 pl-8 pr-3.5 border-b border-[var(--border)] flex gap-2.5 bg-white/5">
+      <div className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0" style={{ background: reply.avatarColor }}>
+        {reply.initials}
+      </div>
+
+      <div className="flex-1">
+        <div className="text-[11px] text-[var(--text-muted)] mb-1">
+          <b className="text-[var(--text-secondary)] font-semibold">{reply.author}</b> · {reply.timeAgo} ·{" "}
+          <span className={score < 0 ? 'text-[var(--red)]' : 'text-[var(--accent)]'}>{score > 0 ? `+${score}` : score}</span>
         </div>
-        <div style={{ fontSize:13,color:isHidden?C.textMuted:C.textPrimary, lineHeight:1.6,marginBottom:6,opacity:isHidden?0.7:1,fontFamily:FONT }}>{reply.body}</div>
-        <div style={{ display:"flex",gap:2 }}>
-          <button onClick={() => cast(1)} style={{ padding:"2px 6px",borderRadius:3,border:"none",background:"transparent",color:vote===1?C.accent:C.textMuted,fontSize:11,cursor:"pointer",fontFamily:FONT,fontWeight:vote===1?600:400 }}>▲ {score}</button>
-          <button onClick={() => cast(-1)} style={{ padding:"2px 6px",borderRadius:3,border:"none",background:"transparent",color:vote===-1?C.red:C.textMuted,fontSize:11,cursor:"pointer",fontFamily:FONT,fontWeight:vote===-1?600:400 }}>▼</button>
-          <button style={{ padding:"2px 6px",borderRadius:3,border:"none",background:"transparent",color:C.textMuted,fontSize:11,cursor:"pointer",fontFamily:FONT }}>💬 Responder</button>
+        <div className={`text-[13px] leading-relaxed mb-1.5 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
+          {reply.body}
+        </div>
+        <div className="flex gap-0.5">
+          <button onClick={() => cast(1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
+          <button onClick={() => cast(-1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
+          <button className="py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">💬 Responder</button>
         </div>
       </div>
     </div>
@@ -68,7 +69,6 @@ export default function CommentItem({ comment }: { comment: Comment }) {
   const [score, setScore] = useState(comment.score || 0);
   const [vote, setVote] = useState<1 | -1 | 0>((comment as any).userVote || 0);
 
-  // Sincroniza el estado si llegan nuevos datos del backend
   useEffect(() => {
     setScore(comment.score || 0);
     setVote((comment as any).userVote || 0);
@@ -79,13 +79,11 @@ export default function CommentItem({ comment }: { comment: Comment }) {
     const scoreDiff = newVote - vote;
     setScore(s => s + scoreDiff);
     setVote(newVote);
-
     try {
-      const data = await ApiService.vote(comment.id, 'comment', dir);
+      const data = await ApiService.vote(comment.id, "comment", dir);
       setScore(data.score);
       setVote(data.user_vote || 0);
     } catch (err) {
-      console.error("Error al votar comentario:", err);
       setScore(s => s - scoreDiff);
       setVote(vote);
     }
@@ -95,10 +93,9 @@ export default function CommentItem({ comment }: { comment: Comment }) {
 
   if (isHidden && !revealed) {
     return (
-      <div style={{ padding:"12px 14px",borderBottom:`1px solid ${C.border}`,display:"flex",gap:10,alignItems:"center" }}>
-        <div style={{ width:24,height:24,borderRadius:"50%",background:C.surface2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:C.textMuted,flexShrink:0 }}>?</div>
-        <div onClick={() => setRevealed(true)}
-          style={{ background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.25)", borderRadius:6,padding:"6px 12px",fontSize:13,color:C.red, display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontFamily:FONT }}>
+      <div className="py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5 items-center">
+        <div className="w-6 h-6 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[10px] font-bold text-[var(--text-muted)] shrink-0">?</div>
+        <div onClick={() => setRevealed(true)} className="bg-red-400/10 border border-red-400/25 rounded-md py-1.5 px-3 text-[13px] text-[var(--red)] flex items-center gap-1.5 cursor-pointer">
           ⚠️ Comentario oculto · puntuación {score} · Haz clic para ver
         </div>
       </div>
@@ -107,29 +104,31 @@ export default function CommentItem({ comment }: { comment: Comment }) {
 
   return (
     <>
-      <div style={{ padding:"12px 14px",borderBottom:`1px solid ${C.border}`,display:"flex",gap:10 }}>
-        <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3 }}>
-          <div style={{ width:24,height:24,borderRadius:"50%",background:comment.avatarColor,
-                        display:"flex",alignItems:"center",justifyContent:"center",
-                        fontSize:9,fontWeight:700,color:"#fff",flexShrink:0 }}>{comment.initials}</div>
-          <div style={{ width:2,flex:1,background:C.border,borderRadius:1,minHeight:12 }} />
-        </div>
-        <div style={{ flex:1 }}>
-          <div style={{ fontSize:11,color:C.textMuted,marginBottom:4,fontFamily:FONT }}>
-            <b style={{ color:C.textSecondary,fontWeight:600 }}>{comment.author}</b> · {comment.timeAgo} ·{" "}
-            <span style={{ color:score<0?C.red:C.accent }}>{score>0?`+${score}`:score}</span>
+      <div className="py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5">
+        <div className="flex flex-col items-center gap-1">
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{ background: comment.avatarColor }}>
+            {comment.initials}
           </div>
-          <div style={{ fontSize:13,color:isHidden?C.textMuted:C.textPrimary,lineHeight:1.6,marginBottom:8,opacity:isHidden?0.7:1,fontFamily:FONT }}>
+          <div className="w-[2px] flex-1 bg-[var(--border)] rounded-[1px] min-h-[12px]" />
+        </div>
+
+        <div className="flex-1">
+          <div className="text-[11px] text-[var(--text-muted)] mb-1">
+            <b className="text-[var(--text-secondary)] font-semibold">{comment.author}</b> · {comment.timeAgo} ·{" "}
+            <span className={score < 0 ? 'text-[var(--red)]' : 'text-[var(--accent)]'}>{score > 0 ? `+${score}` : score}</span>
+          </div>
+          <div className={`text-[13px] leading-relaxed mb-2 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
             {comment.body}
           </div>
-          <div style={{ display:"flex",gap:2 }}>
-            <button onClick={() => cast(1)} style={{ padding:"2px 8px",borderRadius:3,border:"none",background:"transparent", color:vote===1?C.accent:C.textMuted,fontSize:11,cursor:"pointer", fontFamily:FONT,fontWeight:vote===1?600:400 }}>▲ {score}</button>
-            <button onClick={() => cast(-1)} style={{ padding:"2px 8px",borderRadius:3,border:"none",background:"transparent", color:vote===-1?C.red:C.textMuted,fontSize:11,cursor:"pointer", fontFamily:FONT,fontWeight:vote===-1?600:400 }}>▼</button>
-            <button style={{ padding:"2px 8px",borderRadius:3,border:"none",background:"transparent", color:C.textMuted,fontSize:11,cursor:"pointer", fontFamily:FONT,fontWeight:400 }}>💬 Responder</button>
-            <button style={{ padding:"2px 8px",borderRadius:3,border:"none",background:"transparent", color:C.textMuted,fontSize:11,cursor:"pointer", fontFamily:FONT,fontWeight:400 }}>···</button>
+          <div className="flex gap-0.5">
+            <button onClick={() => cast(1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
+            <button onClick={() => cast(-1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
+            <button className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">💬 Responder</button>
+            <button className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">···</button>
           </div>
         </div>
       </div>
+
       {comment.replies.map(r => <ReplyItem key={r.id} reply={r} />)}
     </>
   );
