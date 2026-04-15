@@ -9,6 +9,66 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/checkout/process": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Procesar Checkout",
+                "description": "Procesamiento híbrido de checkout combinando billetera virtual o Stripe con alta seguridad.",
+                "operationId": "44ff9c9c81a7fe7a0e14c275c50f8bfb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "payment_method": {
+                                        "description": "wallet o stripe",
+                                        "type": "string",
+                                        "example": "wallet"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "purchasable_type": {
+                                                    "type": "string",
+                                                    "example": "App\\Models\\Card"
+                                                },
+                                                "purchasable_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Compra procesada o sesión de pago iniciada"
+                    },
+                    "422": {
+                        "description": "Datos de orden inválidos o stock insuficiente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/sets/latest": {
             "get": {
                 "tags": [
@@ -22,6 +82,45 @@
                         "description": "Operación exitosa"
                     }
                 }
+            }
+        },
+        "/api/wallet/recharge": {
+            "post": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Recargar billetera",
+                "description": "Inicia el flujo de recarga de saldo en la billetera virtual mediante Stripe.",
+                "operationId": "20054417fdac6404f704c157e18b5ab0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount": {
+                                        "description": "Cantidad a recargar (5, 10, 20 o 50)",
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sesión de Stripe Checkout creada exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación del monto"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/cards": {
@@ -345,6 +444,99 @@
                 }
             }
         },
+        "/api/checkout": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Checkout falso (Demo)",
+                "description": "Procesa el carrito del usuario generando pago automático simulado para propósitos de demostración.",
+                "operationId": "bceae9dbbb9f593d1657920319fde87b",
+                "responses": {
+                    "200": {
+                        "description": "Pedido completado con éxito (Demo)"
+                    },
+                    "400": {
+                        "description": "El carrito está vacio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/wallet/deposit": {
+            "post": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Depósito de dinero",
+                "description": "Realiza un depósito de fondos a la cuenta del usuario.",
+                "operationId": "957431a227b45c856fcf18923a5f184b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount": {
+                                        "description": "Cantidad (mínimo 5)",
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Depósito realizado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/{id}/invoice": {
+            "get": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Descargar Factura PDF",
+                "description": "Genera y descarga en formato PDF la factura de una compra pasada.",
+                "operationId": "6b98cac3dd6a5db21ae519d0db2f90aa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pedido u orden",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Archivo PDF generado (application/pdf)"
+                    },
+                    "404": {
+                        "description": "Orden no encontrada o no autorizada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/pack/{code}": {
             "get": {
                 "tags": [
@@ -568,6 +760,326 @@
                     }
                 }
             }
+        },
+        "/api/account": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Ver cuenta del usuario",
+                "description": "Obtiene información de la cuenta base del usuario autenticado.",
+                "operationId": "ab0161110b4a7fa032bd9992dc08b203",
+                "responses": {
+                    "200": {
+                        "description": "Datos de usuario obtenidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Eliminar cuenta",
+                "description": "Elimina permanentemente la cuenta de usuario.",
+                "operationId": "97ef6ca0feb49737ee28e9890a81215b",
+                "responses": {
+                    "200": {
+                        "description": "Cuenta eliminada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/password": {
+            "patch": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Cambiar contraseña",
+                "description": "Actualiza la contraseña del usuario autenticado indicando la actual.",
+                "operationId": "f4ebc872572fb01f9aee817e8b29e7b9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Contraseña cambiada exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/decks": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Mazos del usuario",
+                "description": "Carga la relación de mazos creados por el usuario.",
+                "operationId": "bd6da882d732858dceff03f4676f9bbc",
+                "responses": {
+                    "200": {
+                        "description": "Listado de mazos (puede devolver vista o json)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/favorites": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Cartas favoritas",
+                "description": "Muestra cartas marcadas como preferidas por el usuario.",
+                "operationId": "cb7a91dcd181db286d4966ce003df03d",
+                "responses": {
+                    "200": {
+                        "description": "Listado de favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/balance": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Consultar saldo",
+                "description": "Devuelve el saldo actual de la billetera en la tienda.",
+                "operationId": "70580cdd04ac9c03741a14fd28fdfbfd",
+                "responses": {
+                    "200": {
+                        "description": "Saldo obtenido con éxito"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/transactions": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Historial de transacciones de billetera",
+                "description": "Muestra los movimientos (recargas y deducciones) de saldo.",
+                "operationId": "db3f14c721fb4db8efb121d6a2570db8",
+                "responses": {
+                    "200": {
+                        "description": "Lista de transacciones"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Ver perfil propio",
+                "description": "Obtiene el perfil del usuario autenticado.",
+                "operationId": "c1ab46a11a832664e4f9dea5246a8077",
+                "responses": {
+                    "200": {
+                        "description": "Datos del perfil"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Crear perfil",
+                "description": "Crea el perfil para el usuario autenticado.",
+                "operationId": "4632edfbc81bab08c03cfb69691f32f1",
+                "responses": {
+                    "201": {
+                        "description": "Perfil creado"
+                    },
+                    "400": {
+                        "description": "El usuario ya tiene un perfil"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Eliminar perfil",
+                "description": "Elimina el perfil del usuario autenticado.",
+                "operationId": "8cb7b49578f2f1b7e9f6a08637c21389",
+                "responses": {
+                    "200": {
+                        "description": "Perfil eliminado correctamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Actualizar perfil",
+                "description": "Actualiza el perfil del usuario autenticado.",
+                "operationId": "c7b4de59bda57684f3125e920d95156e",
+                "responses": {
+                    "200": {
+                        "description": "Perfil actualizado correctamente"
+                    },
+                    "404": {
+                        "description": "Perfil no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile/{userId}": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Ver perfil público de usuario",
+                "description": "Obtiene el perfil público de un usuario especificado por ID.",
+                "operationId": "82b58d9f54c97e93a4217a90e36638fb",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Perfil del usuario devuelto"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                }
+            }
+        },
+        "/api/profile/public-info": {
+            "patch": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Actualizar información pública",
+                "description": "Actualiza información pública (stub).",
+                "operationId": "a6ef78923fa739278aff6566cf4ac5f3",
+                "responses": {
+                    "200": {
+                        "description": "Información actualizada (stub)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{userId}/reputation": {
+            "patch": {
+                "tags": [
+                    "Admin",
+                    "Profile"
+                ],
+                "summary": "Actualizar reputación (Admin)",
+                "description": "Actualiza la puntuación de reputación de un usuario.",
+                "operationId": "044ae9ba8973fc969208cf99002c5198",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reputación actualizada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -581,8 +1093,16 @@
     },
     "tags": [
         {
+            "name": "Checkout",
+            "description": "Checkout"
+        },
+        {
             "name": "Sets",
             "description": "Sets"
+        },
+        {
+            "name": "Wallet",
+            "description": "Wallet"
         },
         {
             "name": "Cards",
@@ -603,6 +1123,18 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Account",
+            "description": "Account"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile"
+        },
+        {
+            "name": "Admin",
+            "description": "Admin"
         }
     ]
 }
