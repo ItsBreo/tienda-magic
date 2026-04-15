@@ -23,16 +23,17 @@ class StripeWebhookController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        $payload = $request->getContent();
-        $sigHeader = $request->header('Stripe-Signature');
-        $webhookSecret = config('services.stripe.webhook_secret');
+        // Read raw payload to bypass Laravel middleware manipulation
+        $payload = @file_get_contents('php://input');
+        $sig_header = $request->header('Stripe-Signature');
+        $endpoint_secret = config('services.stripe.webhook_secret') ?? env('STRIPE_WEBHOOK_SECRET');
 
         try {
-            $event = Webhook::constructEvent($payload, $sigHeader, $webhookSecret);
+            $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
         } catch (SignatureVerificationException $e) {
             Log::error('Webhook signature verification failed', [
                 'error' => $e->getMessage(),
-                'signature' => $sigHeader,
+                'signature' => $sig_header,
             ]);
             return response()->json(['error' => 'Invalid signature'], 403);
         } catch (\UnexpectedValueException $e) {
@@ -48,7 +49,7 @@ class StripeWebhookController extends Controller
         }
 
         // Return 200 for other events we don't handle
-        return response()->json(['status' => 'ignored']);
+        return response()->json(['status' => 'ignored'], 200);
     }
 
     /**
