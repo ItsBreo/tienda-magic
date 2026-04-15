@@ -28,7 +28,7 @@ class UserProfileController extends Controller
 
     /**
      * Extrae la ruta relativa a partir de una URL pública almacenada en BD.
-     * Ej: "http://localhost/storage/avatars/abc.jpg" → "avatars/abc.jpg"
+     * Ej: config('app.url') . "/storage/avatars/abc.jpg" -> "avatars/abc.jpg"
      */
     private function getStoragePath(?string $url): ?string
     {

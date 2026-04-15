@@ -171,8 +171,8 @@ class CheckoutController extends Controller
                             'quantity' => 1,
                         ]],
                         'mode' => 'payment',
-                        'success_url' => config('app.frontend_url') . '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
-                        'cancel_url' => config('app.frontend_url') . '/checkout/cancel',
+                        'success_url' => route('checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                        'cancel_url' => route('checkout.cancel'),
                         'metadata' => [
                             'order_id' => $order->id,
                             'type' => 'order'

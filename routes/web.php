@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Checkout routes (named for dynamic URL generation)
+Route::get('/checkout/success', function () {
+    return view('app');
+})->name('checkout.success');
+
+Route::get('/checkout/cancel', function () {
+    return view('app');
+})->name('checkout.cancel');
+
 // Catch-all para React Router - Excluyendo API y Sanctum
 Route::get('/{any?}', function () {
     return view('app');

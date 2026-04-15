@@ -66,8 +66,8 @@ class WalletController extends Controller
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => 'http://127.0.0.1:8000/wallet?status=success',
-                'cancel_url' => 'http://127.0.0.1:8000/wallet?status=canceled',
+                'success_url' => config('services.stripe.success_url'),
+                'cancel_url' => config('services.stripe.cancel_url'),
                 'metadata' => [
                     'user_id' => $user->id,
                     'amount' => $amount,

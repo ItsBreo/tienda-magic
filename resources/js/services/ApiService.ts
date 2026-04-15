@@ -25,7 +25,7 @@ class MagicApi {
     constructor() {
         this.api = axios.create({
             // Configuración segura: variable de entorno con fallback
-            baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000',
+            baseURL: import.meta.env.VITE_API_URL ?? `${window.location.origin}/api`,
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
