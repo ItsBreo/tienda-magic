@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Attributes as OA;
 
 class DashboardController extends Controller
 {
-    /**
-     * Devuelve solo las estadísticas locales de la base de datos de la tienda.
-     */
+    #[OA\Get(
+        path: "/api/store-stats",
+        summary: "Estadísticas del panel",
+        description: "Devuelve estadísticas globales de la DB de la tienda.",
+        tags: ["Dashboard"]
+    )]
+    #[OA\Response(response: 200, description: "Datos estadísticos")]
     public function getStats(): JsonResponse
     {
         return response()->json([

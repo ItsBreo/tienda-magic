@@ -9,6 +9,731 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/admin/cards": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de cartas Admin",
+                "description": "Obtiene una lista paginada de cartas (solo admins).",
+                "operationId": "0a70ecc7dda4e1759db9126fef934979",
+                "responses": {
+                    "200": {
+                        "description": "Lista de cartas"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear carta manual",
+                "description": "Añade una carta nueva manualmente (solo admins).",
+                "operationId": "42cdcb4c431a7846921508be0edba3ad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "scryfall_id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "set_code": {
+                                        "type": "string"
+                                    },
+                                    "collector_number": {
+                                        "type": "string"
+                                    },
+                                    "rarity": {
+                                        "type": "string"
+                                    },
+                                    "price_eur": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "price_usd": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "mana_value": {
+                                        "type": "integer"
+                                    },
+                                    "image_uri": {
+                                        "type": "string",
+                                        "format": "url",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Carta creada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/cards/{cardId}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar carta manual",
+                "description": "Elimina una carta manualmente.",
+                "operationId": "e889230ddb3788f275f7c8218539b70b",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "description": "ID de carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta eliminada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/forums/{forumId}/threads": {
+            "get": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Lista de hilos del foro para moderadores",
+                "description": "Obtiene la lista de los hilos del foro para moderar.",
+                "operationId": "8a90a33c99aacdf4c2bc1aef6e39e923",
+                "parameters": [
+                    {
+                        "name": "forumId",
+                        "in": "path",
+                        "description": "ID del foro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de hilos de moderación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/threads/{thread}": {
+            "delete": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Eliminar hilo (Moderación)",
+                "description": "Elimina un hilo del foro (solo moderadores/admins).",
+                "operationId": "3013f2f3dec739e64dd8fd7240a286ed",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/comments/{comment}": {
+            "delete": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Eliminar comentario (Moderación)",
+                "description": "Elimina un comentario del foro (solo moderadores/admins).",
+                "operationId": "8e90bd835cd909835d66e872eda49f90",
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "description": "ID del comentario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comentario eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/threads/{threadId}/restore": {
+            "post": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Restaurar hilo (Admin)",
+                "description": "Restaura un hilo que fue eliminado (solo admins).",
+                "operationId": "6f32768a0d88dba61f493db6bda69764",
+                "parameters": [
+                    {
+                        "name": "threadId",
+                        "in": "path",
+                        "description": "ID del hilo a restaurar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo restaurado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/comments/{commentId}/restore": {
+            "post": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Restaurar comentario (Admin)",
+                "description": "Restaura un comentario que fue eliminado (solo admins).",
+                "operationId": "4e1bbaa7948a45d30343a667e032f6f8",
+                "parameters": [
+                    {
+                        "name": "commentId",
+                        "in": "path",
+                        "description": "ID del comentario a restaurar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comentario restaurado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/roles": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de roles",
+                "description": "Obtiene una lista de roles de sistema disponibles (solo admins).",
+                "operationId": "2482cf02dd8867d786adf73b0da707a0",
+                "responses": {
+                    "200": {
+                        "description": "Lista de roles"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear rol",
+                "description": "Crea un nuevo rol (solo admins).",
+                "operationId": "2e8bb0f3e18d0c53e25f90759e365aa5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Rol creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/roles/{roleId}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Actualizar rol",
+                "description": "Actualiza un rol (solo admins).",
+                "operationId": "70a762cc6e06db590d8a6e05d3340d3e",
+                "parameters": [
+                    {
+                        "name": "roleId",
+                        "in": "path",
+                        "description": "ID del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar rol",
+                "description": "Elimina un rol si no es crítico de sistema.",
+                "operationId": "c541bd5005d947011f5b246130dbef27",
+                "parameters": [
+                    {
+                        "name": "roleId",
+                        "in": "path",
+                        "description": "ID del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rol eliminado exitosamente"
+                    },
+                    "403": {
+                        "description": "No puedes eliminar un rol protegido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sets": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de sets Admin",
+                "description": "Obtiene una lista paginada de expansiones de cartas (solo admins).",
+                "operationId": "f83107ece64000da0fe6ed0cbc6ef7a4",
+                "responses": {
+                    "200": {
+                        "description": "Lista de sets"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear set",
+                "description": "Crea una expansión de forma manual (solo admins).",
+                "operationId": "03794fff2c85dbe86a08719d4c2a235c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "released_at": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "card_count": {
+                                        "type": "integer"
+                                    },
+                                    "icon_svg_uri": {
+                                        "type": "string",
+                                        "format": "url",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Set creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sets/{code}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar set",
+                "description": "Elimina una expansión (solo admins).",
+                "operationId": "8741806af71084bdd46398406e1cec7d",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Código del set",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Set eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de usuarios",
+                "description": "Obtiene una lista paginada de todos los usuarios registrados (solo admins).",
+                "operationId": "895101ef1a579f1e11fb7d2ffac04d5b",
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuarios"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear usuario",
+                "description": "Crea un usuario administrativamente.",
+                "operationId": "561f65ab349d23d53530ee93e2d9cc83",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "role_id": {
+                                        "type": "integer"
+                                    },
+                                    "forum_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario creado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{userId}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Actualizar usuario",
+                "description": "Actualiza los datos y configuraciones primarias de un usuario.",
+                "operationId": "49e5aaa01a2804513f8e989fc83b5b1d",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "role_id": {
+                                        "type": "integer"
+                                    },
+                                    "forum_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuario actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar usuario",
+                "description": "Elimina una cuenta de usuario.",
+                "operationId": "36b315b022462964179dcf1939f2137c",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario eliminado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{userId}/assign-role": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Asignar rol a usuario",
+                "description": "Reglas de jerarquía aplican. Solo super_admin asigna super_admin.",
+                "operationId": "162856567491e2ea87893e5066457f3c",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "role_id": {
+                                        "type": "integer"
+                                    },
+                                    "forum_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol asignado correctamente"
+                    },
+                    "403": {
+                        "description": "Prohibido"
+                    },
+                    "422": {
+                        "description": "Falta asignar ID de foro a moderador"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/checkout/process": {
             "post": {
                 "tags": [
@@ -67,6 +792,21 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/store-stats": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Estadísticas del panel",
+                "description": "Devuelve estadísticas globales de la DB de la tienda.",
+                "operationId": "786cc3602960780c878ce95fb591ff9e",
+                "responses": {
+                    "200": {
+                        "description": "Datos estadísticos"
+                    }
+                }
             }
         },
         "/api/sets/latest": {
@@ -1780,6 +2520,37 @@
                 ]
             }
         },
+        "/api/search/all": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Búsqueda global",
+                "description": "Búsqueda unificada en toda la tienda y foro (stub).",
+                "operationId": "df647696551cecae60b10acb71f8c2a1",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Término de búsqueda",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados de búsqueda"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/cart": {
             "get": {
                 "tags": [
@@ -2875,8 +3646,20 @@
     },
     "tags": [
         {
+            "name": "Admin",
+            "description": "Admin"
+        },
+        {
+            "name": "Moderation",
+            "description": "Moderation"
+        },
+        {
             "name": "Checkout",
             "description": "Checkout"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard"
         },
         {
             "name": "Sets",
@@ -2927,6 +3710,10 @@
             "description": "Messages"
         },
         {
+            "name": "Search",
+            "description": "Search"
+        },
+        {
             "name": "Cart",
             "description": "Cart"
         },
@@ -2953,10 +3740,6 @@
         {
             "name": "Profile",
             "description": "Profile"
-        },
-        {
-            "name": "Admin",
-            "description": "Admin"
         }
     ]
 }
