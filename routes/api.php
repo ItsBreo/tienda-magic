@@ -81,8 +81,8 @@ Route::get('/store-stats', [DashboardController::class, 'getStats']);
 // --- PERFILES PÚBLICOS ---
 Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
 
-// --- WEBHOOKS DE STRIPE (Sin autenticación) ---
-Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook']);
+// --- WEBHOOK DE STRIPE (Sin autenticación) ---
+Route::post('/webhook/stripe', [StripeWebhookController::class, 'handleWebhook']);
 
 /*
 |--------------------------------------------------------------------------
