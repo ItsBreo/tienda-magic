@@ -22,8 +22,13 @@ class ExchangeController extends Controller
     #[OA\Response(response: 200, description: "Lista de intercambios")]
     public function index(Request $request)
     {
+        $userId = auth('api')->id() ?? auth()->id();
+
         $exchanges = Exchange::with(['user', 'offeredCard.card', 'requestedCard'])
             ->where('status', 'active')
+            ->when($userId, function($q) use ($userId) {
+                $q->where('user_id', '!=', $userId);
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -104,7 +109,7 @@ class ExchangeController extends Controller
             'offered_inventory_card_id' => 'required|exists:inventory_card,id',
         ]);
 
-        $exchange = Exchange::where('id', $id)->where('status', 'active')->firstOrFail();
+        $exchange = Exchange::with('requestedCard')->where('id', $id)->where('status', 'active')->firstOrFail();
         $user = auth()->user();
 
         if ($exchange->user_id === $user->id) {
@@ -115,7 +120,7 @@ class ExchangeController extends Controller
         if ($exchange->requested_card_id) {
             $offeredInvCard = InventoryCard::findOrFail($request->offered_inventory_card_id);
             if ($offeredInvCard->card_id !== $exchange->requested_card_id) {
-                return response()->json(['message' => 'El creador pide una carta específica.'], 400);
+                return response()->json(['message' => "El creador solicita específicamente la carta: {$exchange->requestedCard->name}"], 400);
             }
         }
 

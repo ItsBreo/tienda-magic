@@ -32,6 +32,7 @@ class TradeController extends Controller
         // Envíos: Los que yo pedí
         $sent = ExchangeRequest::with(['exchange.offeredCard.card', 'offeredCard.card', 'tradeSession'])
             ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Recibidos: Peticiones a mis exchanges
@@ -40,6 +41,7 @@ class TradeController extends Controller
                 $q->where('user_id', $user->id);
             })
             ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Completados: Historial (yo pedí o me pidieron)

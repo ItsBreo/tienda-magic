@@ -209,15 +209,31 @@ export default function Exchanges() {
                 onChange={(e) => setSelectedInventoryCardId(e.target.value)}
               >
                 <option value="">-- Elige una carta de tu colección --</option>
-                {(inventory || []).map((inv: any) => {
+                {(inventory || []).filter((inv: any) => {
                   const available = inv.quantity - inv.quantity_locked;
-                  if (available <= 0) return null;
+                  if (available <= 0) return false;
+                  
+                  // Si el intercambio solicita una carta específica, filtramos
+                  if (selectedExchange?.requested_card_id) {
+                    return inv.card_id === selectedExchange.requested_card_id;
+                  }
+                  return true;
+                }).map((inv: any) => {
+                  const available = inv.quantity - inv.quantity_locked;
                   return (
-                  <option key={`inv-${inv.id}`} value={inv.id}>
-                    {inv.card?.name} ({available} disp.)
-                  </option>
-                )})}
+                    <option key={`inv-${inv.id}`} value={inv.id}>
+                      {inv.card?.name} ({available} disp.)
+                    </option>
+                  );
+                })}
               </select>
+              
+              {selectedExchange?.requested_card_id && (inventory || []).filter(inv => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0 && (
+                <p className="text-xs text-rose-400 mt-3 flex items-center gap-1.5 font-medium">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  No tienes la carta "{selectedExchange.requested_card?.name}" en tu colección.
+                </p>
+              )}
             </div>
 
             <div className="flex gap-4">
@@ -231,7 +247,8 @@ export default function Exchanges() {
               <button 
                 type="button"
                 onClick={submitRequest}
-                className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium py-3 px-4 rounded-xl transition-all shadow-lg active:scale-95"
+                disabled={selectedExchange?.requested_card_id && (inventory || []).filter(inv => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0}
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium py-3 px-4 rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
               >
                 Enviar Oferta
               </button>
