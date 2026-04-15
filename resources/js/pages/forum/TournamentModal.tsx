@@ -146,13 +146,15 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Descripción / Premios</label>
+            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
             <textarea
               rows={3}
               value={description}
               onChange={e => setDescription(e.target.value)}
               className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] resize-none"
             />
+            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Premio</label>
+            <input type="text" placeholder="Ej: Caja de sobres + trofeo" value={prize} onChange={e => setPrize(e.target.value)} className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
           </div>
 
           {error && <p className="text-xs text-[var(--red)] font-medium">{error}</p>}

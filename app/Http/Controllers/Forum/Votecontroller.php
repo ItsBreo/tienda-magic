@@ -81,11 +81,24 @@ class VoteController extends Controller
         ], 201);
     }
 
-    // Actualiza el score cacheado en el thread o comment correspondiente
+    // Actualiza el score cacheado en el thread o comment correspondiente,
+    // y actualiza el reputation_score del perfil del autor en un proceso unificado.
     private function updateScore(string $votableType, int $votableId, int $diff): int
     {
-        $votableType::where('id', $votableId)->increment('score', $diff);
+        $votable = $votableType::where('id', $votableId)->first();
+        if ($votable) {
+            $votable->increment('score', $diff);
 
-        return $votableType::where('id', $votableId)->value('score');
+            // Inyectar el impacto del voto en el perfil del autor
+            $author = $votable->user;
+            if ($author && $author->profile) {
+                // Según la fórmula: Threads dan 2 puntos por positivo, Comments 1 punto.
+                $repDiff = ($votableType === \App\Models\Thread::class) ? ($diff * 2) : $diff;
+                $author->profile->increment('reputation_score', $repDiff);
+            }
+            return $votable->score;
+        }
+
+        return 0;
     }
 }

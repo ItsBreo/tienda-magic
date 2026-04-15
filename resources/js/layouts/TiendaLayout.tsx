@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { Link } from 'react-router-dom';
 
 interface TiendaLayoutProps {
   children: ReactNode;
@@ -34,26 +35,26 @@ export default function TiendaLayout({ children }: TiendaLayoutProps) {
               </p>
             </div>
             <div className="flex items-center gap-6 text-[12px]">
-              <button
-                type="button"
+              <Link
+                to="/rules"
                 className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
-                Términos
-              </button>
+                Reglas
+              </Link>
               <span className="text-[var(--border)]">•</span>
-              <button
-                type="button"
+              <Link
+                to="/privacy"
                 className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 Privacidad
-              </button>
+              </Link>
               <span className="text-[var(--border)]">•</span>
-              <button
-                type="button"
+              <Link
+                to="/contact"
                 className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 Contacto
-              </button>
+              </Link>
             </div>
           </div>
         </div>

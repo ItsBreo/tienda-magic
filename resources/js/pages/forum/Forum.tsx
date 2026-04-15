@@ -3,9 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { Category, SortMode, View, Post, Comment, Tournament } from "./types";
-import { RULES, CAT_LABELS, SORT_LABELS } from "./constants";
-import PostCard from "./PostCard";
-import CommentItem from "./CommentItem";
+import { RULES, CAT_LABELS } from "./constants";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import TournamentModal from "./TournamentModal";
@@ -129,18 +127,20 @@ export default function MagicForum() {
       forum_id: t.forum_id,
       title: t.title,
       preview: t.body,
-      author: t.user?.username || t.author?.name || "Desconocido",
-      author_id: t.author?.id || t.user?.id || 0,
+      author: t.user?.username || t.user?.name || t.author?.name || "Desconocido",
+      author_id: t.user?.id || t.author?.id || 0,
       category: t.forum?.slug as Category,
       score: t.score || 0,
       userVote: t.user_vote || 0,
       isSaved: t.is_saved || false,
       comments: t.comments_count || 0,
-      timeAgo: t.created_at,
+      timeAgo: formatDate(t.created_at),
       tags: (() => { 
         if (Array.isArray(t.tags)) return t.tags;
         try { return JSON.parse(t.tags || "[]"); } catch { return []; }
       })(),
+      can_delete: t.can_delete,
+      can_edit: t.can_edit,
     });
 
     let fetcher;
@@ -184,23 +184,27 @@ export default function MagicForum() {
     ApiService.getThread(post.id).then(res => {
       const mapped = (res.data?.comments || []).map((c: any) => ({
         id: c.id, 
-        author: c.author?.name || "Desconocido", 
-        author_id: c.author?.id || 0,
+        author: c.user?.username || c.user?.name || c.author?.name || "Desconocido", 
+        author_id: c.user?.id || c.author?.id || 0,
         avatarColor: "var(--accent)",
-        initials: (c.author?.name || "US").substring(0, 2).toUpperCase(),
-        timeAgo: c.created_at, 
+        initials: (c.user?.username || c.user?.name || c.author?.name || "US").substring(0, 2).toUpperCase(),
+        timeAgo: formatDate(c.created_at), 
         score: c.score, 
         userVote: c.user_vote || 0, 
         body: c.body,
+        can_delete: c.can_delete,
+        can_edit: c.can_edit,
         replies: (c.replies || []).map((r: any) => ({
           id: r.id, 
-          author: r.author?.name || "Desconocido", 
-          author_id: r.author?.id || 0,
+          author: r.user?.username || r.user?.name || r.author?.name || "Desconocido", 
+          author_id: r.user?.id || r.author?.id || 0,
           avatarColor: "#10b981",
-          initials: (r.author?.name || "US").substring(0, 2).toUpperCase(),
-          timeAgo: r.created_at, 
+          initials: (r.user?.username || r.user?.name || r.author?.name || "US").substring(0, 2).toUpperCase(),
+          timeAgo: formatDate(r.created_at), 
           score: r.score, 
           body: r.body,
+          can_delete: r.can_delete,
+          can_edit: r.can_edit,
         })),
       }));
       setComments(mapped);
@@ -225,10 +229,10 @@ export default function MagicForum() {
     .finally(() => setIsSubmitting(false));
   };
 
-  const handleCreateComment = (body: string) => {
+  const handleCreateComment = (body: string, parentId?: number) => {
     if (!activePost) return;
     setIsSubmittingComment(true);
-    ApiService.createComment(activePost.id, { body })
+    ApiService.createComment(activePost.id, { body, parent_id: parentId })
     .then(() => {
         openThread(activePost);
     })
@@ -345,9 +349,12 @@ export default function MagicForum() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setShowTournamentModal(true)} className="mx-3.5 my-2 w-[calc(100%-28px)] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-primary)] py-1.5 rounded-md text-xs font-semibold cursor-pointer hover:bg-[var(--border)] transition-colors">
-              + Crear torneo
-            </button>
+            
+            {user && (
+              <button onClick={() => setShowTournamentModal(true)} className="mx-3.5 my-2 w-[calc(100%-28px)] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-primary)] py-1.5 rounded-md text-xs font-semibold cursor-pointer hover:bg-[var(--border)] transition-colors">
+                + Crear torneo
+              </button>
+            )}
           </Widget>
 
           <Widget title="Reglas del foro">

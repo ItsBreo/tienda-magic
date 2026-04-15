@@ -242,6 +242,11 @@ class MagicApi {
         return response.data;
     }
 
+    async updateThread(threadId: number, data: { title: string, body: string }): Promise<any> {
+        const response = await this.api.put(`/api/threads/${threadId}`, data);
+        return response.data;
+    }
+
     async deleteThread(threadId: number): Promise<any> {
         const response = await this.api.delete(`/api/threads/${threadId}`);
         return response.data;

@@ -9,11 +9,18 @@ class CommentPolicy
 {
     /**
      * ¿Puede el usuario actualizar este comentario?
-     * Solo el propio autor puede editar su comentario.
      */
     public function update(User $user, Comment $comment): bool
     {
-        return $user->id === $comment->user_id;
+        if ($user->id === $comment->user_id) return true;
+        if ($user->isAdmin()) return true;
+
+        $forumId = $comment->thread?->forum_id
+            ?? \Illuminate\Support\Facades\DB::table('threads')
+                ->where('id', $comment->thread_id)
+                ->value('forum_id');
+
+        return $forumId && $user->isModeratorOf((int) $forumId);
     }
 
     /**

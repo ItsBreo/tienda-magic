@@ -16,11 +16,11 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'username' => fake()->unique()->userName(), // Deducido de UserController
-            'email' => fake()->unique()->safeEmail(),   // Deducido de UserController
+            'username' => fake()->unique()->userName(), 
+            'email' => fake()->unique()->safeEmail(),   
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'wallet_balance' => fake()->randomFloat(2, 0, 5000), // Deducido de UserController
+            'wallet_balance' => fake()->randomFloat(2, 0, 5000),
             'remember_token' => Str::random(10),
         ];
     }

@@ -11,12 +11,14 @@ class TournamentPolicy
     public function update(User $user, Tournament $tournament): bool
     {
         return $user->id === $tournament->created_by
-            || $user->is_admin; // ajusta según tu campo de rol
+            || $user->isAdmin() 
+            || $user->hasRole('mod_tournaments');
     }
 
     public function delete(User $user, Tournament $tournament): bool
     {
         return $user->id === $tournament->created_by
-            || $user->is_admin;
+            || $user->isAdmin()
+            || $user->hasRole('mod_tournaments');
     }
 }

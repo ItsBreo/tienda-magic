@@ -24,7 +24,6 @@ class TournamentResource extends JsonResource
             'prize'       => $this->prize,
             'status'      => $this->status,
 
-            // Solo se incluye si la relación viene cargada (with())
             'creator'     => $this->whenLoaded('creator', fn() => [
                 'id'   => $this->creator->id,
                 'name' => $this->creator->name,
@@ -35,13 +34,24 @@ class TournamentResource extends JsonResource
                 fn() => $this->confirmedPlayers->count()
             ),
 
-            // En TournamentResource::toArray(), añadir:
             'confirmed_players' => $this->whenLoaded('confirmedPlayers', fn() =>
                 $this->confirmedPlayers->map(fn($p) => [
-                'id'   => $p->id,
-                'name' => $p->name,
-            ])
-),
+                    'id'   => $p->id,
+                    'name' => $p->name,
+                ])
+            ),
+
+            'can_edit'   => (function () {
+                /** @var \App\Models\User|null $user */
+                $user = auth('api')->user();
+                return $user && $user->can('update', $this->resource);
+            })(),
+
+            'can_delete' => (function () {
+                /** @var \App\Models\User|null $user */
+                $user = auth('api')->user();
+                return $user && $user->can('delete', $this->resource);
+            })(),
         ];
     }
 }

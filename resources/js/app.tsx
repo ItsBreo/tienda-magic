@@ -37,6 +37,12 @@ import Exchanges from './pages/exchange/Exchanges';
 import ManageExchanges from './pages/exchange/ManageExchanges';
 import TradeRoom from './pages/exchange/TradeRoom';
 
+// Páginas de Información
+import Rules from './pages/static/Rules';
+import Privacy from './pages/static/Privacy';
+import Contact from './pages/static/Contact';
+import Support from './pages/static/Support';
+
 initializeTheme();
 
 const el = document.getElementById('root') || document.getElementById('app');
@@ -82,6 +88,12 @@ if (el) {
                             <Route path="/exchanges" element={<Exchanges />} />
                             <Route path="/exchanges/manage" element={<ManageExchanges />} />
                             <Route path="/trade/:sessionId" element={<TradeRoom />} />
+
+                            {/* ESTÁTICAS */}
+                            <Route path="/rules" element={<Rules />} />
+                            <Route path="/privacy" element={<Privacy />} />
+                            <Route path="/contact" element={<Contact />} />
+                            <Route path="/support" element={<Support />} />
 
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />
                         </Route>

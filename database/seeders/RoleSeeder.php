@@ -26,6 +26,7 @@ class RoleSeeder extends Seeder
             ['name' => 'mod_news',       'description' => 'Moderador sectorial — sección Noticias'],
             ['name' => 'mod_tournaments','description' => 'Moderador sectorial — sección Torneos'],
             ['name' => 'mod_general',    'description' => 'Moderador sectorial — sección General'],
+            ['name' => 'mod_strategy',   'description' => 'Moderador sectorial — sección Estrategia'],
             ['name' => 'user',        'description' => 'Usuario registrado'],
         ];
 
