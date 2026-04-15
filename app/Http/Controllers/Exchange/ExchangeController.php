@@ -9,10 +9,17 @@ use App\Models\ExchangeRequest;
 use App\Models\InventoryCard;
 use App\Notifications\TradeRequestedNotification;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class ExchangeController extends Controller
 {
-    // Listar intercambios disponibles (Market)
+    #[OA\Get(
+        path: "/api/exchanges",
+        summary: "Listar intercambios",
+        description: "Obtiene los intercambios activos en el mercado.",
+        tags: ["Exchanges"]
+    )]
+    #[OA\Response(response: 200, description: "Lista de intercambios")]
     public function index(Request $request)
     {
         $exchanges = Exchange::with(['user', 'offeredCard.card', 'requestedCard'])
@@ -23,7 +30,21 @@ class ExchangeController extends Controller
         return response()->json($exchanges);
     }
 
-    // Crear un nuevo listado de intercambio
+    #[OA\Post(
+        path: "/api/exchanges",
+        summary: "Crear listado de intercambio",
+        description: "El usuario ofrece una carta de su inventario pidiendo opcionalmente una carta específica a cambio.",
+        tags: ["Exchanges"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "offered_inventory_card_id", type: "integer"),
+            new OA\Property(property: "requested_card_id", type: "integer", nullable: true)
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Listado de intercambio creado")]
     public function store(Request $request)
     {
         $request->validate([
@@ -62,7 +83,21 @@ class ExchangeController extends Controller
         }
     }
 
-    // Solicitar un intercambio (Ofrecer una carta)
+    #[OA\Post(
+        path: "/api/exchanges/{id}/request",
+        summary: "Solicitar un intercambio",
+        description: "Envía una solicitud proponiendo una carta a un listado de intercambio activo.",
+        tags: ["Exchanges"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID del intercambio activo", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "offered_inventory_card_id", type: "integer")
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Solicitud de intercambio creada")]
     public function requestExchange(Request $request, $id)
     {
         $request->validate([

@@ -9,12 +9,18 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class TradeController extends Controller
 {
-    /**
-     * Obtener todos los trades del usuario autenticado
-     */
+    #[OA\Get(
+        path: "/api/trades",
+        summary: "Lista global de trades",
+        description: "Obtener todos los trades del usuario autenticado a nivel general.",
+        tags: ["Trades"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Lista de trades globales")]
     public function index(): JsonResponse
     {
         $userId = auth()->id();
@@ -26,9 +32,15 @@ class TradeController extends Controller
         return response()->json($trades);
     }
 
-    /**
-     * Crear un trade de prueba con el primer usuario disponible
-     */
+    #[OA\Post(
+        path: "/api/trades/test",
+        summary: "Trade de prueba",
+        description: "Crea un trade de prueba con el primer usuario disponible (solo desarrollo).",
+        tags: ["Trades"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 201, description: "Trade de prueba creado")]
+    #[OA\Response(response: 404, description: "No hay otros usuarios disponibles para el test")]
     public function storeTest(): JsonResponse
     {
         try {

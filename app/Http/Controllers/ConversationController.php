@@ -12,11 +12,20 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use OpenApi\Attributes as OA;
 
 class ConversationController extends Controller
 {
     use AuthorizesRequests;
 
+    #[OA\Get(
+        path: "/api/conversations",
+        summary: "Mis conversaciones",
+        description: "Lista las conversaciones donde participa el usuario autenticado.",
+        tags: ["Conversations"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Lista de conversaciones paginada")]
     public function index(Request $request): AnonymousResourceCollection
     {
         $conversations = Conversation::whereHas('participants', function ($query) {
@@ -34,6 +43,23 @@ class ConversationController extends Controller
         return ConversationResource::collection($conversations);
     }
 
+    #[OA\Post(
+        path: "/api/conversations",
+        summary: "Crear conversación",
+        description: "Crea una nueva conversación.",
+        tags: ["Conversations"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "title", type: "string", nullable: true),
+            new OA\Property(property: "type", type: "string", default: "direct"),
+            new OA\Property(property: "context_type", type: "string", nullable: true),
+            new OA\Property(property: "participant_ids", type: "array", items: new OA\Items(type: "integer"))
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Conversación creada exitosamente")]
     public function store(StoreConversationRequest $request): ConversationResource
     {
         $validated = $request->validated();
@@ -67,6 +93,15 @@ class ConversationController extends Controller
         return new ConversationResource($conversation);
     }
 
+    #[OA\Get(
+        path: "/api/conversations/{conversation}",
+        summary: "Ver conversación",
+        description: "Obtiene una conversación por ID junto con los últimos mensajes.",
+        tags: ["Conversations"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "conversation", in: "path", required: true, description: "UUID de la conversación", schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Datos de la conversación")]
     public function show(Conversation $conversation): ConversationResource
     {
         $this->authorize('view', $conversation);
@@ -81,6 +116,15 @@ class ConversationController extends Controller
         return new ConversationResource($conversation);
     }
 
+    #[OA\Post(
+        path: "/api/trades/{tradeId}/chat",
+        summary: "Chat del Trade Base",
+        description: "Obtiene o crea un chat para un trade base específico.",
+        tags: ["Conversations"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "tradeId", in: "path", required: true, description: "ID del Trade", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Datos del chat")]
     public function getOrCreateForTrade(int $tradeId): \Illuminate\Http\JsonResponse
     {
         // Buscar si ya existe una conversación para este trade

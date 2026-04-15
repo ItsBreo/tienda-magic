@@ -7,10 +7,18 @@ use App\Http\Resources\ThreadResource;
 use App\Models\Thread;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class ThreadController extends Controller
 {
-    // Lista todos los threads (para el feed principal / inicio)
+    #[OA\Get(
+        path: "/api/threads",
+        summary: "Lista global de threads",
+        description: "Obtiene los últimos hilos del foro ordenados por popularidad, fecha, etc.",
+        tags: ["Forums"]
+    )]
+    #[OA\Parameter(name: "sort", in: "query", required: false, description: "Orden (hot, top, new, commented)", schema: new OA\Schema(type: "string", default: "hot"))]
+    #[OA\Response(response: 200, description: "Lista de hilos")]
     public function index(Request $request)
     {
         $sort = $request->get('sort', 'hot');
@@ -26,7 +34,14 @@ class ThreadController extends Controller
         return ThreadResource::collection($threads);
     }
 
-    // Busca threads por título o contenido
+    #[OA\Get(
+        path: "/api/forum/search",
+        summary: "Buscar en foros",
+        description: "Busca dentro de los hilos de los foros por título o contenido.",
+        tags: ["Forums"]
+    )]
+    #[OA\Parameter(name: "q", in: "query", required: true, description: "Término de búsqueda (min 3 caracteres)", schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Resultados de búsqueda")]
     public function search(Request $request)
     {
         $query = $request->get('q', '');
@@ -45,7 +60,14 @@ class ThreadController extends Controller
         return ThreadResource::collection($threads);
     }
 
-    // Muestra un thread concreto con sus comentarios raíz
+    #[OA\Get(
+        path: "/api/threads/{thread}",
+        summary: "Ver hilo del foro",
+        description: "Obtiene los detalles del hilo y carga sus comentarios raíz.",
+        tags: ["Forums"]
+    )]
+    #[OA\Parameter(name: "thread", in: "path", required: true, description: "ID del hilo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Thread cargado (incrementa views)")]
     public function show(Thread $thread)
     {
         // Incrementamos las vistas cada vez que se abre el thread
@@ -61,7 +83,23 @@ class ThreadController extends Controller
         return new ThreadResource($thread);
     }
 
-    // Crea un nuevo thread
+    #[OA\Post(
+        path: "/api/threads",
+        summary: "Crear hilo de foro",
+        description: "Crea un nuevo hilo (thread) vinculado al usuario activo.",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "forum_id", type: "integer"),
+            new OA\Property(property: "title", type: "string"),
+            new OA\Property(property: "body", type: "string"),
+            new OA\Property(property: "tags", type: "array", items: new OA\Items(type: "string"))
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Hilo creado exitosamente")]
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -78,7 +116,23 @@ class ThreadController extends Controller
         return new ThreadResource($thread);
     }
 
-    // Edita un thread (solo el autor)
+    #[OA\Put(
+        path: "/api/threads/{thread}",
+        summary: "Editar hilo",
+        description: "Edita el cuerpo o el título de un hilo (solo para el autor).",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "thread", in: "path", required: true, description: "ID del hilo", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "title", type: "string"),
+            new OA\Property(property: "body", type: "string"),
+            new OA\Property(property: "tags", type: "array", items: new OA\Items(type: "string"))
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Hilo editado exitosamente")]
     public function update(Request $request, Thread $thread)
     {
         $this->authorize('update', $thread);
@@ -96,7 +150,15 @@ class ThreadController extends Controller
         return new ThreadResource($thread);
     }
 
-    // Elimina un thread (soft delete, solo el autor)
+    #[OA\Delete(
+        path: "/api/threads/{thread}",
+        summary: "Eliminar hilo",
+        description: "Borra el hilo (soft-delete) si eres el autor.",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "thread", in: "path", required: true, description: "ID del hilo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Mensaje correcto")]
     public function destroy(Thread $thread)
     {
         $this->authorize('delete', $thread);

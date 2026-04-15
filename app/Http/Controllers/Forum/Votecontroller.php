@@ -6,9 +6,26 @@ use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use OpenApi\Attributes as OA;
 
 class VoteController extends Controller
 {
+    #[OA\Post(
+        path: "/api/votes",
+        summary: "Votar hilo o comentario",
+        description: "Emite un voto (upvote o downvote) para un comentario o hilo.",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "votable_id", type: "integer"),
+            new OA\Property(property: "votable_type", type: "string", enum: ["thread", "comment"]),
+            new OA\Property(property: "value", type: "integer", enum: [1, -1])
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Voto registrado")]
     public function store(Request $request)
     {
         // Convertimos a minúsculas por si React envía "Thread" o "Comment" en lugar de "thread" o "comment"

@@ -312,6 +312,995 @@
                 }
             }
         },
+        "/api/conversations": {
+            "get": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Mis conversaciones",
+                "description": "Lista las conversaciones donde participa el usuario autenticado.",
+                "operationId": "48baaee8c5511d2962e1c494c28b2aa4",
+                "responses": {
+                    "200": {
+                        "description": "Lista de conversaciones paginada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Crear conversación",
+                "description": "Crea una nueva conversación.",
+                "operationId": "6667333bc05e27c2c891e73371ca41cd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "default": "direct"
+                                    },
+                                    "context_type": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "participant_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Conversación creada exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conversations/{conversation}": {
+            "get": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Ver conversación",
+                "description": "Obtiene una conversación por ID junto con los últimos mensajes.",
+                "operationId": "6a36b1c3b24ca5858824a2ddbd88c3f0",
+                "parameters": [
+                    {
+                        "name": "conversation",
+                        "in": "path",
+                        "description": "UUID de la conversación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos de la conversación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trades/{tradeId}/chat": {
+            "post": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Chat del Trade Base",
+                "description": "Obtiene o crea un chat para un trade base específico.",
+                "operationId": "85d0853f3f4ac90d1e50e1b91bc9aeab",
+                "parameters": [
+                    {
+                        "name": "tradeId",
+                        "in": "path",
+                        "description": "ID del Trade",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos del chat"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchanges": {
+            "get": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Listar intercambios",
+                "description": "Obtiene los intercambios activos en el mercado.",
+                "operationId": "0d0e2fddd1de7add3491f41b3c71144a",
+                "responses": {
+                    "200": {
+                        "description": "Lista de intercambios"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Crear listado de intercambio",
+                "description": "El usuario ofrece una carta de su inventario pidiendo opcionalmente una carta específica a cambio.",
+                "operationId": "e5a92eb4d4fe4d7ee1b58ff2ad54794f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "offered_inventory_card_id": {
+                                        "type": "integer"
+                                    },
+                                    "requested_card_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Listado de intercambio creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchanges/{id}/request": {
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Solicitar un intercambio",
+                "description": "Envía una solicitud proponiendo una carta a un listado de intercambio activo.",
+                "operationId": "64fe871e1c56cc90ea6648206f593478",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del intercambio activo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "offered_inventory_card_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Solicitud de intercambio creada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-requests": {
+            "get": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Mis solicitudes de intercambio",
+                "description": "Obtiene las solicitudes enviadas, recibidas y el historial de completadas.",
+                "operationId": "2ce3805eafe5d0f5fd957db46d691772",
+                "responses": {
+                    "200": {
+                        "description": "Listado de solicitudes"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-requests/{id}/accept": {
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Aceptar solicitud de intercambio",
+                "description": "Acepta una petición a tu listado de intercambio y crea una sala de sesión.",
+                "operationId": "2fef4b4ba7e1beebec5411009e22afb4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitud aceptada y sesión creada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-requests/{id}/reject": {
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Rechazar solicitud de intercambio",
+                "description": "Rechaza una solicitud de intercambio que está pendiente.",
+                "operationId": "9306ae5891716680bcdeb48ee729564d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitud rechazada correctamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}": {
+            "get": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Ver sala de intercambio",
+                "description": "Obtiene los detalles y estado de una sesión de intercambio activa.",
+                "operationId": "6228fe52d51eb816994b676e6510304e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos de la sesión de intercambio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}/confirm": {
+            "post": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Confirmar intercambio",
+                "description": "Confirma el envío en la sesión de intercambio de tu lado. Cuando ambos confirman, se ejecuta el trueque.",
+                "operationId": "5fdb0eca042fd5e546a8e3edf5eebe85",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Confirmación guardada y/o transacción ejecutada completa"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}/chat": {
+            "post": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Inicia y obtiene conversación",
+                "description": "Obtiene (o crea si no existe) la conversación asociada a esta sesión de intercambio.",
+                "operationId": "a75714c6b2613e59fbffa670a411f5a6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ID de conversación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}/messages": {
+            "get": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Obtener mensajes del chat de intercambio",
+                "description": "Recupera los mensajes del chat vinculados a esta sala de trade.",
+                "operationId": "6b3853a7667f9c131912bb6896066e03",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Listado de mensajes y ID de chat"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Enviar mensaje al chat de intercambio",
+                "description": "Envía un nuevo mensaje al chat de la sala de intercambio.",
+                "operationId": "5f0685f60860bb34f9a7121deaadbc97",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Mensaje creado y emitido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/threads/{thread}/comments": {
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Añadir comentario",
+                "description": "Añade un comentario a un hilo o responde a otro comentario.",
+                "operationId": "18c23fd8c2e7678729c1612a8e219d6a",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "body": {
+                                        "type": "string"
+                                    },
+                                    "parent_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Comentario creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/comments/{comment}": {
+            "put": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Editar comentario",
+                "description": "Edita un comentario propio.",
+                "operationId": "34cbe1578f25cc3ef4c99bf6694043a2",
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "description": "ID del comentario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "body": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Comentario editado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Eliminar comentario",
+                "description": "Borra un comentario (soft delete).",
+                "operationId": "042da541ae505e892103f546516d7515",
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "description": "ID del comentario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comentario eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/forums": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Lista de Foros",
+                "description": "Lista todos los foros disponibles para el sidebar.",
+                "operationId": "92d59bdaa48af06d02d9041316dc3cb6",
+                "responses": {
+                    "200": {
+                        "description": "Lista de foros"
+                    }
+                }
+            }
+        },
+        "/api/forums/{forum}": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Foro y sus threads",
+                "description": "Muestra los threads de un foro concreto, paginados y ordenados por parámetro (hot, new, top).",
+                "operationId": "9e76ecaff092f4714088760bb399e134",
+                "parameters": [
+                    {
+                        "name": "forum",
+                        "in": "path",
+                        "description": "ID del foro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Tipo de ordenamiento (hot, new, top)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "hot"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Threads del foro"
+                    }
+                }
+            }
+        },
+        "/api/saved": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Lista de hilos guardados",
+                "description": "Devuelve los hilos que el usuario ha guardado.",
+                "operationId": "d282c4bd41591796d22beb72071f6101",
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de hilos guardados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/saved/{thread}": {
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Guardar hilo",
+                "description": "Añade un hilo a la lista de guardados del usuario.",
+                "operationId": "b54b9de5fe4c767a3ce4c43343e75cc4",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo guardado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Eliminar hilo guardado",
+                "description": "Saca un hilo de la lista de guardados del usuario.",
+                "operationId": "43e75768a553b2a22ef934bd0b0eb538",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo eliminado exitosamente de guardados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/threads": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Lista global de threads",
+                "description": "Obtiene los últimos hilos del foro ordenados por popularidad, fecha, etc.",
+                "operationId": "3785412e3613d5d46cdfed8d1d9e3935",
+                "parameters": [
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Orden (hot, top, new, commented)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "hot"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de hilos"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Crear hilo de foro",
+                "description": "Crea un nuevo hilo (thread) vinculado al usuario activo.",
+                "operationId": "8ca3cb77a17ec654764eda1282753c9b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "forum_id": {
+                                        "type": "integer"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "body": {
+                                        "type": "string"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Hilo creado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/forum/search": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Buscar en foros",
+                "description": "Busca dentro de los hilos de los foros por título o contenido.",
+                "operationId": "d9eb7a09e4d216338df2a9bdef3e0d48",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Término de búsqueda (min 3 caracteres)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados de búsqueda"
+                    }
+                }
+            }
+        },
+        "/api/threads/{thread}": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Ver hilo del foro",
+                "description": "Obtiene los detalles del hilo y carga sus comentarios raíz.",
+                "operationId": "084d35a65f16b8b77ce34642c98c4a42",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thread cargado (incrementa views)"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Editar hilo",
+                "description": "Edita el cuerpo o el título de un hilo (solo para el autor).",
+                "operationId": "803e228a1ebd229a9b8ca4234ee30313",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "body": {
+                                        "type": "string"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Hilo editado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Eliminar hilo",
+                "description": "Borra el hilo (soft-delete) si eres el autor.",
+                "operationId": "4786e4059ea81e6d2cb3b7f7fc2592e9",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mensaje correcto"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/votes": {
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Votar hilo o comentario",
+                "description": "Emite un voto (upvote o downvote) para un comentario o hilo.",
+                "operationId": "25087a96b6c39fb5693f73fbd5989266",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "votable_id": {
+                                        "type": "integer"
+                                    },
+                                    "votable_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "thread",
+                                            "comment"
+                                        ]
+                                    },
+                                    "value": {
+                                        "type": "integer",
+                                        "enum": [
+                                            1,
+                                            -1
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Voto registrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/decks": {
             "get": {
                 "tags": [
@@ -637,6 +1626,160 @@
                 ]
             }
         },
+        "/api/conversations/{conversation}/messages": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Obtener mensajes",
+                "description": "Obtiene los mensajes de una conversación.",
+                "operationId": "ae78cd81a7cd6ee3b41d64b92130ff0b",
+                "parameters": [
+                    {
+                        "name": "conversation",
+                        "in": "path",
+                        "description": "UUID de la conversación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de mensajes paginada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Enviar mensaje",
+                "description": "Envía un mensaje a una conversación.",
+                "operationId": "ac28067bdd62b48bb05392210fa7fa2a",
+                "parameters": [
+                    {
+                        "name": "conversation",
+                        "in": "path",
+                        "description": "UUID de la conversación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "default": "text"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Mensaje creado y enviado (Broadcast)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/messages/{message}": {
+            "delete": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Eliminar mensaje",
+                "description": "Elimina un mensaje enviado por el usuario.",
+                "operationId": "d7d86b5236d9d8ecd29399f1984ac4fd",
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "description": "ID del mensaje",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Mensaje eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Editar mensaje",
+                "description": "Edita el contenido de un mensaje existente enviado por el usuario.",
+                "operationId": "31e9fd03c237c0283b4fbee5def879ec",
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "description": "ID del mensaje",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mensaje modificado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/cart": {
             "get": {
                 "tags": [
@@ -889,6 +2032,320 @@
                         "description": "Pack no encontrado"
                     }
                 }
+            }
+        },
+        "/api/tournaments": {
+            "get": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Lista de torneos",
+                "description": "Lista de torneos paginados y filtrados.",
+                "operationId": "ae3e373408530861bb06349b9c7c56e4",
+                "parameters": [
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "Filtrar por formato",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado (upcoming, in_progress, completed)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de torneos"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Crear torneo",
+                "description": "Crea un torneo (solo admin o con permisos).",
+                "operationId": "7f257a74fea696ba2a7ab2f35931d405",
+                "responses": {
+                    "201": {
+                        "description": "Torneo creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}": {
+            "get": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Detalles del torneo",
+                "description": "Muestra los detalles de un torneo y sus participantes confirmados.",
+                "operationId": "c994724ae1cdb6a77e706ae1c90da355",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del torneo"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Cancelar/Eliminar torneo",
+                "description": "Borra/cancela un torneo y sus inscripciones.",
+                "operationId": "82bd822920c1523e23406f2d3592b5f7",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Torneo cancelado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Editar torneo",
+                "description": "Edita datos de un torneo.",
+                "operationId": "7a45612ab4513bfec7d162cb664f8b50",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Torneo editado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}/register": {
+            "post": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Inscribirse a torneo",
+                "description": "Inscribe al usuario en el torneo.",
+                "operationId": "fe7e5134eb3c9a89cc3b5bd1e8d5fa2a",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inscrito exitosamente"
+                    },
+                    "422": {
+                        "description": "Torneo completo, ya inscrito o no admite inscripciones"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Cancelar inscripción",
+                "description": "Borra la inscripción del usuario al torneo.",
+                "operationId": "34482bb51d7e1b881834fe544579843e",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inscripción cancelada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}/registrations": {
+            "get": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Lista de inscritos",
+                "description": "Devuelve todos los inscritos (solo creador o admin).",
+                "operationId": "0fd3ee673019c0f7895480d014c83a5a",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de inscripciones"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}/registrations/{registration}/confirm": {
+            "patch": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Confirmar inscripción",
+                "description": "Confirma un jugador en estado pendiente (solo creador/admin).",
+                "operationId": "0d721fcb9b3f1914af31e2fb94e1f048",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "registration",
+                        "in": "path",
+                        "description": "ID de la inscripción",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inscripción confirmada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trades": {
+            "get": {
+                "tags": [
+                    "Trades"
+                ],
+                "summary": "Lista global de trades",
+                "description": "Obtener todos los trades del usuario autenticado a nivel general.",
+                "operationId": "6a4e669532805e47ca432ddf7d1f9974",
+                "responses": {
+                    "200": {
+                        "description": "Lista de trades globales"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trades/test": {
+            "post": {
+                "tags": [
+                    "Trades"
+                ],
+                "summary": "Trade de prueba",
+                "description": "Crea un trade de prueba con el primer usuario disponible (solo desarrollo).",
+                "operationId": "6d513b4b4e38ec596b4395aa6ada72fd",
+                "responses": {
+                    "201": {
+                        "description": "Trade de prueba creado"
+                    },
+                    "404": {
+                        "description": "No hay otros usuarios disponibles para el test"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/login": {
@@ -1438,6 +2895,22 @@
             "description": "Packs"
         },
         {
+            "name": "Conversations",
+            "description": "Conversations"
+        },
+        {
+            "name": "Exchanges",
+            "description": "Exchanges"
+        },
+        {
+            "name": "Trade Sessions",
+            "description": "Trade Sessions"
+        },
+        {
+            "name": "Forums",
+            "description": "Forums"
+        },
+        {
             "name": "Decks",
             "description": "Decks"
         },
@@ -1450,12 +2923,24 @@
             "description": "Market"
         },
         {
+            "name": "Messages",
+            "description": "Messages"
+        },
+        {
             "name": "Cart",
             "description": "Cart"
         },
         {
             "name": "Shop",
             "description": "Shop"
+        },
+        {
+            "name": "Tournaments",
+            "description": "Tournaments"
+        },
+        {
+            "name": "Trades",
+            "description": "Trades"
         },
         {
             "name": "Auth",
