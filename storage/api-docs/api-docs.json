@@ -312,6 +312,331 @@
                 }
             }
         },
+        "/api/decks": {
+            "get": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Mis mazos",
+                "description": "Lista los mazos del usuario autenticado.",
+                "operationId": "d05f15850eef79716d6ed2e4322131ab",
+                "responses": {
+                    "200": {
+                        "description": "Mazos listados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Crear mazo",
+                "description": "Crea un mazo nuevo.",
+                "operationId": "f46b2d6188181c424a9b1d0b4fcd3c34",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "is_public": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mazo creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/decks/{id}": {
+            "get": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Ver mazo",
+                "description": "Obtiene los detalles de un mazo y las cartas contenidas.",
+                "operationId": "6ba360ec241a29ca842800aca0fbd262",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del mazo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mazo cargado exitosamente"
+                    },
+                    "403": {
+                        "description": "Mazo privado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/decks/{deckId}/cards": {
+            "post": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Añadir carta al mazo",
+                "description": "Añade una cantidad de una carta a un mazo específico.",
+                "operationId": "000bf7258b8396d5486390861763d1d7",
+                "parameters": [
+                    {
+                        "name": "deckId",
+                        "in": "path",
+                        "description": "ID del mazo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "card_id": {
+                                        "type": "integer"
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Carta añadida exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/decks/{deckId}/cards/{cardId}": {
+            "delete": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Quitar carta del mazo",
+                "description": "Elimina una carta de un mazo específico.",
+                "operationId": "48d740fc7f25d9500d30cc488cdc7853",
+                "parameters": [
+                    {
+                        "name": "deckId",
+                        "in": "path",
+                        "description": "ID del mazo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta eliminada exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/inventory": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Ver mi inventario",
+                "description": "Muestra el inventario del usuario autenticado incluyendo cartas y stats.",
+                "operationId": "7225cbe4efff1219a2acb0fe9f652492",
+                "responses": {
+                    "200": {
+                        "description": "Inventario cargado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/inventory/{user}": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Ver inventario público de usuario",
+                "description": "Muestra el inventario público de otro usuario si tiene preferencias habilitadas.",
+                "operationId": "d405da691b869845b1371a9dcc5bba0b",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inventario cargado exitosamente"
+                    },
+                    "403": {
+                        "description": "El inventario de este planeswalker es privado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market": {
+            "get": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Ver mercado",
+                "description": "Lista las cartas puestas a la venta en el marketplace (stub).",
+                "operationId": "a40bb4545910738dd36a96f494b2ed10",
+                "responses": {
+                    "200": {
+                        "description": "Listado del mercado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/cards": {
+            "post": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Publicar carta en mercado",
+                "description": "Pone a la venta una carta del inventario del usuario (stub).",
+                "operationId": "76fca942405d14dc9b6cd3bb10cbb6f9",
+                "responses": {
+                    "201": {
+                        "description": "Carta publicada en el mercado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/cards/{id}/buy": {
+            "post": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Comprar carta",
+                "description": "Compra una carta que está listada en el mercado (stub).",
+                "operationId": "0bbe0ced18befaefdd167ad34c12f8c4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del listado/carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Compra exitosa"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/transactions": {
+            "get": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Historial del mercado",
+                "description": "Devuelve el historial de transacciones en el marketplace (stub).",
+                "operationId": "28dfd213c42ee6d224f7a82b1d37ba09",
+                "responses": {
+                    "200": {
+                        "description": "Historial obtenido exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/cart": {
             "get": {
                 "tags": [
@@ -1111,6 +1436,18 @@
         {
             "name": "Packs",
             "description": "Packs"
+        },
+        {
+            "name": "Decks",
+            "description": "Decks"
+        },
+        {
+            "name": "Inventory",
+            "description": "Inventory"
+        },
+        {
+            "name": "Market",
+            "description": "Market"
         },
         {
             "name": "Cart",
