@@ -6,12 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\BoosterPack;
 use App\Models\Card;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class PackController extends Controller
 {
     /**
      * Obtener todos los packs disponibles
      */
+    #[OA\Get(
+        path: "/api/packs",
+        summary: "Listar Packs",
+        description: "Obtener todos los sobres/packs disponibles en la tienda.",
+        tags: ["Packs"]
+    )]
+    #[OA\Response(response: 200, description: "Lista de packs")]
     public function index()
     {
         try {
@@ -55,6 +63,13 @@ class PackController extends Controller
     /**
      * Obtener todas las cartas disponibles para la tienda
      */
+    #[OA\Get(
+        path: "/api/cards/all",
+        summary: "Obtener todas las cartas (PackController)",
+        description: "Obtener cartas disponibles orientadas al mercado.",
+        tags: ["Cards"]
+    )]
+    #[OA\Response(response: 200, description: "Lista de cartas devueltas")]
     public function getCards()
     {
         try {
@@ -86,6 +101,15 @@ class PackController extends Controller
     /**
      * Obtener cartas de un set específico
      */
+    #[OA\Get(
+        path: "/api/cards/set/{setCode}",
+        summary: "Cartas de un set",
+        description: "Obtener todas las cartas que pertenecen a un set específico (hasta 50).",
+        tags: ["Cards"]
+    )]
+    #[OA\Parameter(name: "setCode", in: "path", required: true, description: "Código del set", schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Lista de cartas del set")]
+    #[OA\Response(response: 404, description: "Set no encontrado")]
     public function getCardsBySet($setCode)
     {
         try {
@@ -129,6 +153,15 @@ class PackController extends Controller
     /**
      * Obtener pack individual por ID
      */
+    #[OA\Get(
+        path: "/api/packs/{id}",
+        summary: "Ver Pack por ID",
+        description: "Devuelve los detalles de un pack específico por su ID.",
+        tags: ["Packs"]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID del pack", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Detalles del pack devueltos")]
+    #[OA\Response(response: 404, description: "Pack no encontrado")]
     public function show($id)
     {
         try {

@@ -24,6 +24,195 @@
                 }
             }
         },
+        "/api/cards": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Obtener todas las cartas",
+                "description": "Lista todas las cartas disponibles con información de su set.",
+                "operationId": "0648e5d4257b087d0463a2df7dd0cbca",
+                "responses": {
+                    "200": {
+                        "description": "Catálogo de cartas"
+                    }
+                }
+            }
+        },
+        "/api/cards/{id}": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Detalle de una carta",
+                "description": "Devuelve los detalles de una carta específica (stub).",
+                "operationId": "c00310db6aa5000703e36f6da91706c4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta encontrada"
+                    }
+                }
+            }
+        },
+        "/api/cards/{id}/favorite": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Añadir a favoritos",
+                "description": "Añade una carta a los favoritos del usuario autenticado (stub).",
+                "operationId": "583c6026f913b85e1fc3a46fc768a1c0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta añadida a favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Quitar de favoritos",
+                "description": "Quita una carta de los favoritos del usuario (stub).",
+                "operationId": "03185e6020c1830b3d672decf2a9cfb9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta quitada de favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/packs": {
+            "get": {
+                "tags": [
+                    "Packs"
+                ],
+                "summary": "Listar Packs",
+                "description": "Obtener todos los sobres/packs disponibles en la tienda.",
+                "operationId": "36ffcdf8f161d68e479b7a1a9655838e",
+                "responses": {
+                    "200": {
+                        "description": "Lista de packs"
+                    }
+                }
+            }
+        },
+        "/api/cards/all": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Obtener todas las cartas (PackController)",
+                "description": "Obtener cartas disponibles orientadas al mercado.",
+                "operationId": "f830bf9fb49d94f55e1e04df1276fc34",
+                "responses": {
+                    "200": {
+                        "description": "Lista de cartas devueltas"
+                    }
+                }
+            }
+        },
+        "/api/cards/set/{setCode}": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Cartas de un set",
+                "description": "Obtener todas las cartas que pertenecen a un set específico (hasta 50).",
+                "operationId": "abf6812b393c8efbeec7b6af7296a6a5",
+                "parameters": [
+                    {
+                        "name": "setCode",
+                        "in": "path",
+                        "description": "Código del set",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de cartas del set"
+                    },
+                    "404": {
+                        "description": "Set no encontrado"
+                    }
+                }
+            }
+        },
+        "/api/packs/{id}": {
+            "get": {
+                "tags": [
+                    "Packs"
+                ],
+                "summary": "Ver Pack por ID",
+                "description": "Devuelve los detalles de un pack específico por su ID.",
+                "operationId": "8d45b9bda90c702e583a0ed58296af04",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pack",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del pack devueltos"
+                    },
+                    "404": {
+                        "description": "Pack no encontrado"
+                    }
+                }
+            }
+        },
         "/api/cart": {
             "get": {
                 "tags": [
@@ -92,6 +281,97 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/shop": {
+            "get": {
+                "tags": [
+                    "Shop"
+                ],
+                "summary": "Catálogo de tienda",
+                "description": "Obtiene el catálogo de tienda, soportando filtrado por cartas sueltas o sobres.",
+                "operationId": "04cd14e0e65b5a84dacdba9f59a83e9d",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Búsqueda por nombre",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Tipo de pack o carta",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Ordenamiento",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Categoría principal ('packs' o 'cards')",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "set",
+                        "in": "query",
+                        "description": "Filtrar por set",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Catálogo listado con paginación y filtros"
+                    }
+                }
+            }
+        },
+        "/api/pack/{code}": {
+            "get": {
+                "tags": [
+                    "Shop"
+                ],
+                "summary": "Detalle de Pack por código/ID",
+                "description": "Obtiene los detalles de un pack, relacionados y cartas posibles (chase cards).",
+                "operationId": "acb9a7f280fd20caf30d953660f3131d",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Código o ID del pack",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle completo del pack y contenido posible"
+                    },
+                    "404": {
+                        "description": "Pack no encontrado"
+                    }
+                }
             }
         },
         "/api/login": {
@@ -305,8 +585,20 @@
             "description": "Sets"
         },
         {
+            "name": "Cards",
+            "description": "Cards"
+        },
+        {
+            "name": "Packs",
+            "description": "Packs"
+        },
+        {
             "name": "Cart",
             "description": "Cart"
+        },
+        {
+            "name": "Shop",
+            "description": "Shop"
         },
         {
             "name": "Auth",

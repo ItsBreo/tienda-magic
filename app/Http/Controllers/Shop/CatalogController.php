@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\BoosterPack;
 use App\Models\CardSet;
+use OpenApi\Attributes as OA;
 
 class CatalogController extends Controller
 {
@@ -15,6 +16,18 @@ class CatalogController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+    #[OA\Get(
+        path: "/api/shop",
+        summary: "Catálogo de tienda",
+        description: "Obtiene el catálogo de tienda, soportando filtrado por cartas sueltas o sobres.",
+        tags: ["Shop"]
+    )]
+    #[OA\Parameter(name: "search", in: "query", description: "Búsqueda por nombre", required: false, schema: new OA\Schema(type: "string"))]
+    #[OA\Parameter(name: "type", in: "query", description: "Tipo de pack o carta", required: false, schema: new OA\Schema(type: "string"))]
+    #[OA\Parameter(name: "sort", in: "query", description: "Ordenamiento", required: false, schema: new OA\Schema(type: "string"))]
+    #[OA\Parameter(name: "category", in: "query", description: "Categoría principal ('packs' o 'cards')", required: false, schema: new OA\Schema(type: "string"))]
+    #[OA\Parameter(name: "set", in: "query", description: "Filtrar por set", required: false, schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Catálogo listado con paginación y filtros")]
     public function index(Request $request)
     {
         // Obtain filters from request
