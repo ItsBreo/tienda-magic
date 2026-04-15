@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # Nginx - Web Server and Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: tienda_magic_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/sites/default.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/html/public
+    depends_on:
+      - app
+    networks:
+      - tienda_magic_network
+    restart: unless-stopped
+
+  # PHP-FPM Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost/api}
+        VITE_REVERB_HOST: ${VITE_REVERB_HOST:-localhost}
+        VITE_REVERB_PORT: ${VITE_REVERB_PORT:-8080}
+        VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-http}
+        VITE_REVERB_APP_KEY: ${VITE_REVERB_APP_KEY:-tiendamagic-key}
+        VITE_RECAPTCHA_SITE_KEY: ${VITE_RECAPTCHA_SITE_KEY:-your_recaptcha_site_key}
+    container_name: tienda_magic_app
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=tienda_magic
+      - DB_USERNAME=tienda_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REVERB_APP_ID=${REVERB_APP_ID}
+      - REVERB_APP_KEY=${REVERB_APP_KEY}
+      - REVERB_APP_SECRET=${REVERB_APP_SECRET}
+      - REVERB_HOST=reverb
+      - REVERB_PORT=8080
+      - STRIPE_KEY=${STRIPE_KEY}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      - db
+    networks:
+      - tienda_magic_network
+    restart: unless-stopped
+
+  # Laravel Reverb - WebSocket Server
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost/api}
+        VITE_REVERB_HOST: ${VITE_REVERB_HOST:-localhost}
+        VITE_REVERB_PORT: ${VITE_REVERB_PORT:-8080}
+        VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-http}
+        VITE_REVERB_APP_KEY: ${VITE_REVERB_APP_KEY:-tiendamagic-key}
+        VITE_RECAPTCHA_SITE_KEY: ${VITE_RECAPTCHA_SITE_KEY:-your_recaptcha_site_key}
+    container_name: tienda_magic_reverb
+    command: php artisan reverb:start
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=tienda_magic
+      - DB_USERNAME=tienda_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REVERB_APP_ID=${REVERB_APP_ID}
+      - REVERB_APP_KEY=${REVERB_APP_KEY}
+      - REVERB_APP_SECRET=${REVERB_APP_SECRET}
+    depends_on:
+      - db
+    networks:
+      - tienda_magic_network
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: tienda_magic_db
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - tienda_magic_network
+    restart: unless-stopped
+
+  # Redis Cache (optional but recommended)
+  redis:
+    image: redis:7-alpine
+    container_name: tienda_magic_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - tienda_magic_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  tienda_magic_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

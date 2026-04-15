@@ -19,6 +19,7 @@ class CardController extends Controller
     #[OA\Response(response: 200, description: "Catálogo de cartas")]
     public function index()
     {
+        //$cards = Card::with('cardSet')->paginate(50);
         $cards = Card::with('cardSet')->get();
         return response()->json($cards);
     }

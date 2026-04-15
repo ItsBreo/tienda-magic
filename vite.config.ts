@@ -5,22 +5,33 @@ import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 import { fileURLToPath, URL } from 'node:url';
 
-export default defineConfig({
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.tsx'],
-            refresh: true,
-        }),
-        react({
-            babel: {
-                plugins: ['babel-plugin-react-compiler'],
-            },
-        }),
-        tailwindcss(),
+// Check if we're in a Docker build environment (production)
+const isDockerBuild = process.env.NODE_ENV === 'production' || process.env.DOCKER_BUILD === 'true';
+
+const plugins = [
+    laravel({
+        input: ['resources/css/app.css', 'resources/js/app.tsx'],
+        refresh: true,
+    }),
+    react({
+        babel: {
+            plugins: ['babel-plugin-react-compiler'],
+        },
+    }),
+    tailwindcss(),
+];
+
+// Only add wayfinder plugin in development (not in Docker builds)
+if (!isDockerBuild) {
+    plugins.push(
         wayfinder({
             formVariants: true,
-        }),
-    ],
+        })
+    );
+}
+
+export default defineConfig({
+    plugins,
     resolve: {
         alias: {
             // Esto asegura que @ apunte siempre a la carpeta del proyecto, sea Windows o Linux

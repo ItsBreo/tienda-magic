@@ -44,8 +44,8 @@ use App\Http\Controllers\Tournament\TournamentRegistrationController;
 
 // Autenticación (Requiere middleware 'web' para soporte de sesiones/cookies)
 Route::middleware('web')->group(function () {
-    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('api.login.store');
+    Route::post('/register', [RegisterController::class, 'store'])->name('api.register.store');
 });
 
 // Tienda y Catálogo

@@ -1,0 +1,72 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+Docs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# Laravel
+.env
+.env.*
+!.env.example
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+bootstrap/cache/config.php
+
+# PHP
+vendor/
+composer.lock
+.php_cs.cache
+.phpunit.result.cache
+
+# Testing
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build artifacts
+public/build/
+public/hot
+public/storage
+
+# Local development
+docker-compose.override.yml
+
+# Backup files
+*.bak
+*.backup
+
+# Logs
+*.log

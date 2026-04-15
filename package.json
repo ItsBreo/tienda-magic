@@ -9,7 +9,9 @@
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
-        "types": "tsc --noEmit"
+        "types": "tsc --noEmit",
+        "generate-types": "php artisan wayfinder:generate --form-variants",
+        "dev:full": "npm run generate-types && npm run dev"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^0.1.0",
