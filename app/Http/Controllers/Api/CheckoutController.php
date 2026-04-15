@@ -14,12 +14,34 @@ use App\Models\InventoryPack;
 use App\Models\Cart;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
+use OpenApi\Attributes as OA;
 
 class CheckoutController extends Controller
 {
-    /**
-     * Procesar checkout híbrido con seguridad máxima.
-     */
+    #[OA\Post(
+        path: "/api/checkout/process",
+        summary: "Procesar Checkout",
+        description: "Procesamiento híbrido de checkout combinando billetera virtual o Stripe con alta seguridad.",
+        tags: ["Checkout"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "payment_method", type: "string", description: "wallet o stripe", example: "wallet"),
+            new OA\Property(
+                property: "items",
+                type: "array",
+                items: new OA\Items(properties: [
+                    new OA\Property(property: "purchasable_type", type: "string", example: "App\\Models\\Card"),
+                    new OA\Property(property: "purchasable_id", type: "integer", example: 1),
+                    new OA\Property(property: "quantity", type: "integer", example: 1)
+                ])
+            )
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Compra procesada o sesión de pago iniciada")]
+    #[OA\Response(response: 422, description: "Datos de orden inválidos o stock insuficiente")]
     public function processCheckout(Request $request)
     {
         $validated = $request->validate([

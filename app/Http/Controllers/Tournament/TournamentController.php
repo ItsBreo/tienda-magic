@@ -14,6 +14,7 @@ use App\Http\Resources\TournamentResource;
 use App\Http\Resources\TournamentCollection;
 use App\Http\Resources\RegistrationResource;
 use App\Http\Controllers\Controller;
+use OpenApi\Attributes as OA;
 
 class TournamentController extends Controller
 {
@@ -21,6 +22,15 @@ class TournamentController extends Controller
 
     // ─── Listar torneos ───────────────────────────────────────
 
+    #[OA\Get(
+        path: "/api/tournaments",
+        summary: "Lista de torneos",
+        description: "Lista de torneos paginados y filtrados.",
+        tags: ["Tournaments"]
+    )]
+    #[OA\Parameter(name: "format", in: "query", required: false, description: "Filtrar por formato", schema: new OA\Schema(type: "string"))]
+    #[OA\Parameter(name: "status", in: "query", required: false, description: "Filtrar por estado (upcoming, in_progress, completed)", schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Lista paginada de torneos")]
     public function index(Request $request): TournamentCollection
 {
     $tournaments = Tournament::query()
@@ -35,6 +45,14 @@ class TournamentController extends Controller
 
     // ─── Ver detalle ──────────────────────────────────────────
 
+    #[OA\Get(
+        path: "/api/tournaments/{tournament}",
+        summary: "Detalles del torneo",
+        description: "Muestra los detalles de un torneo y sus participantes confirmados.",
+        tags: ["Tournaments"]
+    )]
+    #[OA\Parameter(name: "tournament", in: "path", required: true, description: "ID del torneo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Detalles del torneo")]
  public function show(Tournament $tournament): TournamentResource
 {
     $tournament->load(['creator:id,name', 'confirmedPlayers:id,name']);
@@ -44,6 +62,14 @@ class TournamentController extends Controller
 
     // ─── Crear torneo ─────────────────────────────────────────
 
+    #[OA\Post(
+        path: "/api/tournaments",
+        summary: "Crear torneo",
+        description: "Crea un torneo (solo admin o con permisos).",
+        tags: ["Tournaments"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 201, description: "Torneo creado")]
 public function store(StoreTournamentRequest $request): TournamentResource
 {
     $tournament = Tournament::create([
@@ -56,6 +82,15 @@ public function store(StoreTournamentRequest $request): TournamentResource
 
     // ─── Editar torneo ─────────────────────────────────────────
 
+    #[OA\Patch(
+        path: "/api/tournaments/{tournament}",
+        summary: "Editar torneo",
+        description: "Edita datos de un torneo.",
+        tags: ["Tournaments"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "tournament", in: "path", required: true, description: "ID del torneo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Torneo editado")]
 public function update(UpdateTournamentRequest $request, Tournament $tournament): TournamentResource
 {
     $tournament->update($request->validated());
@@ -66,6 +101,15 @@ public function update(UpdateTournamentRequest $request, Tournament $tournament)
 
     // ─── Cancelar/eliminar torneo ─────────────────────────────
 
+    #[OA\Delete(
+        path: "/api/tournaments/{tournament}",
+        summary: "Cancelar/Eliminar torneo",
+        description: "Borra/cancela un torneo y sus inscripciones.",
+        tags: ["Tournaments"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "tournament", in: "path", required: true, description: "ID del torneo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Torneo cancelado")]
     public function destroy(Tournament $tournament): JsonResponse
     {
         $this->authorize('delete', $tournament);
@@ -82,7 +126,17 @@ public function update(UpdateTournamentRequest $request, Tournament $tournament)
 
     // ─── Inscribirse a un torneo ──────────────────────────────
 
-public function register(Request $request, Tournament $tournament): RegistrationResource
+    #[OA\Post(
+        path: "/api/tournaments/{tournament}/register",
+        summary: "Inscribirse a torneo",
+        description: "Inscribe al usuario en el torneo.",
+        tags: ["Tournaments"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "tournament", in: "path", required: true, description: "ID del torneo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Inscrito exitosamente")]
+    #[OA\Response(response: 422, description: "Torneo completo, ya inscrito o no admite inscripciones")]
+public function register(Request $request, Tournament $tournament): RegistrationResource|JsonResponse
 {
         $user = $request->user();
 
@@ -111,6 +165,15 @@ public function register(Request $request, Tournament $tournament): Registration
 
     // ─── Cancelar inscripción ─────────────────────────────────
 
+    #[OA\Delete(
+        path: "/api/tournaments/{tournament}/register",
+        summary: "Cancelar inscripción",
+        description: "Borra la inscripción del usuario al torneo.",
+        tags: ["Tournaments"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "tournament", in: "path", required: true, description: "ID del torneo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Inscripción cancelada")]
     public function unregister(Request $request, Tournament $tournament): JsonResponse
     {
         $registration = TournamentRegistration::where('tournament_id', $tournament->id)
@@ -125,6 +188,15 @@ public function register(Request $request, Tournament $tournament): Registration
 
     // ─── Listar inscritos (solo creador/admin) ────────────────
 
+    #[OA\Get(
+        path: "/api/tournaments/{tournament}/registrations",
+        summary: "Lista de inscritos",
+        description: "Devuelve todos los inscritos (solo creador o admin).",
+        tags: ["Tournaments"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "tournament", in: "path", required: true, description: "ID del torneo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Lista de inscripciones")]
 public function registrations(Tournament $tournament): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
 {
     $this->authorize('update', $tournament);
@@ -139,6 +211,16 @@ public function registrations(Tournament $tournament): \Illuminate\Http\Resource
 
     // ─── Confirmar inscripción (solo creador/admin) ───────────
 
+    #[OA\Patch(
+        path: "/api/tournaments/{tournament}/registrations/{registration}/confirm",
+        summary: "Confirmar inscripción",
+        description: "Confirma un jugador en estado pendiente (solo creador/admin).",
+        tags: ["Tournaments"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "tournament", in: "path", required: true, description: "ID del torneo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Parameter(name: "registration", in: "path", required: true, description: "ID de la inscripción", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Inscripción confirmada")]
     public function confirmRegistration(Tournament $tournament, TournamentRegistration $registration): JsonResponse
     {
         $this->authorize('update', $tournament);

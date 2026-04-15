@@ -8,12 +8,18 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use OpenApi\Attributes as OA;
 
 class AdminUserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    #[OA\Get(
+        path: "/api/admin/users",
+        summary: "Lista de usuarios",
+        description: "Obtiene una lista paginada de todos los usuarios registrados (solo admins).",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Lista de usuarios")]
     public function index()
     {
         // Traemos a los usuarios ordenados por creación con sus roles
@@ -21,9 +27,25 @@ class AdminUserController extends Controller
         return response()->json($users);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    #[OA\Post(
+        path: "/api/admin/users",
+        summary: "Crear usuario",
+        description: "Crea un usuario administrativamente.",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "name", type: "string"),
+            new OA\Property(property: "username", type: "string"),
+            new OA\Property(property: "email", type: "string", format: "email"),
+            new OA\Property(property: "password", type: "string"),
+            new OA\Property(property: "role_id", type: "integer"),
+            new OA\Property(property: "forum_id", type: "integer", nullable: true)
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Usuario creado exitosamente")]
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -53,9 +75,26 @@ class AdminUserController extends Controller
         ], 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    #[OA\Put(
+        path: "/api/admin/users/{userId}",
+        summary: "Actualizar usuario",
+        description: "Actualiza los datos y configuraciones primarias de un usuario.",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "name", type: "string"),
+            new OA\Property(property: "username", type: "string"),
+            new OA\Property(property: "email", type: "string", format: "email"),
+            new OA\Property(property: "password", type: "string", nullable: true),
+            new OA\Property(property: "role_id", type: "integer"),
+            new OA\Property(property: "forum_id", type: "integer", nullable: true)
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Usuario actualizado")]
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -88,17 +127,24 @@ class AdminUserController extends Controller
         ]);
     }
 
-    /**
-     * Asigna o cambia el rol de un usuario (incluyendo forum_id para moderadores).
-     *
-     * POST /admin/users/{user}/assign-role
-     * Body: { role_id: int, forum_id?: int }
-     *
-     * Reglas:
-     *  - Solo admin / super_admin pueden asignar roles.
-     *  - Un admin no puede asignar super_admin (solo otro super_admin puede hacerlo).
-     *  - Los moderadores sectoriales (mod_*) deben llevar forum_id.
-     */
+    #[OA\Post(
+        path: "/api/admin/users/{userId}/assign-role",
+        summary: "Asignar rol a usuario",
+        description: "Reglas de jerarquía aplican. Solo super_admin asigna super_admin.",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "role_id", type: "integer"),
+            new OA\Property(property: "forum_id", type: "integer", nullable: true)
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Rol asignado correctamente")]
+    #[OA\Response(response: 403, description: "Prohibido")]
+    #[OA\Response(response: 422, description: "Falta asignar ID de foro a moderador")]
     public function assignRole(Request $request, User $user)
     {
         $authUser = $request->user();
@@ -142,9 +188,15 @@ class AdminUserController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    #[OA\Delete(
+        path: "/api/admin/users/{userId}",
+        summary: "Eliminar usuario",
+        description: "Elimina una cuenta de usuario.",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Usuario eliminado exitosamente")]
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) {

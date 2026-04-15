@@ -9,9 +9,24 @@ use Illuminate\Support\Facades\DB;
 use App\Models\DepositOrder;
 use App\Models\WalletTransaction;
 use App\Models\User;
+use OpenApi\Attributes as OA;
 
 class DepositController extends Controller
 {
+    #[OA\Post(
+        path: "/api/wallet/deposit",
+        summary: "Depósito de dinero",
+        description: "Realiza un depósito de fondos a la cuenta del usuario.",
+        tags: ["Wallet"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "amount", type: "number", description: "Cantidad (mínimo 5)")
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Depósito realizado exitosamente")]
     public function store(Request $request)
     {
         $request->validate(['amount' => 'required|numeric|min:5']);

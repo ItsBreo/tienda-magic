@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use OpenApi\Attributes as OA;
 
 /**
  * Controlador principal de gestión de usuarios.
@@ -23,6 +24,14 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+    #[OA\Get(
+        path: "/api/account",
+        summary: "Ver cuenta del usuario",
+        description: "Obtiene información de la cuenta base del usuario autenticado.",
+        tags: ["Account"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Datos de usuario obtenidos")]
     public function show(Request $request)
     {
         $user = $request->user();
@@ -77,6 +86,22 @@ class UserController extends Controller
      * @param User $user
      * @return \Illuminate\Http\JsonResponse
      */
+    #[OA\Patch(
+        path: "/api/account/password",
+        summary: "Cambiar contraseña",
+        description: "Actualiza la contraseña del usuario autenticado indicando la actual.",
+        tags: ["Account"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "current_password", type: "string"),
+            new OA\Property(property: "new_password", type: "string"),
+            new OA\Property(property: "new_password_confirmation", type: "string")
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Contraseña cambiada exitosamente")]
     public function updatePassword(Request $request, User $user)
     {
         $user = $request->user();
@@ -104,6 +129,14 @@ class UserController extends Controller
      * @param User $user
      * @return \Illuminate\Http\RedirectResponse
      */
+    #[OA\Delete(
+        path: "/api/account",
+        summary: "Eliminar cuenta",
+        description: "Elimina permanentemente la cuenta de usuario.",
+        tags: ["Account"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Cuenta eliminada")]
     public function destroyUser(Request $request, User $user)
     {
         $user->delete();
@@ -117,6 +150,14 @@ class UserController extends Controller
      * @param User $user
      * @return void
      */
+    #[OA\Get(
+        path: "/api/account/decks",
+        summary: "Mazos del usuario",
+        description: "Carga la relación de mazos creados por el usuario.",
+        tags: ["Account"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Listado de mazos (puede devolver vista o json)")]
     public function showDecks(Request $request, User $user)
     {
         $user->load('decks');
@@ -128,6 +169,14 @@ class UserController extends Controller
      * @param User $user
      * @return \Illuminate\View\View
      */
+    #[OA\Get(
+        path: "/api/account/favorites",
+        summary: "Cartas favoritas",
+        description: "Muestra cartas marcadas como preferidas por el usuario.",
+        tags: ["Account"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Listado de favoritos")]
     public function showFavoriteCards(User $user)
     {
         $user->load('favoriteCards');
@@ -180,6 +229,14 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+    #[OA\Get(
+        path: "/api/account/balance",
+        summary: "Consultar saldo",
+        description: "Devuelve el saldo actual de la billetera en la tienda.",
+        tags: ["Account"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Saldo obtenido con éxito")]
     public function getBalance(Request $request)
     {
         $balance = $request->user()->balance;
@@ -191,6 +248,14 @@ class UserController extends Controller
      *
      * @return \Illuminate\View\View
      */
+    #[OA\Get(
+        path: "/api/account/transactions",
+        summary: "Historial de transacciones de billetera",
+        description: "Muestra los movimientos (recargas y deducciones) de saldo.",
+        tags: ["Account"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Lista de transacciones")]
     public function transactions(Request $request)
     {
         $user = $request->user();

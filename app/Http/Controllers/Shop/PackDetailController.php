@@ -5,9 +5,19 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Models\BoosterPack;
 use App\Models\Card;
+use OpenApi\Attributes as OA;
 
 class PackDetailController extends Controller
 {
+    #[OA\Get(
+        path: "/api/pack/{code}",
+        summary: "Detalle de Pack por código/ID",
+        description: "Obtiene los detalles de un pack, relacionados y cartas posibles (chase cards).",
+        tags: ["Shop"]
+    )]
+    #[OA\Parameter(name: "code", in: "path", required: true, description: "Código o ID del pack", schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Detalle completo del pack y contenido posible")]
+    #[OA\Response(response: 404, description: "Pack no encontrado")]
     public function show($id)
     {
         $pack = BoosterPack::with('cardSet')

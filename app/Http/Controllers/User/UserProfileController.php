@@ -7,6 +7,7 @@ use App\Models\UserProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use OpenApi\Attributes as OA;
 
 class UserProfileController extends Controller
 {
@@ -42,6 +43,14 @@ class UserProfileController extends Controller
     /**
      * Obtener el perfil del usuario autenticado
      */
+    #[OA\Get(
+        path: "/api/profile",
+        summary: "Ver perfil propio",
+        description: "Obtiene el perfil del usuario autenticado.",
+        tags: ["Profile"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Datos del perfil")]
     public function showProfile()
     {
         $user = auth()->user();
@@ -55,6 +64,15 @@ class UserProfileController extends Controller
     /**
      * Obtener el perfil de un usuario específico (público)
      */
+    #[OA\Get(
+        path: "/api/profile/{userId}",
+        summary: "Ver perfil público de usuario",
+        description: "Obtiene el perfil público de un usuario especificado por ID.",
+        tags: ["Profile"]
+    )]
+    #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Perfil del usuario devuelto")]
+    #[OA\Response(response: 404, description: "Usuario no encontrado")]
     public function show($userId)
     {
         $user = User::with('profile')->find($userId);
@@ -73,6 +91,15 @@ class UserProfileController extends Controller
      * Crear el perfil para el usuario autenticado.
      * Acepta archivos (multipart/form-data) o URLs de texto.
      */
+    #[OA\Post(
+        path: "/api/profile",
+        summary: "Crear perfil",
+        description: "Crea el perfil para el usuario autenticado.",
+        tags: ["Profile"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 201, description: "Perfil creado")]
+    #[OA\Response(response: 400, description: "El usuario ya tiene un perfil")]
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -126,6 +153,15 @@ class UserProfileController extends Controller
      * Actualizar el perfil del usuario autenticado.
      * Acepta archivos (multipart/form-data) o URLs de texto.
      */
+    #[OA\Patch(
+        path: "/api/profile",
+        summary: "Actualizar perfil",
+        description: "Actualiza el perfil del usuario autenticado.",
+        tags: ["Profile"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Perfil actualizado correctamente")]
+    #[OA\Response(response: 404, description: "Perfil no encontrado")]
     public function update(Request $request)
     {
         $user    = auth()->user();
@@ -175,9 +211,32 @@ class UserProfileController extends Controller
         ]);
     }
 
+    #[OA\Patch(
+        path: "/api/profile/public-info",
+        summary: "Actualizar información pública",
+        description: "Actualiza información pública (stub).",
+        tags: ["Profile"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Información actualizada (stub)")]
+    public function updatePublicInfo(Request $request)
+    {
+        // TODO: implement
+        return response()->json(['message' => 'Not implemented yet'], 501);
+    }
+
     /**
      * Actualizar reputación del usuario (solo administrador)
      */
+    #[OA\Patch(
+        path: "/api/admin/users/{userId}/reputation",
+        summary: "Actualizar reputación (Admin)",
+        description: "Actualiza la puntuación de reputación de un usuario.",
+        tags: ["Admin", "Profile"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Reputación actualizada")]
     public function updateReputation(Request $request, $userId)
     {
         $user = User::find($userId);
@@ -207,6 +266,14 @@ class UserProfileController extends Controller
     /**
      * Eliminar el perfil del usuario autenticado (y sus imágenes del disco)
      */
+    #[OA\Delete(
+        path: "/api/profile",
+        summary: "Eliminar perfil",
+        description: "Elimina el perfil del usuario autenticado.",
+        tags: ["Profile"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Perfil eliminado correctamente")]
     public function destroy()
     {
         $user    = auth()->user();
