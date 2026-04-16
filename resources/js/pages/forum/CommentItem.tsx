@@ -59,9 +59,9 @@ function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; foru
 
   if (isHidden && !revealed) {
     return (
-      <div className="py-2 pl-8 pr-3.5 border-b border-[var(--border)] flex gap-2.5 items-center">
-        <div className="w-[18px] h-[18px] rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[8px] font-bold text-[var(--text-muted)] shrink-0">?</div>
-        <div onClick={() => setRevealed(true)} className="bg-red-400/10 border border-red-400/25 rounded-md py-1.5 px-3 text-xs text-[var(--red)] flex items-center gap-1.5 cursor-pointer">
+      <div className="py-2 pl-8 pr-3.5 border-b border-border flex gap-2.5 items-center">
+        <div className="w-[18px] h-[18px] rounded-full bg-accent flex items-center justify-center text-[8px] font-bold text-muted-foreground shrink-0">?</div>
+        <div onClick={() => setRevealed(true)} className="bg-destructive/10 border border-destructive/25 rounded-md py-1.5 px-3 text-xs text-destructive flex items-center gap-1.5 cursor-pointer">
           ⚠️ Comentario oculto · puntuación {score} · Haz clic para ver
         </div>
       </div>
@@ -69,35 +69,35 @@ function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; foru
   }
 
   return (
-    <div className="py-2 pl-8 pr-3.5 border-b border-[var(--border)] flex gap-2.5 bg-white/5 group">
+    <div className="py-2 pl-8 pr-3.5 border-b border-border flex gap-2.5 bg-accent/30 group">
       <div className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0" style={{ background: reply.avatarColor }}>
         {reply.initials}
       </div>
 
       <div className="flex-1">
-        <div className="text-[11px] text-[var(--text-muted)] mb-1">
-          <b className="text-[var(--text-secondary)] font-semibold">{reply.author}</b> · {reply.timeAgo} ·{" "}
-          <span className={score < 0 ? 'text-[var(--red)]' : 'text-[var(--accent)]'}>{score > 0 ? `+${score}` : score}</span>
+        <div className="text-[11px] text-muted-foreground mb-1">
+          <b className="text-foreground font-semibold">{reply.author}</b> · {reply.timeAgo} ·{" "}
+          <span className={score < 0 ? 'text-destructive' : 'text-primary'}>{score > 0 ? `+${score}` : score}</span>
         </div>
-        <div className={`text-[13px] leading-relaxed mb-1.5 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
+        <div className={`text-[13px] leading-relaxed mb-1.5 ${isHidden ? 'text-muted-foreground opacity-70' : 'text-foreground'}`}>
           {reply.body}
         </div>
         <div className="flex gap-0.5 items-center">
-          <button onClick={() => cast(1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
-          <button onClick={() => cast(-1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
-          <button onClick={() => onReplyTo(reply.author)} className="py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors text-[11px] cursor-pointer">💬 Responder</button>
+          <button onClick={() => cast(1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>▲ {score}</button>
+          <button onClick={() => cast(-1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>▼</button>
+          <button onClick={() => onReplyTo(reply.author)} className="py-0.5 px-1.5 rounded-sm border-none bg-transparent text-muted-foreground hover:text-foreground transition-colors text-[11px] cursor-pointer">💬 Responder</button>
           {canDelete && (
             <div className="relative ml-auto" onMouseLeave={() => setShowOptions(false)}>
               <button 
                 onClick={() => setShowOptions(!showOptions)}
-                className="opacity-0 group-hover:opacity-100 py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] text-[11px] cursor-pointer transition-opacity"
+                className="opacity-0 group-hover:opacity-100 py-0.5 px-2 rounded-sm border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent text-[11px] cursor-pointer transition-opacity"
               >
                 <MoreHorizontal size={14} />
               </button>
               {showOptions && (
-                <div className="absolute right-0 bottom-full w-28 bg-[var(--surface)] border border-[var(--border)] rounded shadow-lg overflow-hidden z-20 flex flex-col">
+                <div className="absolute right-0 bottom-full w-28 bg-card border border-border rounded shadow-lg overflow-hidden z-20 flex flex-col">
                   {canDelete && (
-                    <button onClick={() => { handleDelete(); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-[var(--red)] hover:bg-red-500/10 border-none bg-transparent cursor-pointer text-left">
+                    <button onClick={() => { handleDelete(); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-destructive hover:bg-destructive/10 border-none bg-transparent cursor-pointer text-left">
                       <Trash2 size={12} /> Eliminar
                     </button>
                   )}
@@ -202,9 +202,9 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
 
   if (isHidden && !revealed) {
     return (
-      <div className="py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5 items-center">
-        <div className="w-6 h-6 rounded-full bg-[var(--surface-2)] flex items-center justify-center text-[10px] font-bold text-[var(--text-muted)] shrink-0">?</div>
-        <div onClick={() => setRevealed(true)} className="bg-red-400/10 border border-red-400/25 rounded-md py-1.5 px-3 text-[13px] text-[var(--red)] flex items-center gap-1.5 cursor-pointer">
+      <div className="py-3 px-3.5 border-b border-border flex gap-2.5 items-center">
+        <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">?</div>
+        <div onClick={() => setRevealed(true)} className="bg-destructive/10 border border-destructive/25 rounded-md py-1.5 px-3 text-[13px] text-destructive flex items-center gap-1.5 cursor-pointer">
           ⚠️ Comentario oculto · puntuación {score} · Haz clic para ver
         </div>
       </div>
@@ -213,43 +213,43 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
 
   return (
     <>
-      <div className="py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5 group">
+      <div className="py-3 px-3.5 border-b border-border flex gap-2.5 group">
         <div className="flex flex-col items-center gap-1">
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{ background: comment.avatarColor }}>
             {comment.initials}
           </div>
-          <div className="w-[2px] flex-1 bg-[var(--border)] rounded-[1px] min-h-[12px]" />
+          <div className="w-[2px] flex-1 bg-border rounded-[1px] min-h-[12px]" />
         </div>
 
         <div className="flex-1">
-          <div className="text-[11px] text-[var(--text-muted)] mb-1">
-            <b className="text-[var(--text-secondary)] font-semibold">{comment.author}</b> · {comment.timeAgo} ·{" "}
-            <span className={score < 0 ? 'text-[var(--red)]' : 'text-[var(--accent)]'}>{score > 0 ? `+${score}` : score}</span>
+          <div className="text-[11px] text-muted-foreground mb-1">
+            <b className="text-foreground font-semibold">{comment.author}</b> · {comment.timeAgo} ·{" "}
+            <span className={score < 0 ? 'text-destructive' : 'text-primary'}>{score > 0 ? `+${score}` : score}</span>
           </div>
-          <div className={`text-[13px] leading-relaxed mb-2 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
+          <div className={`text-[13px] leading-relaxed mb-2 ${isHidden ? 'text-muted-foreground opacity-70' : 'text-foreground'}`}>
             {comment.body}
           </div>
           <div className="flex gap-0.5 items-center">
-            <button onClick={() => cast(1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
-            <button onClick={() => cast(-1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
-            <button onClick={() => handleReplyClick()} className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors text-[11px] cursor-pointer">💬 Responder</button>
+            <button onClick={() => cast(1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>▲ {score}</button>
+            <button onClick={() => cast(-1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>▼</button>
+            <button onClick={() => handleReplyClick()} className="py-0.5 px-2 rounded-sm border-none bg-transparent text-muted-foreground hover:text-foreground transition-colors text-[11px] cursor-pointer">💬 Responder</button>
             {(canDelete || canEdit) && (
               <div className="relative ml-auto" onMouseLeave={() => setShowOptions(false)}>
                 <button 
                   onClick={() => setShowOptions(!showOptions)}
-                  className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] text-[11px] cursor-pointer transition-colors"
+                  className="py-0.5 px-2 rounded-sm border-none bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent text-[11px] cursor-pointer transition-colors"
                 >
                   <MoreHorizontal size={14} />
                 </button>
                 {showOptions && (
-                  <div className="absolute right-0 bottom-full w-28 bg-[var(--surface)] border border-[var(--border)] rounded shadow-lg overflow-hidden z-20 flex flex-col">
+                  <div className="absolute right-0 bottom-full w-28 bg-card border border-border rounded shadow-lg overflow-hidden z-20 flex flex-col">
                     {canEdit && (
-                      <button onClick={() => { setIsEditing(true); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-2)] border-none bg-transparent cursor-pointer text-left">
+                      <button onClick={() => { setIsEditing(true); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-foreground hover:bg-accent border-none bg-transparent cursor-pointer text-left">
                         <Edit2 size={12} /> Editar
                       </button>
                     )}
                     {canDelete && (
-                      <button onClick={() => { handleDelete(); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-[var(--red)] hover:bg-red-500/10 border-none bg-transparent cursor-pointer text-left">
+                      <button onClick={() => { handleDelete(); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-destructive hover:bg-destructive/10 border-none bg-transparent cursor-pointer text-left">
                         <Trash2 size={12} /> Eliminar
                       </button>
                     )}
@@ -267,19 +267,19 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
                 onChange={e => setReplyBody(e.target.value)}
                 placeholder="Escribe tu respuesta..."
                 rows={2}
-                className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-md py-1.5 px-2.5 text-[var(--text-primary)] text-[12px] resize-y outline-none focus:border-[var(--accent)] transition-colors mb-1.5"
+                className="w-full bg-accent border border-border rounded-md py-1.5 px-2.5 text-foreground text-[12px] resize-y outline-none focus:border-primary transition-colors mb-1.5"
               />
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setIsReplying(false)}
-                  className="bg-transparent border border-[var(--border)] py-1 px-2.5 rounded text-[11px] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] cursor-pointer"
+                  className="bg-transparent border border-border py-1 px-2.5 rounded text-[11px] text-muted-foreground hover:bg-accent cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSubmitReply}
                   disabled={!replyBody.trim()}
-                  className={`bg-[var(--accent)] text-white border-none py-1 px-2.5 rounded text-[11px] font-semibold ${!replyBody.trim() ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[var(--accent-hover)] cursor-pointer'}`}
+                  className={`bg-primary text-primary-foreground border-none py-1 px-2.5 rounded text-[11px] font-semibold ${!replyBody.trim() ? 'opacity-60 cursor-not-allowed' : 'hover:bg-primary/90 cursor-pointer'}`}
                 >
                   Responder
                 </button>

@@ -4,29 +4,29 @@ import { ScrollText, Zap, BookOpen, Skull, Flame, Droplets, TreePine, Sun, Circl
 export default function Rules() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      <div className="flex items-center gap-3 mb-8 pb-4 border-b border-zinc-800">
-        <ScrollText className="h-8 w-8 text-amber-500" />
-        <h1 className="text-3xl font-serif font-bold text-zinc-100">Guía de Inicio: ¿Cómo se juega a Magic?</h1>
+      <div className="flex items-center gap-3 mb-8 pb-4 border-b border-border">
+        <ScrollText className="h-8 w-8 text-primary" />
+        <h1 className="text-3xl font-serif font-bold text-foreground">Guía de Inicio: ¿Cómo se juega a Magic?</h1>
       </div>
       
-      <div className="space-y-12 text-zinc-300 leading-relaxed font-inter">
+      <div className="space-y-12 text-muted-foreground leading-relaxed font-inter">
         
         {/* Intro */}
         <section>
-          <p className="text-lg text-zinc-400">
+          <p className="text-lg text-muted-foreground">
             Bienvenido a Magic: The Gathering, el rey absoluto de los juegos de cartas. Al principio puede parecer que necesitas un máster para entender todo, pero en el fondo es como un ajedrez donde tú eres un mago hiper-poderoso lanzando dragones y rayos letales. Vamos a ver cómo funciona esto sin enrollarnos demasiado.
           </p>
         </section>
 
         {/* 1. El objetivo */}
         <section className="bg-zinc-900/50 p-6 rounded-lg border border-zinc-800">
-          <h2 className="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
             <BookOpen className="h-5 w-5" /> 1. Tú mandas (Eres un Planeswalker)
           </h2>
           <p className="mb-4">
             Dentro del <em>lore</em> del juego, tú y tu oponente sois <strong>Planeswalkers</strong>: hechiceros capaces de viajar por distintos mundos. En una partida normal, empiezas con <strong>20 vidas</strong> y tu mazo o biblioteca.
           </p>
-          <p className="font-bold text-zinc-100">¿Cómo se gana una partida?</p>
+          <p className="font-bold text-foreground">¿Cómo se gana una partida?</p>
           <ul className="list-disc pl-5 space-y-2 mt-2">
             <li>Bajando la vida de tu rival a 0 a base de tortas y hechizos directos a la cara.</li>
             <li>Consiguiendo que tu colega intente robar una carta, y resulta que ya no tiene mazo. Pierde por <em>deckearse*</em>.</li>
@@ -36,7 +36,7 @@ export default function Rules() {
 
         {/* 2. El Maná */}
         <section className="bg-zinc-900/50 p-6 rounded-lg border border-zinc-800">
-          <h2 className="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
             <Zap className="h-5 w-5" /> Tierras y Maná
           </h2>
           <p className="mb-4">
@@ -139,11 +139,11 @@ export default function Rules() {
 
         {/* 7. La Pila */}
         <section className="bg-zinc-900/50 p-6 rounded-lg border border-indigo-900/30">
-          <h2 className="text-xl font-bold text-indigo-400 mb-4">7. La Pila (The Stack)</h2>
+          <h2 className="text-xl font-bold text-primary mb-4">7. La Pila (The Stack)</h2>
           <p className="mb-3">
             Para evitar discusiones entre jugadores, está "La Pila". Piensa en una bandeja de comedor donde la gente va soltando sus bandejas sucias. La última bandeja que dejas es la primera que friegas.
           </p>
-          <p className="italic text-zinc-300 border-l-4 border-indigo-500 pl-4 py-2 mb-4 bg-zinc-950/50 rounded-r shadow-inner">
+          <p className="italic text-foreground border-l-4 border-primary pl-4 py-2 mb-4 bg-accent/50 rounded-r shadow-inner">
             <strong>LIFO ("Last In, First Out"):</strong> El último hechizo que se lanza, es el primero en resolverse.
           </p>
           <p className="text-sm">
@@ -177,7 +177,7 @@ export default function Rules() {
 
         {/* 9. Formatos Oficiales */}
         <section className="bg-zinc-900/50 p-6 rounded-lg border border-zinc-800">
-          <h2 className="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
             9. Formatos de Juego (¿Cómo se juega?)
           </h2>
           <p className="mb-6 text-sm text-zinc-400">
@@ -198,7 +198,7 @@ export default function Rules() {
 
             <div className="bg-zinc-950 p-4 rounded border border-indigo-900/30">
               <h3 className="font-bold text-zinc-100 mb-1 flex items-center justify-between">
-                Commander (EDH) <span className="bg-indigo-900/50 text-xs px-2 py-0.5 rounded text-indigo-400">Multijugador / Casual</span>
+                Commander (EDH) <span className="bg-primary/20 text-xs px-2 py-0.5 rounded text-primary">Multijugador / Casual</span>
               </h3>
               <ul className="text-sm text-zinc-300 space-y-1 list-disc pl-4 mt-2">
                 <li><strong>Mazo Base:</strong> Exactamente 100 cartas, pero "1 de 1" (ninguna carta puede repetirse salvo las tierras básicas).</li>
@@ -220,7 +220,7 @@ export default function Rules() {
 
             <div className="bg-zinc-950 p-4 rounded border border-emerald-900/30">
               <h3 className="font-bold text-zinc-100 mb-1 flex items-center justify-between">
-                Draft (Limitado) <span className="bg-emerald-900/50 text-xs px-2 py-0.5 rounded text-emerald-400">De paquete</span>
+                Draft (Limitado) <span className="bg-accent text-xs px-2 py-0.5 rounded text-muted-foreground">De paquete</span>
               </h3>
               <ul className="text-sm text-zinc-300 space-y-1 list-disc pl-4 mt-2">
                 <li><strong>Mazo Base:</strong> Min. 40 cartas de las que extraigas.</li>
@@ -233,11 +233,11 @@ export default function Rules() {
         </section>
 
         {/* GLOSARIO */}
-        <section className="mt-12 border-t-2 border-zinc-800/80 pt-8">
-          <h3 className="text-2xl font-serif font-bold text-zinc-100 mb-6 flex items-center gap-2">
-            <Info className="h-6 w-6 text-zinc-500" /> Glosario
+        <section className="mt-12 border-t-2 border-border pt-8">
+          <h3 className="text-2xl font-serif font-bold text-foreground mb-6 flex items-center gap-2">
+            <Info className="h-6 w-6 text-muted-foreground" /> Glosario
           </h3>
-          <dl className="grid gap-x-8 gap-y-4 md:grid-cols-2 text-sm text-zinc-300">
+          <dl className="grid gap-x-8 gap-y-4 md:grid-cols-2 text-sm text-muted-foreground">
             <div className="bg-zinc-900/30 p-4 rounded border border-zinc-800">
               <dt className="font-bold text-amber-500 mb-1">Tapear / Girar (Tap)</dt>
               <dd>Doblar 90 grados la carta. Visualmente te dice que está "agotada" y que ya la acabas de aprovechar. Suena como "tapear" una mesa, literal.</dd>

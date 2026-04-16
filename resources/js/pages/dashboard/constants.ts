@@ -34,10 +34,10 @@ export const QUICK_ACTIONS = [
 
 export const getColorClasses = (color: string) => {
   const colors: Record<string, string> = {
-    emerald: 'bg-emerald-600 hover:bg-emerald-500 text-black border-emerald-500/50 text-emerald-400',
-    blue: 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500/50 text-blue-400',
-    purple: 'bg-purple-600 hover:bg-purple-500 text-white border-purple-500/50 text-purple-400',
-    orange: 'bg-orange-600 hover:bg-orange-500 text-white border-orange-500/50 text-orange-400',
+    emerald: 'bg-primary hover:bg-primary/90 text-primary-foreground border-primary/50 text-primary',
+    blue: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground border-secondary/50 text-secondary',
+    purple: 'bg-accent hover:bg-accent/90 text-accent-foreground border-border text-accent-foreground',
+    orange: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground border-destructive/50 text-destructive',
   };
-  return colors[color] || 'bg-zinc-600 text-white text-zinc-400';
+  return colors[color] || 'bg-muted text-foreground text-muted-foreground';
 };

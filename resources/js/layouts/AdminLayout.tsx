@@ -4,6 +4,7 @@ import {
     Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
 
 /**
  * AdminLayout - Layout principal del panel de administración
@@ -39,15 +40,21 @@ export default function AdminLayout() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-zinc-100 flex flex-col md:flex-row font-sans selection:bg-emerald-500/30">
+        <div className="min-h-screen bg-background  text-foreground flex flex-col md:flex-row font-sans selection:bg-primary/30 transition-colors duration-300">
             {/* Sidebar - Barra de navegación lateral con opciones del admin */}
-            <aside className="w-full md:w-64 bg-zinc-950 border-r border-zinc-800/50 flex flex-col">
+            <aside className="w-full md:w-64 bg-card border-r border-border flex flex-col transition-colors duration-300">
                 {/* Header del sidebar con logo y nombre */}
-                <div className="h-16 flex items-center px-6 border-b border-zinc-800/50">
-                    <Layers className="h-6 w-6 text-emerald-500 mr-2" />
-                    <span className="font-bold text-lg bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                        Admin Panel
-                    </span>
+                <div className="h-16 flex items-center justify-between px-6 border-b border-border">
+                    <div className="flex items-center">
+                        <Layers className="h-6 w-6 text-primary mr-2" />
+                        <span className="font-bold text-lg text-primary">
+                            Admin Panel
+                        </span>
+                    </div>
+                    {/* Añadimos el toggler de forma compacta (opcional si ya está pero le da un buen toque para probar en admin) */}
+                    <div className="md:hidden">
+                        <AnimatedThemeToggler className="h-6 w-6" />
+                    </div>
                 </div>
 
                 {/* Menú de navegación - Se itera sobre los elementos definidos arriba */}
@@ -58,8 +65,8 @@ export default function AdminLayout() {
                             to={item.href}
                             // Aplicar estilos diferentes si la ruta está activa o no
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
-                                ? 'bg-emerald-900/20 text-emerald-400 border border-emerald-500/20'
-                                : 'text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-100'
+                                ? 'bg-primary/20 text-primary border border-primary/20'
+                                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                                 }`}
                         >
                             <item.icon className="h-4 w-4" />
@@ -69,22 +76,26 @@ export default function AdminLayout() {
                 </div>
 
                 {/* Sección inferior - Información del usuario y botón de logout */}
-                <div className="p-4 border-t border-zinc-800/50">
+                <div className="p-4 border-t border-border">
+                    <div className="flex justify-center mb-4 hidden md:flex">
+                        <AnimatedThemeToggler />
+                    </div>
+
                     {/* Tarjeta del usuario actual */}
                     <div className="flex items-center gap-3 px-3 py-2 mb-2">
-                        <div className="h-8 w-8 rounded-full bg-emerald-900/50 flex items-center justify-center text-emerald-500 font-bold border border-emerald-500/30">
+                        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/30">
                             {user?.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col truncate">
-                            <span className="text-sm font-medium text-zinc-200 truncate">{user?.name}</span>
-                            <span className="text-xs text-zinc-500">Super Admin</span>
+                            <span className="text-sm font-medium text-foreground truncate">{user?.name}</span>
+                            <span className="text-xs text-muted-foreground">Super Admin</span>
                         </div>
                     </div>
 
                     {/* Botón de cerrar sesión */}
                     <button
                         onClick={logout}
-                        className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-950/30 rounded-lg transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                     >
                         <LogOut className="h-4 w-4" />
                         Cerrar Sesión
@@ -92,7 +103,7 @@ export default function AdminLayout() {
 
                     {/* Enlace para volver a la tienda principal */}
                     <div className="mt-2 text-center w-full">
-                        <Link to="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 underline">
+                        <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground underline">
                             Volver a Tienda
                         </Link>
                     </div>

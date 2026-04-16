@@ -81,7 +81,7 @@ export default function Checkout() {
                         </Button>
                     </div>
 
-                    <h1 className="text-3xl font-serif font-bold text-zinc-100 mb-8 border-b border-zinc-800 pb-4">
+                    <h1 className="text-3xl font-serif font-bold text-foreground mb-8 border-b border-border pb-4">
                         Finalizar Compra
                     </h1>
 
@@ -94,27 +94,27 @@ export default function Checkout() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     {cartItems.length === 0 ? (
-                                        <p className="text-zinc-400 text-center py-8">No hay artículos en tu carrito.</p>
+                                        <p className="text-muted-foreground text-center py-8">No hay artículos en tu carrito.</p>
                                     ) : (
                                         cartItems.map((item) => (
-                                            <div key={item.id} className="flex justify-between items-center py-3 border-b border-zinc-700">
+                                            <div key={item.id} className="flex justify-between items-center py-3 border-b border-border">
                                                 <div>
-                                                    <p className="font-medium text-zinc-100">
+                                                    <p className="font-medium text-foreground">
                                                         {item.booster_pack_id ? item.booster_pack?.name : item.card?.name}
                                                     </p>
-                                                    <p className="text-sm text-zinc-400">
+                                                    <p className="text-sm text-muted-foreground">
                                                         {item.booster_pack_id ? item.booster_pack?.card_set?.name : `Rarity: ${item.card?.rarity}`}
                                                     </p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm text-zinc-400">
+                                                    <p className="text-sm text-muted-foreground">
                                                         €
                                                         {Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0).toFixed(2)}
                                                         {' '}
                                                         ×
                                                         {item.quantity}
                                                     </p>
-                                                    <p className="font-medium text-zinc-100">
+                                                    <p className="font-medium text-foreground">
                                                         €
                                                         {(Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0) * item.quantity).toFixed(2)}
                                                     </p>
@@ -138,46 +138,46 @@ export default function Checkout() {
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
                                         <div>
-                                            <label htmlFor="card-name" className="block text-sm font-medium text-zinc-100 mb-1">
+                                            <label htmlFor="card-name" className="block text-sm font-medium text-foreground mb-1">
                                                 Nombre en la tarjeta
                                             </label>
                                             <input
                                                 id="card-name"
                                                 type="text"
-                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-100"
+                                                className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                                                 placeholder="Juan Pérez"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="card-number" className="block text-sm font-medium text-zinc-100 mb-1">
+                                            <label htmlFor="card-number" className="block text-sm font-medium text-foreground mb-1">
                                                 Número de tarjeta
                                             </label>
                                             <input
                                                 id="card-number"
                                                 type="text"
-                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-100"
+                                                className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                                                 placeholder="1234 5678 9012 3456"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="card-expiry" className="block text-sm font-medium text-zinc-100 mb-1">
+                                            <label htmlFor="card-expiry" className="block text-sm font-medium text-foreground mb-1">
                                                 Fecha de expiración
                                             </label>
                                             <input
                                                 id="card-expiry"
                                                 type="text"
-                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-100"
+                                                className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                                                 placeholder="MM/AA"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="card-cvv" className="block text-sm font-medium text-zinc-100 mb-1">
+                                            <label htmlFor="card-cvv" className="block text-sm font-medium text-foreground mb-1">
                                                 CVV
                                             </label>
                                             <input
                                                 id="card-cvv"
                                                 type="text"
-                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-100"
+                                                className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                                                 placeholder="123"
                                             />
                                         </div>
@@ -201,20 +201,20 @@ export default function Checkout() {
                                         <Separator />
                                         <div className="flex justify-between text-lg font-semibold">
                                             <span>Total</span>
-                                            <span className="text-emerald-400">
+                                            <span className="text-primary">
                                                 €
                                                 {Number(total).toFixed(2)}
                                             </span>
                                         </div>
                                         {error && (
-                                            <div className="mb-4 p-4 bg-red-900 border border-red-700 rounded-md">
-                                                <p className="text-red-200">{error}</p>
+                                            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-md">
+                                                <p className="text-destructive">{error}</p>
                                             </div>
                                         )}
                                     </div>
 
                                     <Button
-                                        className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-600 disabled:cursor-not-allowed"
+                                        className="w-full bg-primary hover:bg-primary/90 disabled:bg-accent disabled:text-muted-foreground disabled:cursor-not-allowed"
                                         onClick={handlePayment}
                                         disabled={processing || cartItems.length === 0}
                                     >

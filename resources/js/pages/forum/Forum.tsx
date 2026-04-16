@@ -29,14 +29,14 @@ function NavItem({ active, icon, label, badge, onClick }: { active: boolean; ico
       onClick={onClick}
       className={`flex items-center gap-2.5 py-2 px-4.5 cursor-pointer transition-all duration-150 border-l-3
         ${active
-          ? 'text-[var(--accent)] font-semibold bg-[var(--surface-2)] border-[var(--accent)]'
-          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] border-transparent'
+          ? 'text-primary font-semibold bg-accent border-primary'
+          : 'text-muted-foreground hover:text-foreground hover:bg-accent border-transparent'
         }`}
     >
       <span className="text-[15px]">{icon}</span>
       <span className="text-[13px]">{label}</span>
       {badge && (
-        <span className="ml-auto bg-[var(--accent)] text-white text-[10px] font-bold py-0.5 px-1.5 rounded-full">
+        <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold py-0.5 px-1.5 rounded-full">
           {badge}
         </span>
       )}
@@ -46,8 +46,8 @@ function NavItem({ active, icon, label, badge, onClick }: { active: boolean; ico
 
 function Widget({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg overflow-hidden">
-      <div className="py-2.5 px-3.5 bg-[var(--surface-2)] border-b border-[var(--border)] text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="py-2.5 px-3.5 bg-accent border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
         {title}
       </div>
       {children}
@@ -186,7 +186,7 @@ export default function MagicForum() {
         id: c.id, 
         author: c.user?.username || c.user?.name || c.author?.name || "Desconocido", 
         author_id: c.user?.id || c.author?.id || 0,
-        avatarColor: "var(--accent)",
+        avatarColor: "#6c5ce7",
         initials: (c.user?.username || c.user?.name || c.author?.name || "US").substring(0, 2).toUpperCase(),
         timeAgo: formatDate(c.created_at), 
         score: c.score, 
@@ -260,30 +260,30 @@ export default function MagicForum() {
 
   return (
     <>
-      <div className="grid grid-cols-[224px_1fr_272px] h-full text-[var(--text-primary)] bg-[var(--bg)] leading-normal">
+      <div className="grid grid-cols-[224px_1fr_272px] h-full text-foreground bg-background leading-normal">
 
         {/* SIDEBAR */}
-        <aside className="bg-[var(--surface)] border-r border-[var(--border)] flex flex-col">
-          <div className="p-4 flex items-center gap-2 border-b border-[var(--border)] mb-1.5">
-            <div className="w-[30px] h-[30px] bg-[var(--accent)] rounded-lg flex items-center justify-center text-white font-bold">M</div>
-            <div className="text-[13px] font-bold tracking-tight text-[var(--text-primary)]">
-              the<span className="text-[var(--accent)]">Gathering</span>
+        <aside className="bg-card border-r border-border flex flex-col">
+          <div className="p-4 flex items-center gap-2 border-b border-border mb-1.5">
+            <div className="w-[30px] h-[30px] bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">M</div>
+            <div className="text-[13px] font-bold tracking-tight text-foreground">
+              the<span className="text-primary">Gathering</span>
             </div>
           </div>
 
-          <div className="p-4 border-b border-[var(--border)]">
+          <div className="p-4 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar en el foro..."
-                className="pl-9 bg-[var(--surface-2)] border-[var(--border)] focus-visible:ring-[var(--accent)]"
+                className="pl-9 bg-accent border-border focus-visible:ring-primary"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="py-2.5 px-4.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Mi Actividad</div>
+          <div className="py-2.5 px-4.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Mi Actividad</div>
           <NavItem
             active={activeSideNav === "guardados"}
             icon="🔖"
@@ -296,7 +296,7 @@ export default function MagicForum() {
             }}
           />
 
-          <div className="py-2.5 px-4.5 mt-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Categorías</div>
+          <div className="py-2.5 px-4.5 mt-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Categorías</div>
           {(["noticias", "estrategia", "general", "torneos"] as Category[]).map(cat => (
             <NavItem
               key={cat}
@@ -313,14 +313,14 @@ export default function MagicForum() {
             />
           ))}
 
-          <div className="mt-auto p-4 border-t border-[var(--border)]">
-            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[var(--surface-2)] cursor-pointer hover:bg-[var(--border)] transition-colors">
-              <div className="w-7.5 h-7.5 rounded-full bg-gradient-to-br from-[var(--accent)] to-blue-700 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+          <div className="mt-auto p-4 border-t border-border">
+            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-accent cursor-pointer hover:bg-border transition-colors">
+              <div className="w-7.5 h-7.5 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-[11px] font-bold text-primary-foreground shrink-0">
                 {user?.name?.substring(0, 2).toUpperCase() || "US"}
               </div>
               <div className="min-w-0">
-                <div className="text-[13px] font-semibold truncate text-[var(--text-primary)]">{user?.username || user?.name || "Usuario"}</div>
-                <div className="text-[11px] text-[var(--text-muted)]">{user?.wallet_balance ? `${user.wallet_balance} oro` : "0 oro"}</div>
+                <div className="text-[13px] font-semibold truncate text-foreground">{user?.username || user?.name || "Usuario"}</div>
+                <div className="text-[11px] text-muted-foreground">{user?.wallet_balance ? `${user.wallet_balance} oro` : "0 oro"}</div>
               </div>
             </div>
           </div>
@@ -338,20 +338,20 @@ export default function MagicForum() {
           <Widget title="Torneos activos">
             <div className="px-3.5 py-1.5">
               {tournaments.length === 0 ? (
-                 <div className="py-2.5 text-xs text-[var(--text-muted)]">No hay torneos activos.</div>
+                 <div className="py-2.5 text-xs text-muted-foreground">No hay torneos activos.</div>
               ) : tournaments.map((t, i) => (
-                <div key={t.id} className={`flex items-center gap-2 py-2 ${i < tournaments.length - 1 ? 'border-b border-[var(--border)]' : ''}`}>
+                <div key={t.id} className={`flex items-center gap-2 py-2 ${i < tournaments.length - 1 ? 'border-b border-border' : ''}`}>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${t.status === 'live' ? 'cat-torneos' : 'cat-noticias'}`}>
                     {t.status === 'live' ? "● En vivo" : "Próximo"}
                   </span>
-                  <span onClick={() => setSelectedTournamentId(t.id)} className="text-xs text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors cursor-pointer truncate flex-1">{t.name}</span>
-                  <span className="text-[11px] text-[var(--text-muted)] shrink-0">{formatDate(t.date)}</span>
+                  <span onClick={() => setSelectedTournamentId(t.id)} className="text-xs text-foreground hover:text-primary transition-colors cursor-pointer truncate flex-1">{t.name}</span>
+                  <span className="text-[11px] text-muted-foreground shrink-0">{formatDate(t.date)}</span>
                 </div>
               ))}
             </div>
             
             {user && (
-              <button onClick={() => setShowTournamentModal(true)} className="mx-3.5 my-2 w-[calc(100%-28px)] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-primary)] py-1.5 rounded-md text-xs font-semibold cursor-pointer hover:bg-[var(--border)] transition-colors">
+              <button onClick={() => setShowTournamentModal(true)} className="mx-3.5 my-2 w-[calc(100%-28px)] bg-accent border border-border text-foreground py-1.5 rounded-md text-xs font-semibold cursor-pointer hover:bg-border transition-colors">
                 + Crear torneo
               </button>
             )}
@@ -360,8 +360,8 @@ export default function MagicForum() {
           <Widget title="Reglas del foro">
             <div className="px-3.5 py-1">
               {RULES.map((rule, i) => (
-                <div key={rule} className={`text-xs text-[var(--text-secondary)] py-2 flex gap-2.5 leading-relaxed ${i < RULES.length - 1 ? 'border-b border-[var(--border)]' : ''}`}>
-                  <span className="text-[var(--accent)] font-bold">{i + 1}</span>
+                <div key={rule} className={`text-xs text-muted-foreground py-2 flex gap-2.5 leading-relaxed ${i < RULES.length - 1 ? 'border-b border-border' : ''}`}>
+                  <span className="text-primary font-bold">{i + 1}</span>
                   {rule}
                 </div>
               ))}

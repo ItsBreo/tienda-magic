@@ -135,12 +135,12 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100 max-w-[90vw] lg:max-w-7xl h-[85vh] overflow-hidden p-0">
-        <DialogHeader className="px-6 py-4 border-b border-zinc-800">
-          <DialogTitle className="text-xl font-bold text-zinc-100">
+      <DialogContent className="bg-background border-border text-foreground max-w-[90vw] lg:max-w-7xl h-[85vh] overflow-hidden p-0">
+        <DialogHeader className="px-6 py-4 border-b border-border">
+          <DialogTitle className="text-xl font-bold text-foreground">
             {pack.name}
           </DialogTitle>
-          <DialogDescription className="text-zinc-400">
+          <DialogDescription className="text-muted-foreground">
             Explora las cartas disponibles en este sobre
           </DialogDescription>
         </DialogHeader>
@@ -149,7 +149,7 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
           {/* Columna Izquierda (8 columnas) - Lista de cartas con scroll */}
           <div className="lg:col-span-8 overflow-y-auto">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-zinc-100 mb-6">
+              <h3 className="text-lg font-semibold text-foreground mb-6">
                 Cartas del Set ({packCards.length})
               </h3>
 
@@ -157,7 +157,7 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                   {Array.from({ length: 10 }, (_, index) => (
                     <div key={index} className="animate-pulse">
-                      <div className="w-full aspect-[2.5/3.5] bg-zinc-800 rounded-xl border border-zinc-700" />
+                      <div className="w-full aspect-[2.5/3.5] bg-card rounded-xl border border-border" />
                     </div>
                   ))}
                 </div>
@@ -173,18 +173,18 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Package className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
-                  <p className="text-zinc-400 text-lg">No hay cartas disponibles para este set</p>
+                  <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground text-lg">No hay cartas disponibles para este set</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Columna Derecha (4 columnas) - Panel de compra estático */}
-          <div className="lg:col-span-4 bg-zinc-900/50 border-l border-zinc-800 flex flex-col h-full">
+          <div className="lg:col-span-4 bg-card border-l border-border flex flex-col h-full">
             <div className="flex-1 flex flex-col p-6">
               {/* Portada del sobre */}
-              <div className="w-full h-48 bg-zinc-800 rounded-xl mb-6 overflow-hidden border border-zinc-700">
+              <div className="w-full h-48 bg-card rounded-xl mb-6 overflow-hidden border border-border">
                 {(() => {
                   // Bug 1 Fix: Priorizar nuevas fuentes de imagen del backend
                   const imageSrc = pack.image_uri ||
@@ -204,8 +204,8 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
-                      <Package className="w-12 h-12 text-zinc-600" />
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent to-background">
+                      <Package className="w-12 h-12 text-muted-foreground" />
                     </div>
                   );
                 })()}
@@ -214,11 +214,11 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
               {/* Información del pack */}
               <div className="mb-6 space-y-4">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-emerald-600/20 text-emerald-400 text-sm font-medium rounded-full border border-emerald-600/30">
+                  <span className="px-3 py-1 bg-primary/20 text-primary text-sm font-medium rounded-full border border-primary/30">
                     {pack.type}
                   </span>
                   {pack.config.foil && (
-                    <span className="px-3 py-1 bg-zinc-700 text-zinc-300 text-sm font-medium rounded-full">
+                    <span className="px-3 py-1 bg-accent text-foreground text-sm font-medium rounded-full">
                       Foil
                     </span>
                   )}
@@ -226,44 +226,44 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
 
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400 text-sm">Precio unitario</span>
-                    <span className="text-zinc-100 font-bold">{pack.price.toFixed(2)}€</span>
+                    <span className="text-muted-foreground text-sm">Precio unitario</span>
+                    <span className="text-foreground font-bold">{pack.price.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-400 text-sm">Cartas por sobre</span>
-                    <span className="text-zinc-100 font-medium">{pack.config.total_cards || 14}</span>
+                    <span className="text-muted-foreground text-sm">Cartas por sobre</span>
+                    <span className="text-foreground font-medium">{pack.config.total_cards || 14}</span>
                   </div>
                 </div>
 
                 {pack.config.description && (
-                  <div className="pt-4 border-t border-zinc-700">
-                    <p className="text-zinc-300 text-sm leading-relaxed">
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-foreground text-sm leading-relaxed">
                       {pack.config.description}
                     </p>
                   </div>
                 )}
 
-                <div className="pt-4 border-t border-zinc-700">
-                  <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Composición del Sobre</h4>
+                <div className="pt-4 border-t border-border">
+                  <h4 className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-2">Composición del Sobre</h4>
                   <ul className="space-y-1">
                     <li className="flex justify-between text-xs">
-                      <span className="text-zinc-500">Comunes</span>
-                      <span className="text-zinc-300">10</span>
+                      <span className="text-muted-foreground">Comunes</span>
+                      <span className="text-foreground">10</span>
                     </li>
                     <li className="flex justify-between text-xs">
-                      <span className="text-zinc-500">Infrecuentes</span>
-                      <span className="text-zinc-300">3</span>
+                      <span className="text-muted-foreground">Infrecuentes</span>
+                      <span className="text-foreground">3</span>
                     </li>
                     <li className="flex justify-between text-xs">
-                      <span className="text-zinc-500">Raras o Míticas</span>
-                      <span className="text-zinc-300">1</span>
+                      <span className="text-muted-foreground">Raras o Míticas</span>
+                      <span className="text-foreground">1</span>
                     </li>
                     <li className="flex justify-between text-xs">
-                      <span className="text-zinc-500">Tierra básica</span>
-                      <span className="text-zinc-300">1</span>
+                      <span className="text-muted-foreground">Tierra básica</span>
+                      <span className="text-foreground">1</span>
                     </li>
                   </ul>
-                  <p className="text-[10px] text-zinc-600 mt-2 italic">
+                  <p className="text-[10px] text-muted-foreground mt-2 italic">
                     * Aproximadamente 1 de cada 8 sobres contiene una carta Mítica en lugar de una Rara.
                   </p>
                 </div>
@@ -273,9 +273,9 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
               <div className="flex-1" />
 
               {/* Selector de cantidad y botón de compra (fijos en la parte inferior) */}
-              <div className="space-y-4 pt-6 border-t border-zinc-700">
+              <div className="space-y-4 pt-6 border-t border-border">
                 <div>
-                  <label className="text-zinc-400 text-sm font-medium mb-2 block">
+                  <label className="text-muted-foreground text-sm font-medium mb-2 block">
                     Cantidad
                   </label>
                   <SimpleCounter
@@ -290,8 +290,8 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-400 font-medium">Total</span>
-                    <span className="text-2xl font-bold text-emerald-400">
+                    <span className="text-muted-foreground font-medium">Total</span>
+                    <span className="text-2xl font-bold text-primary">
                       {(pack.price * quantity).toFixed(2)}€
                     </span>
                   </div>
@@ -299,7 +299,7 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
                   <button
                     onClick={handleAddToCartSub}
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold rounded-xl transition-colors shadow-lg hover:shadow-emerald-600/25 disabled:shadow-none"
+                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary hover:bg-primary/90 disabled:bg-accent disabled:text-muted-foreground text-primary-foreground font-bold rounded-xl transition-colors shadow-lg hover:shadow-primary/25 disabled:shadow-none"
                   >
                     {isSubmitting ? (
                       <>

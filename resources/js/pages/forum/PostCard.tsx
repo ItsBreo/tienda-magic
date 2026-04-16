@@ -40,10 +40,10 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   };
 
   return (
-    <div className="flex flex-col items-center py-2.5 px-2 bg-[var(--surface-2)] gap-1 min-w-[42px]">
-      <button onClick={() => cast(1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm ${vote === 1 ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`}>▲</button>
-      <span className={`text-xs font-bold min-w-[20px] text-center ${score > 200 ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]'}`}>{score}</span>
-      <button onClick={() => cast(-1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm ${vote === -1 ? 'text-[var(--red)]' : 'text-[var(--text-muted)]'}`}>▼</button>
+    <div className="flex flex-col items-center py-2.5 px-2 bg-accent gap-1 min-w-[42px]">
+      <button onClick={() => cast(1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm ${vote === 1 ? 'text-primary' : 'text-muted-foreground'}`}>▲</button>
+      <span className={`text-xs font-bold min-w-[20px] text-center ${score > 200 ? 'text-primary' : 'text-muted-foreground'}`}>{score}</span>
+      <button onClick={() => cast(-1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm ${vote === -1 ? 'text-destructive' : 'text-muted-foreground'}`}>▼</button>
     </div>
   );
 }
@@ -51,8 +51,8 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
 function ActionBtn({ label, onClick, active, variant = "default" }: { label: string | React.ReactNode; onClick?: () => void; active?: boolean; variant?: "default" | "danger" }) {
   const baseClasses = "flex items-center gap-1.5 py-1 px-2 rounded border-none bg-transparent text-xs cursor-pointer transition-all duration-150";
   const variants = {
-    default: `hover:bg-blue-500/10 hover:text-[var(--text-secondary)] ${active ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)] font-normal'}`,
-    danger: "hover:bg-red-500/10 text-[var(--red)] font-normal",
+    default: `hover:bg-primary/10 hover:text-muted-foreground ${active ? 'text-primary font-semibold' : 'text-muted-foreground font-normal'}`,
+    danger: "hover:bg-destructive/10 text-destructive font-normal",
   };
 
   return (
@@ -110,7 +110,7 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
   };
 
   return (
-    <div className="flex bg-[var(--surface)] border border-[var(--border)] rounded-lg mb-2 overflow-hidden transition-colors duration-150 hover:border-[var(--border-2)] group">
+    <div className="flex bg-card border border-border rounded-lg mb-2 overflow-hidden transition-colors duration-150 hover:border-muted group">
       <VoteCol threadId={post.id} initialScore={post.score} initialVote={post.userVote} />
 
       <div className="py-2.5 px-3.5 flex-1 min-w-0">
@@ -118,24 +118,24 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
           <span className={`${CAT_CLASS[post.category]} text-[11px] font-semibold py-0.5 px-2 rounded-full tracking-wide`}>
             {CAT_LABELS[post.category]}
           </span>
-          <span className="text-xs text-[var(--text-muted)]">
-            por <b className="text-[var(--text-secondary)] font-semibold">{post.author}</b>
+          <span className="text-xs text-muted-foreground">
+            por <b className="text-foreground font-semibold">{post.author}</b>
             {post.isMod && " 🛡️"}
           </span>
-          <span className="text-xs text-[var(--text-muted)]">· {post.timeAgo}</span>
+          <span className="text-xs text-muted-foreground">· {post.timeAgo}</span>
         </div>
 
-        <div onClick={onOpen} className="text-[15px] font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] mb-1.5 leading-snug cursor-pointer transition-colors duration-150">
+        <div onClick={onOpen} className="text-[15px] font-semibold text-foreground hover:text-primary mb-1.5 leading-snug cursor-pointer transition-colors duration-150">
           {post.title}
         </div>
 
-        <div className="text-[13px] text-[var(--text-secondary)] mb-2 leading-relaxed line-clamp-2">
+        <div className="text-[13px] text-muted-foreground mb-2 leading-relaxed line-clamp-2">
           {post.preview}
         </div>
 
         <div className="flex gap-1 mb-2 flex-wrap">
           {post.tags.map(t => (
-            <span key={t} className="text-[11px] py-0.5 px-2 rounded-full bg-blue-500/10 text-[var(--text-secondary)] border border-[var(--border)] cursor-pointer">
+            <span key={t} className="text-[11px] py-0.5 px-2 rounded-full bg-primary/10 text-muted-foreground border border-border cursor-pointer">
               {t}
             </span>
           ))}

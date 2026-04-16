@@ -83,19 +83,19 @@ export default function Register() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-black px-4 relative overflow-hidden py-10">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
 
-            <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-zinc-100 z-10 shadow-2xl">
+            <Card className="w-full max-w-md bg-card border-border text-foreground z-10 shadow-2xl">
                 <CardHeader className="space-y-1">
                     <div className="flex items-center justify-center mb-4">
-                        <div className="p-3 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-900/40">
-                            <Layers className="h-6 w-6 text-black" />
+                        <div className="p-3 bg-primary rounded-xl shadow-lg shadow-primary/30">
+                            <Layers className="h-6 w-6 text-primary-foreground" />
                         </div>
                     </div>
-                    <CardTitle className="text-3xl text-center font-bold bg-gradient-to-r from-zinc-100 via-emerald-400 to-zinc-100 bg-clip-text text-transparent">
+                    <CardTitle className="text-3xl text-center font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
                         Crear Cuenta
                     </CardTitle>
-                    <CardDescription className="text-center text-zinc-400">
+                    <CardDescription className="text-center text-muted-foreground">
                         Únete al Multiverso de coleccionistas
                     </CardDescription>
                 </CardHeader>
@@ -103,12 +103,12 @@ export default function Register() {
                 <CardContent>
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name" className="text-zinc-300">Nombre Completo</Label>
+                            <Label htmlFor="name" className="text-foreground">Nombre Completo</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => handleChange('name', e.target.value)}
-                                className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50"
+                                className="bg-accent border-border text-foreground focus:border-primary/50"
                                 placeholder="Tu nombre completo"
                                 required
                             />
@@ -121,7 +121,7 @@ export default function Register() {
                                 id="username"
                                 value={formData.username}
                                 onChange={(e) => handleChange('username', e.target.value)}
-                                className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50"
+                                className="bg-accent border-border text-foreground focus:border-primary/50"
                                 placeholder="@usuario"
                                 required
                             />
@@ -135,7 +135,7 @@ export default function Register() {
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => handleChange('email', e.target.value)}
-                                className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50"
+                                className="bg-accent border-border text-foreground focus:border-primary/50"
                                 placeholder="tu@email.com"
                                 required
                             />
@@ -150,7 +150,7 @@ export default function Register() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => handleChange('password', e.target.value)}
-                                    className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50"
+                                    className="bg-accent border-border text-foreground focus:border-primary/50"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -158,7 +158,7 @@ export default function Register() {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute right-0 top-0 h-full px-3 py-2 text-zinc-500 hover:bg-transparent hover:text-emerald-400"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:bg-transparent hover:text-primary"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -175,7 +175,7 @@ export default function Register() {
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     value={formData.password_confirmation}
                                     onChange={(e) => handleChange('password_confirmation', e.target.value)}
-                                    className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50"
+                                    className="bg-accent border-border text-foreground focus:border-primary/50"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -183,7 +183,7 @@ export default function Register() {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute right-0 top-0 h-full px-3 py-2 text-zinc-500 hover:bg-transparent hover:text-emerald-400"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:bg-transparent hover:text-primary"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 >
                                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -192,7 +192,7 @@ export default function Register() {
                             {errors.password_confirmation && <p className="text-xs text-red-500">{errors.password_confirmation[0]}</p>}
                         </div>
 
-                        <div className="flex flex-col items-center justify-center py-4 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
+                        <div className="flex flex-col items-center justify-center py-4 bg-accent rounded-lg border border-border">
                             <ReCAPTCHA
                                 ref={recaptchaRef}
                                 theme="dark"
@@ -206,7 +206,7 @@ export default function Register() {
 
                         <Button
                             type="submit"
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-bold transition-all duration-200"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-all duration-200"
                             disabled={processing}
                         >
                             {processing ? (
@@ -220,11 +220,11 @@ export default function Register() {
                     </form>
                 </CardContent>
 
-                <CardFooter className="flex flex-col space-y-4 border-t border-zinc-800/50 mt-4 pt-6">
-                    <div className="text-center text-sm text-zinc-500">
+                <CardFooter className="flex flex-col space-y-4 border-t border-border mt-4 pt-6">
+                    <div className="text-center text-sm text-muted-foreground">
                         ¿Ya tienes cuenta?
                         {' '}
-                        <Link to="/login" className="text-emerald-400 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline">
+                        <Link to="/login" className="text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline">
                             Gira tus tierras e inicia sesión
                         </Link>
                     </div>

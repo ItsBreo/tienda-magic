@@ -20,12 +20,12 @@ export default function AdminDashboard() {
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
                 Bienvenido,
                 {' '}
                 {user?.name}
             </h1>
-            <p className="text-zinc-400 mb-8">
+            <p className="text-muted-foreground mb-8">
                 Desde aquí puedes administrar Usuarios, Cartas y Expansiones.
             </p>
 
@@ -34,15 +34,15 @@ export default function AdminDashboard() {
                     <Link
                         key={stat.name}
                         to={stat.href}
-                        className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800/50 hover:bg-zinc-800/80 transition-all group relative overflow-hidden"
+                        className="p-6 rounded-2xl bg-card border border-border/50 hover:bg-accent/80 transition-all group relative overflow-hidden"
                     >
                         <div className={`absolute top-0 right-0 w-32 h-32 transform translate-x-12 -translate-y-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${stat.bg}`} />
 
                         <div className={`p-4 rounded-xl inline-flex mb-4 ${stat.bg} ${stat.color}`}>
                             <stat.icon className="w-8 h-8" />
                         </div>
-                        <h3 className="text-xl font-semibold text-zinc-100 mb-1">{stat.name}</h3>
-                        <p className="text-sm text-zinc-500">Haz clic para administrar</p>
+                        <h3 className="text-xl font-semibold text-foreground mb-1">{stat.name}</h3>
+                        <p className="text-sm text-muted-foreground">Haz clic para administrar</p>
                     </Link>
                 ))}
             </div>

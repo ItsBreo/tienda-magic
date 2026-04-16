@@ -74,17 +74,17 @@ export default function AdminRoles() {
         }
     };
 
-    if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>;
+    if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
     return (
         <div className="p-8 max-w-6xl mx-auto w-full">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-zinc-100">Gestión de Roles</h1>
+                <h1 className="text-2xl font-bold text-foreground">Gestión de Roles</h1>
                 <Button onClick={() => {
                     setEditingRoleId(null);
                     setForm({ name: '', description: '' });
                     setShowForm(!showForm);
-                }} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
+                }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                     <Plus className="w-4 h-4 mr-2" />
                     {' '}
                     Nuevo Rol
@@ -92,19 +92,19 @@ export default function AdminRoles() {
             </div>
 
             {showForm && (
-                <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl mb-8 shadow-xl">
-                    <h2 className="text-lg font-bold text-zinc-100 mb-4">{editingRoleId ? 'Editar Rol' : 'Crear Nuevo Rol'}</h2>
+                <div className="bg-card border border-border p-6 rounded-xl mb-8 shadow-xl">
+                    <h2 className="text-lg font-bold text-foreground mb-4">{editingRoleId ? 'Editar Rol' : 'Crear Nuevo Rol'}</h2>
                     <form onSubmit={handleCreateOrUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs text-zinc-400">Nombre del Rol (Ej: Moderador)</label>
-                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <label className="text-xs text-muted-foreground">Nombre del Rol (Ej: Moderador)</label>
+                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent border-border mt-1" required />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Descripción (Opcional)</label>
-                            <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" />
+                            <label className="text-xs text-muted-foreground">Descripción (Opcional)</label>
+                            <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-accent border-border mt-1" />
                         </div>
                         <div className="md:col-span-2 mt-2">
-                            <Button disabled={submitting} type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-black">
+                            <Button disabled={submitting} type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                                 {submitting ? 'Guardando...' : (editingRoleId ? 'Actualizar Rol' : 'Guardar Rol')}
                             </Button>
                         </div>
@@ -112,9 +112,9 @@ export default function AdminRoles() {
                 </div>
             )}
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <table className="w-full text-left text-sm text-zinc-400">
-                    <thead className="bg-zinc-950 border-b border-zinc-800 text-xs uppercase">
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
+                <table className="w-full text-left text-sm text-muted-foreground">
+                    <thead className="bg-background border-b border-border text-xs uppercase">
                         <tr>
                             <th className="px-6 py-4 font-medium">ID</th>
                             <th className="px-6 py-4 font-medium">Nombre</th>
@@ -122,12 +122,12 @@ export default function AdminRoles() {
                             <th className="px-6 py-4 font-medium text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800">
+                    <tbody className="divide-y divide-border">
                         {roles.map((r) => (
-                            <tr key={r.id} className="hover:bg-zinc-800/50 transition-colors">
+                            <tr key={r.id} className="hover:bg-accent/50 transition-colors">
                                 <td className="px-6 py-4 max-w-[50px]">#{r.id}</td>
-                                <td className="px-6 py-4 text-zinc-100 font-medium">{r.name}</td>
-                                <td className="px-6 py-4 text-zinc-500">{r.description || '-'}</td>
+                                <td className="px-6 py-4 text-foreground font-medium">{r.name}</td>
+                                <td className="px-6 py-4 text-muted-foreground">{r.description || '-'}</td>
                                 <td className="px-6 py-4 text-right whitespace-nowrap">
                                     <Button variant="ghost" size="sm" onClick={() => {
                                         setEditingRoleId(r.id);

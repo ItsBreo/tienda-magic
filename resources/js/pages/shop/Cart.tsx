@@ -157,16 +157,16 @@ export default function Cart() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex flex-col justify-center items-center">
+            <div className="flex-1 flex flex-col justify-center items-center py-32">
                 <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
-                <p className="text-zinc-400">Cargando tu carrito...</p>
+                <p className="text-muted-foreground">Cargando tu carrito...</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-black text-zinc-100 pb-20">
-            <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+        <div className="pb-20">
+            <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
             <div className="max-w-6xl mx-auto px-4 pt-24">
                 <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
@@ -175,22 +175,22 @@ export default function Cart() {
                 </h1>
 
                 <div className="flex items-center justify-between mb-8 text-sm">
-                    <Link to="/shop" className="text-zinc-400 hover:text-zinc-100 transition-colors">
+                    <Link to="/shop" className="text-muted-foreground hover:text-foreground transition-colors">
                         ← Seguir explorando el catálogo
                     </Link>
-                    <Link to="/dashboard" className="text-zinc-400 hover:text-emerald-400 transition-colors">
+                    <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
                         Ir a mi Panel (Dashboard) →
                     </Link>
                 </div>
 
                 {items.length === 0 ? (
-                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-12 text-center max-w-2xl mx-auto mt-12">
-                        <Package className="w-20 h-20 text-zinc-600 mx-auto mb-6" />
-                        <h2 className="text-2xl font-bold mb-4">Tu carrito está vacío</h2>
-                        <p className="text-zinc-400 mb-8">Parece que aún no has añadido ningún sobre legendario a tu colección.</p>
-                        <a href="/shop" className="inline-flex items-center justify-center px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all">
+                    <div className="bg-card border border-border rounded-2xl p-12 text-center max-w-2xl mx-auto mt-12">
+                        <Package className="w-20 h-20 text-muted-foreground mx-auto mb-6" />
+                        <h2 className="text-2xl font-bold mb-4 text-foreground">Tu carrito está vacío</h2>
+                        <p className="text-muted-foreground mb-8">Parece que aún no has añadido ningún artículo a tu carrito.</p>
+                        <Link to="/shop" className="inline-flex items-center justify-center px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl transition-all">
                             Explorar Tienda
-                        </a>
+                        </Link>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -41,23 +41,23 @@ export default function CartItem({ item, onUpdateQuantity, onRemove, isUpdating 
     };
 
     return (
-        <div className="flex items-center gap-4 bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
-            <div onClick={item.card_id ? () => navigate(`/shop?category=cards&openCard=${item.card_id}`) : () => navigate(`/shop?category=packs&openPack=${item.booster_pack_id}`)} className="w-20 h-24 bg-zinc-950 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden border border-zinc-800 hover:border-emerald-500/50 transition-colors cursor-pointer">
+        <div className="flex items-center gap-4 bg-card border border-border p-4 rounded-xl">
+            <div onClick={item.card_id ? () => navigate(`/shop?category=cards&openCard=${item.card_id}`) : () => navigate(`/shop?category=packs&openPack=${item.booster_pack_id}`)} className="w-20 h-24 bg-background rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden border border-border hover:border-primary/50 transition-colors cursor-pointer">
                 {(() => {
                     const imageSrc = getImageSrc();
                     return imageSrc ? (
                         <img src={imageSrc} alt={pack.name} className="w-full h-full object-contain p-2 bg-white/90 rounded-lg shadow-sm" />
                     ) : (
-                        <Package className="w-8 h-8 text-zinc-700" />
+                        <Package className="w-8 h-8 text-muted-foreground" />
                     );
                 })()}
             </div>
 
             <div className="flex-1">
-                <div onClick={item.card_id ? () => navigate(`/shop?category=cards&openCard=${item.card_id}`) : () => navigate(`/shop?category=packs&openPack=${item.booster_pack_id}`)} className="font-bold text-lg text-zinc-100 hover:text-emerald-400 transition-colors cursor-pointer">
+                <div onClick={item.card_id ? () => navigate(`/shop?category=cards&openCard=${item.card_id}`) : () => navigate(`/shop?category=packs&openPack=${item.booster_pack_id}`)} className="font-bold text-lg text-foreground hover:text-primary transition-colors cursor-pointer">
                     {pack.name || 'Sobre Misterioso'}
                 </div>
-                <p className='text-emerald-400 font-medium'>
+                <p className='text-primary font-medium'>
                     {Number(price).toFixed(2)}
                     €
                 </p>
@@ -76,7 +76,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove, isUpdating 
 
                 <button
                     onClick={() => onRemove(item.id)}
-                    className="p-3 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                    className="p-3 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                 >
                     <Trash2 className="w-5 h-5" />
                 </button>

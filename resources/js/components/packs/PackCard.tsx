@@ -59,15 +59,15 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
   return (
     <div
       key={pack.id}
-      className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:bg-zinc-800/80 transition-all group relative overflow-hidden transform hover:scale-105 duration-300"
+      className="bg-card border border-border rounded-xl p-6 hover:bg-accent/80 transition-all group relative overflow-hidden transform hover:scale-105 duration-300"
       style={{ perspective: '1000px' }}
     >
       {/* Efecto de fondo hover */}
-      <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-12 -translate-y-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-300 bg-emerald-500/10" />
+      <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-12 -translate-y-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-300 bg-primary/10" />
 
       {/* Imagen del pack - CLICKEABLE */}
       <div
-        className="w-full h-48 bg-zinc-900 rounded-lg mb-4 overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 p-4"
+        className="w-full h-48 bg-accent/20 rounded-lg mb-4 overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 p-4"
         onClick={() => onClick(pack)}
       >
         {shouldShowImage(getImageSrc()) ? (
@@ -82,22 +82,22 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
-            <Package className="w-12 h-12 text-zinc-600" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent to-background">
+            <Package className="w-12 h-12 text-muted-foreground" />
           </div>
         )}
       </div>
 
       {/* Información del pack */}
-      <h3 className="text-lg font-semibold text-zinc-100 mb-2 line-clamp-2">
-        <HighlightedText text={pack.name} highlight={searchTerm} highlightClassName="bg-emerald-500/30 text-emerald-400 rounded-sm px-0.5" />
+      <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
+        <HighlightedText text={pack.name} highlight={searchTerm} highlightClassName="bg-primary/30 text-primary rounded-sm px-0.5" />
       </h3>
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-400 font-medium">
+        <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium">
           {pack.type}
         </span>
         {pack.config.foil && (
-          <span className="text-xs px-2 py-1 rounded-full bg-zinc-600/20 text-zinc-400">
+          <span className="text-xs px-2 py-1 rounded-full bg-accent text-muted-foreground">
             Foil
           </span>
         )}
@@ -114,7 +114,7 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="text-xl font-bold text-emerald-400">
+        <div className="text-xl font-bold text-primary">
           €{pack.price.toFixed(2)}
         </div>
         <div className="flex flex-col gap-3">
@@ -132,8 +132,8 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
             disabled={pack.type === 'Singles' && pack.stock === 0}
             className={`w-full px-4 py-2 rounded-lg transition-colors ${
               pack.type === 'Singles' && pack.stock === 0
-                ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                ? 'bg-accent text-muted-foreground cursor-not-allowed'
+                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
             }`}
           >
             <ShoppingCart className="w-4 h-4 mr-2" />

@@ -62,19 +62,19 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-black px-4 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
 
-            <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-zinc-100 z-10 shadow-2xl">
+            <Card className="w-full max-w-md bg-card border-border text-foreground z-10 shadow-2xl">
                 <CardHeader className="space-y-1">
                     <div className="flex items-center justify-center mb-4">
-                        <div className="p-3 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-900/40 transform transition-transform hover:scale-105">
-                            <Layers className="h-6 w-6 text-black" />
+                        <div className="p-3 bg-primary rounded-xl shadow-lg shadow-primary/30 transform transition-transform hover:scale-105">
+                            <Layers className="h-6 w-6 text-primary-foreground" />
                         </div>
                     </div>
-                    <CardTitle className="text-3xl text-center font-bold bg-gradient-to-r from-zinc-100 via-emerald-400 to-zinc-100 bg-clip-text text-transparent">
+                    <CardTitle className="text-3xl text-center font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
                         Tienda Magic
                     </CardTitle>
-                    <CardDescription className="text-center text-zinc-400">
+                    <CardDescription className="text-center text-muted-foreground">
                         Accede a tu bóveda del Multiverso
                     </CardDescription>
                 </CardHeader>
@@ -88,13 +88,13 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                         )}
 
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-zinc-300">Email de Plainswalker</Label>
+                            <Label htmlFor="email" className="text-foreground">Email de Plainswalker</Label>
                             <Input
                                 id="email"
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => handleChange('email', e.target.value)}
-                                className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50 placeholder:text-zinc-600"
+                                className="bg-accent border-border text-foreground focus:border-primary/50 placeholder:text-muted-foreground"
                                 placeholder="tu@email.com"
                                 disabled={loading}
                                 required
@@ -103,14 +103,14 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-zinc-300">Grimorio (Contraseña)</Label>
+                            <Label htmlFor="password" className="text-foreground">Grimorio (Contraseña)</Label>
                             <div className="relative">
                                 <Input
                                     id="password"
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={(e) => handleChange('password', e.target.value)}
-                                    className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50 placeholder:text-zinc-600"
+                                    className="bg-accent border-border text-foreground focus:border-primary/50 placeholder:text-muted-foreground"
                                     placeholder="••••••••"
                                     disabled={loading}
                                     required
@@ -119,7 +119,7 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute right-0 top-0 h-full px-3 py-2 text-zinc-500 hover:bg-transparent hover:text-emerald-400"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:bg-transparent hover:text-primary"
                                     onClick={() => setShowPassword(!showPassword)}
                                     disabled={loading}
                                 >
@@ -134,13 +134,13 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                                 id="remember"
                                 checked={formData.remember}
                                 onCheckedChange={(checked) => handleChange('remember', !!checked)}
-                                className="border-zinc-700 data-[state=checked]:bg-emerald-600"
+                                className="border-border data-[state=checked]:bg-primary"
                                 disabled={loading}
                             />
-                            <Label htmlFor="remember" className="text-sm text-zinc-400 cursor-pointer">Mantener portal abierto</Label>
+                            <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Mantener portal abierto</Label>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center py-4 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
+                        <div className="flex flex-col items-center justify-center py-4 bg-accent rounded-lg border border-border">
                             <ReCAPTCHA
                                 ref={recaptchaRef}
                                 theme="dark"
@@ -154,7 +154,7 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
 
                         <Button
                             type="submit"
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-bold transition-all duration-200"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-all duration-200"
                             disabled={loading}
                         >
                             {loading ? (
@@ -166,10 +166,10 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                     </form>
                 </CardContent>
 
-                <CardFooter className="flex flex-col space-y-4 border-t border-zinc-800/50 mt-4 pt-6">
-                    <div className="text-center text-sm text-zinc-500">
+                <CardFooter className="flex flex-col space-y-4 border-t border-border mt-4 pt-6">
+                    <div className="text-center text-sm text-muted-foreground">
                         ¿Aún no tienes tu Chispa?{' '}
-                        <Link to="/register" className="text-emerald-400 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline">
+                        <Link to="/register" className="text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline">
                             Forja tu mazo aquí
                         </Link>
                     </div>

@@ -204,32 +204,32 @@ export default function PacksView() {
     }, [currentData, selectedSets, availableSets]);
 
     return (
-        <div className="min-h-screen bg-black">
-            <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+        <div className="flex-1 bg-background text-foreground pb-20">
+            <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
             <PacksHeader />
 
             {/* Toolbar */}
-            <div className="bg-zinc-900/90 backdrop-blur-sm border-b border-zinc-800 sticky top-0 z-40">
+            <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[60px] z-40">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[180px] sm:max-w-xs">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                             type="text"
                             placeholder={category === 'packs' ? 'Buscar packs...' : 'Buscar cartas...'}
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                            className="pl-9 pr-4 bg-zinc-900 border-zinc-700 text-zinc-100"
+                            className="pl-9 pr-4 bg-background border-border text-foreground focus-visible:ring-primary"
                         />
                     </div>
 
                     {/* Category toggle */}
-                    <div className="flex bg-zinc-800 p-1 rounded-lg">
+                    <div className="flex bg-accent p-1 rounded-lg">
                         <button
                             onClick={() => { setCategory('packs'); setCurrentPage(1); setSelectedSets([]); }}
                             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                category === 'packs' ? 'bg-emerald-600 text-black shadow-lg' : 'text-zinc-400 hover:text-white'
+                                category === 'packs' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             Sobres
@@ -237,7 +237,7 @@ export default function PacksView() {
                         <button
                             onClick={() => { setCategory('cards'); setCurrentPage(1); setSelectedSets([]); }}
                             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                category === 'cards' ? 'bg-emerald-600 text-black shadow-lg' : 'text-zinc-400 hover:text-white'
+                                category === 'cards' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             Cartas Sueltas
@@ -248,7 +248,7 @@ export default function PacksView() {
                     <select
                         value={sortBy}
                         onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                        className="bg-zinc-900 border border-zinc-700 text-zinc-100 px-3 py-2 rounded-lg text-sm"
+                        className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-sm"
                     >
                         <option value="newest">Novedades</option>
                         <option value="price_asc">Menor a Mayor</option>
@@ -266,14 +266,14 @@ export default function PacksView() {
                             size="sm"
                             onClick={() => setIsFilterModalOpen(true)}
                             className={cn(
-                                "bg-zinc-950 border-zinc-800 text-xs gap-2 hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-400 font-medium",
-                                selectedSets.length > 0 && "border-emerald-500/50 text-emerald-400 bg-emerald-500/5"
+                                "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-medium",
+                                selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
                             )}
                         >
                             <Filter className="h-4 w-4" />
                             Filtrar por Set
                             {selectedSets.length > 0 && (
-                                <Badge className="ml-1 bg-emerald-500 text-black px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
                                     {selectedSets.length}
                                 </Badge>
                             )}
@@ -282,7 +282,7 @@ export default function PacksView() {
                         {selectedSets.length > 0 && (
                             <button
                                 onClick={() => { setSelectedSets([]); setCurrentPage(1); }}
-                                className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
+                                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                             >
                                 <X className="h-3 w-3" /> Limpiar filtros
                             </button>
@@ -303,24 +303,23 @@ export default function PacksView() {
                 )}
             </div>
 
-            {/* Grid y Paginación */}
             <div className="max-w-7xl mx-auto px-4 pt-16 pb-8">
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
-                        <Loader2 className="animate-spin text-emerald-500 w-12 h-12" />
+                        <Loader2 className="animate-spin text-primary w-12 h-12" />
                     </div>
                 ) : currentData.length === 0 ? (
-                    <div className="text-center py-20 text-zinc-400">
+                    <div className="text-center py-20 text-muted-foreground">
                         {category === 'packs' ? 'No hay sobres disponibles.' : 'No hay cartas disponibles.'}
                     </div>
                 ) : groupedData ? (
                     <div className="space-y-12">
                         {Object.entries(groupedData).map(([code, { setName, items }]) => (
                             <div key={code} className="space-y-6">
-                                <div className="flex items-center gap-3 border-b border-zinc-800 pb-2">
-                                    <Tag className="w-5 h-5 text-emerald-500" />
-                                    <h2 className="text-xl font-bold text-zinc-100">{setName}</h2>
-                                    <span className="text-sm text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-700">
+                                <div className="flex items-center gap-3 border-b border-border pb-2">
+                                    <Tag className="w-5 h-5 text-primary" />
+                                    <h2 className="text-xl font-bold text-foreground">{setName}</h2>
+                                    <span className="text-sm text-muted-foreground bg-accent px-2 py-0.5 rounded-full border border-border">
                                         {items.length} {items.length === 1 ? 'artículo' : 'artículos'}
                                     </span>
                                 </div>

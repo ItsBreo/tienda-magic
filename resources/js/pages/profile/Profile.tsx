@@ -54,7 +54,7 @@ function ImageDropZone({ label, currentUrl, previewUrl, onFileSelected, onClear,
                     border-2 transition-all duration-200
                     ${isDragging
                         ? 'border-amber-500 bg-amber-500/5'
-                        : 'border-zinc-700/60 hover:border-zinc-600 bg-zinc-950/80'
+                        : 'border-zinc-700/60 hover:border-zinc-600 bg-background'
                     }`}
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)}
@@ -69,7 +69,7 @@ function ImageDropZone({ label, currentUrl, previewUrl, onFileSelected, onClear,
                             className="w-full h-full object-cover"
                         />
                         {/* Overlay hover */}
-                        <div className="absolute inset-0 bg-zinc-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                        <div className="absolute inset-0 bg-background opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                             <Upload className="h-6 w-6 text-amber-400" />
                             <span className="text-xs text-zinc-300 font-medium">Cambiar imagen</span>
                             <span className="text-xs text-zinc-500">Arrastra o haz clic</span>
@@ -78,7 +78,7 @@ function ImageDropZone({ label, currentUrl, previewUrl, onFileSelected, onClear,
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onClear(); }}
-                            className="absolute top-2 right-2 p-1 rounded-md bg-zinc-950/80 border border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/50 transition-colors opacity-0 group-hover:opacity-100"
+                            className="absolute top-2 right-2 p-1 rounded-md bg-background border border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/50 transition-colors opacity-0 group-hover:opacity-100"
                         >
                             <X className="h-3.5 w-3.5" />
                         </button>
@@ -306,7 +306,7 @@ export default function Profile() {
         <>
             <Breadcrumbs items={[{ title: 'Mi Perfil', href: '/profile' }]} />
             {/* ── BANNER ─────────────────────────────────────────────────── */}
-            <div className="relative h-56 bg-zinc-950">
+            <div className="relative h-56 bg-background">
                 <div className="absolute inset-0 overflow-hidden">
                     {displayBanner ? (
                         <img src={displayBanner} alt="Banner" className="w-full h-full object-cover opacity-50" />
@@ -326,11 +326,11 @@ export default function Profile() {
                 <div className="absolute bottom-0 left-0 right-0 translate-y-1/2">
                     <div className="max-w-4xl mx-auto px-6 md:px-8 flex items-end gap-5">
                         <div className="relative flex-shrink-0">
-                            <div className="h-28 w-28 rounded-lg bg-zinc-900 ring-4 ring-zinc-950 overflow-hidden shadow-2xl">
+                            <div className="h-28 w-28 rounded-lg bg-background ring-4 ring-zinc-950 overflow-hidden shadow-2xl">
                                 {displayAvatar ? (
                                     <img src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" />
                                 ) : (
-                                    <div className="h-full w-full bg-zinc-800 flex items-center justify-center">
+                                    <div className="h-full w-full bg-background flex items-center justify-center">
                                         <User className="h-10 w-10 text-zinc-600" />
                                     </div>
                                 )}
@@ -348,7 +348,7 @@ export default function Profile() {
                                 </span>
                                 <Link
                                     to="/achievements"
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-amber-400 hover:border-amber-500/40 text-xs font-semibold uppercase tracking-wider transition-colors"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-background border border-zinc-700 text-zinc-400 hover:text-amber-400 hover:border-amber-500/40 text-xs font-semibold uppercase tracking-wider transition-colors"
                                 >
                                     <Trophy className="h-3 w-3" />
                                     Logros
@@ -381,9 +381,9 @@ export default function Profile() {
                 <form onSubmit={handleSubmit} className="space-y-6">
 
                     {/* ── Bloque 1: Identidad ── */}
-                    <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
+                    <section className="bg-background border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
                         <div className="flex items-center gap-2.5 pb-4 border-b border-zinc-800/60">
-                            <div className="p-1.5 rounded-md bg-zinc-800">
+                            <div className="p-1.5 rounded-md bg-background">
                                 <User className="h-4 w-4 text-zinc-400" />
                             </div>
                             <h2 className="text-lg font-serif font-bold text-zinc-100">
@@ -401,7 +401,7 @@ export default function Profile() {
                                     value={formData.display_name}
                                     onChange={handleChange}
                                     placeholder="Ej: Jace Beleren"
-                                    className="bg-zinc-950/80 border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 h-10"
+                                    className="bg-background border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 h-10"
                                     required
                                 />
                                 <p className="text-xs text-zinc-600 leading-relaxed">
@@ -417,16 +417,16 @@ export default function Profile() {
                                     value={formData.country}
                                     onChange={handleChange}
                                     placeholder="Ej: Ravnica / España"
-                                    className="bg-zinc-950/80 border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 h-10"
+                                    className="bg-background border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 h-10"
                                 />
                             </div>
                         </div>
                     </section>
 
                     {/* ── Bloque 2: Apariencia con Drag & Drop ── */}
-                    <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
+                    <section className="bg-background border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
                         <div className="flex items-center gap-2.5 pb-4 border-b border-zinc-800/60">
-                            <div className="p-1.5 rounded-md bg-zinc-800">
+                            <div className="p-1.5 rounded-md bg-background">
                                 <ImageIcon className="h-4 w-4 text-zinc-400" />
                             </div>
                             <h2 className="text-lg font-serif font-bold text-zinc-100">
@@ -469,9 +469,9 @@ export default function Profile() {
                     </section>
 
                     {/* ── Bloque 3: Biografía y Comercio ── */}
-                    <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
+                    <section className="bg-background border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
                         <div className="flex items-center gap-2.5 pb-4 border-b border-zinc-800/60">
-                            <div className="p-1.5 rounded-md bg-zinc-800">
+                            <div className="p-1.5 rounded-md bg-background">
                                 <BookOpen className="h-4 w-4 text-zinc-400" />
                             </div>
                             <h2 className="text-lg font-serif font-bold text-zinc-100">
@@ -489,7 +489,7 @@ export default function Profile() {
                                     value={formData.bio}
                                     onChange={handleChange}
                                     placeholder="Cuenta tu historia en el multiverso..."
-                                    className="bg-zinc-950/80 border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 min-h-[110px] resize-none"
+                                    className="bg-background border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 min-h-[110px] resize-none"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -501,16 +501,16 @@ export default function Profile() {
                                     value={formData.trade_terms}
                                     onChange={handleChange}
                                     placeholder="Ej: Solo envío certificado. No acepto cartas en idioma asiático."
-                                    className="bg-zinc-950/80 border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 min-h-[110px] resize-none"
+                                    className="bg-background border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 min-h-[110px] resize-none"
                                 />
                             </div>
                         </div>
                     </section>
                     
                     {/* ── Bloque 4: Mercado Secundario ── */}
-                    <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
+                    <section className="bg-background border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
                         <div className="flex items-center gap-2.5 pb-4 border-b border-zinc-800/60">
-                            <div className="p-1.5 rounded-md bg-zinc-800">
+                            <div className="p-1.5 rounded-md bg-background">
                                 <TrendingUp className="h-4 w-4 text-emerald-400" />
                             </div>
                             <h2 className="text-lg font-serif font-bold text-zinc-100">
@@ -528,7 +528,7 @@ export default function Profile() {
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {myListings.map(listing => (
-                                        <div key={listing.id} className="flex gap-4 p-3 bg-zinc-950/60 border border-zinc-700/40 rounded-lg items-center group">
+                                        <div key={listing.id} className="flex gap-4 p-3 bg-background border border-zinc-700/40 rounded-lg items-center group">
                                             <div className="h-16 w-12 rounded border border-zinc-800 overflow-hidden flex-shrink-0">
                                                 <img 
                                                     src={listing.listable.image_uri || listing.listable.image_url || '/placeholder-card.png'} 

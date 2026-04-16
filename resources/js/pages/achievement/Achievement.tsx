@@ -61,24 +61,24 @@ export default function Achievements() {
 
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-2">
-                    <Link to="/profile" className="text-zinc-500 hover:text-zinc-300 transition-colors">
+                    <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
                         <ChevronLeft className="h-5 w-5" />
                     </Link>
                     <Trophy className="h-6 w-6 text-amber-500" />
-                    <h1 className="text-2xl font-serif font-bold text-zinc-100">Logros</h1>
+                    <h1 className="text-2xl font-serif font-bold text-foreground">Logros</h1>
                     <span className="ml-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
                         {unlocked.length} / {ALL_ACHIEVEMENTS.length}
                     </span>
                 </div>
-                <p className="text-zinc-500 text-sm mb-8 ml-14">Emblemas desbloqueados en tu aventura</p>
+                <p className="text-muted-foreground text-sm mb-8 ml-14">Emblemas desbloqueados en tu aventura</p>
 
                 {/* Barra XP */}
-                <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-lg p-5 mb-8">
+                <div className="bg-card border border-border rounded-lg p-5 mb-8">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Experiencia total</span>
+                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Experiencia total</span>
                         <span className="text-sm font-semibold text-amber-400">{totalXp} / {maxXp} XP</span>
                     </div>
-                    <div className="w-full bg-zinc-800 rounded-full h-1.5">
+                    <div className="w-full bg-accent rounded-full h-1.5">
                         <div
                             className="bg-gradient-to-r from-amber-700 to-amber-400 h-1.5 rounded-full transition-all duration-700"
                             style={{ width: `${(totalXp / maxXp) * 100}%` }}
@@ -89,9 +89,9 @@ export default function Achievements() {
                 {/* Desbloqueados */}
                 {unlocked.length > 0 && (
                     <>
-                        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
                             Desbloqueados
-                            <span className="flex-1 h-px bg-zinc-800" />
+                            <span className="flex-1 h-px bg-border" />
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
                             {unlocked.map(a => (
@@ -104,9 +104,9 @@ export default function Achievements() {
                 {/* Bloqueados */}
                 {locked.length > 0 && (
                     <>
-                        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
                             Bloqueados
-                            <span className="flex-1 h-px bg-zinc-800" />
+                            <span className="flex-1 h-px bg-border" />
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 opacity-50">
                             {locked.map(a => (
@@ -126,18 +126,18 @@ function AchievementCard({ achievement: a, unlocked }: { achievement: Achievemen
     return (
         <div className={`flex items-start gap-3 p-4 rounded-lg border transition-colors
             ${unlocked
-                ? 'bg-zinc-900/40 border-zinc-800/80 hover:border-zinc-700'
-                : 'bg-zinc-900/20 border-zinc-800/40'
+                ? 'bg-card border-border hover:border-primary/50'
+                : 'bg-card opacity-80 border-border opacity-50'
             }`}
         >
             <div className={`text-2xl w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0
-                ${unlocked ? 'bg-zinc-800/80' : 'bg-zinc-800/40 grayscale'}`}
+                ${unlocked ? 'bg-accent' : 'bg-background grayscale'}`}
             >
-                {unlocked ? a.badge_icon : <Lock className="h-4 w-4 text-zinc-600" />}
+                {unlocked ? a.badge_icon : <Lock className="h-4 w-4 text-muted-foreground" />}
             </div>
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-sm font-semibold text-zinc-200 font-sans">{a.name}</span>
+                    <span className="text-sm font-semibold text-foreground font-sans">{a.name}</span>
                     {isVerified && unlocked && (
                         <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 flex-shrink-0">
                             <svg className="w-2.5 h-2.5" viewBox="0 0 10 10" fill="none">
@@ -146,13 +146,13 @@ function AchievementCard({ achievement: a, unlocked }: { achievement: Achievemen
                         </span>
                     )}
                 </div>
-                <p className="text-xs text-zinc-500 font-sans leading-relaxed mb-2">{a.description}</p>
+                <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-2">{a.description}</p>
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-mono text-amber-500 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
                         +{a.xp_points} XP
                     </span>
                     {a.obtained_at && (
-                        <span className="text-xs text-zinc-600 font-sans">
+                        <span className="text-xs text-muted-foreground font-sans">
                             {new Date(a.obtained_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                     )}

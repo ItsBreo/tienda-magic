@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { HeroSection } from './components/HeroSection';
-import { StatsSection } from './components/StatsSection';
+
 import { QuickActionsSection } from './components/QuickActionsSection';
 import ChatWidget from '@/components/chat/ChatWidget';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -33,7 +33,7 @@ export default function Dashboard() {
     const { user } = useAuth();
 
     return (
-            <div className="min-h-screen bg-black text-zinc-100">
+            <div className="flex flex-col gap-6 p-4 md:p-8">
 
                 <ErrorBoundary>
                     {/* 1. Bienvenida */}
@@ -42,8 +42,7 @@ export default function Dashboard() {
                     {/* 5. Acciones Rápidas */}
                     <QuickActionsSection />
 
-                    {/* 6. Estadísticas conectadas a Laravel/Scryfall */}
-                    <StatsSection stats={stats} loading={loading} />
+
                 </ErrorBoundary>
 
             </div>

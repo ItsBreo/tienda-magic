@@ -91,17 +91,17 @@ export default function AdminUsers() {
         }
     };
 
-    if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>;
+    if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
     return (
         <div className="p-8 max-w-6xl mx-auto w-full">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-zinc-100">Gestión de Usuarios</h1>
+                <h1 className="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>
                 <Button onClick={() => {
                     setEditingUserId(null);
                     setForm({ name: '', username: '', email: '', password: '', role_id: '1' });
                     setShowForm(!showForm);
-                }} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
+                }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                     <Plus className="w-4 h-4 mr-2" />
                     {' '}
                     Nuevo Usuario
@@ -109,28 +109,28 @@ export default function AdminUsers() {
             </div>
 
             {showForm && (
-                <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl mb-8 shadow-xl">
-                    <h2 className="text-lg font-bold text-zinc-100 mb-4">{editingUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h2>
+                <div className="bg-card border border-border p-6 rounded-xl mb-8 shadow-xl">
+                    <h2 className="text-lg font-bold text-foreground mb-4">{editingUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h2>
                     <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs text-zinc-400">Nombre Real</label>
-                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <label className="text-xs text-muted-foreground">Nombre Real</label>
+                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent border-border mt-1" required />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Username (Nick)</label>
-                            <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <label className="text-xs text-muted-foreground">Username (Nick)</label>
+                            <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className="bg-accent border-border mt-1" required />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Email</label>
-                            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required />
+                            <label className="text-xs text-muted-foreground">Email</label>
+                            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-accent border-border mt-1" required />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Contraseña {editingUserId && '(Opcional)'}</label>
-                            <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="bg-zinc-800 border-zinc-700 mt-1" required={!editingUserId} />
+                            <label className="text-xs text-muted-foreground">Contraseña {editingUserId && '(Opcional)'}</label>
+                            <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="bg-accent border-border mt-1" required={!editingUserId} />
                         </div>
                         <div>
-                            <label className="text-xs text-zinc-400">Rol Predeterminado</label>
-                            <select value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-md p-2 mt-1 text-sm text-zinc-100">
+                            <label className="text-xs text-muted-foreground">Rol Predeterminado</label>
+                            <select value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })} className="w-full bg-accent border border-border rounded-md p-2 mt-1 text-sm text-foreground">
                                 {/* Mostramos los roles traídos dinámicamente de la base de datos */}
                                 {availableRoles.map(role => (
                                     <option key={role.id} value={role.id}>{role.name}</option>
@@ -138,7 +138,7 @@ export default function AdminUsers() {
                             </select>
                         </div>
                         <div className="md:col-span-2 mt-2">
-                            <Button disabled={submitting} type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-black">
+                            <Button disabled={submitting} type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                                 {submitting ? 'Guardando...' : (editingUserId ? 'Actualizar Usuario' : 'Guardar Usuario')}
                             </Button>
                         </div>
@@ -146,9 +146,9 @@ export default function AdminUsers() {
                 </div>
             )}
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <table className="w-full text-left text-sm text-zinc-400">
-                    <thead className="bg-zinc-950 border-b border-zinc-800 text-xs uppercase">
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
+                <table className="w-full text-left text-sm text-muted-foreground">
+                    <thead className="bg-background border-b border-border text-xs uppercase">
                         <tr>
                             <th className="px-6 py-4 font-medium">ID</th>
                             <th className="px-6 py-4 font-medium">Nombre</th>
@@ -158,19 +158,19 @@ export default function AdminUsers() {
                             <th className="px-6 py-4 font-medium text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800">
+                    <tbody className="divide-y divide-border">
                         {users.map((u) => (
-                            <tr key={u.id} className="hover:bg-zinc-800/50 transition-colors">
+                            <tr key={u.id} className="hover:bg-accent/50 transition-colors">
                                 <td className="px-6 py-4">
                                     #
                                     {u.id}
                                 </td>
-                                <td className="px-6 py-4 text-zinc-100">{u.name}</td>
+                                <td className="px-6 py-4 text-foreground">{u.name}</td>
                                 <td className="px-6 py-4">{u.username}</td>
                                 <td className="px-6 py-4">{u.email}</td>
                                 <td className="px-6 py-4">
                                     {u.roles?.map((r) => (
-                                        <span key={r.id} className="px-2 py-1 bg-zinc-800 text-xs rounded-md border border-zinc-700 mr-2">{r.name}</span>
+                                        <span key={r.id} className="px-2 py-1 bg-accent text-xs rounded-md border border-border mr-2">{r.name}</span>
                                     ))}
                                 </td>
                                 <td className="px-6 py-4 text-right">

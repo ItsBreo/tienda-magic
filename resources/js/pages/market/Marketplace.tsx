@@ -179,7 +179,7 @@ export default function Marketplace() {
     const renderCard = (listing: Listing) => (
         <Card
             key={listing.id}
-            className="bg-zinc-900/50 border-zinc-800 hover:border-emerald-500/50 transition-all cursor-pointer group flex flex-col h-full"
+            className="bg-card border-border hover:border-primary/50 transition-all cursor-pointer group flex flex-col h-full"
             onClick={() => handleNavigateToProduct(listing)}
         >
             <CardHeader className="p-0 overflow-hidden rounded-t-xl aspect-[3/4] relative">
@@ -189,12 +189,12 @@ export default function Marketplace() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 right-3">
-                    <Badge className="bg-black/80 backdrop-blur-md border-zinc-700 text-emerald-400 font-bold">
+                    <Badge className="bg-background/80 backdrop-blur-md border-border text-primary font-bold">
                         {listing.listable_type.includes('Card') ? 'Carta' : 'Sobre'}
                     </Badge>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                    <span className="text-white text-xs font-bold flex items-center gap-1">
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <span className="text-foreground text-xs font-bold flex items-center gap-1">
                         Ver detalles <ChevronRight className="w-3 h-3" />
                     </span>
                 </div>
@@ -205,29 +205,29 @@ export default function Marketplace() {
                         <HighlightedText text={listing.listable.name} highlight={searchTerm} />
                     </CardTitle>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-zinc-500 mb-auto">
-                    <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-auto">
+                    <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-foreground">
                         {listing.seller?.username?.slice(0, 2).toUpperCase() || '??'}
                     </div>
-                    <p className="font-bold text-zinc-900 dark:text-zinc-100">{listing.seller?.username || 'Desconocido'}</p>
+                    <p className="font-bold text-foreground">{listing.seller?.username || 'Desconocido'}</p>
                 </div>
-                <div className="mt-4 pt-4 border-t border-zinc-800 flex items-end justify-between">
+                <div className="mt-4 pt-4 border-t border-border flex items-end justify-between">
                     <div>
-                        <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Precio</p>
-                        <p className="text-2xl font-black text-emerald-400 tabular-nums">{Number(listing.price_total).toFixed(2)}€</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Precio</p>
+                        <p className="text-2xl font-black text-primary tabular-nums">{Number(listing.price_total).toFixed(2)}€</p>
                     </div>
                     {type === 'my' ? (
                         <Button
                             variant="destructive"
                             size="sm"
                             onClick={(e) => handleCancel(e, listing.id)}
-                            className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white rounded-lg h-9"
+                            className="bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground rounded-lg h-9"
                         >
                             <XCircle className="w-3.5 h-3.5 mr-1" />
                             Cancelar
                         </Button>
                     ) : (
-                        <div className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center group-hover:bg-emerald-500 group-hover:border-emerald-500 group-hover:text-black transition-all">
+                        <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground transition-all">
                             <ChevronRight className="w-5 h-5" />
                         </div>
                     )}
@@ -237,19 +237,19 @@ export default function Marketplace() {
     );
 
     return (
-        <div className="min-h-screen bg-black text-zinc-100 p-6">
+        <div className="flex-1 bg-background text-foreground p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                             Mercado Abierto
                         </h1>
-                        <p className="text-zinc-400 mt-2">Explora los activos digitales de la comunidad</p>
+                        <p className="text-muted-foreground mt-2">Explora los activos digitales de la comunidad</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <Button
-                            className="bg-emerald-600 hover:bg-emerald-700 text-black font-bold h-12 px-6 rounded-xl transition-all hover:scale-105"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 px-6 rounded-xl transition-all hover:scale-105"
                             onClick={() => navigate('/inventory?mode=sell')}
                         >
                             <PlusCircle className="w-5 h-5 mr-2" />
@@ -260,13 +260,13 @@ export default function Marketplace() {
 
                 {/* Type Tabs + Sort */}
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <div className="flex items-center gap-2 bg-zinc-900/50 p-2 rounded-xl border border-zinc-800 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 bg-accent/50 p-2 rounded-xl border border-border backdrop-blur-sm">
                         {(['all', 'card', 'pack', 'my'] as const).map(t => (
                             <Button
                                 key={t}
                                 variant={type === t ? 'default' : 'ghost'}
                                 onClick={() => setType(t)}
-                                className={type === t ? (t === 'my' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-black') : ''}
+                                className={type === t ? (t === 'my' ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground' : 'bg-primary hover:bg-primary/90 text-primary-foreground') : 'text-muted-foreground hover:text-foreground'}
                             >
                                 {t === 'all' ? 'Todo' : t === 'card' ? 'Cartas' : t === 'pack' ? 'Sobres' : 'Mis Anuncios'}
                             </Button>
@@ -275,7 +275,7 @@ export default function Marketplace() {
                     <select
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
-                        className="bg-zinc-900 border border-zinc-700 text-zinc-100 px-3 py-2 rounded-xl text-sm"
+                        className="bg-background border border-border text-foreground px-3 py-2 rounded-xl text-sm"
                     >
                         <option value="newest">Más reciente</option>
                         <option value="price_asc">Precio: Menor a Mayor</option>
@@ -288,13 +288,13 @@ export default function Marketplace() {
                 {/* Search + Set filters */}
                 <div className="flex flex-wrap gap-3 mb-6">
                     <div className="relative flex-1 min-w-[200px] max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                             type="text"
                             placeholder="Buscar por nombre..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="pl-9 bg-zinc-900 border-zinc-700 text-zinc-100"
+                            className="pl-9 bg-background border-border text-foreground focus-visible:ring-primary"
                         />
                     </div>
 
@@ -306,14 +306,14 @@ export default function Marketplace() {
                                 size="sm"
                                 onClick={() => setIsFilterModalOpen(true)}
                                 className={cn(
-                                    "bg-zinc-900/50 border-zinc-800 text-xs gap-2 hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:text-emerald-400 font-medium",
-                                    selectedSets.length > 0 && "border-emerald-500/50 text-emerald-400 bg-emerald-500/5"
+                                    "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-medium",
+                                    selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
                                 )}
                             >
                                 <Filter className="h-4 w-4" />
                                 Filtrar por Set
                                 {selectedSets.length > 0 && (
-                                    <Badge className="ml-1 bg-emerald-500 text-white px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                    <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
                                         {selectedSets.length}
                                     </Badge>
                                 )}
@@ -322,7 +322,7 @@ export default function Marketplace() {
                             {selectedSets.length > 0 && (
                                 <button
                                     onClick={() => setSelectedSets([])}
-                                    className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
+                                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                                 >
                                     <X className="h-3 w-3" /> Limpiar filtros
                                 </button>
@@ -342,22 +342,22 @@ export default function Marketplace() {
 
                 {/* Results count */}
                 {!loading && (
-                    <p className="text-sm text-zinc-500 mb-4">
+                    <p className="text-sm text-muted-foreground mb-4">
                         {filteredListings.length} {filteredListings.length === 1 ? 'resultado' : 'resultados'}
-                        {searchTerm && <> para "<span className="text-zinc-300">{searchTerm}</span>"</>}
+                        {searchTerm && <> para "<span className="text-foreground">{searchTerm}</span>"</>}
                     </p>
                 )}
 
                 {/* Content */}
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
-                        <Loader2 className="animate-spin text-emerald-500 w-12 h-12" />
+                        <Loader2 className="animate-spin text-primary w-12 h-12" />
                     </div>
                 ) : filteredListings.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-zinc-900/30 rounded-3xl border border-dashed border-zinc-800">
-                        <Package className="w-16 h-16 text-zinc-700 mb-4" />
-                        <p className="text-zinc-500 text-lg">No hay artículos con los filtros actuales.</p>
-                        <button onClick={() => { setSearchTerm(''); setSelectedSets([]); }} className="mt-3 text-sm text-emerald-500 hover:text-emerald-400">
+                    <div className="flex flex-col items-center justify-center py-20 bg-accent/30 rounded-3xl border border-dashed border-border">
+                        <Package className="w-16 h-16 text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground text-lg">No hay artículos con los filtros actuales.</p>
+                        <button onClick={() => { setSearchTerm(''); setSelectedSets([]); }} className="mt-3 text-sm text-primary hover:text-primary/80">
                             Limpiar filtros
                         </button>
                     </div>
@@ -367,9 +367,9 @@ export default function Marketplace() {
                         {Object.entries(grouped).map(([code, { setName, items }]) => (
                             <div key={code}>
                                 <div className="flex items-center gap-3 mb-4">
-                                    <Tag className="w-4 h-4 text-emerald-400" />
-                                    <h2 className="text-xl font-bold text-zinc-100">{setName}</h2>
-                                    <span className="text-sm text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-700">{items.length} artículos</span>
+                                    <Tag className="w-4 h-4 text-primary" />
+                                    <h2 className="text-xl font-bold text-foreground">{setName}</h2>
+                                    <span className="text-sm text-muted-foreground bg-accent px-2 py-0.5 rounded-full border border-border">{items.length} artículos</span>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {items.map(renderCard)}

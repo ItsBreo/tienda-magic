@@ -62,46 +62,46 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
       }`}
     >
       <div
-        className={`bg-[var(--surface)] border border-[var(--border)] rounded-xl w-full max-w-[500px] flex flex-col transition-all duration-300 ${
+        className={`bg-card border border-border rounded-xl w-full max-w-[500px] flex flex-col transition-all duration-300 ${
           animate ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'
         }`}
       >
         {/* Header */}
-        <div className="p-4 px-6 border-b border-[var(--border)] flex items-center justify-between">
-          <h2 className="text-[15px] font-bold text-[var(--text-primary)]">Crear Nuevo Torneo</h2>
-          <button onClick={handleClose} className="text-[var(--text-secondary)] text-xl hover:text-[var(--text-primary)] cursor-pointer">✕</button>
+        <div className="p-4 px-6 border-b border-border flex items-center justify-between">
+          <h2 className="text-[15px] font-bold text-foreground">Crear Nuevo Torneo</h2>
+          <button onClick={handleClose} className="text-muted-foreground text-xl hover:text-foreground cursor-pointer">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Nombre del Torneo</label>
+            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Nombre del Torneo</label>
             <input
               required
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Ej: Open Modern Primavera"
-              className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-colors"
+              className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary transition-colors"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Fecha y Hora</label>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Fecha y Hora</label>
               <input
                 required
                 type="datetime-local"
                 value={startsAt}
                 onChange={e => setStartsAt(e.target.value)}
-                className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Formato</label>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Formato</label>
               <select
                 value={format}
                 onChange={e => setFormat(e.target.value)}
-                className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               >
                 <option value="standard">Standard</option>
                 <option value="modern">Modern</option>
@@ -113,64 +113,64 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Lugar / Tienda</label>
+            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Lugar / Tienda</label>
             <input
               required
               type="text"
               value={location}
               onChange={e => setLocation(e.target.value)}
               placeholder="Dirección o nombre del local"
-              className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+              className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Máx. Jugadores</label>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Máx. Jugadores</label>
               <input
                 type="number"
                 value={maxPlayers}
                 onChange={e => setMaxPlayers(Number(e.target.value))}
-                className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Precio Entrada (€)</label>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Precio Entrada (€)</label>
               <input
                 type="number"
                 value={entryFee}
                 onChange={e => setEntryFee(Number(e.target.value))}
-                className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Descripción</label>
+            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Descripción</label>
             <textarea
               rows={3}
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] resize-none"
+              className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary resize-none"
             />
-            <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Premio</label>
-            <input type="text" placeholder="Ej: Caja de sobres + trofeo" value={prize} onChange={e => setPrize(e.target.value)} className="bg-[var(--surface-2)] border border-[var(--border)] rounded-md p-2.5 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
+            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Premio</label>
+            <input type="text" placeholder="Ej: Caja de sobres + trofeo" value={prize} onChange={e => setPrize(e.target.value)} className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary" />
           </div>
 
-          {error && <p className="text-xs text-[var(--red)] font-medium">{error}</p>}
+          {error && <p className="text-xs text-destructive font-medium">{error}</p>}
 
           <div className="flex gap-3 mt-2">
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-2.5 border border-[var(--border)] rounded-md text-[13px] font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
+              className="flex-1 py-2.5 border border-border rounded-md text-[13px] font-semibold text-muted-foreground hover:bg-accent transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               disabled={isSubmitting}
               type="submit"
-              className="flex-1 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-md text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+              className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? "Creando..." : "Publicar Torneo"}
             </button>

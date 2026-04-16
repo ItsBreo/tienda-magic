@@ -13,7 +13,7 @@ export default function TiendaLayout({ children }: TiendaLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] font-sans flex flex-col">
+    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col transition-colors duration-300">
       {/* Header Navigation */}
       <Navbar />
 
@@ -25,33 +25,33 @@ export default function TiendaLayout({ children }: TiendaLayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[var(--surface)] border-t border-[var(--border)] mt-auto">
+      <footer className="bg-card border-t border-border mt-auto transition-colors duration-300">
         <div className="max-w-[1600px] mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center md:text-left">
-              <p className="text-[var(--text-muted)] text-[13px]">© {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.</p>
-              <p className="text-[var(--text-muted)] opacity-70 text-[12px] mt-1">
+              <p className="text-muted-foreground text-[13px]">© {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.</p>
+              <p className="text-muted-foreground opacity-70 text-[12px] mt-1">
                 Tu tienda especializada en cartas Magic: The Gathering
               </p>
             </div>
             <div className="flex items-center gap-6 text-[12px]">
               <Link
                 to="/rules"
-                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 Reglas
               </Link>
-              <span className="text-[var(--border)]">•</span>
+              <span className="text-border">•</span>
               <Link
                 to="/privacy"
-                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 Privacidad
               </Link>
-              <span className="text-[var(--border)]">•</span>
+              <span className="text-border">•</span>
               <Link
                 to="/contact"
-                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 Contacto
               </Link>

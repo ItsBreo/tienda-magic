@@ -85,41 +85,41 @@ function PackCard({ pack, isSellingMode, searchTerm, onSell, onOpen }: {
     onOpen: (pack: InventoryPack) => void;
 }) {
     return (
-        <div className="group relative flex flex-col bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden hover:border-zinc-600 transition-colors">
-            <div className="relative aspect-[2.5/3.5] bg-zinc-900 flex items-center justify-center p-2">
+        <div className="group relative flex flex-col bg-card border border-border rounded-lg overflow-hidden hover:border-primary/50 transition-colors">
+            <div className="relative aspect-[2.5/3.5] bg-accent/50 flex items-center justify-center p-2">
                 {pack.booster_pack.image_uri ? (
                     <img src={pack.booster_pack.image_uri} alt={pack.booster_pack.name} className="w-full h-full object-contain rounded drop-shadow-md" loading="lazy" />
                 ) : (
-                    <div className="text-center"><Package className="h-8 w-8 text-zinc-700 mx-auto mb-2" /><span className="text-xs text-zinc-600 font-serif px-2">{pack.booster_pack.name}</span></div>
+                    <div className="text-center"><Package className="h-8 w-8 text-muted-foreground mx-auto mb-2" /><span className="text-xs text-muted-foreground font-serif px-2">{pack.booster_pack.name}</span></div>
                 )}
                 {pack.quantity_locked > 0 && (
-                    <div className="absolute top-2 left-2 bg-red-950/80 backdrop-blur-sm border border-red-900/50 text-red-400 text-xs px-1.5 py-1 rounded-sm shadow-lg" title={`${pack.quantity_locked} en venta`}>
+                    <div className="absolute top-2 left-2 bg-destructive/80 backdrop-blur-sm border border-destructive/50 text-destructive-foreground text-xs px-1.5 py-1 rounded-sm shadow-lg" title={`${pack.quantity_locked} en venta`}>
                         <Lock className="h-3.5 w-3.5" />
                     </div>
                 )}
-                <div className="absolute top-2 right-2 bg-blue-600/90 backdrop-blur-sm border border-blue-700 text-white text-xs font-bold px-2 py-1 rounded-sm shadow-lg">x{pack.quantity}</div>
+                <div className="absolute top-2 right-2 bg-primary/90 backdrop-blur-sm border border-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm shadow-lg">x{pack.quantity}</div>
             </div>
-            <div className="p-3 border-t border-zinc-800 flex flex-col gap-2 flex-1">
+            <div className="p-3 border-t border-border flex flex-col gap-2 flex-1">
                 <div className="flex justify-between items-start gap-2">
-                    <h3 className="text-sm font-semibold text-zinc-200 truncate" title={pack.booster_pack.name}>
+                    <h3 className="text-sm font-semibold text-foreground truncate" title={pack.booster_pack.name}>
                         <HighlightedText text={pack.booster_pack.name} highlight={searchTerm} />
                     </h3>
                     <div className="flex flex-col gap-2">
                         {isSellingMode && (
-                            <Button size="sm" className="h-8 bg-emerald-600/10 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-600 hover:text-black font-bold transition-all" onClick={() => onSell(pack.id, pack.booster_pack.name, 'pack')}>
+                            <Button size="sm" className="h-8 bg-primary/10 text-primary border border-primary/30 hover:bg-primary hover:text-primary-foreground font-bold transition-all" onClick={() => onSell(pack.id, pack.booster_pack.name, 'pack')}>
                                 <TrendingUp className="h-4 w-4 mr-1.5" />Vender
                             </Button>
                         )}
                         {!isSellingMode && (
-                            <Button size="sm" className="h-8 bg-blue-600/10 text-blue-500 border border-blue-500/30 hover:bg-blue-600 hover:text-white font-bold transition-all" onClick={() => onOpen(pack)}>
+                            <Button size="sm" className="h-8 bg-secondary/10 text-secondary border border-secondary/30 hover:bg-secondary hover:text-secondary-foreground font-bold transition-all" onClick={() => onOpen(pack)}>
                                 <PackageOpen className="h-4 w-4 mr-1.5" />Abrir Sobre
                             </Button>
                         )}
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-auto">
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-blue-500/10 border border-blue-500/30 text-blue-400 uppercase">{pack.booster_pack.type}</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-zinc-800 border border-zinc-700 text-zinc-400">{pack.booster_pack.set?.name || 'Unknown'}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-secondary/10 border border-secondary/30 text-secondary uppercase">{pack.booster_pack.type}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-accent border border-border text-muted-foreground">{pack.booster_pack.set?.name || 'Unknown'}</span>
                 </div>
             </div>
         </div>
@@ -137,8 +137,8 @@ function CardItem({ item, isSellingMode, searchTerm, getConditionColor, onSell }
     if (!item.card) return null;
 
     return (
-        <div className="group relative flex flex-col bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden hover:border-zinc-600 transition-colors">
-            <div className="relative aspect-[2.5/3.5] bg-zinc-900 flex items-center justify-center p-2">
+        <div className="group relative flex flex-col bg-card border border-border rounded-lg overflow-hidden hover:border-primary/50 transition-colors">
+            <div className="relative aspect-[2.5/3.5] bg-accent/50 flex items-center justify-center p-2">
                 {item.card.image_uris?.normal || item.card.image_uri || item.card.image_url ? (
                     <img 
                         src={item.card.image_uris?.normal || item.card.image_uri || item.card.image_url} 
@@ -153,29 +153,29 @@ function CardItem({ item, isSellingMode, searchTerm, getConditionColor, onSell }
                 ) : (
                     <div className="text-center"><ImageIcon className="h-8 w-8 text-zinc-700 mx-auto mb-2" /><span className="text-xs text-zinc-600 font-serif px-2">{item.card.name}</span></div>
                 )}
-                <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm border border-zinc-700 text-zinc-100 text-xs font-bold px-2 py-1 rounded-sm shadow-lg">x{item.quantity}</div>
+                <div className="absolute top-2 right-2 bg-primary/80 backdrop-blur-sm border border-border text-primary-foreground text-xs font-bold px-2 py-1 rounded-sm shadow-lg">x{item.quantity}</div>
                 {item.quantity_locked > 0 && (
-                    <div className="absolute top-2 left-2 bg-red-950/80 backdrop-blur-sm border border-red-900/50 text-red-400 text-xs px-1.5 py-1 rounded-sm shadow-lg" title={`${item.quantity_locked} en venta`}>
+                    <div className="absolute top-2 left-2 bg-destructive/80 backdrop-blur-sm border border-destructive/50 text-destructive-foreground text-xs px-1.5 py-1 rounded-sm shadow-lg" title={`${item.quantity_locked} en venta`}>
                         <Lock className="h-3.5 w-3.5" />
                     </div>
                 )}
             </div>
-            <div className="p-3 border-t border-zinc-800 flex flex-col gap-2 flex-1">
+            <div className="p-3 border-t border-border flex flex-col gap-2 flex-1">
                 <div className="flex justify-between items-start gap-2">
-                    <h3 className="text-sm font-semibold text-zinc-200 truncate" title={item.card.name}>
+                    <h3 className="text-sm font-semibold text-foreground truncate" title={item.card.name}>
                         <HighlightedText text={item.card.name} highlight={searchTerm} />
                     </h3>
                     {isSellingMode && (
-                        <Button size="sm" className="h-8 bg-emerald-600/10 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-600 hover:text-black font-bold transition-all" onClick={() => onSell(item.id, item.card.name, 'card')}>
+                        <Button size="sm" className="h-8 bg-primary/10 text-primary border border-primary/30 hover:bg-primary hover:text-primary-foreground font-bold transition-all" onClick={() => onSell(item.id, item.card.name, 'card')}>
                             <TrendingUp className="h-4 w-4 mr-1.5" />Vender
                         </Button>
                     )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-auto">
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-sm border ${getConditionColor(item.condition)}`}>{item.condition}</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-zinc-800 border border-zinc-700 text-zinc-400 uppercase">{item.language}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-accent border border-border text-muted-foreground uppercase">{item.language}</span>
                     {item.is_foil && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center gap-0.5" title="Foil">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-accent border border-border text-accent-foreground flex items-center gap-0.5" title="Foil">
                             <Sparkles className="h-3 w-3" />
                         </span>
                     )}
@@ -294,12 +294,12 @@ export default function Inventory() {
 
     const getConditionColor = (condition: string) => {
         const colors: Record<string, string> = {
-            'NM': 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
-            'LP': 'text-blue-400 bg-blue-400/10 border-blue-400/20',
-            'MP': 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
-            'HP': 'text-red-400 bg-red-400/10 border-red-400/20',
+            'NM': 'text-primary bg-primary/10 border-primary/20',
+            'LP': 'text-secondary bg-secondary/10 border-secondary/20',
+            'MP': 'text-accent-foreground bg-accent border-border',
+            'HP': 'text-destructive bg-destructive/10 border-destructive/20',
         };
-        return colors[condition] || 'text-zinc-400 bg-zinc-800 border-zinc-700';
+        return colors[condition] || 'text-muted-foreground bg-accent border-border';
     };
 
     // Derive available sets from inventory with robust data
@@ -384,35 +384,35 @@ export default function Inventory() {
     return (
         <div className="px-6 py-12">
             {/* CABECERA Y ESTADÍSTICAS */}
-            <div className="bg-zinc-900 border-b border-zinc-800">
+            <div className="bg-card border-b border-border">
                 <div className="max-w-7xl mx-auto px-6 py-8">
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
-                            <h1 className="text-3xl font-serif font-bold text-zinc-100 mb-2">Bóveda Personal</h1>
-                            <p className="text-zinc-400 text-sm">Gestiona tus cartas, revisa precios y prepara tu inventario para el mercado.</p>
+                            <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Bóveda Personal</h1>
+                            <p className="text-muted-foreground text-sm">Gestiona tus cartas, revisa precios y prepara tu inventario para el mercado.</p>
                         </div>
                         <div className="flex gap-4">
-                            <div className="bg-zinc-950 border border-zinc-800 rounded-sm px-4 py-3 flex items-center gap-4">
-                                <div className="p-2 bg-amber-500/10 rounded-sm"><Layers className="h-5 w-5 text-amber-500" /></div>
-                                <div><p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Cartas</p><p className="text-xl font-serif text-zinc-100">{stats.totalCards}</p></div>
+                            <div className="bg-background border border-border rounded-sm px-4 py-3 flex items-center gap-4">
+                                <div className="p-2 bg-accent rounded-sm"><Layers className="h-5 w-5 text-accent-foreground" /></div>
+                                <div><p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Cartas</p><p className="text-xl font-serif text-foreground">{stats.totalCards}</p></div>
                             </div>
-                            <div className="bg-zinc-950 border border-zinc-800 rounded-sm px-4 py-3 flex items-center gap-4">
-                                <div className="p-2 bg-blue-500/10 rounded-sm"><Package className="h-5 w-5 text-blue-500" /></div>
-                                <div><p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Sobres</p><p className="text-xl font-serif text-zinc-100">{stats.totalPacks}</p></div>
+                            <div className="bg-background border border-border rounded-sm px-4 py-3 flex items-center gap-4">
+                                <div className="p-2 bg-secondary/10 rounded-sm"><Package className="h-5 w-5 text-secondary" /></div>
+                                <div><p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Sobres</p><p className="text-xl font-serif text-foreground">{stats.totalPacks}</p></div>
                             </div>
                         </div>
                     </div>
 
                     {isSellingMode && (
-                        <div className="mt-8 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between">
+                        <div className="mt-8 p-4 bg-primary/10 border border-primary/30 rounded-xl flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <TrendingUp className="h-5 w-5 text-emerald-500" />
+                                <TrendingUp className="h-5 w-5 text-primary" />
                                 <div>
-                                    <p className="text-sm font-bold text-zinc-100">Modo de Venta Activo</p>
-                                    <p className="text-xs text-zinc-400">Haz clic en "Vender" en cualquier artículo para ponerlo en el mercado.</p>
+                                    <p className="text-sm font-bold text-foreground">Modo de Venta Activo</p>
+                                    <p className="text-xs text-muted-foreground">Haz clic en "Vender" en cualquier artículo para ponerlo en el mercado.</p>
                                 </div>
                             </div>
-                            <Button variant="ghost" size="sm" className="text-zinc-500 hover:text-zinc-300" onClick={() => navigate('/inventory')}>
+                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={() => navigate('/inventory')}>
                                 Salir del modo venta
                             </Button>
                         </div>
@@ -421,10 +421,10 @@ export default function Inventory() {
                     {/* BARRA DE HERRAMIENTAS */}
                     <div className="mt-8 flex flex-wrap gap-3">
                         <div className="relative flex-1 min-w-[180px] max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Buscar en mi colección..."
-                                className="pl-10 bg-zinc-950 border-zinc-800 focus-visible:ring-amber-500"
+                                className="pl-10 bg-background border-border focus-visible:ring-primary"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -432,7 +432,7 @@ export default function Inventory() {
                         <select
                             value={sortBy}
                             onChange={e => setSortBy(e.target.value as any)}
-                            className="bg-zinc-950 border border-zinc-800 text-zinc-300 px-3 py-2 rounded-md text-sm"
+                            className="bg-background border border-border text-foreground px-3 py-2 rounded-md text-sm"
                         >
                             <option value="newest">Más reciente</option>
                             <option value="price_asc">Precio: Menor a Mayor</option>
@@ -443,21 +443,21 @@ export default function Inventory() {
                     </div>
 
                     {availableSets.length > 0 && (
-                        <div className="mt-4 flex items-center justify-between bg-zinc-900/40 p-3 rounded-lg border border-zinc-800/50">
+                        <div className="mt-4 flex items-center justify-between bg-card p-3 rounded-lg border border-border">
                             <div className="flex items-center gap-3">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setIsFilterModalOpen(true)}
                                     className={cn(
-                                        "bg-zinc-950 border-zinc-800 text-xs gap-2 hover:bg-zinc-900",
-                                        selectedSets.length > 0 && "border-amber-500/50 text-amber-400"
+                                        "bg-background border-border text-xs gap-2 hover:bg-accent",
+                                        selectedSets.length > 0 && "border-primary/50 text-primary"
                                     )}
                                 >
                                     <Filter className="h-3.5 w-3.5" />
                                     Filtrar por Set
                                     {selectedSets.length > 0 && (
-                                        <Badge className="ml-1 bg-amber-500 text-black px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                        <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
                                             {selectedSets.length}
                                         </Badge>
                                     )}
@@ -465,10 +465,10 @@ export default function Inventory() {
                                 
                                 {selectedSets.length > 0 && (
                                     <div className="flex items-center gap-2">
-                                        <div className="h-4 w-px bg-zinc-800 mx-1" />
+                                        <div className="h-4 w-px bg-border mx-1" />
                                         <button 
                                             onClick={() => setSelectedSets([])}
-                                            className="text-[10px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
+                                            className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                                         >
                                             <X className="h-3 w-3" /> Limpiar filtros
                                         </button>
@@ -476,7 +476,7 @@ export default function Inventory() {
                                 )}
                             </div>
                             
-                            <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+                            <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
                                 {filteredCartas.length + filteredSobres.length} Items encontrados
                             </div>
 
@@ -497,13 +497,13 @@ export default function Inventory() {
             <div className="max-w-7xl mx-auto px-6 py-8">
                 {loading ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 animate-pulse">
-                        {[...Array(12)].map((_, i) => (<div key={i} className="aspect-[2.5/3.5] bg-zinc-900 rounded-lg border border-zinc-800"></div>))}
+                        {[...Array(12)].map((_, i) => (<div key={i} className="aspect-[2.5/3.5] bg-accent rounded-lg border border-border"></div>))}
                     </div>
                 ) : items.length === 0 && packs.length === 0 ? (
-                    <div className="text-center py-20 bg-zinc-900/50 border border-zinc-800 rounded-sm border-dashed">
-                        <Layers className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                        <h3 className="text-lg font-serif text-zinc-300 mb-2">Tu bóveda está vacía</h3>
-                        <p className="text-zinc-500 max-w-sm mx-auto mb-6">Aún no tienes cartas en tu inventario. Abre sobres o añade cartas manualmente.</p>
+                    <div className="text-center py-20 bg-card border border-border rounded-sm border-dashed">
+                        <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-serif text-foreground mb-2">Tu bóveda está vacía</h3>
+                        <p className="text-muted-foreground max-w-sm mx-auto mb-6">Aún no tienes cartas en tu inventario. Abre sobres o añade cartas manualmente.</p>
                     </div>
                 ) : (
                     <>
@@ -511,23 +511,23 @@ export default function Inventory() {
                         {packs.length > 0 && (
                             <div className="mb-12">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <Package className="h-5 w-5 text-blue-400" />
-                                    <h2 className="text-xl font-serif font-bold text-zinc-100">Sobres en tu Inventario</h2>
-                                    <span className="text-sm text-zinc-500 bg-zinc-800 px-2 py-1 rounded-sm">{filteredSobres.reduce((t, p) => t + p.quantity, 0)} sobres</span>
+                                    <Package className="h-5 w-5 text-secondary" />
+                                    <h2 className="text-xl font-serif font-bold text-foreground">Sobres en tu Inventario</h2>
+                                    <span className="text-sm text-muted-foreground bg-accent px-2 py-1 rounded-sm">{filteredSobres.reduce((t, p) => t + p.quantity, 0)} sobres</span>
                                 </div>
                                 {filteredSobres.length === 0 ? (
-                                    <div className="text-center py-12 bg-zinc-900/50 border border-zinc-800 rounded-sm border-dashed">
-                                        <Package className="h-8 w-8 text-zinc-600 mx-auto mb-3" />
-                                        <p className="text-zinc-400">No se encontraron sobres con los filtros actuales</p>
+                                    <div className="text-center py-12 bg-card border border-border rounded-sm border-dashed">
+                                        <Package className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                                        <p className="text-muted-foreground">No se encontraron sobres con los filtros actuales</p>
                                     </div>
                                 ) : groupedSobres ? (
                                     <div className="space-y-8">
                                         {Object.entries(groupedSobres).map(([sid, { setName: sn, items: gi }]) => (
                                             <div key={sid}>
                                                 <div className="flex items-center gap-2 mb-3">
-                                                    <Tag className="h-4 w-4 text-amber-400" />
-                                                    <h3 className="text-base font-semibold text-zinc-300">{sn}</h3>
-                                                    <span className="text-xs text-zinc-600 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">{gi.length}</span>
+                                                    <Tag className="h-4 w-4 text-primary" />
+                                                    <h3 className="text-base font-semibold text-foreground">{sn}</h3>
+                                                    <span className="text-xs text-muted-foreground bg-accent px-1.5 py-0.5 rounded border border-border">{gi.length}</span>
                                                 </div>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
                                                     {gi.map(pack => (
@@ -565,23 +565,23 @@ export default function Inventory() {
                         {items.length > 0 && (
                             <div>
                                 <div className="flex items-center gap-3 mb-6">
-                                    <Layers className="h-5 w-5 text-amber-400" />
-                                    <h2 className="text-xl font-serif font-bold text-zinc-100">Cartas en tu Colección</h2>
-                                    <span className="text-sm text-zinc-500 bg-zinc-800 px-2 py-1 rounded-sm">{filteredCartas.reduce((t, i) => t + i.quantity, 0)} cartas</span>
+                                    <Layers className="h-5 w-5 text-primary" />
+                                    <h2 className="text-xl font-serif font-bold text-foreground">Cartas en tu Colección</h2>
+                                    <span className="text-sm text-muted-foreground bg-accent px-2 py-1 rounded-sm">{filteredCartas.reduce((t, i) => t + i.quantity, 0)} cartas</span>
                                 </div>
                                 {filteredCartas.length === 0 ? (
-                                    <div className="text-center py-12 bg-zinc-900/50 border border-zinc-800 rounded-sm border-dashed">
-                                        <Layers className="h-8 w-8 text-zinc-600 mx-auto mb-3" />
-                                        <p className="text-zinc-400">No se encontraron cartas con los filtros actuales</p>
+                                    <div className="text-center py-12 bg-card border border-border rounded-sm border-dashed">
+                                        <Layers className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                                        <p className="text-muted-foreground">No se encontraron cartas con los filtros actuales</p>
                                     </div>
                                 ) : groupedCartas ? (
                                     <div className="space-y-8">
                                         {Object.entries(groupedCartas).map(([sid, { setName: sn, items: gi }]) => (
                                             <div key={sid}>
                                                 <div className="flex items-center gap-2 mb-3">
-                                                    <Tag className="h-4 w-4 text-amber-400" />
-                                                    <h3 className="text-base font-semibold text-zinc-300">{sn}</h3>
-                                                    <span className="text-xs text-zinc-600 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">{gi.length}</span>
+                                                    <Tag className="h-4 w-4 text-primary" />
+                                                    <h3 className="text-base font-semibold text-foreground">{sn}</h3>
+                                                    <span className="text-xs text-muted-foreground bg-accent px-1.5 py-0.5 rounded border border-border">{gi.length}</span>
                                                 </div>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
                                                     {gi.map(item => <CardItem key={item.id} item={item} isSellingMode={isSellingMode} searchTerm={searchTerm} getConditionColor={getConditionColor} onSell={handleOpenSellDialog} />)}
@@ -596,12 +596,12 @@ export default function Inventory() {
                                 )}
 
                                 {lastPage > 1 && (
-                                    <div className="flex items-center justify-center gap-2 mt-12 pt-6 border-t border-zinc-800">
-                                        <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50">
+                                    <div className="flex items-center justify-center gap-2 mt-12 pt-6 border-t border-border">
+                                        <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="bg-background border-border text-foreground hover:bg-accent disabled:opacity-50">
                                             <ChevronLeft className="h-4 w-4" />
                                         </Button>
-                                        <span className="text-sm text-zinc-500 font-medium px-4">Página <span className="text-zinc-200">{currentPage}</span> de {lastPage}</span>
-                                        <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))} disabled={currentPage === lastPage} className="bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50">
+                                        <span className="text-sm text-muted-foreground font-medium px-4">Página <span className="text-foreground">{currentPage}</span> de {lastPage}</span>
+                                        <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))} disabled={currentPage === lastPage} className="bg-background border-border text-foreground hover:bg-accent disabled:opacity-50">
                                             <ChevronRight className="h-4 w-4" />
                                         </Button>
                                     </div>
@@ -614,36 +614,36 @@ export default function Inventory() {
 
             {/* DIALOG DE VENTA */}
             <Dialog open={isSellDialogOpen} onOpenChange={setIsSellDialogOpen}>
-                <DialogContent className="bg-zinc-950 border-zinc-800 text-zinc-100">
+                <DialogContent className="bg-background border-border text-foreground">
                     <DialogHeader>
                         <DialogTitle className="text-xl">Vender "{selectedItemForSell?.name}"</DialogTitle>
-                        <DialogDescription className="text-zinc-500">
+                        <DialogDescription className="text-muted-foreground">
                             Establece el precio que quieres RECIBIR por este artículo.
                             La plataforma añadirá automáticamente una pequeña comisión al precio final del comprador.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-6 space-y-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-400">¿Cuánto quieres ganar? (€)</label>
+                            <label className="text-sm font-medium text-muted-foreground">¿Cuánto quieres ganar? (€)</label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">€</span>
-                                <Input type="number" step="0.01" placeholder="0.00" className="pl-8 bg-zinc-900 border-zinc-700" value={amountToSeller} onChange={(e) => setAmountToSeller(e.target.value)} />
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
+                                <Input type="number" step="0.01" placeholder="0.00" className="pl-8 bg-accent border-border" value={amountToSeller} onChange={(e) => setAmountToSeller(e.target.value)} />
                             </div>
                         </div>
                         {amountToSeller && parseFloat(amountToSeller) > 0 && (
-                            <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-lg space-y-1">
-                                <div className="flex justify-between text-sm"><span className="text-zinc-400">Tu ganancia:</span><span className="text-zinc-100 font-medium">{Number(amountToSeller || 0).toFixed(2)}€</span></div>
-                                <div className="flex justify-between text-sm"><span className="text-zinc-400">Comisión Marketplace:</span><span className="text-zinc-100 font-medium">+{Number(Math.max(0.02, Number(amountToSeller || 0) * 0.1)).toFixed(2)}€</span></div>
-                                <div className="pt-2 mt-2 border-t border-emerald-500/20 flex justify-between font-bold">
-                                    <span className="text-emerald-400">Precio de Venta:</span>
-                                    <span className="text-emerald-400">{(Number(amountToSeller || 0) + Math.max(0.02, Number(amountToSeller || 0) * 0.1)).toFixed(2)}€</span>
+                            <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg space-y-1">
+                                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Tu ganancia:</span><span className="text-foreground font-medium">{Number(amountToSeller || 0).toFixed(2)}€</span></div>
+                                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Comisión Marketplace:</span><span className="text-foreground font-medium">+{Number(Math.max(0.02, Number(amountToSeller || 0) * 0.1)).toFixed(2)}€</span></div>
+                                <div className="pt-2 mt-2 border-t border-primary/20 flex justify-between font-bold">
+                                    <span className="text-primary">Precio de Venta:</span>
+                                    <span className="text-primary">{(Number(amountToSeller || 0) + Math.max(0.02, Number(amountToSeller || 0) * 0.1)).toFixed(2)}€</span>
                                 </div>
                             </div>
                         )}
                     </div>
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setIsSellDialogOpen(false)} disabled={listingLoading}>Cancelar</Button>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-black font-bold" onClick={handleListOnMarket} disabled={listingLoading || !amountToSeller}>
+                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={handleListOnMarket} disabled={listingLoading || !amountToSeller}>
                             {listingLoading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
                             Poner a la venta
                         </Button>

@@ -68,33 +68,33 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
         onClick={(e) => e.target === e.currentTarget && handleClose()}
         className={`fixed inset-0 z-[200] flex items-center justify-center p-5 transition-colors duration-300 overflow-y-auto ${animate ? 'bg-black/55' : 'bg-transparent'}`}
       >
-        <div className={`bg-[var(--surface)] border border-[var(--border)] rounded-xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto flex flex-col transition-all duration-300 ${animate ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-2.5 opacity-0'}`}>
+        <div className={`bg-card border border-border rounded-xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto flex flex-col transition-all duration-300 ${animate ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-2.5 opacity-0'}`}>
 
           {/* Header */}
-          <div className="p-4 px-5 border-b border-[var(--border)] flex items-center justify-between">
-            <span className="text-[15px] font-bold text-[var(--text-primary)]">
+          <div className="p-4 px-5 border-b border-border flex items-center justify-between">
+            <span className="text-[15px] font-bold text-foreground">
               {isLoading ? "Cargando…" : tournament?.name}
             </span>
             <div className="flex items-center gap-3">
               {tournament?.can_delete && (
                 <button 
                   onClick={handleDelete}
-                  className="p-1.5 text-[var(--red)] hover:bg-red-500/10 rounded-md transition-colors cursor-pointer"
+                  className="p-1.5 text-destructive hover:bg-destructive/10 rounded-md transition-colors cursor-pointer"
                   title="Eliminar torneo"
                 >
                   <Trash2 size={16} />
                 </button>
               )}
-              <button onClick={handleClose} className="text-[var(--text-secondary)] text-xl hover:text-[var(--text-primary)] cursor-pointer">✕</button>
+              <button onClick={handleClose} className="text-muted-foreground text-xl hover:text-foreground cursor-pointer">✕</button>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="p-8 text-center text-[var(--text-secondary)] text-[13px]">Cargando información del torneo…</div>
+            <div className="p-8 text-center text-muted-foreground text-[13px]">Cargando información del torneo…</div>
           ) : tournament && (
             <>
-              <div className="p-4 px-5 border-b border-[var(--border)]">
-                {tournament.description && <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed mb-3.5">{tournament.description}</p>}
+              <div className="p-4 px-5 border-b border-border">
+                {tournament.description && <p className="text-[13px] text-muted-foreground leading-relaxed mb-3.5">{tournament.description}</p>}
                 <div className="flex flex-col">
                   {[
                     ["Fecha", tournament.starts_at],
@@ -104,36 +104,36 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
                     ["Entrada", tournament.entry_fee > 0 ? `${tournament.entry_fee} €` : "Gratuito"],
                     ["Premio", tournament.prize ?? "—"],
                   ].map(([lbl, val], i, arr) => (
-                    <div key={lbl} className={`flex justify-between items-center py-2 ${i < arr.length - 1 ? 'border-b border-[var(--border)]' : ''}`}>
-                      <span className="text-xs text-[var(--text-secondary)]">{lbl}</span>
-                      <span className="text-xs font-semibold text-[var(--text-primary)]">{val}</span>
+                    <div key={lbl} className={`flex justify-between items-center py-2 ${i < arr.length - 1 ? 'border-b border-border' : ''}`}>
+                      <span className="text-xs text-muted-foreground">{lbl}</span>
+                      <span className="text-xs font-semibold text-foreground">{val}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="p-4 px-5 border-b border-[var(--border)]">
-                <div className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-2.5">Inscritos ({tournament.confirmed_players?.length || 0})</div>
+              <div className="p-4 px-5 border-b border-border">
+                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2.5">Inscritos ({tournament.confirmed_players?.length || 0})</div>
                 <div className="flex flex-col gap-1.5">
                   {(tournament.confirmed_players || []).map((p: any) => (
                     <div key={p.id} className="flex items-center gap-2">
-                      <div className="w-6.5 h-6.5 rounded-full bg-[var(--accent)] flex items-center justify-center text-[10px] font-bold text-white">
+                      <div className="w-6.5 h-6.5 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground">
                         {(p.name || 'US').substring(0, 2).toUpperCase()}
                       </div>
                       <span className="text-[13px]">{p.name || 'Usuario'}</span>
-                      {p.id === user?.id && <span className="ml-auto text-[10px] text-[var(--accent)] font-bold italic">tú</span>}
+                      {p.id === user?.id && <span className="ml-auto text-[10px] text-primary font-bold italic">tú</span>}
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="p-3 px-5 flex flex-col gap-2">
-                {error && <div className="text-xs text-[var(--red)]">{error}</div>}
+                {error && <div className="text-xs text-destructive">{error}</div>}
                 {canRegister && (
                   <button
                     onClick={() => isRegistered ? ApiService.unregisterTournament(tournamentId).then(load) : ApiService.registerTournament(tournamentId).then(load)}
                     disabled={isSubmitting}
-                    className={`w-full py-2 rounded-md text-[13px] font-semibold cursor-pointer transition-opacity ${isSubmitting ? 'opacity-70' : 'opacity-100'} ${isRegistered ? 'bg-transparent border border-[var(--border)] text-[var(--text-secondary)]' : 'bg-[var(--accent)] text-white'}`}
+                    className={`w-full py-2 rounded-md text-[13px] font-semibold cursor-pointer transition-opacity ${isSubmitting ? 'opacity-70' : 'opacity-100'} ${isRegistered ? 'bg-transparent border border-border text-muted-foreground' : 'bg-primary text-primary-foreground'}`}
                   >
                     {isSubmitting ? "Procesando…" : isRegistered ? "Cancelar inscripción" : "Inscribirse al torneo"}
                   </button>
