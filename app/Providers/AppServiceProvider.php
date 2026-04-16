@@ -32,9 +32,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Event::listen(DeckCreated::class,          [AchievementListener::class, 'handleDeckCreated']);
+        \Illuminate\Support\Facades\Log::info('AppServiceProvider booting: Registrando listeners de logros...');
         Event::listen(UserRegistered::class,       [AchievementListener::class, 'handleUserRegistered']);
-        Event::listen(EmailVerified::class,        [AchievementListener::class, 'handleEmailVerified']);
         Event::listen(PackPurchased::class,        [AchievementListener::class, 'handlePackPurchased']);
         Event::listen(CardPurchased::class,        [AchievementListener::class, 'handleCardPurchased']);
         Event::listen(CardListed::class,           [AchievementListener::class, 'handleCardListed']);

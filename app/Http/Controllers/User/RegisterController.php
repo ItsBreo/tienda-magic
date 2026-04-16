@@ -102,6 +102,7 @@ class RegisterController extends Controller
         }
 
         event(new Registered($user));
+        event(new \App\Events\UserRegistered($user));
 
         // Generamos el token JWT directamente para el usuario recién creado
         // así el frontend puede autenticarse sin tener que hacer un segundo request de login

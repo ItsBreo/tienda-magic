@@ -12,6 +12,7 @@ use App\Models\InventoryCard;
 use App\Models\InventoryPack;
 use App\Models\Card;
 use App\Models\BoosterPack;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -143,6 +144,8 @@ class MarketController extends Controller
                 'amount_to_seller' => $amountToSeller,
                 'status' => 'active'
             ]);
+
+            event(new \App\Events\CardListed($user));
 
             return response()->json([
                 'message' => 'Item puesto a la venta con éxito',
@@ -305,6 +308,14 @@ class MarketController extends Controller
         ]);
 
         $order->update(['payment_status' => 'completed', 'status' => 'completed']);
+
+        // Triggers de Logros
+        if ($listing->listable_type === Card::class) {
+            event(new \App\Events\CardPurchased($buyer));
+        } else {
+            event(new \App\Events\PackPurchased($buyer));
+        }
+        event(new \App\Events\TransactionCompleted($buyer));
     }
 
     /**

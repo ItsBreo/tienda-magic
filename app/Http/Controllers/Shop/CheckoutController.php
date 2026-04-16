@@ -261,13 +261,15 @@ class CheckoutController extends Controller
 
                 // Crear items de la orden con precios congelados
                 foreach ($validItems as $item) {
+                    $type = !empty($item['booster_pack_id']) ? \App\Models\BoosterPack::class : \App\Models\Card::class;
+                    $id = !empty($item['booster_pack_id']) ? $item['booster_pack_id'] : $item['card_id'];
+
                     OrderItem::create([
-                        'order_id' => $order->id,
-                        'booster_pack_id' => $item['booster_pack_id'],
-                        'card_id' => $item['card_id'],
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
-                        'total_price' => $item['total_price']
+                        'order_id'         => $order->id,
+                        'purchasable_type' => $type,
+                        'purchasable_id'   => $id,
+                        'quantity'         => $item['quantity'],
+                        'price_at_purchase' => $item['unit_price']
                     ]);
                 }
 
@@ -283,6 +285,14 @@ class CheckoutController extends Controller
                 } catch (\Exception $e) {
                     Log::error('No se pudo enviar el correo de factura', ['error' => $e->getMessage()]);
                 }
+
+                // Triggers de Logros
+                $hasPacks = collect($validItems)->contains(fn($i) => !empty($i['booster_pack_id']));
+                $hasCards = collect($validItems)->contains(fn($i) => !empty($i['card_id']));
+
+                if ($hasPacks) event(new \App\Events\PackPurchased($user));
+                if ($hasCards) event(new \App\Events\CardPurchased($user));
+                event(new \App\Events\TransactionCompleted($user));
 
                 Log::info('Checkout completado exitosamente', [
                     'user_id' => $user->id,

@@ -53,12 +53,14 @@ class DeckController extends Controller
             'is_public' => 'boolean'
         ]);
 
-        Deck::create([
+        $deck = Deck::create([
             'user_id' => Auth::id(),
             'name' => $request->name,
             'is_public' => $request->is_public ?? false,
             'is_in_sale' => false
         ]);
+
+        event(new \App\Events\DeckCreated(Auth::user()));
 
         return response()->json(['success' => true]);
     }
