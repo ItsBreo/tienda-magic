@@ -92,6 +92,15 @@ class LoginController extends Controller
 
         $user = Auth::guard('api')->user();
 
+        // Validar si el usuario está activo
+        if (!$user->is_active) {
+            Auth::guard('api')->logout();
+            Log::warning('Login blocked for inactive user', ['user_id' => $user->id]);
+            throw ValidationException::withMessages([
+                'email' => ['Tu cuenta ha sido desactivada. Ponte en contacto con soporte.'],
+            ]);
+        }
+
         Log::info('Successful login', ['user_id' => $user->id]);
 
         return response()->json([

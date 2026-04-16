@@ -16,8 +16,8 @@ export function AdminRoute() {
         return <Navigate to="/login" replace />;
     }
 
-    if (!user?.is_admin) {
-        // Si no es admin, lo tiramos al dashboard normal
+    if (!user?.is_admin && !user?.permissions?.includes('view-admin-dashboard')) {
+        // Si no es admin ni tiene permiso de ver dashboard, lo tiramos
         return <Navigate to="/dashboard" replace />;
     }
 

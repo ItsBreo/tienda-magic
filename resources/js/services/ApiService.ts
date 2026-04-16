@@ -436,7 +436,7 @@ class MagicApi {
     // ─── Dashboard y Estadísticas ───────────────────────────────────────────
 
     async getDashboardStats(): Promise<any> {
-        const response = await this.api.get('/api/store-stats');
+        const response = await this.api.get('/api/admin/stats');
         return response.data;
     }
 

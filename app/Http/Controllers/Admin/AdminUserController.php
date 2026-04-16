@@ -49,12 +49,13 @@ class AdminUserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'username' => 'required|string|max:20|unique:users',
-            'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'role_id'  => 'required|exists:roles,id',
-            'forum_id' => 'nullable|exists:forums,id',
+            'name'      => 'required|string|max:255',
+            'username'  => 'required|string|max:20|unique:users',
+            'email'     => 'required|string|email|max:255|unique:users',
+            'password'  => 'required|string|min:8',
+            'role_id'   => 'required|exists:roles,id',
+            'forum_id'  => 'nullable|exists:forums,id',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         $user = User::create([
@@ -63,6 +64,7 @@ class AdminUserController extends Controller
             'email'          => $validated['email'],
             'password'       => Hash::make($validated['password']),
             'wallet_balance' => 0,
+            'is_active'      => $validated['is_active'] ?? true,
         ]);
 
         $user->roles()->attach($validated['role_id'], [
@@ -91,24 +93,27 @@ class AdminUserController extends Controller
             new OA\Property(property: "email", type: "string", format: "email"),
             new OA\Property(property: "password", type: "string", nullable: true),
             new OA\Property(property: "role_id", type: "integer"),
-            new OA\Property(property: "forum_id", type: "integer", nullable: true)
+            new OA\Property(property: "forum_id", type: "integer", nullable: true),
+            new OA\Property(property: "is_active", type: "boolean")
         ])
     )]
     #[OA\Response(response: 200, description: "Usuario actualizado")]
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'username' => ['required', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
-            'email'    => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => 'nullable|string|min:8',
-            'role_id'  => 'required|exists:roles,id',
-            'forum_id' => 'nullable|exists:forums,id',
+            'name'      => 'required|string|max:255',
+            'username'  => ['required', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
+            'email'     => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'password'  => 'nullable|string|min:8',
+            'role_id'   => 'required|exists:roles,id',
+            'forum_id'  => 'nullable|exists:forums,id',
+            'is_active' => 'required|boolean',
         ]);
 
-        $user->name     = $validated['name'];
-        $user->username = $validated['username'];
-        $user->email    = $validated['email'];
+        $user->name      = $validated['name'];
+        $user->username  = $validated['username'];
+        $user->email     = $validated['email'];
+        $user->is_active = $validated['is_active'];
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);

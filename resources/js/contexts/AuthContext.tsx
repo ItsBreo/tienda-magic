@@ -16,6 +16,7 @@ interface User {
     wallet_balance?: number;
     is_admin?: boolean;
     role_name?: string;
+    permissions?: string[];
     two_factor_enabled?: boolean;
 }
 

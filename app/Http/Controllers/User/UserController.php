@@ -47,6 +47,7 @@ class UserController extends Controller
             'email'          => $user->email,
             'wallet_balance' => $user->wallet_balance,
             'is_admin'       => $user->is_admin,
+            'permissions'    => $user->all_permissions,
             'reputation'     => $user->reputation,
             'created_at'     => $user->created_at,
             'updated_at'     => $user->updated_at
