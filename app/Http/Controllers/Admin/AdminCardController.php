@@ -121,4 +121,37 @@ class AdminCardController extends Controller
         $card->delete();
         return response()->json(['message' => 'Carta eliminada exitosamente.']);
     }
+
+    /**
+     * Acciones Masivas (Bulk Actions)
+     */
+
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:cards,id'
+        ]);
+
+        Card::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json([
+            'message' => count($validated['ids']) . ' cartas eliminadas correctamente.'
+        ]);
+    }
+
+    public function bulkToggleActive(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:cards,id',
+            'is_active' => 'required|boolean'
+        ]);
+
+        Card::whereIn('id', $validated['ids'])->update(['is_active' => $validated['is_active']]);
+
+        return response()->json([
+            'message' => 'Estado de ' . count($validated['ids']) . ' cartas actualizado.'
+        ]);
+    }
 }

@@ -137,4 +137,37 @@ class AdminRoleController extends Controller
 
         return response()->json(['message' => 'Rol eliminado exitosamente.']);
     }
+
+    /**
+     * Acciones Masivas (Bulk Actions)
+     */
+
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:roles,id'
+        ]);
+
+        $protectedRoles = [
+            'super_admin', 'admin',
+            'mod_news', 'mod_tournaments', 'mod_general',
+            'user', 'usuario',
+        ];
+
+        // Obtenemos los roles que no están protegidos
+        $rolesToDelete = Role::whereIn('id', $validated['ids'])
+            ->whereNotIn('name', $protectedRoles)
+            ->get();
+
+        foreach ($rolesToDelete as $role) {
+            $role->users()->detach();
+            $role->delete();
+        }
+
+        return response()->json([
+            'message' => count($rolesToDelete) . ' roles eliminados correctamente.',
+            'protected' => count($validated['ids']) - count($rolesToDelete)
+        ]);
+    }
 }

@@ -7,6 +7,7 @@ use App\Http\Resources\ThreadResource;
 use App\Http\Resources\CommentResource;
 use App\Models\Thread;
 use App\Models\Comment;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -53,16 +54,15 @@ class AdminForumModController extends Controller
     )]
     #[OA\Parameter(name: "thread", in: "path", required: true, description: "ID del hilo", schema: new OA\Schema(type: "integer"))]
     #[OA\Response(response: 200, description: "Hilo eliminado")]
-    public function deleteThread(Request $request, Thread $thread)
+    public function deleteThread(Request $request, int $id)
     {
-        $user = $request->user();
-
-        $this->authorize('delete', $thread);
+        $thread = Thread::findOrFail($id);
+        Gate::authorize('moderate', $thread);
 
         $thread->delete();
 
         return response()->json([
-            'message' => "Thread #{$thread->id} eliminado por {$user->username}.",
+            'message' => "Thread #{$thread->id} eliminado por {$request->user()->username}.",
         ]);
     }
 
@@ -75,16 +75,15 @@ class AdminForumModController extends Controller
     )]
     #[OA\Parameter(name: "comment", in: "path", required: true, description: "ID del comentario", schema: new OA\Schema(type: "integer"))]
     #[OA\Response(response: 200, description: "Comentario eliminado")]
-    public function deleteComment(Request $request, Comment $comment)
+    public function deleteComment(Request $request, int $id)
     {
-        $user = $request->user();
-
-        $this->authorize('delete', $comment);
+        $comment = Comment::findOrFail($id);
+        Gate::authorize('moderate', $comment);
 
         $comment->delete();
 
         return response()->json([
-            'message' => "Comentario #{$comment->id} eliminado por {$user->username}.",
+            'message' => "Comentario #{$comment->id} eliminado por {$request->user()->username}.",
         ]);
     }
 
@@ -132,5 +131,53 @@ class AdminForumModController extends Controller
         $comment->restore();
 
         return response()->json(['message' => "Comentario #{$comment->id} restaurado."]);
+    }
+
+    /**
+     * Acciones Masivas (Bulk Actions)
+     */
+
+    public function bulkDeleteThreads(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:threads,id'
+        ]);
+
+        $threads = Thread::whereIn('id', $validated['ids'])->get();
+        $deletedCount = 0;
+        foreach ($threads as $thread) {
+            /** @var Thread $thread */
+            if (Gate::allows('moderate', $thread)) {
+                $thread->delete();
+                $deletedCount++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} hilos eliminados correctamente."
+        ]);
+    }
+
+    public function bulkDeleteComments(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:comments,id'
+        ]);
+
+        $comments = Comment::whereIn('id', $validated['ids'])->get();
+        $deletedCount = 0;
+        foreach ($comments as $comment) {
+            /** @var Comment $comment */
+            if (Gate::allows('moderate', $comment)) {
+                $comment->delete();
+                $deletedCount++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} comentarios eliminados correctamente."
+        ]);
     }
 }

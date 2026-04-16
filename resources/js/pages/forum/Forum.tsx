@@ -5,12 +5,15 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Category, SortMode, View, Post, Comment, Tournament } from "./types";
 import { RULES, CAT_LABELS } from "./constants";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, MessageSquare, Flame } from "lucide-react";
+import { Search, Loader2, MessageSquare, Flame, Trash2 } from "lucide-react";
 import TournamentModal from "./TournamentModal";
 import TournamentDetailModal from "./TournamentDetailModal";
 import ForumFeedView from "./ForumFeed";
 import ThreadDetailView from "./ThreadDetail";
 import CreatePostView from "./CreatePost";
+import { useSelection } from "@/hooks/useSelection";
+import BulkActionsToolbar from "@/components/admin/BulkActionsToolbar";
+import { toast } from "sonner";
 
 /** Convierte fecha ISO a formato legible */
 function formatDate(iso: string): string {
@@ -110,6 +113,20 @@ export default function MagicForum() {
   // Modales
   const [showTournamentModal, setShowTournamentModal] = useState(false);
   const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null);
+
+  // Selección masiva para moderación
+  const {
+    selectedList,
+    selectedCount,
+    toggle,
+    selectAll,
+    clear,
+    isSelected,
+    allSelected,
+    someSelected
+  } = useSelection(posts);
+
+  const isModOrAdmin = user?.is_admin || (user as any)?.all_permissions?.includes('moderate-forum');
 
   // Función para cambiar de vista con animación
   const handleSetView = (newView: View) => {
@@ -271,6 +288,18 @@ export default function MagicForum() {
     .finally(() => setIsSubmittingComment(false));
   };
 
+  const handleBulkDeleteThreads = async () => {
+    if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} hilos del foro?`)) return;
+    try {
+      const { data } = await ApiService.axiosInstance.post('/api/mod/threads/bulk-delete', { ids: selectedList });
+      toast.success(data.message);
+      clear();
+      setRefreshKey(k => k + 1);
+    } catch (error) {
+      toast.error('Error al realizar borrado masivo en el foro');
+    }
+  };
+
   const renderContent = () => {
     const searchQuery = searchParams.get('q');
     if (view === 'create') {
@@ -283,7 +312,28 @@ export default function MagicForum() {
     const isSearch = !!searchQuery;
     const feedTitle = isSearch ? `Resultados para: "${searchQuery}"` : undefined;
 
-    return <ForumFeedView posts={posts} isLoading={isLoading} activeSideNav={isSearch ? 'search' : activeSideNav} title={feedTitle} activeCategory={isSearch ? null : activeCategory} sortMode={sortMode} onSortModeChange={setSortMode} onOpenThread={openThread} onShowCreateView={() => handleSetView('create')} />;
+    return (
+      <ForumFeedView 
+        posts={posts} 
+        isLoading={isLoading} 
+        activeSideNav={isSearch ? 'search' : activeSideNav} 
+        title={feedTitle} 
+        activeCategory={isSearch ? null : activeCategory} 
+        sortMode={sortMode} 
+        onSortModeChange={setSortMode} 
+        onOpenThread={openThread} 
+        onShowCreateView={() => handleSetView('create')}
+        selection={{
+          isSelected,
+          toggle,
+          allSelected,
+          selectAll,
+          someSelected,
+          isMod: isModOrAdmin
+        }}
+        onDeleteSuccess={() => setRefreshKey(k => k + 1)}
+      />
+    );
   };
 
   return (
@@ -415,10 +465,24 @@ export default function MagicForum() {
         </aside>
 
         {/* FEED */}
-        <main className="p-4 overflow-y-auto">
+        <main className="p-4 overflow-y-auto relative">
           <div className={`transition-opacity duration-200 ${isHiding ? 'opacity-0' : 'opacity-100'}`}>
             {renderContent()}
           </div>
+
+          <BulkActionsToolbar 
+            count={selectedCount}
+            onClear={clear}
+            actions={[
+              {
+                label: 'Eliminar en Lote',
+                icon: <Trash2 className="w-4 h-4" />,
+                onClick: handleBulkDeleteThreads,
+                variant: 'destructive',
+                className: 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20'
+              }
+            ]}
+          />
         </main>
 
         {/* RIGHT SIDEBAR */}

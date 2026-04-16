@@ -4,7 +4,8 @@ import { toast } from 'sonner';
 import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useSelection } from '@/hooks/useSelection';
+import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface BoosterPack {
@@ -35,6 +36,16 @@ export default function AdminBoosterPacks() {
         image_uri: '', 
         is_active: true
     });
+
+    const {
+        selectedList,
+        selectedCount,
+        toggle,
+        selectAll,
+        clear,
+        isSelected,
+        allSelected
+    } = useSelection(packs);
 
     const fetchPacks = async () => {
         try {
@@ -70,6 +81,32 @@ export default function AdminBoosterPacks() {
             fetchPacks();
         } catch (error: any) {
             toast.error('Error al cambiar estado');
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} sobres?`)) return;
+        try {
+            const { data } = await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-delete', { ids: selectedList });
+            toast.success(data.message);
+            clear();
+            fetchPacks();
+        } catch (error) {
+            toast.error('Error al realizar borrado masivo');
+        }
+    };
+
+    const handleBulkToggleActive = async (active: boolean) => {
+        try {
+            await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-toggle-active', {
+                ids: selectedList,
+                is_active: active
+            });
+            toast.success(`${selectedCount} sobres ${active ? 'activados' : 'desactivados'}`);
+            clear();
+            fetchPacks();
+        } catch (error) {
+            toast.error('Error al cambiar estado masivo');
         }
     };
 
@@ -179,16 +216,31 @@ export default function AdminBoosterPacks() {
                     <table className="w-full text-left text-sm text-zinc-400">
                         <thead className="bg-zinc-950 border-b border-zinc-800 text-xs uppercase text-zinc-500">
                             <tr>
+                                <th className="px-6 py-4 w-10">
+                                    <input 
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        onChange={selectAll}
+                                        className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 font-semibold">Sobre</th>
                                 <th className="px-6 py-4 font-semibold">Set</th>
                                 <th className="px-6 py-4 font-semibold">Precio</th>
                                 <th className="px-6 py-4 font-semibold text-center">Estado</th>
-                                <th className="px-6 py-4 font-semibold text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800">
                             {packs.map((p) => (
-                                <tr key={p.id} className="hover:bg-zinc-800/30 transition-colors group">
+                                <tr key={p.id} className={`hover:bg-zinc-800/30 transition-colors group ${isSelected(p.id) ? 'bg-emerald-500/5' : ''}`}>
+                                    <td className="px-6 py-4">
+                                        <input 
+                                            type="checkbox"
+                                            checked={isSelected(p.id)}
+                                            onChange={() => toggle(p.id)}
+                                            className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-8 bg-zinc-800 rounded flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -223,16 +275,6 @@ export default function AdminBoosterPacks() {
                                             {p.is_active ? 'Activo' : 'Inactivo'}
                                         </button>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button variant="ghost" size="sm" onClick={() => handleEdit(p)} className="text-zinc-400 hover:text-emerald-400 hover:bg-emerald-400/10">
-                                                <Edit2 className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)} className="text-zinc-400 hover:text-red-400 hover:bg-red-400/10">
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </td>
                                 </tr>
                             ))}
                             {packs.length === 0 && (
@@ -246,6 +288,40 @@ export default function AdminBoosterPacks() {
                     </table>
                 </div>
             </div>
+            <BulkActionsToolbar 
+                count={selectedCount}
+                onClear={clear}
+                actions={[
+                    ...(selectedCount === 1 ? [{
+                        label: 'Editar',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {
+                            const packToEdit = packs.find(p => p.id === selectedList[0]);
+                            if (packToEdit) handleEdit(packToEdit);
+                        },
+                        className: 'text-emerald-400 hover:text-emerald-300'
+                    }] : []),
+                    { 
+                        label: 'Activar', 
+                        icon: <CheckCircle2 className="w-4 h-4" />, 
+                        onClick: () => handleBulkToggleActive(true),
+                        className: 'text-emerald-400 hover:text-emerald-300'
+                    },
+                    { 
+                        label: 'Desactivar', 
+                        icon: <XCircle className="w-4 h-4" />, 
+                        onClick: () => handleBulkToggleActive(false),
+                        className: 'text-zinc-400 hover:text-zinc-300'
+                    },
+                    { 
+                        label: 'Eliminar', 
+                        icon: <Trash2 className="w-4 h-4" />, 
+                        onClick: handleBulkDelete,
+                        variant: 'destructive',
+                        className: 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20'
+                    }
+                ]}
+            />
         </div>
     );
 }

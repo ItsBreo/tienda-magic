@@ -109,4 +109,56 @@ class AdminBoosterPackController extends Controller
 
         return response()->json(['message' => 'Sobre eliminado exitosamente']);
     }
+
+    #[OA\Post(
+        path: "/api/admin/booster-packs/bulk-delete",
+        summary: "Eliminación masiva de sobres",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "ids", type: "array", items: new OA\Items(type: "integer"))
+        ])
+    )]
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:booster_packs,id']);
+        
+        $deletedCount = BoosterPack::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json([
+            'message' => "Se han eliminado {$deletedCount} sobres correctamente."
+        ]);
+    }
+
+    #[OA\Post(
+        path: "/api/admin/booster-packs/bulk-toggle-active",
+        summary: "Activación/Desactivación masiva de sobres",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "ids", type: "array", items: new OA\Items(type: "integer")),
+            new OA\Property(property: "is_active", type: "boolean")
+        ])
+    )]
+    public function bulkToggleActive(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:booster_packs,id',
+            'is_active' => 'required|boolean'
+        ]);
+
+        $updatedCount = BoosterPack::whereIn('id', $validated['ids'])
+            ->update(['is_active' => $validated['is_active']]);
+
+        return response()->json([
+            'message' => "Se han " . ($validated['is_active'] ? 'activado' : 'desactivado') . " {$updatedCount} sobres correctamente."
+        ]);
+    }
 }
