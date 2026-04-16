@@ -197,6 +197,9 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         Route::get('/transactions', [UserController::class, 'transactions']);
     });
 
+    // ========== LOGROS ==========
+    Route::get('/achievements', [\App\Http\Controllers\User\AchievementController::class, 'index']);
+
     // ========== PERFIL DE USUARIO (Avatar, Bio, País) ==========
     Route::prefix('profile')->group(function () {
         Route::get('/', [UserProfileController::class, 'showProfile']);

@@ -10,6 +10,7 @@ use App\Models\InventoryPack;
 use App\Models\InventoryCard;
 use App\Models\Card;
 use App\Models\BoosterPack;
+use Illuminate\Support\Facades\Log;
 
 class PackOpeningController extends Controller
 {
@@ -142,6 +143,9 @@ class PackOpeningController extends Controller
             $inventoryPack->decrement('quantity');
             
             DB::commit();
+
+            // Disparar el logro de "Primer Sobre"
+            event(new \App\Events\PackPurchased($user));
 
             return response()->json([
                 'success' => true,

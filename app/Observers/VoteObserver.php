@@ -56,6 +56,9 @@ class VoteObserver
                 $repDiff = $diff * $multiplier;
 
                 $author->profile->increment('reputation_score', $repDiff);
+
+                // Verificar si alcanzó hitos de reputación (ej. 1000 para Verificado)
+                app(\App\Services\AchievementService::class)->checkReputationMilestones($author);
             }
         }
     }
