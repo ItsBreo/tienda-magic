@@ -440,8 +440,43 @@ class MagicApi {
         return response.data;
     }
 
-    async getLatestSets(): Promise<any> {
-        const response = await this.api.get('/api/sets/latest');
+    async getAdminPermissions(): Promise<any> {
+        const response = await this.api.get('/api/admin/permissions');
+        return response.data;
+    }
+
+    async updateAdminRole(id: number, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/roles/${id}`, data);
+        return response.data;
+    }
+
+    async updateAdminSet(code: string, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/sets/${code}`, data);
+        return response.data;
+    }
+
+    async updateAdminCard(id: number, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/cards/${id}`, data);
+        return response.data;
+    }
+
+    async getAdminBoosterPacks(): Promise<any> {
+        const response = await this.api.get('/api/admin/booster-packs');
+        return response.data;
+    }
+
+    async createBoosterPack(data: any): Promise<any> {
+        const response = await this.api.post('/api/admin/booster-packs', data);
+        return response.data;
+    }
+
+    async updateBoosterPack(id: number, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/booster-packs/${id}`, data);
+        return response.data;
+    }
+
+    async deleteBoosterPack(id: number): Promise<any> {
+        const response = await this.api.delete(`/api/admin/booster-packs/${id}`);
         return response.data;
     }
 

@@ -23,11 +23,13 @@ class BoosterPack extends Model
         'type',
         'config',
         'image_uri',
+        'is_active',
     ];
 
     protected $casts = [
         'config' => 'array',
         'price' => 'float',
+        'is_active' => 'boolean',
     ];
 
     protected $appends = ['cover_image', 'image_url'];
@@ -109,6 +111,11 @@ class BoosterPack extends Model
         // Filtrar por tipo de pack
         if ($filters['type'] ?? false) {
             $query->where('type', $filters['type']);
+        }
+
+        // Por defecto, solo mostrar activos a menos que se indique lo contrario (ej. en admin)
+        if (!isset($filters['include_inactive']) || !$filters['include_inactive']) {
+            $query->where('is_active', true);
         }
 
         // Ordenar resultados

@@ -19,7 +19,7 @@ class AdminCardController extends Controller
     #[OA\Response(response: 200, description: "Lista de cartas")]
     public function index()
     {
-        $cards = Card::latest()->paginate(20);
+        $cards = Card::with('cardSet')->latest()->paginate(20);
         return response()->json($cards);
     }
 
@@ -67,6 +67,44 @@ class AdminCardController extends Controller
             'message' => 'Carta creada exitosamente',
             'card' => $card
         ], 201);
+    }
+
+    #[OA\Put(
+        path: "/api/admin/cards/{cardId}",
+        summary: "Actualizar carta manual",
+        description: "Actualiza los datos de una carta existente.",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "cardId", in: "path", required: true, description: "ID de carta", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "name", type: "string"),
+            new OA\Property(property: "price_eur", type: "number", nullable: true),
+            new OA\Property(property: "rarity", type: "string"),
+            new OA\Property(property: "image_uri", type: "string", format: "url", nullable: true),
+            new OA\Property(property: "is_active", type: "boolean")
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Carta actualizada")]
+    public function update(Request $request, Card $card)
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'rarity' => 'sometimes|required|string',
+            'price_eur' => 'nullable|numeric|min:0',
+            'price_usd' => 'nullable|numeric|min:0',
+            'image_uri' => 'nullable|url',
+            'is_active' => 'sometimes|boolean'
+        ]);
+
+        $card->update($validated);
+
+        return response()->json([
+            'message' => 'Carta actualizada exitosamente',
+            'card' => $card
+        ]);
     }
 
     #[OA\Delete(

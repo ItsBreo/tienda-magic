@@ -94,8 +94,8 @@ class CatalogController extends Controller
         }
 
         // List of sets and types for filter dropdowns
-        $sets = CardSet::select('id', 'name', 'code')->get();
-        $types = BoosterPack::select('type')->distinct()->pluck('type');
+        $sets = CardSet::where('is_active', true)->select('id', 'name', 'code')->get();
+        $types = BoosterPack::where('is_active', true)->select('type')->distinct()->pluck('type');
 
         return response()->json([
             'data' => [

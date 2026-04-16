@@ -11,7 +11,26 @@ class Role extends Model
     protected $fillable = [
         'name',
         'description',
+        'permission_ids',
     ];
+
+    protected $casts = [
+        'permission_ids' => 'array',
+    ];
+
+    /**
+     * Accesor para obtener los objetos Permission basados en los IDs del JSON.
+     * Esto mantiene la compatibilidad con el frontend que espera objetos.
+     */
+    public function getPermissionsAttribute()
+    {
+        $ids = $this->permission_ids ?? [];
+        if (empty($ids)) return collect();
+        
+        return Permission::whereIn('id', $ids)->get();
+    }
+
+    protected $appends = ['permissions'];
 
     /**
      * Obtener todos los usuarios con este rol
@@ -22,4 +41,14 @@ class Role extends Model
                     ->withPivot('forum_id')
                     ->withTimestamps();
     }
+
+    /**
+     * Obtener los permisos de este rol (COMENTADO: YA NO EXISTE TABLA PIVOT)
+     */
+    /*
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'role_permission');
+    }
+    */
 }

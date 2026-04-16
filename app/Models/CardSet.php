@@ -9,7 +9,11 @@ class CardSet extends Model
     protected $guarded = [];
     public $incrementing = false;
     protected $primaryKey = 'code';
-    protected $keyType = 'string';
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'released_at' => 'date',
+    ];
 
     public function cards()
     {
