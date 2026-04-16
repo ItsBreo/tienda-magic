@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiService from '@/services/ApiService';
 
 export function useDashboardStats() {
     const [stats, setStats] = useState({
@@ -13,22 +13,21 @@ export function useDashboardStats() {
     useEffect(() => {
         const fetchAllStats = async () => {
             try {
-                // Disparamos ambas peticiones AL MISMO TIEMPO (más rápido)
-                const [statsResponse, setsResponse] = await Promise.all([
-                    axios.get('/api/store-stats'), // Va al DashboardController (tu base de datos)
-                    axios.get('/api/sets/latest'), // Va al SetController (Scryfall)
+                // Disparamos ambas peticiones AL MISMO TIEMPO
+                const [statsData, setsData] = await Promise.all([
+                    apiService.getDashboardStats(),
+                    apiService.getLatestSets(),
                 ]);
 
-                // Juntamos la respuesta de ambos en un solo objeto para nuestro componente
+                // Juntamos la respuesta de ambos
                 setStats({
-                    totalPacks: statsResponse.data.totalPacks,
-                    activeUsers: statsResponse.data.activeUsers,
-                    todaySales: statsResponse.data.todaySales,
-                    latestSet: setsResponse.data.latestSet, // Viene de la segunda petición
+                    totalPacks: statsData.totalPacks,
+                    activeUsers: statsData.activeUsers,
+                    todaySales: statsData.todaySales,
+                    latestSet: setsData.latestSet,
                 });
             } catch (error) {
                 console.error('Error al cargar los datos del Multiverso:', error);
-                // Datos de emergencia si algo falla
                 setStats({
                     totalPacks: 150,
                     activeUsers: 300,

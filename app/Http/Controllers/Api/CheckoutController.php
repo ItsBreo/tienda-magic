@@ -123,7 +123,7 @@ class CheckoutController extends Controller
                     ]);
 
                     // Entregar productos y limpiar carrito
-                    $this->fulfillOrder($order);
+                    $order->fulfill();
 
                     return response()->json([
                         'success' => true,
@@ -149,8 +149,8 @@ class CheckoutController extends Controller
                             'quantity' => 1,
                         ]],
                         'mode' => 'payment',
-                        'success_url' => config('app.frontend_url') . '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
-                        'cancel_url' => config('app.frontend_url') . '/checkout/cancel',
+                        'success_url' => config('app.url') . '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
+                        'cancel_url' => config('app.url') . '/checkout/cancel',
                         'metadata' => [
                             'order_id' => $order->id,
                             'type' => 'order'
@@ -177,45 +177,106 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Entregar productos del pedido al usuario.
+     * Verificar sesión de Stripe activamente (útil para dev local sin webhooks)
      */
-    private function fulfillOrder(Order $order)
+    public function verifyStripeSession(Request $request)
     {
-        $orderItems = $order->items()->with('purchasable')->get();
+        $request->validate([
+            'session_id' => 'required|string',
+        ]);
 
-        foreach ($orderItems as $item) {
-            $product = $item->purchasable;
+        try {
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            $session = \Stripe\Checkout\Session::retrieve($request->session_id);
 
-            if ($product instanceof Card) {
-                // Deduct stock from cards
-                $product->decrement('stock', $item->quantity);
+            if ($session->payment_status === 'paid') {
+                $type = $session->metadata->type ?? 'order';
+                
+                if ($type === 'market') {
+                    $marketListingId = $session->metadata->market_listing_id ?? null;
+                    if ($marketListingId) {
+                        $order = \App\Models\Order::where('stripe_session_id', $session->id)->first();
+                        if ($order && $order->status !== 'completed') {
+                            // Aquí llamamos la misma lógica manual para Market
+                            $listing = \App\Models\MarketListing::find($marketListingId);
+                            $buyer = $order->user;
+                        if ($listing && $buyer) {
+                            // Transferencia de Propiedad
+                            if ($listing->listable_type === \App\Models\Card::class) {
+                                $sellerItem = \App\Models\InventoryCard::findOrFail($listing->inventory_item_id);
+                                $sellerItem->decrement('quantity');
+                                $sellerItem->decrement('quantity_locked');
 
-                // Añadir cartas al inventario
-                $inventoryCard = InventoryCard::firstOrNew([
-                    'user_id' => $order->user_id,
-                    'card_id' => $product->id,
-                    'condition' => 'NM',
-                    'language' => 'en',
-                    'is_foil' => false,
-                ]);
-                $inventoryCard->quantity = ($inventoryCard->quantity ?? 0) + $item->quantity;
-                $inventoryCard->save();
-            } elseif ($product instanceof BoosterPack) {
-                // Añadir sobres al inventario (no tienen stock)
-                $inventoryPack = InventoryPack::firstOrNew([
-                    'user_id' => $order->user_id,
-                    'booster_pack_id' => $product->id,
-                ]);
-                $inventoryPack->quantity = ($inventoryPack->quantity ?? 0) + $item->quantity;
-                $inventoryPack->save();
+                                $buyerItem = \App\Models\InventoryCard::firstOrNew([
+                                    'user_id' => $buyer->id,
+                                    'card_id' => $listing->listable_id,
+                                    'condition' => $sellerItem->condition,
+                                    'language' => $sellerItem->language,
+                                    'is_foil' => $sellerItem->is_foil,
+                                ]);
+                                $buyerItem->quantity = ($buyerItem->quantity ?? 0) + 1;
+                                $buyerItem->save();
+                            } else {
+                                $sellerItem = \App\Models\InventoryPack::findOrFail($listing->inventory_item_id);
+                                $sellerItem->decrement('quantity');
+                                $sellerItem->decrement('quantity_locked');
+
+                                $buyerItem = \App\Models\InventoryPack::firstOrNew([
+                                    'user_id' => $buyer->id,
+                                    'booster_pack_id' => $listing->listable_id,
+                                ]);
+                                $buyerItem->quantity = ($buyerItem->quantity ?? 0) + 1;
+                                $buyerItem->save();
+                            }
+
+                            // Dinero al vendedor
+                            $listing->seller->increment('wallet_balance', $listing->amount_to_seller);
+
+                            // Cerrar Anuncio
+                            $listing->update(['status' => 'sold', 'buyer_id' => $buyer->id]);
+
+                            // Log
+                            \App\Models\MarketTransaction::create([
+                                'seller_id' => $listing->seller_id,
+                                'buyer_id' => $buyer->id,
+                                'sellable_id' => $listing->listable_id,
+                                'sellable_type' => $listing->listable_type,
+                                'price_total' => $listing->price_total,
+                                'fee_platform' => $listing->fee_platform,
+                                'amount_to_seller' => $listing->amount_to_seller,
+                                'item_details' => [
+                                    'name' => $listing->listable->name,
+                                    'order_id' => $order->id
+                                ]
+                            ]);
+
+                            $order->update(['payment_status' => 'completed', 'status' => 'completed']);
+                            return response()->json(['success' => true, 'message' => 'Compra de mercado completada.']);
+                        }
+                    }
+                    }
+                } else {
+                    $orderId = $session->metadata->order_id ?? null;
+                    if ($orderId) {
+                        $order = \App\Models\Order::find($orderId);
+                        if ($order && $order->status !== 'completed') {
+                            // Fulfillment manual activo para la tienda
+                            $order->update([
+                                'status' => 'completed',
+                                'payment_status' => 'completed',
+                                'payment_method' => 'stripe'
+                            ]);
+                            $order->fulfill();
+                            return response()->json(['success' => true, 'message' => 'Orden completada y entregada.']);
+                        }
+                    }
+                }
             }
-        }
 
-        // Vaciar carrito del usuario
-        $cart = Cart::where('user_id', $order->user_id)->first();
-        if ($cart) {
-            $cart->items()->delete();
-            $cart->delete();
+            return response()->json(['success' => true, 'message' => 'Sesión verificada, estado: ' . $session->payment_status]);
+        } catch (\Exception $e) {
+            \Log::error('Stripe Verify Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 400);
         }
     }
 }

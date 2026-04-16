@@ -15,6 +15,7 @@ export default function Exchanges() {
   
   const [newOfferCardId, setNewOfferCardId] = useState<any>('');
   const [newRequestCardId, setNewRequestCardId] = useState<any>('');
+  const [cardSearch, setCardSearch] = useState('');
 
   useEffect(() => {
     loadExchanges();
@@ -49,13 +50,12 @@ export default function Exchanges() {
     }
   };
 
-  const loadGenericCards = async () => {
+  const loadGenericCards = async (search: string = '') => {
     try {
-      const data = await apiService.getAllCards();
+      const data = await apiService.getAllCards(1, search);
       let arr = Array.isArray(data) ? data : (data?.data || []);
       setGenericCards(arr);
     } catch (error) {
-      // no fallback needed
       setGenericCards([]);
     }
   };
@@ -270,6 +270,25 @@ export default function Exchanges() {
 
               <div className="bg-zinc-800/80 p-4 rounded-xl border border-zinc-700/50">
                 <label className="block text-xs font-medium text-indigo-400 uppercase tracking-wide mb-2">Paso 2: ¿Qué quieres a cambio?</label>
+                
+                <div className="flex gap-2 mb-3">
+                    <input 
+                        type="text" 
+                        placeholder="Buscar carta..." 
+                        className="flex-1 bg-zinc-900 border border-zinc-700 text-white p-2 rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+                        value={cardSearch}
+                        onChange={(e) => setCardSearch(e.target.value)}
+                        onKeyDown={(e) => { if(e.key === 'Enter') loadGenericCards(cardSearch); }}
+                    />
+                    <button 
+                        type="button"
+                        onClick={() => loadGenericCards(cardSearch)}
+                        className="bg-zinc-700 hover:bg-zinc-600 px-3 rounded-lg text-xs font-bold"
+                    >
+                        Buscar
+                    </button>
+                </div>
+
                 <select 
                   className="w-full bg-zinc-900 border border-zinc-700 text-white p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   value={newRequestCardId}

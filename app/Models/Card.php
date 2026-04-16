@@ -19,13 +19,34 @@ class Card extends Model
     // Castear campos
     protected $casts = [
         'data' => 'array',
-        'market_avg_price' => 'decimal:2',
+        'market_avg_price' => 'float',
         'mana_value' => 'float',
     ];
 
+    protected $appends = ['image_url'];
+
+    /**
+     * Get the image_url for the card (alias for image_uri for frontend compatibility).
+     */
+    public function getImageUrlAttribute()
+    {
+        return $this->image_uri;
+    }
+
+    /**
+     * Get the set information for this card.
+     */
     public function cardSet()
     {
-        return $this->belongsTo(CardSet::class);
+        return $this->belongsTo(CardSet::class, 'set_code', 'code');
+    }
+
+    /**
+     * Required for with('card.set') to work in controllers and frontend consistency.
+     */
+    public function set()
+    {
+        return $this->cardSet();
     }
 
     // Relación polimórfica inversa con OrderItems

@@ -31,7 +31,7 @@ class InvoiceController extends Controller
         }
 
         // Obtener los items de la orden
-        $items = OrderItem::with('boosterPack.cardSet')->where('order_id', $order->id)->get();
+        $items = OrderItem::with(['purchasable.cardSet'])->where('order_id', $order->id)->get();
 
         // Generar PDF
         $pdf = Pdf::loadView('pdf.invoice', [

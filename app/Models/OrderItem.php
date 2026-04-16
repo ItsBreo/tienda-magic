@@ -14,6 +14,10 @@ class OrderItem extends Model
         'price_at_purchase'
     ];
 
+    protected $casts = [
+        'price_at_purchase' => 'float',
+    ];
+
     public function order() {
         return $this->belongsTo(Order::class);
     }

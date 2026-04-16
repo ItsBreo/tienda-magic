@@ -1,38 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ShoppingCart, Package, Loader2, CreditCard, Wallet } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import CartItem from '@/components/cart/CartItem';
 import CartSummary from '@/components/cart/CartSummary';
 
 export default function Cart() {
     const navigate = useNavigate();
     const { user, updateUser } = useAuth();
-    const [items, setItems] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { items, loading, updateQuantity, removeItem, fetchCart } = useCart();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'wallet' | 'stripe'>('wallet');
     const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
-
-    useEffect(() => {
-        fetchCart();
-    }, []);
-
-    const fetchCart = async (showLoader = true) => {
-        try {
-            if (showLoader) setLoading(true);
-            const response = await apiService.axiosInstance.get('/api/cart');
-            const cartData = response.data?.data?.items || response.data?.items || response.data || [];
-            setItems(Array.isArray(cartData) ? cartData : []);
-        } catch (error) {
-            console.error('Error al cargar carrito:', error);
-            if (showLoader) toast.error('Error al sincronizar el carrito');
-        } finally {
-            if (showLoader) setLoading(false);
-        }
-    };
 
     const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
         if (updatingItems.has(itemId)) {
@@ -54,32 +36,17 @@ export default function Cart() {
 
         if (newQuantity > stock) {
             toast.error(`Solo hay ${stock} unidades disponibles`);
-            setItems([...items]);
+            // The context will handle keeping the previous value if we don't call update
             return;
         }
 
         setUpdatingItems(prev => new Set(prev).add(itemId));
 
         try {
-            await apiService.updateCartItemQuantity(itemId, newQuantity, stock);
-            await fetchCart(false);
-            toast.success('Cantidad actualizada correctamente');
+            await updateQuantity(itemId, newQuantity);
+            toast.success('Cantidad actualizada');
         } catch (error: any) {
-            console.error('Error al actualizar cantidad:', error);
-
-            if (error.response?.status === 422) {
-                const backendMessage = error.response.data?.message ||
-                                       error.response.data?.error ||
-                                       'Límite de stock alcanzado para esta carta';
-                toast.error(backendMessage);
-                await fetchCart(false);
-            } else if (error.message) {
-                toast.error(error.message);
-                await fetchCart(false);
-            } else {
-                toast.error('Error al actualizar la cantidad');
-                await fetchCart(false);
-            }
+            // Error handling is partly in context, but we can add specific page feedback
         } finally {
             setUpdatingItems(prev => {
                 const newSet = new Set(prev);
@@ -91,20 +58,18 @@ export default function Cart() {
 
     const handleRemoveItem = async (itemId: number) => {
         try {
-            await apiService.axiosInstance.delete(`/api/cart/${itemId}`);
-            setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-            toast.success('Producto eliminado del carrito');
+            await removeItem(itemId);
         } catch (error) {
             console.error('Error al eliminar item:', error);
-            toast.error('Error al eliminar el producto');
         }
     };
 
     const calculateTotal = () => {
-        return items.reduce((total, item) => {
+        const total = items.reduce((total, item) => {
             const price = item.booster_pack?.price || item.unit_price || 0;
-            return total + (price * item.quantity);
-        }, 0).toFixed(2);
+            return total + (Number(price) * item.quantity);
+        }, 0);
+        return Number(total).toFixed(2);
     };
 
     const isWalletBalanceInsufficient = () => {
@@ -168,7 +133,7 @@ export default function Cart() {
                     updateUser({ wallet_balance: newBalance });
                 }
 
-                setItems([]);
+                await fetchCart();
                 navigate('/checkout/success');
             } else {
                 if (response.data?.checkout_url) {

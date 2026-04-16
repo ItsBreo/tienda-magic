@@ -20,10 +20,7 @@ export default function PackQuantitySelector({
   onQuantityChange,
   className = '',
 }: PackQuantitySelectorProps) {
-  // Solo mostrar selector para cartas sueltas
-  if (pack.type !== 'Singles') {
-    return null;
-  }
+    // Show selector for all pack types now
 
   return (
     <SimpleCounter

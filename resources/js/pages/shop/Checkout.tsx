@@ -109,14 +109,14 @@ export default function Checkout() {
                                                 <div className="text-right">
                                                     <p className="text-sm text-zinc-400">
                                                         €
-                                                        {(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0).toFixed(2)}
+                                                        {Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0).toFixed(2)}
                                                         {' '}
                                                         ×
                                                         {item.quantity}
                                                     </p>
                                                     <p className="font-medium text-zinc-100">
                                                         €
-                                                        {((item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0) * item.quantity).toFixed(2)}
+                                                        {(Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0) * item.quantity).toFixed(2)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -188,14 +188,14 @@ export default function Checkout() {
                                             <span>Subtotal</span>
                                             <span>
                                                 €
-                                                {subtotal.toFixed(2)}
+                                                {Number(subtotal).toFixed(2)}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>Impuestos (21%)</span>
                                             <span>
                                                 €
-                                                {tax.toFixed(2)}
+                                                {Number(tax).toFixed(2)}
                                             </span>
                                         </div>
                                         <Separator />
@@ -203,7 +203,7 @@ export default function Checkout() {
                                             <span>Total</span>
                                             <span className="text-emerald-400">
                                                 €
-                                                {total.toFixed(2)}
+                                                {Number(total).toFixed(2)}
                                             </span>
                                         </div>
                                         {error && (

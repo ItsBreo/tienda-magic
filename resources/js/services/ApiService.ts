@@ -348,8 +348,71 @@ class MagicApi {
         return response.data;
     }
 
-    async getAllCards(): Promise<any> {
-        const response = await this.api.get('/api/cards');
+    async getAllCards(page: number = 1, search: string = ''): Promise<any> {
+        const response = await this.api.get('/api/cards', {
+            params: { page, search }
+        });
+        return response.data;
+    }
+
+    // ─── Mercado Secundario (P2P) ─────────────────────────────────────────────
+
+    async getMarketListings(params: { type?: 'card' | 'pack', set?: string, page?: number }): Promise<any> {
+        const response = await this.api.get('/api/market', { params });
+        return response.data;
+    }
+
+    async listOnMarket(data: { inventory_item_id: number, type: 'card' | 'pack', amount_to_seller: number }): Promise<any> {
+        const response = await this.api.post('/api/market/cards', data);
+        return response.data;
+    }
+
+    async buyFromMarket(listingId: number): Promise<any> {
+        const response = await this.api.post(`/api/market/cards/${listingId}/buy`);
+        return response.data;
+    }
+
+    async initiateMarketPurchase(listingId: number, paymentMethod: 'wallet' | 'stripe'): Promise<any> {
+        const response = await this.api.post(`/api/market/cards/${listingId}/initiate-purchase`, {
+            payment_method: paymentMethod
+        });
+        return response.data;
+    }
+
+    async getProductDetail(type: 'card' | 'pack', id: number): Promise<any> {
+        const response = await this.api.get(`/api/market/product/${type}/${id}`);
+        return response.data;
+    }
+
+    async getPriceHistory(type: 'card' | 'pack', id: number): Promise<any> {
+        const response = await this.api.get(`/api/market/price-history/${type}/${id}`);
+        return response.data;
+    }
+
+    async getMyMarketListings(): Promise<any> {
+        const response = await this.api.get('/api/market/my-listings');
+        return response.data;
+    }
+
+    async cancelMarketListing(listingId: number): Promise<any> {
+        const response = await this.api.post(`/api/market/cards/${listingId}/cancel`);
+        return response.data;
+    }
+
+    async getMarketTransactions(): Promise<any> {
+        const response = await this.api.get('/api/market/transactions/my');
+        return response.data;
+    }
+
+    // ─── Dashboard y Estadísticas ───────────────────────────────────────────
+
+    async getDashboardStats(): Promise<any> {
+        const response = await this.api.get('/api/store-stats');
+        return response.data;
+    }
+
+    async getLatestSets(): Promise<any> {
+        const response = await this.api.get('/api/sets/latest');
         return response.data;
     }
 

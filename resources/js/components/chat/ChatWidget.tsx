@@ -137,7 +137,7 @@ export default function ChatWidget({ conversationId, currentUser, token, onClose
                 <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-xs lg:max-w-sm flex flex-col gap-1 ${isOwn ? 'items-end' : 'items-start'}`}>
                     {!isOwn && message.user && (
-                      <span className="text-xs text-zinc-500 px-1">{message.user.username}</span>
+                      <span className="text-xs text-zinc-500 px-1">{message.user?.username || 'Usuario'}</span>
                     )}
                     <div className={`px-3.5 py-2 rounded-xl text-sm leading-relaxed ${isOwn
                       ? 'bg-emerald-600/90 text-white rounded-br-sm'

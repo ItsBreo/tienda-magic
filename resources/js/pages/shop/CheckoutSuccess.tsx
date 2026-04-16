@@ -5,21 +5,32 @@ import { CheckCircle, PackageOpen } from 'lucide-react';
 export default function CheckoutSuccess() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const sessionId = searchParams.get('session_id');
 
     useEffect(() => {
         // Limpiar cualquier estado local del carrito
         localStorage.removeItem('cart');
         localStorage.removeItem('cartTimestamp');
 
-        // Redirigir al inventario después de 3 segundos
-        const timer = setTimeout(() => {
-            navigate('/inventory');
-        }, 3000);
+        const verifyAndRedirect = async () => {
+            if (sessionId) {
+                try {
+                    const apiService = (await import('../../services/ApiService')).default;
+                    await apiService.axiosInstance.post('/api/checkout/verify', { session_id: sessionId });
+                } catch (error) {
+                    console.error('Error verifying Stripe session:', error);
+                }
+            }
 
-        return () => clearTimeout(timer);
-    }, [navigate]);
+            // Redirigir al inventario después de que se verifique (o con timeout como fallback)
+            setTimeout(() => {
+                navigate('/inventory');
+            }, 3000);
+        };
 
-    const sessionId = searchParams.get('session_id');
+        verifyAndRedirect();
+
+    }, [navigate, sessionId]);
 
     return (
         <>

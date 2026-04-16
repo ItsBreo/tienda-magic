@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Package, LogOut, Settings, Shield, ArrowLeftRight,
+  Package, LogOut, Settings, Shield, ArrowLeftRight, TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,6 +58,13 @@ export function Navbar() {
                 >
                   <ArrowLeftRight className="h-3.5 w-3.5" />
                   Intercambios
+                </Link>
+                <Link
+                  to="/market"
+                  className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors duration-200 font-bold bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1 rounded-sm border border-emerald-500/30"
+                >
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  Mercado
                 </Link>
               </>
             )}

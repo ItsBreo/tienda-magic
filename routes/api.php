@@ -172,10 +172,11 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
 
     // ========== CHECKOUT ==========
     Route::post('/checkout/process', [\App\Http\Controllers\Api\CheckoutController::class, 'processCheckout']);
+    Route::post('/checkout/verify', [\App\Http\Controllers\Api\CheckoutController::class, 'verifyStripeSession']);
+    Route::post('/checkout', [CheckoutController::class, 'processFakeCheckout']);
 
     // ========== WALLET RECARGA ==========
     Route::post('/wallet/recharge', [\App\Http\Controllers\Api\WalletController::class, 'createRechargeSession']);
-    Route::post('/checkout', [CheckoutController::class, 'processFakeCheckout']);
     // Descarga de facturas
     Route::get('/orders/{id}/invoice', [InvoiceController::class, 'download']);
 
@@ -205,6 +206,7 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     // ========== INVENTARIO & MAZOS ==========
     Route::get('/inventory', [InventoryController::class, 'index']);
     Route::get('/inventory/{user}', [InventoryController::class, 'userInventory']);
+    Route::post('/inventory/packs/{id}/open', [\App\Http\Controllers\Inventory\PackOpeningController::class, 'open']);
 
     Route::prefix('decks')->group(function () {
         Route::get('/', [DeckController::class, 'index']);
@@ -239,9 +241,15 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     // ========== MERCADO & CARTAS ==========
     Route::prefix('market')->group(function () {
         Route::get('/', [MarketController::class, 'index']);
-        Route::post('/cards', [MarketController::class, 'createListing']);
-        Route::post('/cards/{id}/buy', [MarketController::class, 'buyCard']);
+        Route::post('/cards', [MarketController::class, 'store']); // Listing general
+        Route::get('/product/{type}/{id}', [MarketController::class, 'show']);
+        Route::post('/cards/{id}/initiate-purchase', [MarketController::class, 'initiatePurchase']);
+        Route::post('/cards/{id}/cancel', [MarketController::class, 'cancelListing']);
+        Route::get('/my-listings', [MarketController::class, 'myListings']);
+        Route::get('/price-history/{type}/{id}', [MarketController::class, 'getPriceHistory']);
+        
         Route::get('/transactions', [TransactionController::class, 'index']);
+        Route::get('/transactions/my', [TransactionController::class, 'myTransactions']);
     });
 
     Route::prefix('cards')->group(function () {

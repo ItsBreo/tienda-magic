@@ -87,7 +87,7 @@ export default function ForumSearch() {
                     </Link>
                 </div>
                 <p className="text-sm text-zinc-400 mt-1">
-                    Iniciado por <span className="font-medium text-zinc-300">{thread.user.username}</span> en el foro <Link to={`/forums/${thread.forum.slug}`} className="font-medium text-amber-500 hover:underline">{thread.forum.name}</Link>
+                    Iniciado por <span className="font-medium text-zinc-300">{thread.user?.username || 'Desconocido'}</span> en el foro <Link to={`/forums/${thread.forum?.slug || ''}`} className="font-medium text-amber-500 hover:underline">{thread.forum?.name || 'Foro'}</Link>
                     {' • '}
                     <span title={new Date(thread.created_at).toLocaleString()}>{formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: es })}</span>
                 </p>

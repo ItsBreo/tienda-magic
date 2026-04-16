@@ -1,0 +1,33 @@
+# Packages
+/vendor
+/node_modules
+
+# Environment
+.env
+.env.backup
+.env.production
+
+# Cache and logs
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/views/*.php
+/storage/framework/sessions/*
+/storage/logs/*.log
+.phpunit.result.cache
+
+# Docker
+docker-compose.yml
+Dockerfile*
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea
+.vscode

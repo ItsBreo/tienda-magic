@@ -4,6 +4,7 @@ import { HeroSection } from './components/HeroSection';
 import { StatsSection } from './components/StatsSection';
 import { QuickActionsSection } from './components/QuickActionsSection';
 import ChatWidget from '@/components/chat/ChatWidget';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import apiService from '@/services/ApiService';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -34,17 +35,16 @@ export default function Dashboard() {
     return (
             <div className="min-h-screen bg-black text-zinc-100">
 
-                {/* 1. Bienvenida */}
-                <HeroSection />
+                <ErrorBoundary>
+                    {/* 1. Bienvenida */}
+                    <HeroSection />
 
-                {/* 4. Packs Destacados (Podemos separarlo igual que el resto si lo deseamos) */}
-                {/* <FeaturedPacksSection /> */}
+                    {/* 5. Acciones Rápidas */}
+                    <QuickActionsSection />
 
-                {/* 5. Acciones Rápidas */}
-                <QuickActionsSection />
-
-                {/* 6. Estadísticas conectadas a Laravel/Scryfall */}
-                <StatsSection stats={stats} loading={loading} />
+                    {/* 6. Estadísticas conectadas a Laravel/Scryfall */}
+                    <StatsSection stats={stats} loading={loading} />
+                </ErrorBoundary>
 
             </div>
     );

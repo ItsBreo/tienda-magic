@@ -32,10 +32,11 @@ interface PacksGridProps {
   onPackClick: (pack: Pack) => void;
   onBuyPack: (pack: Pack, quantity: number) => void;
   category?: 'packs' | 'cards';
+  searchTerm?: string;
 }
 
 function PacksGrid({
-  packs, currentPage, totalPages, totalPacks, onPageChange, onPackClick, onBuyPack, category = 'packs',
+  packs, currentPage, totalPages, totalPacks, onPageChange, onPackClick, onBuyPack, category = 'packs', searchTerm = '',
 }: PacksGridProps) {
   return (
     <>
@@ -47,6 +48,7 @@ function PacksGrid({
             pack={pack}
             onClick={() => onPackClick(pack)}
             onBuyPack={(item, quantity) => onBuyPack(item, quantity)}
+            searchTerm={searchTerm}
           />
         ))}
       </div>

@@ -37,6 +37,9 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
+import { useCart } from '@/contexts/CartContext';
+import { ShoppingCart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const mainNavItems: NavItem[] = [
   {
@@ -69,6 +72,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
   const page = usePage<SharedData>();
   const { auth } = page.props;
   const getInitials = useInitials();
+  const { setDrawerOpen, itemCount } = useCart();
   return (
     <>
       <div className="border-b border-sidebar-border/80">
@@ -194,6 +198,24 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
               >
                 <Search className="!size-5 opacity-80 group-hover:opacity-100" />
               </Button>
+
+              {/* Cart Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative group h-9 w-9 cursor-pointer"
+                onClick={() => setDrawerOpen(true)}
+              >
+                <ShoppingCart className="!size-5 opacity-80 group-hover:opacity-100" />
+                {itemCount > 0 && (
+                  <Badge 
+                    className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white border-none"
+                  >
+                    {itemCount}
+                  </Badge>
+                )}
+              </Button>
+
               <div className="hidden lg:flex">
                 {rightNavItems.map((item) => (
                   <TooltipProvider

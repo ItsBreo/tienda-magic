@@ -10,6 +10,8 @@ import { Toaster } from 'sonner';
 // Hooks y Contextos
 import { initializeTheme } from './hooks/use-appearance';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import CartDrawer from './components/cart/CartDrawer';
 
 // Páginas y Componentes de Layout
 import Login from './pages/auth/Login';
@@ -36,6 +38,8 @@ import Achievements from './pages/achievement/Achievement';
 import Exchanges from './pages/exchange/Exchanges';
 import ManageExchanges from './pages/exchange/ManageExchanges';
 import TradeRoom from './pages/exchange/TradeRoom';
+import Marketplace from './pages/market/Marketplace';
+import ProductDetail from './pages/market/ProductDetail';
 
 initializeTheme();
 
@@ -52,54 +56,52 @@ if (el) {
         <StrictMode>
             <AuthProvider>
                 {/* FIX 1: Hacemos que las notificaciones respeten el tema claro/oscuro */}
-                <Toaster
-                    theme="system"
-                    position="top-right"
-                    richColors
-                    expand
-                    toastOptions={{
-                        className: 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xl',
-                    }}
-                />
+                <Toaster position="top-right" expand={true} richColors closeButton />
+                <CartProvider>
+                    <BrowserRouter>
+                        <Routes>
+                            {/* Públicas */}
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
 
-                <BrowserRouter>
-                    <Routes>
-                        {/* RUTAS PÚBLICAS */}
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-
-                        {/* RUTAS PROTEGIDAS */}
-                        <Route element={<ProtectedLayout />}>
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/shop" element={<PacksView />} />
-                            <Route path="/cart" element={<Cart />} />
-                            <Route path="/checkout/success" element={<CheckoutSuccess />} />
-                            <Route path="/wallet" element={<WalletPage />} />
-                            <Route path="/profile" element={<Profile />} />
-                            <Route path="/inventory" element={<Inventory />} />
-                            <Route path="/forum" element={<Forum />} />
-                            <Route path="/achievements" element={<Achievements />} />
-                            <Route path="/exchanges" element={<Exchanges />} />
-                            <Route path="/exchanges/manage" element={<ManageExchanges />} />
-                            <Route path="/trade/:sessionId" element={<TradeRoom />} />
-
-                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                        </Route>
-
-                        {/* RUTAS DE ADMINISTRADOR */}
-                        <Route element={<AdminRoute />}>
-                            <Route element={<AdminLayout />}>
-                                <Route path="/admin" element={<AdminDashboard />} />
-                                <Route path="/admin/users" element={<AdminUsers />} />
-                                <Route path="/admin/roles" element={<AdminRoles />} />
-                                <Route path="/admin/cards" element={<AdminCards />} />
-                                <Route path="/admin/sets" element={<AdminSets />} />
+                            {/* Protegidas (Requieren Login) */}
+                            <Route element={<ProtectedLayout />}>
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/shop" element={<PacksView />} />
+                                <Route path="/cart" element={<Cart />} />
+                                <Route path="/wallet" element={<WalletPage />} />
+                                <Route path="/profile" element={<Profile />} />
+                                <Route path="/inventory" element={<Inventory />} />
+                                <Route path="/achievements" element={<Achievements />} />
+                                <Route path="/exchanges" element={<Exchanges />} />
+                                <Route path="/exchanges/manage" element={<ManageExchanges />} />
+                                <Route path="/exchanges/room/:id" element={<TradeRoom />} />
+                                <Route path="/market" element={<Marketplace />} />
+                                <Route path="/market/product/:type/:id" element={<ProductDetail />} />
+                                <Route path="/forum/*" element={<Forum />} />
+                                <Route path="/checkout/success" element={<CheckoutSuccess />} />
                             </Route>
-                        </Route>
-                    </Routes>
-                </BrowserRouter>
+
+                            {/* Admin */}
+                            <Route element={<AdminRoute />}>
+                                <Route element={<AdminLayout />}>
+                                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                                    <Route path="/admin/users" element={<AdminUsers />} />
+                                    <Route path="/admin/roles" element={<AdminRoles />} />
+                                    <Route path="/admin/cards" element={<AdminCards />} />
+                                    <Route path="/admin/sets" element={<AdminSets />} />
+                                </Route>
+                            </Route>
+
+                            {/* Fallback */}
+                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        </Routes>
+                        <CartDrawer />
+                        <Toaster position="top-right" expand={true} richColors closeButton />
+                    </BrowserRouter>
+                </CartProvider>
             </AuthProvider>
-        </StrictMode>,
+        </StrictMode>
     );
 } else {
     // Error silenciado: no se encontró el elemento raíz

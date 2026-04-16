@@ -22,62 +22,142 @@ class InventoryController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
+            $searchTerm = $request->input('search');
+            $selectedSets = $request->input('sets');
+            $sortBy = $request->input('sort', 'newest');
 
-        // Paginamos y transformamos para que el frontend reciba lo que espera
-        $inventoryCardsPaginated = InventoryCard::where('user_id', $user->id)
-            ->with('card.cardSet')
-            ->paginate(24);
+            // Log de entrada para depuración
+            \Illuminate\Support\Facades\Log::debug('Inventory search attempt', [
+                'user_id' => $user->id,
+                'search' => $searchTerm,
+                'sets' => $selectedSets,
+                'sort' => $sortBy
+            ]);
 
-        $inventoryCards = $inventoryCardsPaginated->through(function($item) {
-            return [
-                'id' => $item->id,
-                'user_id' => $item->user_id,
-                'card_id' => $item->card_id,
-                'quantity' => $item->quantity,
-                'quantity_locked' => $item->quantity_locked,
-                'is_foil' => $item->is_foil,
-                'condition' => $item->condition,
-                'language' => $item->language,
-                'created_at' => $item->created_at,
-                'updated_at' => $item->updated_at,
-                'card' => $item->card ? [
-                    'id' => $item->card->id,
-                    'name' => $item->card->name,
-                    'image_url' => $item->card->image_url,
-                    'rarity' => $item->card->rarity,
-                    'market_avg_price' => $item->card->market_avg_price,
-                    'set' => $item->card->cardSet
-                ] : null
-            ];
-        });
+            // Consulta base con prefijos claros (SINGULAR: inventory_card)
+            $query = InventoryCard::where('inventory_card.user_id', $user->id)
+                ->where('inventory_card.quantity', '>', 0)
+                ->select('inventory_card.*') 
+                ->with(['card.set']);
 
-        // Obtenemos los sobres del inventario
-        $inventoryPacks = InventoryPack::where('user_id', $user->id)
-            ->with('boosterPack.cardSet')
-            ->get();
+            // Filtro por búsqueda de nombre (Case-insensitive para PostgreSQL usando ILIKE o LOWER)
+            if (!empty($searchTerm)) {
+                $query->whereHas('card', function($q) use ($searchTerm) {
+                    $q->where('cards.name', 'ILIKE', '%' . $searchTerm . '%');
+                });
+            }
 
-        // Sumas directas en base de datos (sin cargar colecciones en memoria)
-        $totalCards = InventoryCard::where('user_id', $user->id)->sum('quantity');
-        $totalPacks = InventoryPack::where('user_id', $user->id)->sum('quantity');
+            // Filtro por sets seleccionado (Case-insensitive para PostgreSQL)
+            if (!empty($selectedSets)) {
+                if (is_string($selectedSets)) {
+                    $selectedSets = array_values(array_filter(explode(',', $selectedSets)));
+                }
+                
+                if (!empty($selectedSets)) {
+                    $query->whereHas('card', function($q) use ($selectedSets) {
+                        // Convertimos todo a minúsculas para comparar de forma segura en Postgres
+                        $lowerSets = array_map('strtolower', $selectedSets);
+                        $q->whereRaw('LOWER(cards.set_code) IN (' . implode(',', array_fill(0, count($lowerSets), '?')) . ')', $lowerSets);
+                    });
+                }
+            }
 
-        \Illuminate\Support\Facades\Log::debug('Inventory data for user ' . $user->id, [
-            'cards_count' => $inventoryCards->count(),
-            'packs_count' => count($inventoryPacks),
-            'stats' => [
-                'totalCards' => $totalCards,
-                'totalPacks' => $totalPacks,
-            ]
-        ]);
+            // Ordenamiento con joins protegidos (SINGULAR: inventory_card)
+            switch ($sortBy) {
+                case 'name_asc':
+                    $query->join('cards', 'inventory_card.card_id', '=', 'cards.id')
+                          ->orderBy('cards.name', 'asc');
+                    break;
+                case 'name_desc':
+                    $query->join('cards', 'inventory_card.card_id', '=', 'cards.id')
+                          ->orderBy('cards.name', 'desc');
+                    break;
+                case 'price_asc':
+                    $query->join('cards', 'inventory_card.card_id', '=', 'cards.id')
+                          ->orderBy('cards.market_avg_price', 'asc');
+                    break;
+                case 'price_desc':
+                    $query->join('cards', 'inventory_card.card_id', '=', 'cards.id')
+                          ->orderBy('cards.market_avg_price', 'desc');
+                    break;
+                case 'newest':
+                default:
+                    $query->orderBy('inventory_card.id', 'desc');
+                    break;
+            }
 
-        return response()->json([
-            'inventoryCards' => $inventoryCards,
-            'inventoryPacks' => $inventoryPacks,
-            'stats' => [
-                'totalCards' => $totalCards,
-                'totalPacks' => $totalPacks,
-            ]
-        ]);
+            $inventoryCardsPaginated = $query->paginate(24);
+
+            $inventoryCards = $inventoryCardsPaginated->through(function($item) {
+                return [
+                    'id' => $item->id,
+                    'user_id' => $item->user_id,
+                    'card_id' => $item->card_id,
+                    'quantity' => $item->quantity,
+                    'quantity_locked' => $item->quantity_locked,
+                    'is_foil' => $item->is_foil,
+                    'condition' => $item->condition,
+                    'language' => $item->language,
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at,
+                    'card' => $item->card ? [
+                        'id' => $item->card->id,
+                        'name' => $item->card->name,
+                        'image_url' => $item->card->image_url,
+                        'image_uri' => $item->card->image_uri,
+                        'image_uris' => $item->card->data['image_uris'] ?? null,
+                        'rarity' => $item->card->rarity,
+                        'market_avg_price' => $item->card->market_avg_price,
+                        'set' => $item->card->set
+                    ] : null
+                ];
+            });
+
+            // Sobres (SINGULAR: inventory_pack)
+            $inventoryPacksRaw = InventoryPack::where('inventory_pack.user_id', $user->id)
+                ->where('inventory_pack.quantity', '>', 0)
+                ->with('boosterPack.set')
+                ->get();
+
+            $inventoryPacks = $inventoryPacksRaw->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'user_id' => $item->user_id,
+                    'booster_pack_id' => $item->booster_pack_id,
+                    'quantity' => $item->quantity,
+                    'quantity_locked' => $item->quantity_locked,
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at,
+                    'booster_pack' => $item->boosterPack ? [
+                        'id' => $item->boosterPack->id,
+                        'name' => $item->boosterPack->name,
+                        'price' => $item->boosterPack->price,
+                        'image_uri' => $item->boosterPack->image_uri,
+                        'type' => $item->boosterPack->type,
+                        'set' => $item->boosterPack->set
+                    ] : null
+                ];
+            });
+
+            $totalCards = InventoryCard::where('user_id', $user->id)->sum('quantity');
+            $totalPacks = InventoryPack::where('user_id', $user->id)->sum('quantity');
+
+            return response()->json([
+                'inventoryCards' => $inventoryCards,
+                'inventoryPacks' => $inventoryPacks,
+                'stats' => [
+                    'totalCards' => $totalCards,
+                    'totalPacks' => $totalPacks,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Inventory Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Error al cargar el inventario'], 500);
+        }
     }
 
     /**
@@ -210,7 +290,9 @@ class InventoryController extends Controller
     {
         $user = Auth::user();
 
-        $query = InventoryCard::where('user_id', $user->id)->with('card.set');
+        $query = InventoryCard::where('user_id', $user->id)
+            ->where('quantity', '>', 0)
+            ->with('card.set');
 
         // Búsqueda por nombre de carta con sanitización XSS
         if ($request->has('search') && $request->search) {

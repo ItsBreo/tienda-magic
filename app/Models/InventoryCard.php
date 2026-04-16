@@ -28,6 +28,14 @@ class InventoryCard extends Model
         'language'
     ];
 
+    /**
+     * Cantidad disponible (Total - Bloqueada).
+     */
+    public function getQuantityAvailableAttribute()
+    {
+        return $this->quantity - $this->quantity_locked;
+    }
+
     // Relación: Pertenece a un Usuario
     public function user()
     {

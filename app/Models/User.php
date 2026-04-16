@@ -95,7 +95,7 @@ class User extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
-            'wallet_balance' => 'decimal:2',
+            'wallet_balance' => 'float',
         ];
     }
 

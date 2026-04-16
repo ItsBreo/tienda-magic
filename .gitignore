@@ -44,3 +44,11 @@ stripe-cli.zip
 *.temp
 *.log
 *.cache
+"config)" 
+"first()" 
+"get(['code'])))" 
+"toArray()" 
+"config)" 
+"first()" 
+"get(['code'])))" 
+"toArray()" 

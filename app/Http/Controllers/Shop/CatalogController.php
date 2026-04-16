@@ -24,10 +24,11 @@ class CatalogController extends Controller
         $items = [];
         if ($category === 'cards') {
             // Query individual cards
-            $items = \App\Models\Card::with('cardSet')
+            $items = \App\Models\Card::with('set')
                 ->filter($filters)
                 ->when($filters['set'] ?? false, function($query, $set) {
-                    $query->where('card_set_id', $set);
+                    $setArray = is_string($set) ? explode(',', $set) : (array)$set;
+                    $query->whereIn('card_set_id', $setArray);
                 })
                 ->paginate(48)
                 ->withQueryString()
@@ -40,21 +41,22 @@ class CatalogController extends Controller
                         'image_url' => $card->image_uri ?? '/placeholder-card.png',
                         'type' => 'Singles',
                         'rarity' => $card->rarity,
-                        'card_set_id' => $card->cardSet->code ?? null,
+                        'card_set_id' => $card->set->code ?? null,
                         'stock' => $card->stock ?? 0,
                         'config' => [
                             'description' => $card->data['type_line'] ?? 'Magic Card',
                             'foil' => $card->data['foil'] ?? false,
                         ],
-                        'card_set' => $card->cardSet
+                        'set' => $card->set
                     ];
                 });
         } else {
             // Query booster packs (default)
-            $items = BoosterPack::with('cardSet')
+            $items = BoosterPack::with('set')
                 ->filter($filters)
                 ->when($filters['set'] ?? false, function($query, $set) {
-                    $query->where('card_set_id', $set);
+                    $setArray = is_string($set) ? explode(',', $set) : (array)$set;
+                    $query->whereIn('card_set_id', $setArray);
                 })
                 ->paginate(48)
                 ->withQueryString()
@@ -73,7 +75,7 @@ class CatalogController extends Controller
                             'foil' => $config['foil'] ?? false,
                             'total_cards' => $config['total_cards'] ?? 15,
                         ],
-                        'card_set' => $pack->cardSet
+                        'set' => $pack->set
                     ];
                 });
         }

@@ -33,6 +33,7 @@ interface AuthContextType {
     login: (_credentials: LoginCredentials) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
+    refreshUser: () => Promise<void>;
     updateUser: (userData: Partial<User>) => void;
 }
 
@@ -119,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const contextValue = useMemo(
-        () => ({ user, isLoading, isAuthenticated, login, logout, checkAuth, updateUser }),
+        () => ({ user, isLoading, isAuthenticated, login, logout, checkAuth, refreshUser: checkAuth, updateUser }),
         [user, isLoading, isAuthenticated],
     );
 

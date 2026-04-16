@@ -13,9 +13,14 @@ return new class extends Migration
     {
         Schema::create("card_price_history", function (Blueprint $table) {
             $table->id();
-            $table->foreignId("card_id")->constrained("cards");
+            // Soporte para precios de cartas y de sobres
+            $table->unsignedBigInteger('priceable_id');
+            $table->string('priceable_type');
+            
             $table->float("price");
-            $table->date("recorded_at");
+            $table->timestamp("recorded_at")->useCurrent();
+            
+            $table->index(['priceable_id', 'priceable_type', 'recorded_at']);
         });
     }
 

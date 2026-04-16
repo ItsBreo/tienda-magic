@@ -9,9 +9,21 @@ use App\Models\Card;
 
 class CardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $cards = Card::with('cardSet')->get();
+        $query = Card::with('cardSet');
+
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->has('set')) {
+            $query->whereHas('cardSet', function($q) use ($request) {
+                $q->where('code', $request->set);
+            });
+        }
+
+        $cards = $query->paginate(50);
         return response()->json($cards);
     }
 }

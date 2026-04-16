@@ -27,14 +27,30 @@ class BoosterPack extends Model
 
     protected $casts = [
         'config' => 'array',
-        'price' => 'decimal:2',
+        'price' => 'float',
     ];
 
-    protected $appends = ['cover_image'];
+    protected $appends = ['cover_image', 'image_url'];
+
+    /**
+     * Virtual attribute for frontend image consistency.
+     */
+    public function getImageUrlAttribute()
+    {
+        return $this->cover_image;
+    }
 
     public function cardSet()
     {
         return $this->belongsTo(CardSet::class, 'card_set_id', 'code');
+    }
+
+    /**
+     * Alias for cardSet() to ensure naming consistency
+     */
+    public function set()
+    {
+        return $this->cardSet();
     }
 
     // Relación polimórfica inversa con OrderItems

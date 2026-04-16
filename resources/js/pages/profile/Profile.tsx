@@ -4,9 +4,10 @@ import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Image as ImageIcon, MapPin, BookOpen, Handshake, Save, Loader2, Shield, Upload, X, Trophy } from 'lucide-react';
+import { User, Image as ImageIcon, MapPin, BookOpen, Handshake, Save, Loader2, Shield, Upload, X, Trophy, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -136,6 +137,10 @@ export default function Profile() {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
+    // Mercado
+    const [myListings, setMyListings] = useState<any[]>([]);
+    const [myTransactions, setMyTransactions] = useState<any[]>([]);
+
     // ── Cargar perfil ────────────────────────────────────────────────────────
     useEffect(() => {
         const fetchProfile = async () => {
@@ -155,14 +160,33 @@ export default function Profile() {
                         banner_url: userData.profile.banner_url || '',
                     });
                 }
+
+                // Cargar datos del mercado
+                const [listingsRes, transRes] = await Promise.all([
+                    apiService.getMyMarketListings(),
+                    apiService.getMarketTransactions()
+                ]);
+                setMyListings(listingsRes);
+                setMyTransactions(transRes.data);
+
             } catch (error) {
-                console.error('Error al cargar el perfil:', error);
+                console.error('Error al cargar datos del perfil/mercado:', error);
             } finally {
                 setLoading(false);
             }
         };
         fetchProfile();
     }, []);
+
+    const handleCancelListing = async (id: number) => {
+        try {
+            await apiService.cancelMarketListing(id);
+            toast.success('Anuncio cancelado');
+            setMyListings(myListings.filter(l => l.id !== id));
+        } catch (error) {
+            toast.error('Error al cancelar el anuncio');
+        }
+    };
 
     // Limpiar object URLs al desmontar
     useEffect(() => {
@@ -479,6 +503,79 @@ export default function Profile() {
                                     className="bg-zinc-950/80 border-zinc-700/60 focus-visible:ring-amber-500/50 focus-visible:border-amber-500/50 text-zinc-100 placeholder:text-zinc-600 min-h-[110px] resize-none"
                                 />
                             </div>
+                        </div>
+                    </section>
+                    
+                    {/* ── Bloque 4: Mercado Secundario ── */}
+                    <section className="bg-zinc-900/40 border border-zinc-800/80 rounded-lg p-6 md:p-8 space-y-6">
+                        <div className="flex items-center gap-2.5 pb-4 border-b border-zinc-800/60">
+                            <div className="p-1.5 rounded-md bg-zinc-800">
+                                <TrendingUp className="h-4 w-4 text-emerald-400" />
+                            </div>
+                            <h2 className="text-lg font-serif font-bold text-zinc-100">
+                                Mercado Secundario
+                            </h2>
+                        </div>
+
+                        {/* Anuncios Activos */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                                Mis Anuncios Activos ({myListings.length})
+                            </h3>
+                            {myListings.length === 0 ? (
+                                <p className="text-zinc-500 text-sm italic">No tienes anuncios activos en este momento.</p>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {myListings.map(listing => (
+                                        <div key={listing.id} className="flex gap-4 p-3 bg-zinc-950/60 border border-zinc-700/40 rounded-lg items-center group">
+                                            <div className="h-16 w-12 rounded border border-zinc-800 overflow-hidden flex-shrink-0">
+                                                <img 
+                                                    src={listing.listable.image_uri || listing.listable.image_url || '/placeholder-card.png'} 
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-zinc-100 truncate">{listing.listable.name}</p>
+                                                <p className="text-xs text-emerald-400 font-bold">{listing.price_total}€</p>
+                                            </div>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                className="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400"
+                                                onClick={() => handleCancelListing(listing.id)}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Historial de Transacciones */}
+                        <div className="space-y-4 pt-4 border-t border-zinc-800/60">
+                            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+                                Historial Reciente (Ventas/Compras)
+                            </h3>
+                            {myTransactions.length === 0 ? (
+                                <p className="text-zinc-500 text-sm italic">No has realizado transacciones aún.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {myTransactions.map(trans => (
+                                        <div key={trans.id} className="flex justify-between items-center text-sm p-2 border-b border-zinc-800/40">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${trans.seller_id === authUser?.id ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                                                <span className="text-zinc-300">
+                                                    {trans.seller_id === authUser?.id ? 'Venta de' : 'Compra de'} <strong>{trans.item_details?.name || 'Item'}</strong>
+                                                </span>
+                                            </div>
+                                            <span className={trans.seller_id === authUser?.id ? 'text-emerald-400 font-bold' : 'text-zinc-100'}>
+                                                {trans.seller_id === authUser?.id ? '+' : '-'}{trans.price_total}€
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </section>
 

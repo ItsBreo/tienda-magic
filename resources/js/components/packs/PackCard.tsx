@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Package, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PackQuantitySelector from './PackQuantitySelector';
+import HighlightedText from '@/components/common/HighlightedText';
 
 interface Pack {
   id: number;
@@ -11,6 +12,7 @@ interface Pack {
   type: string;
   cover_image?: string;
   image_uri?: string;
+  image_url?: string;
   card_id?: number;
   stock?: number;
   card_set?: {
@@ -32,9 +34,10 @@ interface PackCardProps {
   pack: Pack;
   onClick: (pack: Pack) => void;
   onBuyPack: (pack: Pack, quantity: number) => void;
+  searchTerm?: string;
 }
 
-export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
+export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: PackCardProps) {
   const [quantity, setQuantity] = useState(1);
 
   const shouldShowImage = (imageSrc?: string) => !!imageSrc;
@@ -50,8 +53,7 @@ export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
   };
 
   const handleBuyPack = () => {
-    const finalQuantity = pack.type === 'Singles' ? quantity : 1;
-    onBuyPack(pack, finalQuantity);
+    onBuyPack(pack, quantity);
   };
 
   return (
@@ -87,7 +89,9 @@ export default function PackCard({ pack, onClick, onBuyPack }: PackCardProps) {
       </div>
 
       {/* Información del pack */}
-      <h3 className="text-lg font-semibold text-zinc-100 mb-2 line-clamp-2">{pack.name}</h3>
+      <h3 className="text-lg font-semibold text-zinc-100 mb-2 line-clamp-2">
+        <HighlightedText text={pack.name} highlight={searchTerm} highlightClassName="bg-emerald-500/30 text-emerald-400 rounded-sm px-0.5" />
+      </h3>
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xs px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-400 font-medium">
           {pack.type}

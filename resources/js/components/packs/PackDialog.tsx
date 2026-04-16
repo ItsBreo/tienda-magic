@@ -8,6 +8,7 @@ import CardItem from '@/components/ui/CardItem';
 import CardLightbox from './CardLightbox';
 import SimpleCounter from '@/components/ui/SimpleCounter';
 import apiService from '@/services/ApiService';
+import { useCart } from '@/contexts/CartContext';
 import { showAddToCartToast, showErrorToast } from '@/utils/toastUtils';
 
 interface Pack {
@@ -57,6 +58,7 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
   const [selectedCardFullscreen, setSelectedCardFullscreen] = useState<Card | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addToCart } = useCart();
 
   // Bug 3 Fix: Reset completo de estado cuando se cierra el modal
   useEffect(() => {
@@ -110,41 +112,20 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
     setSelectedCardFullscreen(card);
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCartSub = async () => {
     if (!pack || isSubmitting) return;
 
     try {
       setIsSubmitting(true);
-
-      // Hacer la petición a la API del carrito (¡Esta es la que funciona!)
-      await apiService.axiosInstance.post('/api/cart', {
-        booster_pack_id: pack.id,
-        quantity: quantity,
+      await addToCart({
+        type: 'pack',
+        id: pack.id,
+        quantity: quantity
       });
-
-      showAddToCartToast(pack.name, quantity, 'pack');
       onClose();
     } catch (error: any) {
       console.error('Error añadiendo al carrito:', error);
-
-      // Manejo específico de errores de stock
-      if (error.response?.status === 422) {
-        const errorMessage = error.response.data?.error || error.response.data?.message;
-        if (errorMessage) {
-          toast.error(errorMessage);
-        } else {
-          showErrorToast('Error de validación al añadir al carrito');
-        }
-
-        // Forzar actualización del carrito para sincronizar el estado
-        try {
-          await apiService.getCart();
-        } catch (cartError) {
-          console.error('Error al refrescar carrito:', cartError);
-        }
-      } else {
-        showErrorToast('Error al añadir al carrito');
-      }
+      toast.error('Error al añadir al carrito');
     } finally {
       setIsSubmitting(false);
     }
@@ -261,6 +242,31 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
                     </p>
                   </div>
                 )}
+
+                <div className="pt-4 border-t border-zinc-700">
+                  <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">Composición del Sobre</h4>
+                  <ul className="space-y-1">
+                    <li className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Comunes</span>
+                      <span className="text-zinc-300">10</span>
+                    </li>
+                    <li className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Infrecuentes</span>
+                      <span className="text-zinc-300">3</span>
+                    </li>
+                    <li className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Raras o Míticas</span>
+                      <span className="text-zinc-300">1</span>
+                    </li>
+                    <li className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Tierra básica</span>
+                      <span className="text-zinc-300">1</span>
+                    </li>
+                  </ul>
+                  <p className="text-[10px] text-zinc-600 mt-2 italic">
+                    * Aproximadamente 1 de cada 8 sobres contiene una carta Mítica en lugar de una Rara.
+                  </p>
+                </div>
               </div>
 
               {/* Espacio flexible para empujar el contenido inferior */}
@@ -291,7 +297,7 @@ export default function PackDialog({ pack, isOpen, onClose }: PackDialogProps) {
                   </div>
 
                   <button
-                    onClick={handleAddToCart}
+                    onClick={handleAddToCartSub}
                     disabled={isSubmitting}
                     className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-bold rounded-xl transition-colors shadow-lg hover:shadow-emerald-600/25 disabled:shadow-none"
                   >

@@ -62,6 +62,8 @@ class StripeWebhookController extends Controller
         try {
             if ($type === 'order') {
                 return $this->handleOrderPayment($session);
+            } elseif ($type === 'market') {
+                return $this->handleMarketPayment($session);
             } else {
                 // Flujo recarga (default)
                 return $this->handleWalletRecharge($session);
@@ -108,7 +110,7 @@ class StripeWebhookController extends Controller
             ]);
 
             // Entregar productos y limpiar carrito
-            $this->fulfillOrder($order);
+            $order->fulfill();
 
             Log::info('Order payment completed', [
                 'order_id' => $orderId,
@@ -171,45 +173,115 @@ class StripeWebhookController extends Controller
     }
 
     /**
-     * Entregar productos del pedido al usuario.
+     * Procesar pago de marketplace (P2P).
      */
-    private function fulfillOrder(Order $order)
+    private function handleMarketPayment($session)
     {
-        $orderItems = $order->items()->with('purchasable')->get();
+        $orderId = $session->metadata->order_id ?? null;
+        $listingId = $session->metadata->market_listing_id ?? null;
+        $stripeSessionId = $session->id;
 
-        foreach ($orderItems as $item) {
-            $product = $item->purchasable;
+        Log::info('Processing market payment webhook', [
+            'order_id' => $orderId,
+            'listing_id' => $listingId,
+            'session_id' => $stripeSessionId
+        ]);
 
-            if ($product instanceof Card) {
-                // Deduct stock from cards
-                $product->decrement('stock', $item->quantity);
-
-                // Añadir cartas al inventario
-                $inventoryCard = InventoryCard::firstOrNew([
-                    'user_id' => $order->user_id,
-                    'card_id' => $product->id,
-                    'condition' => 'NM',
-                    'language' => 'en',
-                    'is_foil' => false,
-                ]);
-                $inventoryCard->quantity = ($inventoryCard->quantity ?? 0) + $item->quantity;
-                $inventoryCard->save();
-            } elseif ($product instanceof BoosterPack) {
-                // Añadir sobres al inventario (no tienen stock)
-                $inventoryPack = InventoryPack::firstOrNew([
-                    'user_id' => $order->user_id,
-                    'booster_pack_id' => $product->id,
-                ]);
-                $inventoryPack->quantity = ($inventoryPack->quantity ?? 0) + $item->quantity;
-                $inventoryPack->save();
-            }
+        if (!$orderId || !$listingId) {
+            Log::error('Missing metadata in market payment session', [
+                'session_id' => $stripeSessionId,
+                'metadata' => $session->metadata,
+            ]);
+            return response()->json(['error' => 'Missing metadata'], 400);
         }
 
-        // Vaciar carrito del usuario
-        $cart = Cart::where('user_id', $order->user_id)->first();
-        if ($cart) {
-            $cart->items()->delete();
-            $cart->delete();
+        try {
+            return DB::transaction(function () use ($orderId, $listingId, $stripeSessionId) {
+                // 1. Cargar datos necesarios con bloqueo
+                $order = Order::lockForUpdate()->find($orderId);
+                if (!$order) {
+                    Log::error('Order not found for market payment', ['order_id' => $orderId]);
+                    return response()->json(['error' => 'Order not found'], 404);
+                }
+
+                $listing = \App\Models\MarketListing::with('seller')->lockForUpdate()->find($listingId);
+                if (!$listing) {
+                    Log::error('Market listing not found', ['listing_id' => $listingId]);
+                    return response()->json(['error' => 'Listing not found'], 404);
+                }
+
+                $buyer = User::findOrFail($order->user_id);
+                $seller = $listing->seller;
+
+                if (!$seller) {
+                    Log::error('Seller not found for listing', ['listing_id' => $listingId]);
+                    return response()->json(['error' => 'Seller not found'], 404);
+                }
+
+                // 2. Pago al vendedor
+                $seller->increment('wallet_balance', (float) $listing->amount_to_seller);
+
+                // 3. Transferencia de Propiedad
+                if ($listing->listable_type === Card::class || str_contains($listing->listable_type, 'Card')) {
+                    $sellerItem = \App\Models\InventoryCard::findOrFail($listing->inventory_item_id);
+                    $sellerItem->decrement('quantity');
+                    if ($sellerItem->quantity_locked > 0) {
+                        $sellerItem->decrement('quantity_locked');
+                    }
+
+                    $buyerItem = \App\Models\InventoryCard::firstOrNew([
+                        'user_id' => $buyer->id,
+                        'card_id' => $listing->listable_id,
+                        'condition' => $sellerItem->condition,
+                        'language' => $sellerItem->language,
+                        'is_foil' => $sellerItem->is_foil,
+                    ]);
+                    $buyerItem->quantity = ($buyerItem->quantity ?? 0) + 1;
+                    $buyerItem->save();
+                } else {
+                    $sellerItem = \App\Models\InventoryPack::findOrFail($listing->inventory_item_id);
+                    $sellerItem->decrement('quantity');
+                    if ($sellerItem->quantity_locked > 0) {
+                        $sellerItem->decrement('quantity_locked');
+                    }
+
+                    $buyerItem = \App\Models\InventoryPack::firstOrNew([
+                        'user_id' => $buyer->id,
+                        'booster_pack_id' => $listing->listable_id,
+                    ]);
+                    $buyerItem->quantity = ($buyerItem->quantity ?? 0) + 1;
+                    $buyerItem->save();
+                }
+
+                // 4. Actualizar Estado
+                $listing->update(['status' => 'sold', 'buyer_id' => $buyer->id]);
+
+                $order->update([
+                    'payment_status' => 'completed',
+                    'status' => 'completed',
+                    'stripe_session_id' => $stripeSessionId
+                ]);
+
+                // 5. Registrar Transacción
+                \App\Models\MarketTransaction::create([
+                    'order_id' => $order->id,
+                    'market_listing_id' => $listing->id,
+                    'seller_id' => $seller->id,
+                    'buyer_id' => $buyer->id,
+                    'price_total' => (float) $listing->price_total,
+                    'fee_platform' => (float) $listing->fee_platform,
+                    'amount_to_seller' => (float) $listing->amount_to_seller,
+                    'status' => 'completed'
+                ]);
+
+                return response()->json(['status' => 'success']);
+            });
+        } catch (\Exception $e) {
+            Log::error('Critical error in handleMarketPayment', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Processing failed'], 500);
         }
     }
 }
