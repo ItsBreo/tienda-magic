@@ -82,7 +82,7 @@ Route::get('/store-stats', [DashboardController::class, 'getStats']);
 Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
 
 // --- WEBHOOKS DE STRIPE (Sin autenticación) ---
-Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook']);
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
 
 /*
 |--------------------------------------------------------------------------
@@ -182,6 +182,8 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
 
     // ========== BILLETERA ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
+    Route::get('/wallet/transactions', [WalletTransactionController::class, 'index']);
+    Route::get('/wallet/transactions/pdf', [WalletTransactionController::class, 'downloadPdf']);
 
     // ========== USUARIO (Cuenta Base y Billetera) ==========
     Route::prefix('account')->group(function () {

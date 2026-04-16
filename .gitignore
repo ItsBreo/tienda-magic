@@ -38,6 +38,7 @@ main.py
 *.tar.gz
 stripe.exe
 stripe-cli.zip
+stripe
 
 # Archivos temporales de desarrollo
 *.tmp

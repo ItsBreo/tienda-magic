@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Wallet, ArrowLeft, CreditCard, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Wallet, ArrowLeft, CreditCard, Loader2, CheckCircle, XCircle, Download, Calendar, History } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import apiService from '@/services/ApiService';
 import { formatEuro } from '@/utils/formatMoney';
+import { formatDate } from '@/utils/formatDate';
 
 const RECHARGE_AMOUNTS = [
     { amount: 5, label: '5€', bonus: '', description: 'Recarga básica' },
@@ -19,7 +20,24 @@ export default function WalletPage() {
     const { user, updateUser } = useAuth();
     const [loading, setLoading] = useState(false);
     const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [transactionsLoading, setTransactionsLoading] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     const toastShown = useRef(false);
+
+    // Cargar transacciones
+    const fetchTransactions = async (page = 1) => {
+        if (!user) return;
+        setTransactionsLoading(true);
+        try {
+            const response = await apiService.getWalletTransactions(page);
+            setTransactions(response.transactions.data || []);
+        } catch (error) {
+            console.error('Error al cargar transacciones:', error);
+        } finally {
+            setTransactionsLoading(false);
+        }
+    };
 
     // Manejar el retorno de Stripe
     useEffect(() => {
@@ -35,6 +53,7 @@ export default function WalletPage() {
                     try {
                         const userData = await apiService.checkAuth();
                         updateUser(userData);
+                        fetchTransactions(); // Recargar transacciones también
                     } catch (error) {
                         console.error('Error al refrescar datos del usuario:', error);
                     }
@@ -48,6 +67,33 @@ export default function WalletPage() {
             navigate('/wallet', { replace: true });
         }
     }, [searchParams.toString(), updateUser, navigate]);
+
+    // Cargar transacciones al inicio
+    useEffect(() => {
+        if (user) {
+            fetchTransactions();
+        }
+    }, [user?.id]);
+
+    const handleDownloadPdf = async () => {
+        setDownloading(true);
+        try {
+            const blob = await apiService.downloadWalletTransactionsPdf();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `historial_billetera_${user?.username}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+            toast.success('Descargando historial...');
+        } catch (error) {
+            console.error('Error al descargar PDF:', error);
+            toast.error('No se pudo generar el PDF. Inténtalo de nuevo.');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     const handleRecharge = async (amount: number) => {
         if (!user) {
@@ -112,12 +158,29 @@ export default function WalletPage() {
                             Volver al Dashboard
                         </button>
 
-                        <h1 className="text-3xl font-serif font-bold text-zinc-100 mb-2">
-                            Mi Billetera
-                        </h1>
-                        <p className="text-zinc-400">
-                            Gestiona tu saldo y recarga créditos para comprar cartas
-                        </p>
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl font-serif font-bold text-zinc-100 mb-2">
+                                    Mi Billetera
+                                </h1>
+                                <p className="text-zinc-400">
+                                    Gestiona tu saldo y recarga créditos para comprar cartas
+                                </p>
+                            </div>
+                            
+                            <button
+                                onClick={handleDownloadPdf}
+                                disabled={downloading || transactions.length === 0}
+                                className="flex items-center justify-center px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-100 rounded-lg border border-zinc-700 transition-all font-medium"
+                            >
+                                {downloading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Download className="w-4 h-4 mr-2" />
+                                )}
+                                Descargar Historial (PDF)
+                            </button>
+                        </div>
                     </div>
 
                     {/* Saldo Actual */}
@@ -198,13 +261,65 @@ export default function WalletPage() {
                     </div>
 
                     {/* Historial de Transacciones */}
-                    <div className="mt-8 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8">
-                        <h3 className="text-xl font-semibold text-zinc-100 mb-4">
-                            Historial de Transacciones
-                        </h3>
-                        <p className="text-zinc-400 text-center py-8">
-                            El historial detallado estará disponible próximamente.
-                        </p>
+                    <div className="mt-8 bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden">
+                        <div className="p-8 border-b border-zinc-800">
+                            <h3 className="text-xl font-semibold text-zinc-100 flex items-center">
+                                <History className="w-5 h-5 mr-3 text-zinc-400" />
+                                Historial de Transacciones
+                            </h3>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            {transactionsLoading ? (
+                                <div className="flex flex-col items-center justify-center py-20">
+                                    <Loader2 className="w-8 h-8 text-zinc-500 animate-spin mb-4" />
+                                    <p className="text-zinc-400">Cargando transacciones...</p>
+                                </div>
+                            ) : transactions.length > 0 ? (
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-zinc-800/30 text-zinc-400 text-xs uppercase tracking-wider">
+                                            <th className="px-8 py-4 font-medium">Fecha</th>
+                                            <th className="px-6 py-4 font-medium">Descripción</th>
+                                            <th className="px-6 py-4 font-medium">Monto</th>
+                                            <th className="px-8 py-4 font-medium text-right">Saldo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-800">
+                                        {transactions.map((tx) => (
+                                            <tr key={tx.id} className="hover:bg-zinc-800/20 transition-colors">
+                                                <td className="px-8 py-4 text-sm text-zinc-400">
+                                                    <div className="flex items-center">
+                                                        <Calendar className="w-3 h-3 mr-2 opacity-50" />
+                                                        {formatDate(tx.created_at)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-zinc-100">
+                                                    {tx.description || 'Transacción'}
+                                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${
+                                                        tx.type === 'deposit' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                                                    }`}>
+                                                        {tx.type === 'deposit' ? 'Entrada' : 'Gasto'}
+                                                    </span>
+                                                </td>
+                                                <td className={`px-6 py-4 text-sm font-bold ${
+                                                    tx.type === 'deposit' ? 'text-emerald-400' : 'text-rose-400'
+                                                }`}>
+                                                    {tx.type === 'deposit' ? '+' : '-'}{formatEuro(tx.amount)}
+                                                </td>
+                                                <td className="px-8 py-4 text-sm font-medium text-zinc-100 text-right">
+                                                    {formatEuro(tx.balance_after)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="text-center py-20">
+                                    <p className="text-zinc-500 italic">No se han encontrado movimientos en tu billetera.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

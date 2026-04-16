@@ -184,6 +184,18 @@ class MagicApi {
         return response.data;
     }
 
+    async getWalletTransactions(page: number = 1): Promise<any> {
+        const response = await this.api.get('/api/wallet/transactions', { params: { page } });
+        return response.data;
+    }
+
+    async downloadWalletTransactionsPdf(): Promise<Blob> {
+        const response = await this.api.get('/api/wallet/transactions/pdf', {
+            responseType: 'blob'
+        });
+        return new Blob([response.data], { type: 'application/pdf' });
+    }
+
     // ─── Red Social y Foro ───────────────────────────────────────────────────
 
     async getForums(): Promise<any> {
