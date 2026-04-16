@@ -4,7 +4,7 @@ import { CAT_LABELS } from "./constants";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "sonner";
-// import { Trash2 } from "lucide-react"; // Eliminado
+import { Trash2 } from "lucide-react"; 
 // import DeleteConfirmDialog from "./DeleteConfirmDialog"; // Eliminado
 
 const CAT_CLASS: Record<string, string> = {
@@ -103,18 +103,32 @@ export default function PostCard({
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("¿Seguro que deseas eliminar esta publicación?")) return;
+    try {
+      await ApiService.deleteThread(post.id);
+      toast.success("Publicación eliminada correctamente");
+      onDeleteSuccess?.();
+    } catch (err) {
+      console.error("Error al eliminar hilo:", err);
+      toast.error("No se pudo eliminar la publicación");
+    }
+  };
+
   /* Eliminado: handleDelete, confirmDelete */
+
+  const canSelect = selection?.isMod || post.can_delete;
 
   return (
     <div className={`flex bg-[var(--surface)] border border-[var(--border)] rounded-lg mb-2 overflow-hidden transition-colors duration-150 hover:border-[var(--border-2)] group ${selection?.isSelected ? 'border-[var(--accent)] bg-[var(--accent)]/5' : ''}`}>
-      {selection?.isMod && (
+      {canSelect && (
         <div className="flex items-center px-3 bg-[var(--surface-2)]/50 border-r border-[var(--border)]">
           <input 
             type="checkbox" 
-            checked={selection.isSelected}
+            checked={selection?.isSelected || false}
             onChange={(e) => {
               e.stopPropagation();
-              selection.toggle();
+              selection?.toggle();
             }}
             className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-[var(--accent)] focus:ring-[var(--accent)] cursor-pointer"
           />
@@ -135,12 +149,22 @@ export default function PostCard({
           <span className="text-xs text-[var(--text-muted)]">· {post.timeAgo}</span>
         </div>
 
-        <div onClick={onOpen} className="text-[15px] font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] mb-1.5 leading-snug cursor-pointer transition-colors duration-150">
-          {post.title}
-        </div>
+        <div className="flex gap-4">
+          <div className="flex-1 min-w-0">
+            <div onClick={onOpen} className="text-[15px] font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] mb-1.5 leading-snug cursor-pointer transition-colors duration-150">
+              {post.title}
+            </div>
 
-        <div className="text-[13px] text-[var(--text-secondary)] mb-2 leading-relaxed line-clamp-2">
-          {post.preview}
+            <div className="text-[13px] text-[var(--text-secondary)] mb-2 leading-relaxed line-clamp-2">
+              {post.preview}
+            </div>
+          </div>
+
+          {post.image_url && (
+            <div onClick={onOpen} className="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-[var(--border)] cursor-pointer hover:border-[var(--accent)] transition-colors">
+              <img src={post.image_url} alt={post.title} className="w-full h-full object-cover" />
+            </div>
+          )}
         </div>
 
         <div className="flex gap-1 mb-2 flex-wrap">

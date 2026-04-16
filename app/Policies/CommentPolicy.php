@@ -40,24 +40,24 @@ class CommentPolicy
             return true;
         }
 
-        // Admin y super_admin tienen acceso total
+        // Admin y moderador pueden borrar (delegado a moderate)
+        return $this->moderate($user, $comment);
+    }
+
+    /**
+     * ¿Puede el usuario moderar este comentario?
+     */
+    public function moderate(User $user, Comment $comment): bool
+    {
         if ($user->isAdmin()) {
             return true;
         }
 
-        // El moderador sectorial puede borrar en su foro.
-        // Necesitamos el forum_id del thread al que pertenece el comentario.
-        if ($user->isModerator()) {
-            $forumId = $comment->thread?->forum_id
-                ?? \Illuminate\Support\Facades\DB::table('threads')
-                    ->where('id', $comment->thread_id)
-                    ->value('forum_id');
+        $forumId = $comment->thread?->forum_id
+            ?? \Illuminate\Support\Facades\DB::table('threads')
+                ->where('id', $comment->thread_id)
+                ->value('forum_id');
 
-            if ($forumId && $user->isModeratorOf((int) $forumId)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $forumId && $user->isModeratorOf((int) $forumId);
     }
 }
