@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Forum;
 use Illuminate\Database\Seeder;
+use Database\Seeders\ForumSeeder;
 
 class DatabaseSeeder extends Seeder
 {

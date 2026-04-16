@@ -22,8 +22,21 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'wallet_balance' => fake()->randomFloat(2, 0, 5000),
             'remember_token' => Str::random(10),
-            'role' => 'user',
         ];
+    }
+
+    /**
+     * Configure the model factory.
+     * Generar un UserProfile base para cada usuario para inicializar su reputación a 100.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->profile()->create([
+                'display_name' => $user->username,
+                'reputation_score' => 0, // Devuelve 100 por el accessor
+            ]);
+        });
     }
 
     /**

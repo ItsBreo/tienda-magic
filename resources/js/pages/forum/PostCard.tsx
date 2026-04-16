@@ -120,6 +120,7 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
           </span>
           <span className="text-xs text-[var(--text-muted)]">
             por <b className="text-[var(--text-secondary)] font-semibold">{post.author}</b>
+            <span className="ml-1 text-[9px] font-bold text-[var(--accent)] bg-[var(--accent)]/10 px-1 py-0.5 rounded shadow-sm" title="Reputación">{post.reputation || 100}✨</span>
             {post.isMod && " 🛡️"}
           </span>
           <span className="text-xs text-[var(--text-muted)]">· {post.timeAgo}</span>

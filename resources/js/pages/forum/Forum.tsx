@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { Category, SortMode, View, Post, Comment, Tournament } from "./types";
 import { RULES, CAT_LABELS } from "./constants";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Loader2, MessageSquare, Flame } from "lucide-react";
 import TournamentModal from "./TournamentModal";
 import TournamentDetailModal from "./TournamentDetailModal";
 import ForumFeedView from "./ForumFeed";
@@ -55,6 +55,28 @@ function Widget({ title, children }: { title: string; children: React.ReactNode 
   );
 }
 
+const mapThreadToPost = (t: any): Post => ({
+  id: t.id,
+  forum_id: t.forum_id,
+  title: t.title,
+  preview: t.body,
+  author: t.user?.username || t.user?.name || t.author?.name || "Desconocido",
+  author_id: t.user?.id || t.author?.id || 0,
+  reputation: t.user?.reputation || t.author?.reputation || 100,
+  category: t.forum?.slug as Category,
+  score: t.score || 0,
+  userVote: t.user_vote || 0,
+  isSaved: t.is_saved || false,
+  comments: t.comments_count || 0,
+  timeAgo: formatDate(t.created_at),
+  tags: (() => { 
+    if (Array.isArray(t.tags)) return t.tags;
+    try { return JSON.parse(t.tags || "[]"); } catch { return []; }
+  })(),
+  can_delete: t.can_delete,
+  can_edit: t.can_edit,
+});
+
 export default function MagicForum() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -70,8 +92,12 @@ export default function MagicForum() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Estado de búsqueda
+  // Estado de búsqueda dinámico
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || "");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   // Estado para la animación de transición entre vistas
   const [isHiding, setIsHiding] = useState(false);
@@ -101,47 +127,47 @@ export default function MagicForum() {
       .catch(err => console.error("Error al cargar la lista de foros:", err));
   }, []);
 
-  // Efecto para la búsqueda dinámica (con debounce)
+  // Efecto para la búsqueda dinámica (con debounce en el popover)
   useEffect(() => {
     const handler = setTimeout(() => {
       const trimmedSearch = searchTerm.trim();
-      // Actualizamos la URL si el término es válido o si se ha borrado una búsqueda existente
       if (trimmedSearch.length >= 3) {
-        navigate(`/forum?q=${encodeURIComponent(trimmedSearch)}`);
-      } else if (!trimmedSearch && searchParams.get('q')) {
-        navigate('/forum');
+        setIsSearching(true);
+        setIsSearchOpen(true);
+        ApiService.axiosInstance.get(`/api/forum/search`, { params: { q: trimmedSearch } })
+          .then(res => {
+            const threads = res.data.data || res.data || [];
+            setSearchResults(threads.map(mapThreadToPost).slice(0, 5));
+          })
+          .catch(err => console.error("Error en búsqueda dinámica:", err))
+          .finally(() => setIsSearching(false));
+      } else {
+        setSearchResults([]);
+        setIsSearchOpen(false);
+        // Si el usuario vacía la búsqueda y estamos en una vista de búsqueda, le devolvemos a inicio
+        if (!trimmedSearch && searchParams.get('q')) {
+            navigate('/forum');
+        }
       }
-    }, 500); // 500ms de espera antes de buscar
+    }, 400);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchTerm, navigate, searchParams]);
+    return () => clearTimeout(handler);
+  }, [searchTerm, searchParams, navigate]);
+
+  // Cerrar el buscador flotante al clickear fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const searchQuery = searchParams.get('q');
     setIsLoading(true);
-
-    const mapThreadToPost = (t: any): Post => ({
-      id: t.id,
-      forum_id: t.forum_id,
-      title: t.title,
-      preview: t.body,
-      author: t.user?.username || t.user?.name || t.author?.name || "Desconocido",
-      author_id: t.user?.id || t.author?.id || 0,
-      category: t.forum?.slug as Category,
-      score: t.score || 0,
-      userVote: t.user_vote || 0,
-      isSaved: t.is_saved || false,
-      comments: t.comments_count || 0,
-      timeAgo: formatDate(t.created_at),
-      tags: (() => { 
-        if (Array.isArray(t.tags)) return t.tags;
-        try { return JSON.parse(t.tags || "[]"); } catch { return []; }
-      })(),
-      can_delete: t.can_delete,
-      can_edit: t.can_edit,
-    });
 
     let fetcher;
 
@@ -186,6 +212,7 @@ export default function MagicForum() {
         id: c.id, 
         author: c.user?.username || c.user?.name || c.author?.name || "Desconocido", 
         author_id: c.user?.id || c.author?.id || 0,
+        reputation: c.user?.reputation || c.author?.reputation || 100,
         avatarColor: "var(--accent)",
         initials: (c.user?.username || c.user?.name || c.author?.name || "US").substring(0, 2).toUpperCase(),
         timeAgo: formatDate(c.created_at), 
@@ -198,6 +225,7 @@ export default function MagicForum() {
           id: r.id, 
           author: r.user?.username || r.user?.name || r.author?.name || "Desconocido", 
           author_id: r.user?.id || r.author?.id || 0,
+          reputation: r.user?.reputation || r.author?.reputation || 100,
           avatarColor: "#10b981",
           initials: (r.user?.username || r.user?.name || r.author?.name || "US").substring(0, 2).toUpperCase(),
           timeAgo: formatDate(r.created_at), 
@@ -271,7 +299,7 @@ export default function MagicForum() {
             </div>
           </div>
 
-          <div className="p-4 border-b border-[var(--border)]">
+          <div className="p-4 border-b border-[var(--border)] relative z-20" ref={searchRef}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
               <Input
@@ -279,8 +307,68 @@ export default function MagicForum() {
                 className="pl-9 bg-[var(--surface-2)] border-[var(--border)] focus-visible:ring-[var(--accent)]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => { if (searchTerm.trim().length >= 3) setIsSearchOpen(true); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchTerm.trim().length >= 3) {
+                    setIsSearchOpen(false);
+                    navigate(`/forum?q=${encodeURIComponent(searchTerm.trim())}`);
+                  }
+                }}
               />
             </div>
+
+            {/* Dropdown flotante tipo popover dinámico */}
+            {isSearchOpen && (
+              <div className="absolute top-[calc(100%-4px)] left-4 right-4 z-50 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[350px]">
+                <div className="px-3 py-2 bg-[var(--surface-2)] border-b border-[var(--border)] text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider flex justify-between items-center">
+                  <span>Resultados Rápidos</span>
+                  {isSearching && <Loader2 className="h-3 w-3 animate-spin text-[var(--accent)]" />}
+                </div>
+                
+                <div className="overflow-y-auto flex-1 overscroll-contain">
+                  {!isSearching && searchResults.length === 0 && (
+                    <div className="px-4 py-6 text-xs text-center text-[var(--text-muted)] flex flex-col items-center gap-2">
+                       <Search className="h-6 w-6 text-[var(--border)]" />
+                       No se encontraron hilos
+                    </div>
+                  )}
+                  {searchResults.map((post, idx) => (
+                    <div
+                      key={post.id}
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        openThread(post);
+                      }}
+                      className={`flex flex-col p-3 cursor-pointer hover:bg-[var(--surface-2)] transition-all ${idx < searchResults.length - 1 ? 'border-b border-[var(--border)]' : ''}`}
+                    >
+                      <div className="text-xs font-semibold text-[var(--text-primary)] line-clamp-2 leading-tight mb-1">{post.title}</div>
+                      <div className="flex items-center gap-2.5 text-[10px] text-[var(--text-muted)]">
+                        <span className="flex-1 truncate">@{post.author}</span>
+                        <div className="flex items-center gap-1 shrink-0 text-orange-400">
+                          <Flame className="w-3 h-3" />
+                          <span>{post.score}</span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <MessageSquare className="w-3 h-3" />
+                          <span>{post.comments}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {searchResults.length > 0 && (
+                  <div
+                     onClick={() => {
+                        setIsSearchOpen(false);
+                        navigate(`/forum?q=${encodeURIComponent(searchTerm.trim())}`);
+                     }}
+                     className="px-3 py-2 bg-[var(--surface-2)] border-t border-[var(--border)] text-[11px] text-center font-bold text-[var(--accent)] hover:text-white cursor-pointer hover:bg-[var(--accent)] transition-colors"
+                  >
+                    Ver todos los resultados &rarr;
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="py-2.5 px-4.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Mi Actividad</div>

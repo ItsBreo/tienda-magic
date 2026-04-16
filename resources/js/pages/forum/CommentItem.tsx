@@ -76,7 +76,9 @@ function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; foru
 
       <div className="flex-1">
         <div className="text-[11px] text-[var(--text-muted)] mb-1">
-          <b className="text-[var(--text-secondary)] font-semibold">{reply.author}</b> · {reply.timeAgo} ·{" "}
+          <b className="text-[var(--text-secondary)] font-semibold">{reply.author}</b>
+          <span className="ml-1 mr-1 text-[9px] font-bold text-[var(--accent)] bg-[var(--accent)]/10 px-1 py-0.5 rounded shadow-sm" title="Reputación">{reply.reputation || 100}✨</span>
+          · {reply.timeAgo} ·{" "}
           <span className={score < 0 ? 'text-[var(--red)]' : 'text-[var(--accent)]'}>{score > 0 ? `+${score}` : score}</span>
         </div>
         <div className={`text-[13px] leading-relaxed mb-1.5 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
@@ -223,7 +225,9 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
 
         <div className="flex-1">
           <div className="text-[11px] text-[var(--text-muted)] mb-1">
-            <b className="text-[var(--text-secondary)] font-semibold">{comment.author}</b> · {comment.timeAgo} ·{" "}
+            <b className="text-[var(--text-secondary)] font-semibold">{comment.author}</b>
+            <span className="ml-1 mr-1 text-[9px] font-bold text-[var(--accent)] bg-[var(--accent)]/10 px-1 py-0.5 rounded shadow-sm" title="Reputación">{comment.reputation || 100}✨</span>
+            · {comment.timeAgo} ·{" "}
             <span className={score < 0 ? 'text-[var(--red)]' : 'text-[var(--accent)]'}>{score > 0 ? `+${score}` : score}</span>
           </div>
           <div className={`text-[13px] leading-relaxed mb-2 ${isHidden ? 'text-[var(--text-muted)] opacity-70' : 'text-[var(--text-primary)]'}`}>
