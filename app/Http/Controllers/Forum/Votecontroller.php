@@ -60,7 +60,8 @@ class VoteController extends Controller
             if ($existingVote->value === $value) {
                 // Si vota igual que antes → cancela el voto (toggle)
                 $existingVote->delete();
-                $newScore = $this->updateScore($votableType, $votableId, -$value);
+                // El VoteObserver actualizará el score. Volvemos a cargarlo.
+                $newScore = $votableType::where('id', $votableId)->value('score');
 
                 return response()->json([
                     'message'   => 'Voto cancelado.',
@@ -69,9 +70,8 @@ class VoteController extends Controller
                 ]);
             } else {
                 // Si cambia de upvote a downvote o viceversa → actualiza
-                $diff = $value - $existingVote->value; // Ej: 1 - (-1) = 2
                 $existingVote->update(['value' => $value]);
-                $newScore = $this->updateScore($votableType, $votableId, $diff);
+                $newScore = $votableType::where('id', $votableId)->value('score');
 
                 return response()->json([
                     'message'   => 'Voto actualizado.',
@@ -89,33 +89,12 @@ class VoteController extends Controller
             'value'        => $value,
         ]);
 
-        $newScore = $this->updateScore($votableType, $votableId, $value);
+        $newScore = $votableType::where('id', $votableId)->value('score');
 
         return response()->json([
             'message'   => 'Voto registrado.',
             'score'     => $newScore,
             'user_vote' => $value
         ], 201);
-    }
-
-    // Actualiza el score cacheado en el thread o comment correspondiente,
-    // y actualiza el reputation_score del perfil del autor en un proceso unificado.
-    private function updateScore(string $votableType, int $votableId, int $diff): int
-    {
-        $votable = $votableType::where('id', $votableId)->first();
-        if ($votable) {
-            $votable->increment('score', $diff);
-
-            // Inyectar el impacto del voto en el perfil del autor
-            $author = $votable->user;
-            if ($author && $author->profile) {
-                // Según la fórmula: Threads dan 2 puntos por positivo, Comments 1 punto.
-                $repDiff = ($votableType === \App\Models\Thread::class) ? ($diff * 2) : $diff;
-                $author->profile->increment('reputation_score', $repDiff);
-            }
-            return $votable->score;
-        }
-
-        return 0;
     }
 }

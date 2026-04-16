@@ -305,8 +305,7 @@ class TradeController extends Controller
             DB::commit();
 
             // Actualización en tiempo real vía WebSocket (Payload ligero para evitar 'Payload too large')
-            $broadcastSession = clone $session;
-            broadcast(new TradeSessionUpdated($broadcastSession->unsetRelations()));
+            broadcast(new TradeSessionUpdated((clone $session)->unsetRelations()))->toOthers();
 
             return response()->json($session);
         } catch (\Exception $e) {
@@ -361,8 +360,7 @@ class TradeController extends Controller
             DB::commit();
 
             // Actualización en tiempo real vía WebSocket
-            $broadcastSession = clone $session;
-            broadcast(new TradeSessionUpdated($broadcastSession->unsetRelations()));
+            broadcast(new TradeSessionUpdated((clone $session)->unsetRelations()))->toOthers();
 
             return response()->json($session);
         } catch (\Exception $e) {
@@ -452,8 +450,7 @@ class TradeController extends Controller
                 'exchangeRequest.exchange.user',
                 'exchangeRequest.exchange.offeredCard.card'
             ]);
-            $broadcastSession = clone $session;
-            broadcast(new TradeSessionUpdated($broadcastSession->unsetRelations()));
+            broadcast(new TradeSessionUpdated((clone $session)->unsetRelations()))->toOthers();
 
             return response()->json($session);
         } catch (\Exception $e) {

@@ -130,7 +130,12 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
             {(post.author || "U").substring(0, 2).toUpperCase()}
           </div>
           <div>
-            <div className="text-[12px] font-bold text-[var(--text-primary)] leading-none mb-1">{post.author}</div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[12px] font-bold text-[var(--text-primary)] leading-none">{post.author}</span>
+              <span className="text-[10px] font-bold text-[var(--accent)] bg-[var(--accent)]/10 px-1.5 py-0.5 rounded-sm shadow-sm" title="Reputación de usuario">
+                {post.reputation || 100}✨
+              </span>
+            </div>
             <div className="text-[10px] text-[var(--text-secondary)] leading-none">{post.timeAgo}</div>
           </div>
         </div>

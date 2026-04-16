@@ -25,6 +25,7 @@ export default function TradeRoom() {
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState('');
   const [sendingMsg, setSendingMsg] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -146,11 +147,35 @@ export default function TradeRoom() {
   const fetchMessages = async () => {
     try {
       const data = await apiService.getTradeMessages(Number(sessionId));
+      setConversationId(data.conversation_id || null);
       setMessages(data.data ?? []);
     } catch {
       // Silencioso — el chat puede no estar inicializado aún
     }
   };
+
+  // Escuchar mensajes entrantes en tiempo real
+  useEffect(() => {
+    if (!conversationId || !echoRef.current) return;
+    
+    const channelName = `conversation.${conversationId}`;
+    const channel = echoRef.current.private(channelName);
+    
+    channel.listen('.message.sent', (e: any) => {
+      console.log('RT: Chat message received', e);
+      setMessages((prev) => {
+        // Prevenir duplicados
+        if (prev.some(m => m.id === e.id)) return prev;
+        return [...prev, e];
+      });
+    });
+
+    return () => {
+      if (echoRef.current) {
+        echoRef.current.leave(channelName);
+      }
+    };
+  }, [conversationId]);
 
   const handleSendMessage = async () => {
     const content = chatInput.trim();
@@ -159,7 +184,10 @@ export default function TradeRoom() {
     try {
       const msg = await apiService.sendTradeMessage(Number(sessionId), content);
       setChatInput('');
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
     } catch {
       toast.error('Error al enviar el mensaje');
     } finally {
@@ -211,13 +239,22 @@ export default function TradeRoom() {
     </div>
   );
 
-  const req = room.exchange_request;
+  const req = room.exchange_request || room.exchangeRequest;
+
+  if (!req || !req.exchange) {
+    return (
+      <div className="p-10 text-center text-red-400 font-bold">
+        Error: No se pudo cargar la información estructurada de la sala. (exchangeRequest missing)
+      </div>
+    );
+  }
+
   const exch = req.exchange;
 
   const isUser1 = (exch.user_id === user.id);
-  const mySide = isUser1 ? exch.offered_card : req.offered_card;
+  const mySide = isUser1 ? exch.offered_card || exch.offeredCard : req.offered_card || req.offeredCard;
   const myStatus = isUser1 ? room.user1_confirmed : room.user2_confirmed;
-  const theirSide = isUser1 ? req.offered_card : exch.offered_card;
+  const theirSide = isUser1 ? req.offered_card || req.offeredCard : exch.offered_card || exch.offeredCard;
   const theirStatus = isUser1 ? room.user2_confirmed : room.user1_confirmed;
   const theirName = isUser1 ? req?.user?.name : exch?.user?.name;
 

@@ -45,10 +45,15 @@ class Order extends Model
         foreach ($orderItems as $item) {
             $product = $item->purchasable;
 
+            // Deduct stock safely
+            if (isset($product->stock)) {
+                $deductAmount = min($product->stock, $item->quantity);
+                if ($deductAmount > 0) {
+                    $product->decrement('stock', $deductAmount);
+                }
+            }
+
             if ($product instanceof Card) {
-                // Deduct stock (already done during checkout creation or here depending on logic, let's keep it safe)
-                // Actually, stock is deducted when creating the order in CheckoutController.
-                
                 // Add to inventory
                 $inventoryCard = InventoryCard::firstOrNew([
                     'user_id' => $this->user_id,

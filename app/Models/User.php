@@ -76,6 +76,7 @@ class User extends Authenticatable implements JWTSubject
     protected $appends = [
         'is_admin',
         'role_name',
+        'reputation',
     ];
 
     /**

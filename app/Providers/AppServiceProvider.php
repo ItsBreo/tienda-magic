@@ -13,7 +13,11 @@ use App\Listeners\AchievementListener;
 use App\Models\Message;
 use App\Models\Thread;
 use App\Models\Comment;
+use App\Models\Vote;
 use App\Observers\MessageObserver;
+use App\Observers\ThreadObserver;
+use App\Observers\CommentObserver;
+use App\Observers\VoteObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -37,6 +41,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(TransactionCompleted::class, [AchievementListener::class, 'handleTransactionCompleted']);
 
         Message::observe(MessageObserver::class);
+        Thread::observe(ThreadObserver::class);
+        Comment::observe(CommentObserver::class);
+        Vote::observe(VoteObserver::class);
 
         // Policies del foro
         Gate::policy(Tournament::class, TournamentPolicy::class);
