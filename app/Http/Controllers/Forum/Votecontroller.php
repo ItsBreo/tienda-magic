@@ -6,9 +6,26 @@ use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use OpenApi\Attributes as OA;
 
 class VoteController extends Controller
 {
+    #[OA\Post(
+        path: "/api/votes",
+        summary: "Votar hilo o comentario",
+        description: "Emite un voto (upvote o downvote) para un comentario o hilo.",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "votable_id", type: "integer"),
+            new OA\Property(property: "votable_type", type: "string", enum: ["thread", "comment"]),
+            new OA\Property(property: "value", type: "integer", enum: [1, -1])
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Voto registrado")]
     public function store(Request $request)
     {
         // Convertimos a minúsculas por si React envía "Thread" o "Comment" en lugar de "thread" o "comment"
@@ -81,11 +98,24 @@ class VoteController extends Controller
         ], 201);
     }
 
-    // Actualiza el score cacheado en el thread o comment correspondiente
+    // Actualiza el score cacheado en el thread o comment correspondiente,
+    // y actualiza el reputation_score del perfil del autor en un proceso unificado.
     private function updateScore(string $votableType, int $votableId, int $diff): int
     {
-        $votableType::where('id', $votableId)->increment('score', $diff);
+        $votable = $votableType::where('id', $votableId)->first();
+        if ($votable) {
+            $votable->increment('score', $diff);
 
-        return $votableType::where('id', $votableId)->value('score');
+            // Inyectar el impacto del voto en el perfil del autor
+            $author = $votable->user;
+            if ($author && $author->profile) {
+                // Según la fórmula: Threads dan 2 puntos por positivo, Comments 1 punto.
+                $repDiff = ($votableType === \App\Models\Thread::class) ? ($diff * 2) : $diff;
+                $author->profile->increment('reputation_score', $repDiff);
+            }
+            return $votable->score;
+        }
+
+        return 0;
     }
 }

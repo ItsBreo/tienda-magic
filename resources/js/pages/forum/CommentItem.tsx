@@ -3,29 +3,24 @@ import { Comment, Reply } from "./types";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit2, MoreHorizontal } from "lucide-react";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
-function ReplyItem({ reply, forumId, onDelete }: { reply: Reply; forumId: number; onDelete: (id: number) => void }) {
+function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; forumId: number; onDelete: (id: number) => void; onReplyTo: (author: string) => void }) {
   const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(reply.score || 0);
   const [vote, setVote] = useState<1 | -1 | 0>((reply as any).userVote || 0);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
 
   useEffect(() => {
     setScore(reply.score || 0);
     setVote((reply as any).userVote || 0);
   }, [reply.score, (reply as any).userVote]);
 
-  const canDelete = user && (
-    user.id === reply.author_id || 
-    user.is_admin || 
-    (user.role_name === 'mod_news' && forumId === 2) ||
-    (user.role_name === 'mod_tournaments' && forumId === 5) ||
-    (user.role_name === 'mod_general' && forumId === 1)
-  );
+  const canDelete = (reply as any).can_delete || false;
 
   const cast = async (dir: 1 | -1) => {
     const newVote = vote === dir ? 0 : dir;
@@ -90,14 +85,25 @@ function ReplyItem({ reply, forumId, onDelete }: { reply: Reply; forumId: number
         <div className="flex gap-0.5 items-center">
           <button onClick={() => cast(1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
           <button onClick={() => cast(-1)} className={`py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
-          <button className="py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">💬 Responder</button>
+          <button onClick={() => onReplyTo(reply.author)} className="py-0.5 px-1.5 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors text-[11px] cursor-pointer">💬 Responder</button>
           {canDelete && (
-            <button 
-              onClick={handleDelete}
-              className="ml-auto opacity-0 group-hover:opacity-100 p-1 text-[var(--red)] hover:bg-red-500/10 rounded transition-all cursor-pointer"
-            >
-              <Trash2 size={12} />
-            </button>
+            <div className="relative ml-auto" onMouseLeave={() => setShowOptions(false)}>
+              <button 
+                onClick={() => setShowOptions(!showOptions)}
+                className="opacity-0 group-hover:opacity-100 py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] text-[11px] cursor-pointer transition-opacity"
+              >
+                <MoreHorizontal size={14} />
+              </button>
+              {showOptions && (
+                <div className="absolute right-0 bottom-full w-28 bg-[var(--surface)] border border-[var(--border)] rounded shadow-lg overflow-hidden z-20 flex flex-col">
+                  {canDelete && (
+                    <button onClick={() => { handleDelete(); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-[var(--red)] hover:bg-red-500/10 border-none bg-transparent cursor-pointer text-left">
+                      <Trash2 size={12} /> Eliminar
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -114,26 +120,50 @@ function ReplyItem({ reply, forumId, onDelete }: { reply: Reply; forumId: number
   );
 }
 
-export default function CommentItem({ comment, forumId, onDelete }: { comment: Comment; forumId: number; onDelete: (id: number) => void }) {
+export default function CommentItem({ comment, forumId, onDelete, onReplySubmit }: { comment: Comment; forumId: number; onDelete: (id: number) => void, onReplySubmit?: (body: string, parentId?: number) => void }) {
   const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(comment.score || 0);
   const [vote, setVote] = useState<1 | -1 | 0>((comment as any).userVote || 0);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
+  const [replyBody, setReplyBody] = useState("");
+  const [showOptions, setShowOptions] = useState(false);
 
-  useEffect(() => {
-    setScore(comment.score || 0);
-    setVote((comment as any).userVote || 0);
-  }, [comment.score, (comment as any).userVote]);
+  const handleReplyClick = (authorName?: string) => {
+    setIsReplying(!isReplying);
+    if (authorName) {
+      setIsReplying(true);
+      setReplyBody(`@${authorName} `);
+    } else {
+      setReplyBody("");
+    }
+  };
 
-  const canDelete = user && (
-    user.id === comment.author_id || 
-    user.is_admin || 
-    (user.role_name === 'mod_news' && forumId === 2) ||
-    (user.role_name === 'mod_tournaments' && forumId === 5) ||
-    (user.role_name === 'mod_general' && forumId === 1)
-  );
+  const handleSubmitReply = () => {
+    if (!replyBody.trim() || !onReplySubmit) return;
+    onReplySubmit(replyBody, comment.id);
+    setIsReplying(false);
+    setReplyBody("");
+  };
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editBody, setEditBody] = useState(comment.body || "");
+
+  const canDelete = (comment as any).can_delete || false;
+  const canEdit = (comment as any).can_edit || (user?.id === comment.author_id) || false;
+
+  const handleUpdate = async () => {
+    try {
+      await ApiService.axiosInstance.put(`/api/comments/${comment.id}`, { body: editBody });
+      toast.success("Comentario actualizado");
+      setIsEditing(false);
+      window.location.reload(); 
+    } catch (err) {
+      toast.error("Error al actualizar");
+    }
+  };
 
   const cast = async (dir: 1 | -1) => {
     const newVote = vote === dir ? 0 : dir;
@@ -202,17 +232,60 @@ export default function CommentItem({ comment, forumId, onDelete }: { comment: C
           <div className="flex gap-0.5 items-center">
             <button onClick={() => cast(1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === 1 ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-muted)]'}`}>▲ {score}</button>
             <button onClick={() => cast(-1)} className={`py-0.5 px-2 rounded-sm border-none bg-transparent text-[11px] cursor-pointer ${vote === -1 ? 'text-[var(--red)] font-semibold' : 'text-[var(--text-muted)]'}`}>▼</button>
-            <button className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">💬 Responder</button>
-            {canDelete && (
-              <button 
-                onClick={handleDelete}
-                className="ml-auto opacity-0 group-hover:opacity-100 p-1 text-[var(--red)] hover:bg-red-500/10 rounded transition-all cursor-pointer"
-              >
-                <Trash2 size={12} />
-              </button>
+            <button onClick={() => handleReplyClick()} className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors text-[11px] cursor-pointer">💬 Responder</button>
+            {(canDelete || canEdit) && (
+              <div className="relative ml-auto" onMouseLeave={() => setShowOptions(false)}>
+                <button 
+                  onClick={() => setShowOptions(!showOptions)}
+                  className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)] text-[11px] cursor-pointer transition-colors"
+                >
+                  <MoreHorizontal size={14} />
+                </button>
+                {showOptions && (
+                  <div className="absolute right-0 bottom-full w-28 bg-[var(--surface)] border border-[var(--border)] rounded shadow-lg overflow-hidden z-20 flex flex-col">
+                    {canEdit && (
+                      <button onClick={() => { setIsEditing(true); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-2)] border-none bg-transparent cursor-pointer text-left">
+                        <Edit2 size={12} /> Editar
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button onClick={() => { handleDelete(); setShowOptions(false); }} className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-[var(--red)] hover:bg-red-500/10 border-none bg-transparent cursor-pointer text-left">
+                        <Trash2 size={12} /> Eliminar
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
-            <button className="py-0.5 px-2 rounded-sm border-none bg-transparent text-[var(--text-muted)] text-[11px] cursor-pointer">···</button>
           </div>
+
+          {isReplying && (
+            <div className="mt-2 pl-2">
+              <textarea
+                autoFocus
+                value={replyBody}
+                onChange={e => setReplyBody(e.target.value)}
+                placeholder="Escribe tu respuesta..."
+                rows={2}
+                className="w-full bg-[var(--surface-2)] border border-[var(--border)] rounded-md py-1.5 px-2.5 text-[var(--text-primary)] text-[12px] resize-y outline-none focus:border-[var(--accent)] transition-colors mb-1.5"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setIsReplying(false)}
+                  className="bg-transparent border border-[var(--border)] py-1 px-2.5 rounded text-[11px] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSubmitReply}
+                  disabled={!replyBody.trim()}
+                  className={`bg-[var(--accent)] text-white border-none py-1 px-2.5 rounded text-[11px] font-semibold ${!replyBody.trim() ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[var(--accent-hover)] cursor-pointer'}`}
+                >
+                  Responder
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -225,7 +298,7 @@ export default function CommentItem({ comment, forumId, onDelete }: { comment: C
         description="Se eliminará el comentario y todas sus respuestas de forma permanente."
       />
 
-      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} forumId={forumId} onDelete={onDelete} />)}
+      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} forumId={forumId} onDelete={onDelete} onReplyTo={handleReplyClick} />)}
     </>
   );
 }

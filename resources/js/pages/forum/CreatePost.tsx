@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CreatePostViewProps {
-  forumsList: { id: number; name: string }[];
+  forumsList: { id: number; name: string; slug: string }[];
   isSubmitting: boolean;
   onCancel: () => void;
   onSubmit: (data: { forum_id: number; title: string; body: string; tags?: string[] }) => void;
 }
 
 export default function CreatePostView({ forumsList, isSubmitting, onCancel, onSubmit }: CreatePostViewProps) {
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [forumId, setForumId] = useState("");

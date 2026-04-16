@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use OpenApi\Attributes as OA;
 
 class WalletController extends Controller
 {
@@ -14,6 +15,21 @@ class WalletController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+    #[OA\Post(
+        path: "/api/wallet/recharge",
+        summary: "Recargar billetera",
+        description: "Inicia el flujo de recarga de saldo en la billetera virtual mediante Stripe.",
+        tags: ["Wallet"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "amount", type: "number", description: "Cantidad a recargar (5, 10, 20 o 50)")
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Sesión de Stripe Checkout creada exitosamente")]
+    #[OA\Response(response: 422, description: "Error de validación del monto")]
     public function createRechargeSession(Request $request)
     {
         $validator = Validator::make($request->all(), [

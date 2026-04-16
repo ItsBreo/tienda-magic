@@ -24,39 +24,37 @@ class ForumSeeder extends Seeder
         $forums = Forum::factory()->createMany([
             ['name' => 'General', 'slug' => 'general', 'icon' => 'heroicon-o-chat-bubble-left'],
             ['name' => 'Noticias', 'slug' => 'noticias', 'icon' => 'heroicon-o-newspaper'],
-            ['name' => 'Dudas y Reglas', 'slug' => 'dudas-y-reglas', 'icon' => 'heroicon-o-question-mark-circle'],
             ['name' => 'Estrategia y Decks', 'slug' => 'estrategia', 'icon' => 'heroicon-o-light-bulb'],
             ['name' => 'Torneos', 'slug' => 'torneos', 'icon' => 'heroicon-o-trophy'],
-            ['name' => 'Mercado', 'slug' => 'mercado', 'icon' => 'heroicon-o-currency-dollar'],
         ]);
 
         // 3. Crear Hilos (Threads) aleatorios para cada Foro
         foreach ($forums as $forum) {
-            // Creamos entre 5 y 10 hilos aleatorios por cada foro
-            Thread::factory(rand(5, 10))->create([
+            // Creamos entre 5 y 10 hilos por foro
+            $threads = Thread::factory(rand(5, 10))->create([
                 'forum_id' => $forum->id,
                 'user_id'  => $users->random()->id,
-            ])->each(function ($thread) use ($users) {
+            ]);
 
-                // 4. Crear Comentarios principales para cada hilo recién creado
-                $comments = Comment::factory(rand(3, 8))->create([
-                    // Suponiendo que tus comentarios se asocian a un thread
+            // 4. Para cada hilo, creamos comentarios y posibles respuestas
+            foreach ($threads as $thread) {
+                // Crear comentarios principales
+                $mainComments = Comment::factory(rand(3, 8))->create([
                     'thread_id' => $thread->id,
                     'user_id'   => $users->random()->id,
                 ]);
 
-                // 5. Crear Respuestas (replies) anidadas aleatoriamente
-                foreach ($comments as $comment) {
-                    // Probabilidad del 40% de que alguien responda al comentario
-                    if (rand(1, 100) <= 40) {
-                        Comment::factory(rand(1, 3))->create([
+                // Crear respuestas anidadas con una probabilidad
+                $mainComments->each(function ($comment) use ($thread, $users) {
+                    if (rand(1, 10) <= 4) { // 40% de probabilidad
+                        Comment::factory(rand(1, 2))->create([
                             'thread_id' => $thread->id,
                             'user_id'   => $users->random()->id,
-                            'parent_id' => $comment->id, // Atributo típico para relaciones de respuestas
+                            'parent_id' => $comment->id,
                         ]);
                     }
-                }
-            });
+                });
+            }
         }
     }
 }

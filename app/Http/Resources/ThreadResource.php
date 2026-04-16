@@ -20,6 +20,16 @@ class ThreadResource extends JsonResource
             'is_pinned'      => $this->is_pinned,
             'is_locked'      => $this->is_locked,
             'comments_count' => $this->comments_count,
+            'can_delete'     => (function () {
+                /** @var \App\Models\User|null $user */
+                $user = auth('api')->user();
+                return $user && $user->can('delete', $this->resource);
+            })(),
+            'can_edit'       => (function () {
+                /** @var \App\Models\User|null $user */
+                $user = auth('api')->user();
+                return $user && $user->can('update', $this->resource);
+            })(),
             'created_at'     => $this->created_at->diffForHumans(),
             'forum' => [
                 'id'   => $this->forum->id,
@@ -34,13 +44,13 @@ class ThreadResource extends JsonResource
             ],
             // Solo se incluye si se cargó la relación votes con with()
             'user_vote' => $this->whenLoaded('votes', function () {
-                $vote = $this->votes->where('user_id', auth()->id())->first();
+                $vote = $this->votes->where('user_id', auth('api')->id())->first();
                 return $vote?->value; // 1, -1 o null
             }),
 
             'is_saved' => $this->is_saved,
 
-            'comments' => $this->whenLoaded('comments'),
+            'comments' => CommentResource::collection($this->whenLoaded('comments')),
         ];
     }
 }

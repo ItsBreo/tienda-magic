@@ -13,10 +13,18 @@ use App\Services\ProfanityFilter;
 use App\Notifications\TradeAcceptedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 class TradeController extends Controller
 {
-    // Obtener mis solicitudes enviadas o recibidas
+    #[OA\Get(
+        path: "/api/exchange-requests",
+        summary: "Mis solicitudes de intercambio",
+        description: "Obtiene las solicitudes enviadas, recibidas y el historial de completadas.",
+        tags: ["Exchanges"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Listado de solicitudes")]
     public function myRequests()
     {
         $user = auth()->user();
@@ -24,6 +32,7 @@ class TradeController extends Controller
         // Envíos: Los que yo pedí
         $sent = ExchangeRequest::with(['exchange.offeredCard.card', 'offeredCard.card', 'tradeSession'])
             ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Recibidos: Peticiones a mis exchanges
@@ -32,6 +41,7 @@ class TradeController extends Controller
                 $q->where('user_id', $user->id);
             })
             ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Completados: Historial (yo pedí o me pidieron)
@@ -53,6 +63,15 @@ class TradeController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: "/api/exchange-requests/{id}/accept",
+        summary: "Aceptar solicitud de intercambio",
+        description: "Acepta una petición a tu listado de intercambio y crea una sala de sesión.",
+        tags: ["Exchanges"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la solicitud", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Solicitud aceptada y sesión creada")]
     public function acceptRequest($id)
     {
         $exchangeRequest = ExchangeRequest::with('exchange.user')->findOrFail($id);
@@ -103,6 +122,15 @@ class TradeController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: "/api/exchange-requests/{id}/reject",
+        summary: "Rechazar solicitud de intercambio",
+        description: "Rechaza una solicitud de intercambio que está pendiente.",
+        tags: ["Exchanges"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la solicitud", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Solicitud rechazada correctamente")]
     public function rejectRequest($id)
     {
         $exchangeRequest = ExchangeRequest::with('exchange')->findOrFail($id);
@@ -132,6 +160,15 @@ class TradeController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: "/api/trade-sessions/{id}",
+        summary: "Ver sala de intercambio",
+        description: "Obtiene los detalles y estado de una sesión de intercambio activa.",
+        tags: ["Trade Sessions"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la sesión", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Datos de la sesión de intercambio")]
     public function showRoom($id)
     {
         $session = TradeSession::with([
@@ -149,6 +186,15 @@ class TradeController extends Controller
         return response()->json($session);
     }
 
+    #[OA\Post(
+        path: "/api/trade-sessions/{id}/confirm",
+        summary: "Confirmar intercambio",
+        description: "Confirma el envío en la sesión de intercambio de tu lado. Cuando ambos confirman, se ejecuta el trueque.",
+        tags: ["Trade Sessions"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la sesión", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Confirmación guardada y/o transacción ejecutada completa")]
     public function confirmTrade($id)
     {
         $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
@@ -263,9 +309,15 @@ class TradeController extends Controller
         }
     }
 
-    /**
-     * Obtener (o crear) la conversación asociada a una TradeSession.
-     */
+    #[OA\Post(
+        path: "/api/trade-sessions/{id}/chat",
+        summary: "Inicia y obtiene conversación",
+        description: "Obtiene (o crea si no existe) la conversación asociada a esta sesión de intercambio.",
+        tags: ["Trade Sessions"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la sesión", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "ID de conversación")]
     public function getOrCreateChat($id)
     {
         $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
@@ -303,9 +355,15 @@ class TradeController extends Controller
         return response()->json(['conversation_id' => $conversation->id]);
     }
 
-    /**
-     * Obtener mensajes de la conversación asociada a una TradeSession.
-     */
+    #[OA\Get(
+        path: "/api/trade-sessions/{id}/messages",
+        summary: "Obtener mensajes del chat de intercambio",
+        description: "Recupera los mensajes del chat vinculados a esta sala de trade.",
+        tags: ["Trade Sessions"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la sesión", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Listado de mensajes y ID de chat")]
     public function getMessages($id)
     {
         $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
@@ -344,9 +402,21 @@ class TradeController extends Controller
         ]);
     }
 
-    /**
-     * Enviar un mensaje a la conversación de una TradeSession.
-     */
+    #[OA\Post(
+        path: "/api/trade-sessions/{id}/messages",
+        summary: "Enviar mensaje al chat de intercambio",
+        description: "Envía un nuevo mensaje al chat de la sala de intercambio.",
+        tags: ["Trade Sessions"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la sesión", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "content", type: "string")
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Mensaje creado y emitido")]
     public function sendMessage(Request $request, $id)
     {
         $request->validate(['content' => 'required|string|max:1000']);

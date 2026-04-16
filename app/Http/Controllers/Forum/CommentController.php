@@ -8,10 +8,26 @@ use App\Models\Comment;
 use App\Models\Thread;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class CommentController extends Controller
 {
-    // Crea un comentario en un thread (o responde a otro comentario)
+    #[OA\Post(
+        path: "/api/threads/{thread}/comments",
+        summary: "Añadir comentario",
+        description: "Añade un comentario a un hilo o responde a otro comentario.",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "thread", in: "path", required: true, description: "ID del hilo", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "body", type: "string"),
+            new OA\Property(property: "parent_id", type: "integer", nullable: true)
+        ])
+    )]
+    #[OA\Response(response: 201, description: "Comentario creado")]
     public function store(Request $request, Thread $thread)
     {
         $validated = $request->validate([
@@ -29,7 +45,21 @@ class CommentController extends Controller
         return new CommentResource($comment);
     }
 
-    // Edita un comentario (solo el autor)
+    #[OA\Put(
+        path: "/api/comments/{comment}",
+        summary: "Editar comentario",
+        description: "Edita un comentario propio.",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "comment", in: "path", required: true, description: "ID del comentario", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "body", type: "string")
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Comentario editado")]
     public function update(Request $request, Comment $comment)
     {
         $this->authorize('update', $comment);
@@ -44,7 +74,15 @@ class CommentController extends Controller
         return new CommentResource($comment);
     }
 
-    // Elimina un comentario (soft delete, solo el autor)
+    #[OA\Delete(
+        path: "/api/comments/{comment}",
+        summary: "Eliminar comentario",
+        description: "Borra un comentario (soft delete).",
+        tags: ["Forums"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "comment", in: "path", required: true, description: "ID del comentario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Comentario eliminado")]
     public function destroy(Comment $comment)
     {
         $this->authorize('delete', $comment);

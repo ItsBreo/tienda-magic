@@ -89,8 +89,8 @@ class RegisterController extends Controller
             'wallet_balance' => 0,
         ]);
 
-        // Asignar rol por defecto
-        $defaultRole = Role::where('name', 'User')->first();
+        // Asignar rol por defecto usando la constante predefinida
+        $defaultRole = Role::where('name', User::ROLE_USER)->first();
         if ($defaultRole) {
             $user->roles()->attach($defaultRole->id);
         }

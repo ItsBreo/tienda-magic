@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiService from '@/services/ApiService';
-import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Loader2, Trophy, ChevronLeft, Lock } from 'lucide-react';
 
 interface Achievement {
@@ -47,15 +47,16 @@ export default function Achievements() {
     const maxXp   = ALL_ACHIEVEMENTS.reduce((sum, a) => sum + a.xp_points, 0);
 
     if (loading) return (
-        <TiendaMagicLayout>
+        <>
             <div className="flex items-center justify-center min-h-[60vh]">
                 <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
             </div>
-        </TiendaMagicLayout>
+        </>
     );
 
     return (
-        <TiendaMagicLayout breadcrumbs={[{ title: 'Mi Perfil', href: '/profile' }, { title: 'Logros', href: '/achievements' }]}>
+        <>
+            <Breadcrumbs items={[{ title: 'Mi Perfil', href: '/profile' }, { title: 'Logros', href: '/achievements' }]} />
             <div className="max-w-4xl mx-auto px-6 md:px-8 py-10">
 
                 {/* Header */}
@@ -115,7 +116,7 @@ export default function Achievements() {
                     </>
                 )}
             </div>
-        </TiendaMagicLayout>
+        </>
     );
 }
 

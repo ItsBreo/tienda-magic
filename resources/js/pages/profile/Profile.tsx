@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import apiService from '@/services/ApiService';
-import TiendaMagicLayout from '@/layouts/tienda-magic-layout';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -291,11 +291,11 @@ export default function Profile() {
     // ── Loading ──────────────────────────────────────────────────────────────
     if (loading) {
         return (
-            <TiendaMagicLayout>
+            <>
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
                 </div>
-            </TiendaMagicLayout>
+            </>
         );
     }
 
@@ -303,7 +303,8 @@ export default function Profile() {
     const displayBanner = bannerPreview || formData.banner_url;
 
     return (
-        <TiendaMagicLayout breadcrumbs={[{ title: 'Mi Perfil', href: '/profile' }]}>
+        <>
+            <Breadcrumbs items={[{ title: 'Mi Perfil', href: '/profile' }]} />
             {/* ── BANNER ─────────────────────────────────────────────────── */}
             <div className="relative h-56 bg-zinc-950">
                 <div className="absolute inset-0 overflow-hidden">
@@ -602,6 +603,6 @@ export default function Profile() {
 
                 </form>
             </div>
-        </TiendaMagicLayout>
+        </>
     );
 }

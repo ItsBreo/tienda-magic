@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class InvoiceController extends Controller
 {
@@ -15,8 +16,17 @@ class InvoiceController extends Controller
      * Descarga la factura en PDF de una orden específica.
      *
      * @param int $orderId
-     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\JsonResponse
      */
+    #[OA\Get(
+        path: "/api/orders/{id}/invoice",
+        summary: "Descargar Factura PDF",
+        description: "Genera y descarga en formato PDF la factura de una compra pasada.",
+        tags: ["Checkout"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID del pedido u orden", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Archivo PDF generado (application/pdf)")]
+    #[OA\Response(response: 404, description: "Orden no encontrada o no autorizada")]
     public function download($orderId)
     {
         $user = Auth::user();

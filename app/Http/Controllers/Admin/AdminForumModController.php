@@ -8,6 +8,7 @@ use App\Http\Resources\CommentResource;
 use App\Models\Thread;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 /**
  * Controlador de moderación del foro.
@@ -17,10 +18,15 @@ use Illuminate\Http\Request;
  */
 class AdminForumModController extends Controller
 {
-    /**
-     * Lista los threads de un foro (para el panel de moderación).
-     * GET /mod/forums/{forum}/threads
-     */
+    #[OA\Get(
+        path: "/api/mod/forums/{forumId}/threads",
+        summary: "Lista de hilos del foro para moderadores",
+        description: "Obtiene la lista de los hilos del foro para moderar.",
+        tags: ["Moderation"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "forumId", in: "path", required: true, description: "ID del foro", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Lista de hilos de moderación")]
     public function threads(Request $request, int $forumId)
     {
         $user = $request->user();
@@ -38,10 +44,15 @@ class AdminForumModController extends Controller
         return ThreadResource::collection($threads);
     }
 
-    /**
-     * Elimina (soft delete) un thread desde el panel de moderación.
-     * DELETE /mod/threads/{thread}
-     */
+    #[OA\Delete(
+        path: "/api/mod/threads/{thread}",
+        summary: "Eliminar hilo (Moderación)",
+        description: "Elimina un hilo del foro (solo moderadores/admins).",
+        tags: ["Moderation"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "thread", in: "path", required: true, description: "ID del hilo", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Hilo eliminado")]
     public function deleteThread(Request $request, Thread $thread)
     {
         $user = $request->user();
@@ -55,10 +66,15 @@ class AdminForumModController extends Controller
         ]);
     }
 
-    /**
-     * Elimina (soft delete) un comentario desde el panel de moderación.
-     * DELETE /mod/comments/{comment}
-     */
+    #[OA\Delete(
+        path: "/api/mod/comments/{comment}",
+        summary: "Eliminar comentario (Moderación)",
+        description: "Elimina un comentario del foro (solo moderadores/admins).",
+        tags: ["Moderation"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "comment", in: "path", required: true, description: "ID del comentario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Comentario eliminado")]
     public function deleteComment(Request $request, Comment $comment)
     {
         $user = $request->user();
@@ -72,10 +88,15 @@ class AdminForumModController extends Controller
         ]);
     }
 
-    /**
-     * Restaura un thread eliminado (solo admin/super_admin).
-     * POST /mod/threads/{thread}/restore
-     */
+    #[OA\Post(
+        path: "/api/mod/threads/{threadId}/restore",
+        summary: "Restaurar hilo (Admin)",
+        description: "Restaura un hilo que fue eliminado (solo admins).",
+        tags: ["Moderation"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "threadId", in: "path", required: true, description: "ID del hilo a restaurar", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Hilo restaurado")]
     public function restoreThread(Request $request, int $threadId)
     {
         $user = $request->user();
@@ -90,10 +111,15 @@ class AdminForumModController extends Controller
         return response()->json(['message' => "Thread #{$thread->id} restaurado."]);
     }
 
-    /**
-     * Restaura un comentario eliminado (solo admin/super_admin).
-     * POST /mod/comments/{comment}/restore
-     */
+    #[OA\Post(
+        path: "/api/mod/comments/{commentId}/restore",
+        summary: "Restaurar comentario (Admin)",
+        description: "Restaura un comentario que fue eliminado (solo admins).",
+        tags: ["Moderation"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "commentId", in: "path", required: true, description: "ID del comentario a restaurar", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Comentario restaurado")]
     public function restoreComment(Request $request, int $commentId)
     {
         $user = $request->user();

@@ -15,6 +15,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Mail\OrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
+use OpenApi\Attributes as OA;
 
 class CheckoutController extends Controller
 {
@@ -318,6 +319,15 @@ class CheckoutController extends Controller
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
+    #[OA\Post(
+        path: "/api/checkout",
+        summary: "Checkout falso (Demo)",
+        description: "Procesa el carrito del usuario generando pago automático simulado para propósitos de demostración.",
+        tags: ["Checkout"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Pedido completado con éxito (Demo)")]
+    #[OA\Response(response: 400, description: "El carrito está vacio")]
     public function processFakeCheckout(Request $request)
     {
         return DB::transaction(function () use ($request) {

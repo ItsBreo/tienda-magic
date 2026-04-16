@@ -69,6 +69,27 @@ export function Navbar() {
               </>
             )}
 
+            {/* Menú de Información desplegable */}
+            <div className="relative group">
+              <button className="text-zinc-400 hover:text-zinc-100 transition-colors duration-200 font-medium pb-1">
+                Información ▾
+              </button>
+              <div className="absolute left-0 mt-2 w-48 bg-zinc-950 border border-zinc-800 rounded-md shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col z-50">
+                <Link to="/rules" className="px-4 py-2 text-sm text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 border-b border-zinc-800 transition-colors">
+                  Reglas de Juego
+                </Link>
+                <Link to="/support" className="px-4 py-2 text-sm text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 border-b border-zinc-800 transition-colors">
+                  Soporte Técnico
+                </Link>
+                <Link to="/contact" className="px-4 py-2 text-sm text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 border-b border-zinc-800 transition-colors">
+                  Contacto
+                </Link>
+                <Link to="/privacy" className="px-4 py-2 text-sm text-zinc-400 hover:text-amber-500 hover:bg-zinc-900 transition-colors">
+                  Privacidad
+                </Link>
+              </div>
+            </div>
+
             {isAdmin && (
               <Link
                 to="/admin"

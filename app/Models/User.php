@@ -27,6 +27,12 @@ class User extends Authenticatable implements JWTSubject
     // HasApiTokens eliminado: era de Sanctum y genera conflicto con el JWTGuard
 
     /**
+     * Relaciones cargadas automáticamente para evitar el problema de N+1 queries 
+     * al serializar colecciones o listar usuarios.
+     */
+    protected $with = ['roles', 'profile'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -48,6 +54,7 @@ class User extends Authenticatable implements JWTSubject
     public const ROLE_MOD_NEWS       = 'mod_news';
     public const ROLE_MOD_TOURNAMENTS= 'mod_tournaments';
     public const ROLE_MOD_GENERAL    = 'mod_general';
+    public const ROLE_MOD_STRATEGY   = 'mod_strategy';
     public const ROLE_USER           = 'user';
 
     /** Slugs que se consideran moderadores sectoriales */
@@ -55,6 +62,7 @@ class User extends Authenticatable implements JWTSubject
         self::ROLE_MOD_NEWS,
         self::ROLE_MOD_TOURNAMENTS,
         self::ROLE_MOD_GENERAL,
+        self::ROLE_MOD_STRATEGY,
     ];
 
     /** Slugs con privilegios de administración del foro */
@@ -68,7 +76,6 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $appends = [
         'is_admin',
-        'reputation',
         'role_name',
     ];
 
@@ -104,6 +111,11 @@ class User extends Authenticatable implements JWTSubject
         parent::boot();
 
         static::deleting(function ($user) {
+            // Si es un Soft Delete (ban/suspensión), NO borramos los datos definitivamente
+            if (!$user->isForceDeleting()) {
+                return;
+            }
+
             // Eliminar relaciones usando DB::table para saltar restricciones de nombres de tabla/columnas
             $id = $user->id;
 
@@ -333,23 +345,21 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
-     * FÓRMULA DE REPUTACIÓN SOCIAL (Karma)
-     * (V_p * 2) + V_c + sqrt(A)
+     * FÓRMULA DE REPUTACIÓN SOCIAL (Karma) base 100
+     * Ahora lee la variable `$this->profile->reputation_score` la cual se suma incrementalmente
+     * cada vez que este usuario recibe un voto (evitando calcular todo al vuelo mediante N+1 queries).
      */
     protected function reputation(): Attribute
     {
         return Attribute::make(
             get: function () {
-                // Utilizar withSum() o recuperar directo
-                $votesOnPosts = $this->getAttribute('threads_sum_score') ?? $this->threads()->sum('score') ?? 0;
-                $votesOnComments = $this->getAttribute('comments_sum_score') ?? $this->comments()->sum('score') ?? 0;
+                $baseScore = $this->profile->reputation_score ?? 0;
                 
                 // Asegurarse de que created_at no sea nulo al registrar
                 $daysActive = max($this->created_at ? $this->created_at->diffInDays(now()) : 0, 0);
                 $stabilityFactor = sqrt($daysActive);
 
-                // Fórmula con base de 100 puntos
-                $formula = 100 + ($votesOnPosts * 2) + $votesOnComments + $stabilityFactor;
+                $formula = 100 + $baseScore + $stabilityFactor;
                 
                 return (int) round($formula);
             }

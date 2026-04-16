@@ -68,14 +68,7 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Comprobación de permisos para borrar
-  const canDelete = user && (
-    user.id === post.author_id || 
-    user.is_admin || 
-    (user.role_name === 'mod_news' && post.forum_id === 2) ||
-    (user.role_name === 'mod_tournaments' && post.forum_id === 5) ||
-    (user.role_name === 'mod_general' && post.forum_id === 1)
-  );
+  const canDelete = (post as any).can_delete || false;
 
   useEffect(() => {
     setIsSaved((post as any).isSaved || false);

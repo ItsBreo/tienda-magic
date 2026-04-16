@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,7 +15,11 @@ class Comment extends Model
     use SoftDeletes;
     use HasFactory;
 
-    protected $appends = ['user_vote'];
+    protected $appends = [
+        'user_vote',
+        'created_at_formatted',
+        'author_name'
+    ];
 
     protected $fillable = [
         'thread_id',
@@ -39,6 +44,30 @@ class Comment extends Model
         }
 
         return (int) $this->votes()->where('user_id', $userId)->value('value');
+    }
+
+    /**
+     * Accesor para obtener la fecha de creación formateada para humanos.
+     * Esto resuelve el problema de la fecha no formateada.
+     */
+    protected function createdAtFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->created_at ? $this->created_at->diffForHumans() : 'Fecha desconocida',
+        );
+    }
+
+    /**
+     * Accesor para obtener el nombre del autor de forma segura.
+     * NOTA: Esto depende de que la relación 'user' se cargue previamente
+     * con ->with('user') en el controlador.
+     */
+    protected function authorName(): Attribute
+    {
+        return Attribute::make(
+            // Comprueba que la relación 'user' fue cargada y no es nula antes de acceder al nombre.
+            get: fn () => $this->relationLoaded('user') && $this->user ? $this->user->name : 'Desconocido',
+        );
     }
 
     protected static function booted()

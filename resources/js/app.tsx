@@ -41,6 +41,12 @@ import TradeRoom from './pages/exchange/TradeRoom';
 import Marketplace from './pages/market/Marketplace';
 import ProductDetail from './pages/market/ProductDetail';
 
+// Páginas de Información
+import Rules from './pages/static/Rules';
+import Privacy from './pages/static/Privacy';
+import Contact from './pages/static/Contact';
+import Support from './pages/static/Support';
+
 initializeTheme();
 
 const el = document.getElementById('root') || document.getElementById('app');
@@ -55,16 +61,15 @@ if (el) {
     root.render(
         <StrictMode>
             <AuthProvider>
-                {/* FIX 1: Hacemos que las notificaciones respeten el tema claro/oscuro */}
-                <Toaster position="top-right" expand={true} richColors closeButton />
                 <CartProvider>
                     <BrowserRouter>
+                        <Toaster position="top-right" expand={true} richColors closeButton />
                         <Routes>
                             {/* Públicas */}
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
 
-                            {/* Protegidas (Requieren Login) */}
+                            {/* RUTAS PROTEGIDAS (Requieren Login) */}
                             <Route element={<ProtectedLayout />}>
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/shop" element={<PacksView />} />
@@ -80,24 +85,31 @@ if (el) {
                                 <Route path="/market/product/:type/:id" element={<ProductDetail />} />
                                 <Route path="/forum/*" element={<Forum />} />
                                 <Route path="/checkout/success" element={<CheckoutSuccess />} />
-                            </Route>
 
-                            {/* Admin */}
-                            <Route element={<AdminRoute />}>
-                                <Route element={<AdminLayout />}>
-                                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                                    <Route path="/admin/users" element={<AdminUsers />} />
-                                    <Route path="/admin/roles" element={<AdminRoles />} />
-                                    <Route path="/admin/cards" element={<AdminCards />} />
-                                    <Route path="/admin/sets" element={<AdminSets />} />
+                                {/* RUTAS ESTÁTICAS */}
+                                <Route path="/rules" element={<Rules />} />
+                                <Route path="/privacy" element={<Privacy />} />
+                                <Route path="/contact" element={<Contact />} />
+                                <Route path="/support" element={<Support />} />
+
+                                {/* RUTAS DE ADMINISTRADOR */}
+                                <Route element={<AdminRoute />}>
+                                    <Route element={<AdminLayout />}>
+                                        <Route path="/admin" element={<AdminDashboard />} />
+                                        <Route path="/admin/users" element={<AdminUsers />} />
+                                        <Route path="/admin/roles" element={<AdminRoles />} />
+                                        <Route path="/admin/cards" element={<AdminCards />} />
+                                        <Route path="/admin/sets" element={<AdminSets />} />
+                                    </Route>
                                 </Route>
+
+                                <Route path="*" element={<Navigate to="/dashboard" replace />} />
                             </Route>
 
                             {/* Fallback */}
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                         </Routes>
                         <CartDrawer />
-                        <Toaster position="top-right" expand={true} richColors closeButton />
                     </BrowserRouter>
                 </CartProvider>
             </AuthProvider>

@@ -11,6 +11,7 @@ use App\Models\InventoryPack;
 use App\Models\Card;
 use App\Models\User;
 use App\Models\Market;
+use OpenApi\Attributes as OA;
 
 class InventoryController extends Controller
 {
@@ -20,6 +21,14 @@ class InventoryController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+    #[OA\Get(
+        path: "/api/inventory",
+        summary: "Ver mi inventario",
+        description: "Muestra el inventario del usuario autenticado incluyendo cartas y stats.",
+        tags: ["Inventory"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Inventario cargado exitosamente")]
     public function index(Request $request)
     {
         try {
@@ -166,6 +175,16 @@ class InventoryController extends Controller
      * @param int $userId
      * @return \Illuminate\Http\JsonResponse
      */
+    #[OA\Get(
+        path: "/api/inventory/{user}",
+        summary: "Ver inventario público de usuario",
+        description: "Muestra el inventario público de otro usuario si tiene preferencias habilitadas.",
+        tags: ["Inventory"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "user", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Inventario cargado exitosamente")]
+    #[OA\Response(response: 403, description: "El inventario de este planeswalker es privado")]
     public function userInventory($userId)
     {
         $user = User::findOrFail($userId);

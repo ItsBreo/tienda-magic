@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Market;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use OpenApi\Attributes as OA;
 
 use App\Models\MarketListing;
 use App\Models\MarketTransaction;
@@ -19,6 +20,14 @@ class MarketController extends Controller
     /**
      * Listado público del mercado con filtros.
      */
+    #[OA\Get(
+        path: "/api/market",
+        summary: "Ver mercado",
+        description: "Lista las cartas puestas a la venta en el marketplace.",
+        tags: ["Market"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Listado del mercado")]
     public function index(Request $request)
     {
         $query = MarketListing::with(['listable', 'seller'])->active();
@@ -78,6 +87,14 @@ class MarketController extends Controller
     /**
      * Poner un item a la venta (desde el inventario).
      */
+    #[OA\Post(
+        path: "/api/market/cards",
+        summary: "Publicar carta en mercado",
+        description: "Pone a la venta una carta del inventario del usuario.",
+        tags: ["Market"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 201, description: "Carta publicada en el mercado")]
     public function store(Request $request)
     {
         $request->validate([
@@ -137,6 +154,15 @@ class MarketController extends Controller
     /**
      * Iniciar proceso de compra (Billetera o Stripe).
      */
+    #[OA\Post(
+        path: "/api/market/cards/{id}/buy",
+        summary: "Comprar carta",
+        description: "Compra una carta que está listada en el mercado.",
+        tags: ["Market"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID del listado/carta", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Compra exitosa")]
     public function initiatePurchase(Request $request, $id)
     {
         $request->validate([
