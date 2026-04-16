@@ -348,9 +348,32 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     // Solo accesible por admin y super_admin (el middleware 'admin' hace el filtro base)
     // Pero ahora añadimos permisos granulares para control total
     Route::prefix('admin')->middleware(['admin'])->group(function () {
-        Route::get('/stats', [DashboardController::class, 'getStats'])
-            ->middleware('permission:view-admin-dashboard');
-            
+        // Acciones masivas (Bulk) para sets, cartas, booster-packs, roles y usuarios
+        Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDelete'])
+            ->middleware('permission:manage-users');
+        Route::post('/users/bulk-toggle-active', [AdminUserController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-users');
+        Route::post('/users/bulk-change-role', [AdminUserController::class, 'bulkChangeRole'])
+            ->middleware('permission:assign-roles');
+
+        Route::post('/roles/bulk-delete', [AdminRoleController::class, 'bulkDelete'])
+            ->middleware('permission:manage-roles');
+
+        Route::post('/sets/bulk-delete', [AdminSetController::class, 'bulkDelete'])
+            ->middleware('permission:manage-sets');
+        Route::post('/sets/bulk-toggle-active', [AdminSetController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-sets');
+
+        Route::post('/cards/bulk-delete', [AdminCardController::class, 'bulkDelete'])
+            ->middleware('permission:manage-cards');
+        Route::post('/cards/bulk-toggle-active', [AdminCardController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-cards');
+
+        Route::post('/booster-packs/bulk-delete', [AdminBoosterPackController::class, 'bulkDelete'])
+            ->middleware('permission:manage-booster-packs');
+        Route::post('/booster-packs/bulk-toggle-active', [AdminBoosterPackController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-booster-packs');
+
         Route::apiResource('users', AdminUserController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->middleware('permission:manage-users');
@@ -382,6 +405,12 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     // ========== MODERACIÓN DEL FORO ==========
     // Accesible para admin, super_admin y cualquier moderador sectorial
     Route::prefix('mod')->middleware(['role:moderator'])->group(function () {
+        // Acciones masivas para moderadores
+        Route::post('/threads/bulk-delete', [AdminForumModController::class, 'bulkDeleteThreads'])
+            ->middleware('permission:moderate-forum');
+        Route::post('/comments/bulk-delete', [AdminForumModController::class, 'bulkDeleteComments'])
+            ->middleware('permission:moderate-forum');
+
         // Ver threads de un foro
         Route::get('/forums/{forumId}/threads', [AdminForumModController::class, 'threads'])
             ->middleware('permission:moderate-forum');

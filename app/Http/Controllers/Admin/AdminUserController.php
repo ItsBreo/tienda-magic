@@ -212,4 +212,63 @@ class AdminUserController extends Controller
 
         return response()->json(['message' => 'Usuario eliminado exitosamente.']);
     }
+
+    /**
+     * Acciones Masivas (Bulk Actions)
+     */
+
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id'
+        ]);
+
+        $ids = array_diff($validated['ids'], [1, auth()->id()]); // Protegemos SuperAdmin y a uno mismo
+
+        User::whereIn('id', $ids)->delete();
+
+        return response()->json([
+            'message' => count($ids) . ' usuarios eliminados correctamente.',
+            'protected' => count($validated['ids']) - count($ids)
+        ]);
+    }
+
+    public function bulkToggleActive(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id',
+            'is_active' => 'required|boolean'
+        ]);
+
+        $ids = array_diff($validated['ids'], [1]); // Protegemos SuperAdmin
+
+        User::whereIn('id', $ids)->update(['is_active' => $validated['is_active']]);
+
+        return response()->json([
+            'message' => 'Estado de ' . count($ids) . ' usuarios actualizado.',
+        ]);
+    }
+
+    public function bulkChangeRole(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id',
+            'role_id' => 'required|exists:roles,id'
+        ]);
+
+        $ids = array_diff($validated['ids'], [1]); // Protegemos SuperAdmin
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, User> $users */
+        $users = User::whereIn('id', $ids)->get();
+        foreach ($users as $user) {
+            $user->roles()->sync([$validated['role_id']]);
+        }
+
+        return response()->json([
+            'message' => 'Rol actualizado para ' . count($ids) . ' usuarios.',
+        ]);
+    }
 }

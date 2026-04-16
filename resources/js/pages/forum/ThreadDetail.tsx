@@ -5,7 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import ApiService from '@/services/ApiService';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
-import DeleteConfirmDialog from './DeleteConfirmDialog';
+// import DeleteConfirmDialog from './DeleteConfirmDialog'; // Eliminado
+import { useSelection } from '@/hooks/useSelection';
+import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 
 interface ThreadDetailViewProps {
   post: Post;
@@ -18,15 +20,29 @@ interface ThreadDetailViewProps {
 export default function ThreadDetailView({ post, comments, isSubmitting, onBack, onCommentSubmit }: ThreadDetailViewProps) {
   const { user } = useAuth();
   const [newCommentBody, setNewCommentBody] = useState("");
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Eliminado
+  // const [isDeleting, setIsDeleting] = useState(false); // Eliminado
 
-  const canDelete = (post as any).can_delete || false;
+  // const canDelete = (post as any).can_delete || false; // Eliminado
   const canEdit = (post as any).can_edit || false;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(post.title || "");
   const [editBody, setEditBody] = useState(post.body || "");
+
+  // Selección masiva para comentarios
+  // Aplanamos comentarios y respuestas para que sean seleccionables
+  const allCommentsFlat = comments.flatMap(c => [c, ...(c.replies || [])]);
+  
+  const {
+    selectedList,
+    selectedCount,
+    toggle,
+    clear,
+    isSelected
+  } = useSelection(allCommentsFlat);
+
+  const isModOrAdmin = user?.is_admin || (user as any)?.all_permissions?.includes('moderate-forum');
 
   const handleSubmit = () => {
     if (!newCommentBody.trim()) return;
@@ -45,23 +61,7 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
     }
   };
 
-  const handleDelete = async () => {
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await ApiService.deleteThread(post.id);
-      toast.success("Hilo eliminado");
-      setShowDeleteDialog(false);
-      onBack();
-    } catch (err) {
-      toast.error("Error al eliminar el hilo");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  /* Eliminado: handleDelete, confirmDelete */
 
   const handleCommentDelete = (commentId: number) => {
     // Al borrar un comentario no expulsamos al usuario, solo quitamos el comentario de la lista
@@ -92,6 +92,18 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
     window.location.reload(); 
   };
 
+  const handleBulkDeleteComments = async () => {
+    if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} comentarios/respuestas?`)) return;
+    try {
+      const { data } = await ApiService.axiosInstance.post('/api/mod/comments/bulk-delete', { ids: selectedList });
+      toast.success(data.message);
+      clear();
+      window.location.reload();
+    } catch (error) {
+      toast.error('Error al realizar borrado masivo de comentarios');
+    }
+  };
+
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg overflow-hidden flex flex-col">
       {/* Header con acciones */}
@@ -111,15 +123,7 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
               Editar
             </button>
           )}
-          {canDelete && (
-            <button 
-              onClick={handleDelete}
-              className="p-1.5 text-[var(--red)] hover:bg-red-500/10 rounded-md transition-colors cursor-pointer"
-              title="Eliminar hilo"
-            >
-              <Trash2 size={16} />
-            </button>
-          )}
+          {/* El botón de eliminar se ha movido a la barra de acciones masivas del feed principal */}
         </div>
       </div>
 
@@ -200,24 +204,44 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
         </div>
       </div>
 
-      <div className="pb-4">
+      <div className="pb-4 relative">
         {comments.length > 0 ? (
-          comments.map(c => <CommentItem key={c.id} comment={c} forumId={post.forum_id} onDelete={handleCommentDelete} onReplySubmit={onCommentSubmit} />)
+          comments.map(c => (
+            <CommentItem 
+              key={c.id} 
+              comment={c} 
+              forumId={post.forum_id} 
+              onDelete={handleCommentDelete} 
+              onReplySubmit={onCommentSubmit}
+              selection={{
+                isSelected: (id: number) => isSelected(id),
+                toggle: (id: number) => toggle(id),
+                isMod: isModOrAdmin
+              }}
+            />
+          ))
         ) : (
           <div className="p-5 text-center text-sm text-[var(--text-muted)]">
             Cargando comentarios...
           </div>
         )}
+
+        <BulkActionsToolbar
+          count={selectedCount}
+          onClear={clear}
+          actions={[
+            {
+              label: 'Eliminar Comentarios',
+              icon: <Trash2 className="w-4 h-4" />,
+              onClick: handleBulkDeleteComments,
+              variant: 'destructive',
+              className: 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20'
+            }
+          ]}
+        />
       </div>
 
-      <DeleteConfirmDialog 
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={confirmDelete}
-        isLoading={isDeleting}
-        title="¿Eliminar hilo?"
-        description="Esta acción eliminará el hilo y todos sus comentarios de forma permanente."
-      />
+      {/* Eliminado: DeleteConfirmDialog para el hilo */}
     </div>
   );
 }

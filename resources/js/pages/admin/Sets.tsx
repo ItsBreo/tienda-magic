@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle } from 'lucide-react';
+import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useSelection } from '@/hooks/useSelection';
+import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 
 interface CardSet {
     code: string;
@@ -24,6 +26,19 @@ export default function AdminSets() {
     const [form, setForm] = useState({
         code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true
     });
+
+    // Adaptamos el tipo para useSelection que espera 'id'
+    const selectableSets = sets.map(s => ({ ...s, id: s.code }));
+    
+    const {
+        selectedList,
+        selectedCount,
+        toggle,
+        selectAll,
+        clear,
+        isSelected,
+        allSelected
+    } = useSelection(selectableSets);
 
     const fetchSets = async () => {
         try {
@@ -59,6 +74,34 @@ export default function AdminSets() {
             fetchSets();
         } catch (error: any) {
             toast.error('Error al cambiar estado');
+        }
+    };
+
+    // --- ACCIONES MASIVAS ---
+
+    const handleBulkDelete = async () => {
+        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} sets?`)) return;
+        try {
+            const { data } = await apiService.axiosInstance.post('/api/admin/sets/bulk-delete', { ids: selectedList });
+            toast.success(data.message);
+            clear();
+            fetchSets();
+        } catch (error) {
+            toast.error('Error al realizar borrado masivo');
+        }
+    };
+
+    const handleBulkToggleActive = async (active: boolean) => {
+        try {
+            await apiService.axiosInstance.post('/api/admin/sets/bulk-toggle-active', {
+                ids: selectedList,
+                is_active: active
+            });
+            toast.success(`${selectedCount} sets ${active ? 'activados' : 'desactivadas'}`);
+            clear();
+            fetchSets();
+        } catch (error) {
+            toast.error('Error al cambiar estado masivo');
         }
     };
 
@@ -160,7 +203,15 @@ export default function AdminSets() {
                 <table className="w-full text-left text-sm text-zinc-400">
                     <thead className="bg-zinc-950 border-b border-zinc-800 text-xs uppercase">
                         <tr>
-                            <th className="px-6 py-4 font-medium w-16">Icono</th>
+                            <th className="px-6 py-4 font-medium w-10">
+                                <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    onChange={selectAll}
+                                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                />
+                            </th>
+                            <th className="px-6 py-4 font-medium w-16 text-center">Icono</th>
                             <th className="px-6 py-4 font-medium">Cód.</th>
                             <th className="px-6 py-4 font-medium">Nombre</th>
                             <th className="px-6 py-4 font-medium text-center">Estado</th>
@@ -170,8 +221,16 @@ export default function AdminSets() {
                     </thead>
                     <tbody className="divide-y divide-zinc-800">
                         {sets.map((s) => (
-                            <tr key={s.code} className="hover:bg-zinc-800/50 transition-colors">
-                                <td className="px-6 py-4">
+                            <tr key={s.code} className={`hover:bg-zinc-800/50 transition-colors ${isSelected(s.code) ? 'bg-emerald-500/5' : ''}`}>
+                                <td className="px-6 py-4 text-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected(s.code)}
+                                        onChange={() => toggle(s.code)}
+                                        className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                    />
+                                </td>
+                                <td className="px-6 py-4 flex justify-center">
                                     {s.icon_svg_uri && <img src={s.icon_svg_uri} alt={s.code} className="w-6 h-6 invert opacity-80" />}
                                 </td>
                                 <td className="px-6 py-4 font-mono text-zinc-200 uppercase">{s.code}</td>
@@ -205,6 +264,41 @@ export default function AdminSets() {
                     </tbody>
                 </table>
             </div>
+
+            <BulkActionsToolbar
+                count={selectedCount}
+                onClear={clear}
+                actions={[
+                    ...(selectedCount === 1 ? [{
+                        label: 'Editar',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {
+                            const setToEdit = sets.find(s => s.code === selectedList[0]);
+                            if (setToEdit) handleEdit(setToEdit);
+                        },
+                        className: 'text-emerald-400 hover:text-emerald-300'
+                    }] : []),
+                    {
+                        label: 'Activar',
+                        icon: <CheckCircle className="w-4 h-4" />,
+                        onClick: () => handleBulkToggleActive(true),
+                        className: 'text-emerald-400 hover:text-emerald-300'
+                    },
+                    {
+                        label: 'Desactivar',
+                        icon: <XCircle className="w-4 h-4" />,
+                        onClick: () => handleBulkToggleActive(false),
+                        className: 'text-zinc-400 hover:text-zinc-300'
+                    },
+                    {
+                        label: 'Eliminar',
+                        icon: <Trash2 className="w-4 h-4" />,
+                        onClick: handleBulkDelete,
+                        variant: 'destructive',
+                        className: 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20'
+                    }
+                ]}
+            />
         </div>
     );
 }

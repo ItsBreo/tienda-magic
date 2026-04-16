@@ -4,8 +4,8 @@ import { CAT_LABELS } from "./constants";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
+// import { Trash2 } from "lucide-react"; // Eliminado
+// import DeleteConfirmDialog from "./DeleteConfirmDialog"; // Eliminado
 
 const CAT_CLASS: Record<string, string> = {
   noticias:   "cat-noticias",
@@ -62,13 +62,27 @@ function ActionBtn({ label, onClick, active, variant = "default" }: { label: str
   );
 }
 
-export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post; onOpen: () => void; onDeleteSuccess?: () => void }) {
+export default function PostCard({ 
+  post, 
+  onOpen, 
+  onDeleteSuccess,
+  selection 
+}: { 
+  post: Post; 
+  onOpen: () => void; 
+  onDeleteSuccess?: () => void;
+  selection?: {
+    isSelected: boolean;
+    toggle: () => void;
+    isMod: boolean;
+  }
+}) {
   const { user } = useAuth();
   const [isSaved, setIsSaved] = useState((post as any).isSaved || false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Eliminado
+  // const [isDeleting, setIsDeleting] = useState(false); // Eliminado
 
-  const canDelete = (post as any).can_delete || false;
+  // const canDelete = (post as any).can_delete || false; // Eliminado
 
   useEffect(() => {
     setIsSaved((post as any).isSaved || false);
@@ -89,28 +103,23 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
     }
   };
 
-  const handleDelete = async (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await ApiService.deleteThread(post.id);
-      toast.success("Post eliminado correctamente");
-      setShowDeleteDialog(false);
-      if (onDeleteSuccess) onDeleteSuccess();
-    } catch (err) {
-      console.error("Error al eliminar post:", err);
-      toast.error("No se pudo eliminar el post");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  /* Eliminado: handleDelete, confirmDelete */
 
   return (
-    <div className="flex bg-[var(--surface)] border border-[var(--border)] rounded-lg mb-2 overflow-hidden transition-colors duration-150 hover:border-[var(--border-2)] group">
+    <div className={`flex bg-[var(--surface)] border border-[var(--border)] rounded-lg mb-2 overflow-hidden transition-colors duration-150 hover:border-[var(--border-2)] group ${selection?.isSelected ? 'border-[var(--accent)] bg-[var(--accent)]/5' : ''}`}>
+      {selection?.isMod && (
+        <div className="flex items-center px-3 bg-[var(--surface-2)]/50 border-r border-[var(--border)]">
+          <input 
+            type="checkbox" 
+            checked={selection.isSelected}
+            onChange={(e) => {
+              e.stopPropagation();
+              selection.toggle();
+            }}
+            className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-[var(--accent)] focus:ring-[var(--accent)] cursor-pointer"
+          />
+        </div>
+      )}
       <VoteCol threadId={post.id} initialScore={post.score} initialVote={post.userVote} />
 
       <div className="py-2.5 px-3.5 flex-1 min-w-0">
@@ -146,27 +155,11 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
           <ActionBtn label={`💬 ${post.comments} comentarios`} onClick={onOpen} />
           <ActionBtn label="🔗 Compartir" />
           <ActionBtn label={isSaved ? "🔖 Guardado" : "🔖 Guardar"} onClick={toggleSave} active={isSaved} />
-          
-          {canDelete && (
-            <div className="ml-auto">
-              <ActionBtn 
-                label={<Trash2 size={14} />} 
-                variant="danger" 
-                onClick={handleDelete} 
-              />
-            </div>
-          )}
+          {/* El botón de eliminar se ha movido a la barra de acciones masivas */}
         </div>
       </div>
 
-      <DeleteConfirmDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={confirmDelete}
-        isLoading={isDeleting}
-        title="¿Eliminar publicación?"
-        description={`Estás a punto de eliminar "${post.title}". Esta acción es permanente y borrará todos los comentarios asociados.`}
-      />
+      {/* Eliminado: DeleteConfirmDialog */}
     </div>
   );
 }

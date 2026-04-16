@@ -9,6 +9,7 @@ export interface Post {
   reputation?: number;
   can_delete?: boolean;
   can_edit?: boolean;
+  isSaved?: boolean;
 }
 
 export interface Reply {

@@ -6,7 +6,23 @@ import { toast } from "sonner";
 import { Trash2, Edit2, MoreHorizontal } from "lucide-react";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
-function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; forumId: number; onDelete: (id: number) => void; onReplyTo: (author: string) => void }) {
+function ReplyItem({ 
+  reply, 
+  forumId, 
+  onDelete, 
+  onReplyTo,
+  selection
+}: { 
+  reply: Reply; 
+  forumId: number; 
+  onDelete: (id: number) => void; 
+  onReplyTo: (author: string) => void;
+  selection?: {
+    isSelected: (id: number) => boolean;
+    toggle: (id: number) => void;
+    isMod: boolean;
+  }
+}) {
   const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(reply.score || 0);
@@ -69,7 +85,17 @@ function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; foru
   }
 
   return (
-    <div className="py-2 pl-8 pr-3.5 border-b border-[var(--border)] flex gap-2.5 bg-white/5 group">
+    <div className={`py-2 pl-4 pr-3.5 border-b border-[var(--border)] flex gap-2.5 transition-colors group ${selection?.isSelected(reply.id) ? 'bg-[var(--accent)]/5 border-l-2 border-l-[var(--accent)]' : 'bg-white/5'}`}>
+      {selection?.isMod && (
+        <div className="flex items-center">
+          <input 
+            type="checkbox" 
+            checked={selection.isSelected(reply.id)}
+            onChange={() => selection.toggle(reply.id)}
+            className="w-3.5 h-3.5 rounded border-zinc-700 bg-zinc-800 text-[var(--accent)] focus:ring-[var(--accent)] cursor-pointer"
+          />
+        </div>
+      )}
       <div className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0" style={{ background: reply.avatarColor }}>
         {reply.initials}
       </div>
@@ -122,7 +148,23 @@ function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; foru
   );
 }
 
-export default function CommentItem({ comment, forumId, onDelete, onReplySubmit }: { comment: Comment; forumId: number; onDelete: (id: number) => void, onReplySubmit?: (body: string, parentId?: number) => void }) {
+export default function CommentItem({ 
+  comment, 
+  forumId, 
+  onDelete, 
+  onReplySubmit,
+  selection
+}: { 
+  comment: Comment; 
+  forumId: number; 
+  onDelete: (id: number) => void, 
+  onReplySubmit?: (body: string, parentId?: number) => void;
+  selection?: {
+    isSelected: (id: number) => boolean;
+    toggle: (id: number) => void;
+    isMod: boolean;
+  }
+}) {
   const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(comment.score || 0);
@@ -215,7 +257,17 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
 
   return (
     <>
-      <div className="py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5 group">
+      <div className={`py-3 px-3.5 border-b border-[var(--border)] flex gap-2.5 transition-colors group ${selection?.isSelected(comment.id) ? 'bg-[var(--accent)]/5 border-l-2 border-l-[var(--accent)]' : ''}`}>
+        {selection?.isMod && (
+          <div className="flex items-center">
+            <input 
+              type="checkbox" 
+              checked={selection.isSelected(comment.id)}
+              onChange={() => selection.toggle(comment.id)}
+              className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-[var(--accent)] focus:ring-[var(--accent)] cursor-pointer"
+            />
+          </div>
+        )}
         <div className="flex flex-col items-center gap-1">
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{ background: comment.avatarColor }}>
             {comment.initials}
@@ -302,7 +354,7 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
         description="Se eliminará el comentario y todas sus respuestas de forma permanente."
       />
 
-      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} forumId={forumId} onDelete={onDelete} onReplyTo={handleReplyClick} />)}
+      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} forumId={forumId} onDelete={onDelete} onReplyTo={handleReplyClick} selection={selection} />)}
     </>
   );
 }

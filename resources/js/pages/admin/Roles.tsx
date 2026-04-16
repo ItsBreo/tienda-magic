@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Shield, ShieldCheck, Info } from 'lucide-react';
+import { Trash2, Plus, Loader2, Shield, ShieldCheck, Info, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useSelection } from '@/hooks/useSelection';
+import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 
 interface Permission {
     id: number;
@@ -33,6 +35,16 @@ export default function AdminRoles() {
         permission_ids: [] as number[]
     });
     const [submitting, setSubmitting] = useState(false);
+
+    const {
+        selectedList,
+        selectedCount,
+        toggle,
+        selectAll,
+        clear,
+        isSelected,
+        allSelected
+    } = useSelection(roles);
 
     useEffect(() => {
         Promise.all([fetchRoles(), fetchPermissions()]);
@@ -67,6 +79,20 @@ export default function AdminRoles() {
             fetchRoles();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al eliminar');
+        }
+    };
+
+    // --- ACCIONES MASIVAS ---
+
+    const handleBulkDelete = async () => {
+        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} roles? Los roles protegidos del sistema no se borrarán.`)) return;
+        try {
+            const { data } = await apiService.axiosInstance.post('/api/admin/roles/bulk-delete', { ids: selectedList });
+            toast.success(data.message);
+            clear();
+            fetchRoles();
+        } catch (error) {
+            toast.error('Error al realizar borrado masivo');
         }
     };
 
@@ -201,6 +227,14 @@ export default function AdminRoles() {
                 <table className="w-full text-left text-sm text-zinc-400">
                     <thead className="bg-zinc-950 border-b border-zinc-800 text-xs uppercase tracking-widest font-bold">
                         <tr>
+                            <th className="px-6 py-5 w-10">
+                                <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    onChange={selectAll}
+                                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                />
+                            </th>
                             <th className="px-6 py-5 w-20">ID</th>
                             <th className="px-6 py-5">Nombre y Roles</th>
                             <th className="px-6 py-5">Permisos Actuales</th>
@@ -209,7 +243,15 @@ export default function AdminRoles() {
                     </thead>
                     <tbody className="divide-y divide-zinc-800">
                         {roles.map((r) => (
-                            <tr key={r.id} className="group hover:bg-zinc-800/30 transition-all duration-300">
+                            <tr key={r.id} className={`group hover:bg-zinc-800/30 transition-all duration-300 ${isSelected(r.id) ? 'bg-emerald-500/5' : ''}`}>
+                                <td className="px-6 py-5">
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected(r.id)}
+                                        onChange={() => toggle(r.id)}
+                                        className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                    />
+                                </td>
                                 <td className="px-6 py-5 text-zinc-500 font-mono">#{r.id}</td>
                                 <td className="px-6 py-5">
                                     <div className="flex flex-col">
@@ -258,6 +300,29 @@ export default function AdminRoles() {
                     </tbody>
                 </table>
             </div>
+
+            <BulkActionsToolbar
+                count={selectedCount}
+                onClear={clear}
+                actions={[
+                    ...(selectedCount === 1 ? [{
+                        label: 'Editar',
+                        icon: <ShieldCheck className="w-4 h-4" />,
+                        onClick: () => {
+                            const roleToEdit = roles.find(r => r.id === selectedList[0]);
+                            if (roleToEdit) handleEdit(roleToEdit);
+                        },
+                        className: 'text-emerald-400 hover:text-emerald-300'
+                    }] : []),
+                    {
+                        label: 'Eliminar',
+                        icon: <Trash2 className="w-4 h-4" />,
+                        onClick: handleBulkDelete,
+                        variant: 'destructive',
+                        className: 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20'
+                    }
+                ]}
+            />
         </div>
     );
 }

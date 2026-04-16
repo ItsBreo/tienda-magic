@@ -113,4 +113,37 @@ class AdminSetController extends Controller
 
         return response()->json(['message' => 'Set eliminado exitosamente.']);
     }
+
+    /**
+     * Acciones Masivas (Bulk Actions)
+     */
+
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:card_sets,code'
+        ]);
+
+        CardSet::whereIn('code', $validated['ids'])->delete();
+
+        return response()->json([
+            'message' => count($validated['ids']) . ' sets eliminados correctamente.'
+        ]);
+    }
+
+    public function bulkToggleActive(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:card_sets,code',
+            'is_active' => 'required|boolean'
+        ]);
+
+        CardSet::whereIn('code', $validated['ids'])->update(['is_active' => $validated['is_active']]);
+
+        return response()->json([
+            'message' => 'Estado de ' . count($validated['ids']) . ' sets actualizado.'
+        ]);
+    }
 }

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle, CheckCircle, XCircle as XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useSelection } from '@/hooks/useSelection';
+import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 
 interface Card {
     id: number;
@@ -24,6 +26,16 @@ export default function AdminCards() {
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+
+    const {
+        selectedList,
+        selectedCount,
+        toggle,
+        selectAll,
+        clear,
+        isSelected,
+        allSelected
+    } = useSelection(cards);
 
     const [form, setForm] = useState({
         scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true
@@ -63,6 +75,34 @@ export default function AdminCards() {
             fetchCards();
         } catch (error: any) {
             toast.error('Error al cambiar estado');
+        }
+    };
+
+    // --- ACCIONES MASIVAS ---
+
+    const handleBulkDelete = async () => {
+        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} cartas?`)) return;
+        try {
+            const { data } = await apiService.axiosInstance.post('/api/admin/cards/bulk-delete', { ids: selectedList });
+            toast.success(data.message);
+            clear();
+            fetchCards();
+        } catch (error) {
+            toast.error('Error al realizar borrado masivo');
+        }
+    };
+
+    const handleBulkToggleActive = async (active: boolean) => {
+        try {
+            await apiService.axiosInstance.post('/api/admin/cards/bulk-toggle-active', {
+                ids: selectedList,
+                is_active: active
+            });
+            toast.success(`${selectedCount} cartas ${active ? 'activadas' : 'desactivadas'}`);
+            clear();
+            fetchCards();
+        } catch (error) {
+            toast.error('Error al cambiar estado masivo');
         }
     };
 
@@ -165,6 +205,14 @@ export default function AdminCards() {
                 <table className="w-full text-left text-sm text-zinc-400">
                     <thead className="bg-zinc-950 border-b border-zinc-800 text-xs uppercase">
                         <tr>
+                            <th className="px-6 py-4 font-medium w-10">
+                                <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    onChange={selectAll}
+                                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                />
+                            </th>
                             <th className="px-6 py-4 font-medium">Nombre</th>
                             <th className="px-6 py-4 font-medium">Set</th>
                             <th className="px-6 py-4 font-medium text-center">Estado</th>
@@ -176,7 +224,15 @@ export default function AdminCards() {
                         {cards.map((c) => {
                             const isSetInactive = c.card_set && !c.card_set.is_active;
                             return (
-                                <tr key={c.id} className="hover:bg-zinc-800/50 transition-colors">
+                                <tr key={c.id} className={`hover:bg-zinc-800/50 transition-colors ${isSelected(c.id) ? 'bg-emerald-500/5' : ''}`}>
+                                    <td className="px-6 py-4 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected(c.id)}
+                                            onChange={() => toggle(c.id)}
+                                            className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500"
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
                                             <span className="font-medium text-zinc-200">{c.name}</span>
@@ -223,6 +279,41 @@ export default function AdminCards() {
                     </tbody>
                 </table>
             </div>
+
+            <BulkActionsToolbar
+                count={selectedCount}
+                onClear={clear}
+                actions={[
+                    ...(selectedCount === 1 ? [{
+                        label: 'Editar',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {
+                            const cardToEdit = cards.find(c => c.id === selectedList[0]);
+                            if (cardToEdit) handleEdit(cardToEdit);
+                        },
+                        className: 'text-emerald-400 hover:text-emerald-300'
+                    }] : []),
+                    {
+                        label: 'Activar',
+                        icon: <CheckCircle className="w-4 h-4" />,
+                        onClick: () => handleBulkToggleActive(true),
+                        className: 'text-emerald-400 hover:text-emerald-300'
+                    },
+                    {
+                        label: 'Desactivar',
+                        icon: <XIcon className="w-4 h-4" />,
+                        onClick: () => handleBulkToggleActive(false),
+                        className: 'text-zinc-400 hover:text-zinc-300'
+                    },
+                    {
+                        label: 'Eliminar',
+                        icon: <Trash2 className="w-4 h-4" />,
+                        onClick: handleBulkDelete,
+                        variant: 'destructive',
+                        className: 'bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20'
+                    }
+                ]}
+            />
         </div>
     );
 }
