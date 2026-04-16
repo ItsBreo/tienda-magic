@@ -174,14 +174,26 @@ class MagicApi {
         return response.data;
     }
 
-    async processCheckout(): Promise<any> {
-        const response = await this.api.post('/api/checkout/process');
+    async processCheckout(billingData: any): Promise<any> {
+        const response = await this.api.post('/api/checkout/process', billingData);
         return response.data;
     }
 
     async rechargeWallet(amount: number): Promise<any> {
         const response = await this.api.post('/api/wallet/recharge', { amount });
         return response.data;
+    }
+
+    async getWalletTransactions(page: number = 1): Promise<any> {
+        const response = await this.api.get('/api/wallet/transactions', { params: { page } });
+        return response.data;
+    }
+
+    async downloadWalletTransactionsPdf(): Promise<Blob> {
+        const response = await this.api.get('/api/wallet/transactions/pdf', {
+            responseType: 'blob'
+        });
+        return new Blob([response.data], { type: 'application/pdf' });
     }
 
     // ─── Red Social y Foro ───────────────────────────────────────────────────
@@ -338,6 +350,18 @@ class MagicApi {
         return response.data;
     }
 
+    async cancelTrade(roomId: number): Promise<any> {
+        const response = await this.api.post(`/api/trade-sessions/${roomId}/cancel`);
+        return response.data;
+    }
+
+    async changeTradeCard(roomId: number, newInventoryCardId: number): Promise<any> {
+        const response = await this.api.post(`/api/trade-sessions/${roomId}/change-card`, {
+            new_inventory_card_id: newInventoryCardId
+        });
+        return response.data;
+    }
+
     async getTradeMessages(roomId: number): Promise<any> {
         const response = await this.api.get(`/api/trade-sessions/${roomId}/messages`);
         return response.data;
@@ -412,12 +436,47 @@ class MagicApi {
     // ─── Dashboard y Estadísticas ───────────────────────────────────────────
 
     async getDashboardStats(): Promise<any> {
-        const response = await this.api.get('/api/store-stats');
+        const response = await this.api.get('/api/admin/stats');
         return response.data;
     }
 
-    async getLatestSets(): Promise<any> {
-        const response = await this.api.get('/api/sets/latest');
+    async getAdminPermissions(): Promise<any> {
+        const response = await this.api.get('/api/admin/permissions');
+        return response.data;
+    }
+
+    async updateAdminRole(id: number, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/roles/${id}`, data);
+        return response.data;
+    }
+
+    async updateAdminSet(code: string, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/sets/${code}`, data);
+        return response.data;
+    }
+
+    async updateAdminCard(id: number, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/cards/${id}`, data);
+        return response.data;
+    }
+
+    async getAdminBoosterPacks(): Promise<any> {
+        const response = await this.api.get('/api/admin/booster-packs');
+        return response.data;
+    }
+
+    async createBoosterPack(data: any): Promise<any> {
+        const response = await this.api.post('/api/admin/booster-packs', data);
+        return response.data;
+    }
+
+    async updateBoosterPack(id: number, data: any): Promise<any> {
+        const response = await this.api.put(`/api/admin/booster-packs/${id}`, data);
+        return response.data;
+    }
+
+    async deleteBoosterPack(id: number): Promise<any> {
+        const response = await this.api.delete(`/api/admin/booster-packs/${id}`);
         return response.data;
     }
 

@@ -4,8 +4,9 @@ import CommentItem from './CommentItem';
 import { useAuth } from '@/contexts/AuthContext';
 import ApiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
-import DeleteConfirmDialog from './DeleteConfirmDialog';
+import { Trash2, ArrowLeft, Edit2, Send, Loader2 } from 'lucide-react';
+import { useSelection } from '@/hooks/useSelection';
+import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 
 interface ThreadDetailViewProps {
   post: Post;
@@ -18,15 +19,24 @@ interface ThreadDetailViewProps {
 export default function ThreadDetailView({ post, comments, isSubmitting, onBack, onCommentSubmit }: ThreadDetailViewProps) {
   const { user } = useAuth();
   const [newCommentBody, setNewCommentBody] = useState("");
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const canDelete = (post as any).can_delete || false;
   const canEdit = (post as any).can_edit || false;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(post.title || "");
   const [editBody, setEditBody] = useState(post.body || "");
+
+  const allCommentsFlat = comments.flatMap(c => [c, ...(c.replies || [])]);
+  
+  const {
+    selectedList,
+    selectedCount,
+    toggle,
+    clear,
+    isSelected
+  } = useSelection(allCommentsFlat);
+
+  const isModOrAdmin = user?.is_admin || (user as any)?.all_permissions?.includes('moderate-forum');
 
   const handleSubmit = () => {
     if (!newCommentBody.trim()) return;
@@ -37,136 +47,101 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
   const handleUpdate = async () => {
     try {
       await ApiService.updateThread(post.id, { title: editTitle, body: editBody });
-      toast.success("Publicación actualizada");
+      toast.success("Publicación actualizada correctamente");
       setIsEditing(false);
       window.location.reload(); 
     } catch (err) {
-      toast.error("Error al actualizar");
-    }
-  };
-
-  const handleDelete = async () => {
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await ApiService.deleteThread(post.id);
-      toast.success("Hilo eliminado");
-      setShowDeleteDialog(false);
-      onBack();
-    } catch (err) {
-      toast.error("Error al eliminar el hilo");
-    } finally {
-      setIsDeleting(false);
+      toast.error("Error al actualizar la publicación");
     }
   };
 
   const handleCommentDelete = (commentId: number) => {
-    // Al borrar un comentario no expulsamos al usuario, solo quitamos el comentario de la lista
-    const removeComment = (commentsList: Comment[]): Comment[] => {
-      // Intentar remover el comentario de la lista principal
-      const filtered = commentsList.filter(c => c.id !== commentId);
-      
-      // Si el tamaño no cambió, quizás es una respuesta (reply) hija
-      if (filtered.length === commentsList.length) {
-        return filtered.map(c => {
-          if (c.replies && c.replies.length > 0) {
-            return {
-              ...c,
-              replies: c.replies.filter((r: any) => r.id !== commentId)
-            };
-          }
-          return c;
-        });
-      }
-      return filtered;
-    };
-    
-    // Asumimos que podemos disparar onBack pero como un re-fetch.
-    // Dado que dependemos del setComments que está fuera de aquí (probablemente en la página superior),
-    // si no lo tenemos podemos simplemente mutar para ocultarlo o lanzar onError.
-    // Lo más recomendable es recargar sin onBack o implementar la mutación si nos pasan onDelete.
-    // Temporalmente: Notificamos arriba pero no retrocedemos, si no hay setter, lanzamos refresh
     window.location.reload(); 
   };
 
+  const handleBulkDeleteComments = async () => {
+    if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} comentarios/respuestas?`)) return;
+    try {
+      const { data } = await ApiService.axiosInstance.post('/api/mod/comments/bulk-delete', { ids: selectedList });
+      toast.success(data.message);
+      clear();
+      window.location.reload();
+    } catch (error) {
+      toast.error('Error al realizar borrado masivo de comentarios');
+    }
+  };
+
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden flex flex-col">
+    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col shadow-2xl">
       {/* Header con acciones */}
       <div className="p-4 bg-accent border-b border-border flex justify-between items-center gap-4">
-        <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-xs text-muted-foreground border border-border px-2.5 py-1 rounded-md bg-transparent hover:bg-card hover:text-foreground transition-colors cursor-pointer shrink-0">
-            ← Volver
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors cursor-pointer shrink-0">
+            <ArrowLeft size={14} strokeWidth={3} /> Volver
           </button>
-          <h2 className="font-semibold text-[15px] text-foreground truncate">{post.title}</h2>
+          <h2 className="font-serif font-black text-[16px] text-foreground truncate">{post.title}</h2>
         </div>
         <div className="flex items-center gap-2">
           {canEdit && !isEditing && (
             <button 
               onClick={() => setIsEditing(true)}
-              className="text-xs font-bold text-primary hover:underline bg-transparent border-none cursor-pointer px-2"
+              className="flex items-center gap-1.5 text-[11px] font-black text-primary hover:bg-primary/10 px-2.5 py-1.5 rounded-md uppercase tracking-wider transition-all"
             >
-              Editar
-            </button>
-          )}
-          {canDelete && (
-            <button 
-              onClick={handleDelete}
-              className="p-1.5 text-destructive hover:bg-destructive/10 rounded-md transition-colors cursor-pointer"
-              title="Eliminar hilo"
-            >
-              <Trash2 size={16} />
+              <Edit2 size={12} /> Editar
             </button>
           )}
         </div>
       </div>
 
       {/* Cuerpo del Post */}
-      <div className="p-5 border-b border-border bg-card font-inter">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-sm">
+      <div className="p-6 border-b border-border bg-card">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-[12px] font-black text-primary-foreground shadow-lg shadow-primary/20">
             {(post.author || "U").substring(0, 2).toUpperCase()}
           </div>
           <div>
-            <div className="text-[12px] font-bold text-foreground leading-none mb-1">{post.author}</div>
-            <div className="text-[10px] text-muted-foreground leading-none">{post.timeAgo}</div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm font-black text-foreground leading-none">@{post.author}</span>
+              <span className="text-[10px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-tighter" title="Reputación de usuario">
+                {post.reputation || 100}✨
+              </span>
+            </div>
+            <div className="text-[11px] text-muted-foreground font-medium">{post.timeAgo}</div>
           </div>
         </div>
 
         {isEditing ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <input 
               value={editTitle}
               onChange={e => setEditTitle(e.target.value)}
-              className="w-full bg-accent border border-border rounded-md p-2 text-foreground font-bold outline-none focus:border-primary text-sm"
-              placeholder="Título"
+              className="w-full bg-accent border border-border rounded-lg p-3 text-foreground font-bold outline-none focus:ring-1 focus:ring-primary text-base"
+              placeholder="Título de la publicación"
             />
             <textarea 
               value={editBody}
               onChange={e => setEditBody(e.target.value)}
               rows={8}
-              className="w-full bg-accent border border-border rounded-md p-3 text-foreground text-sm outline-none focus:border-primary resize-y whitespace-pre-wrap"
-              placeholder="Contenido..."
+              className="w-full bg-accent border border-border rounded-lg p-4 text-foreground text-sm outline-none focus:ring-1 focus:ring-primary resize-y whitespace-pre-wrap leading-relaxed"
+              placeholder="Escribe el contenido aquí..."
             />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsEditing(false)} className="text-[11px] text-muted-foreground px-3 py-1.5 rounded-md border border-border bg-transparent hover:bg-accent cursor-pointer">Cancelar</button>
-              <button onClick={handleUpdate} className="text-[11px] font-bold text-primary-foreground bg-primary px-4 py-1.5 rounded-md border-none hover:bg-primary/90 cursor-pointer">Guardar cambios</button>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setIsEditing(false)} className="text-[12px] font-bold text-muted-foreground px-4 py-2 rounded-lg border border-border bg-transparent hover:bg-accent transition-all cursor-pointer">Cancelar</button>
+              <button onClick={handleUpdate} className="text-[12px] font-bold text-primary-foreground bg-primary px-6 py-2 rounded-lg border-none hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all cursor-pointer">Guardar Cambios</button>
             </div>
           </div>
         ) : (
           <>
-            <h1 className="text-xl font-bold text-foreground mb-4 leading-tight">
+            <h1 className="text-2xl font-serif font-black text-foreground mb-6 leading-tight decoration-primary/10 underline underline-offset-8 decoration-2">
               {post.title}
             </h1>
-            <div className="text-[14px] text-foreground leading-relaxed whitespace-pre-wrap mb-5">
+            <div className="text-[15px] text-foreground leading-loose whitespace-pre-wrap mb-7 opacity-90 font-medium">
               {post.body || post.preview}
             </div>
             {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {post.tags.map(tag => (
-                  <span key={tag} className="text-[9px] uppercase tracking-wider font-bold bg-accent text-muted-foreground px-2 py-0.5 rounded border border-border">
+                  <span key={tag} className="text-[10px] uppercase tracking-widest font-black bg-accent text-muted-foreground px-3 py-1 rounded-md border border-border hover:border-primary/50 transition-colors">
                     #{tag}
                   </span>
                 ))}
@@ -176,43 +151,72 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
         )}
       </div>
 
-      <div className="p-4 border-b border-border">
-        <textarea
-          value={newCommentBody}
-          onChange={e => setNewCommentBody(e.target.value)}
-          placeholder="Añade un comentario…"
-          rows={3}
-          className="w-full bg-accent border border-border rounded-md py-2.5 px-3.5 text-foreground text-[13px] resize-y outline-none focus:border-primary transition-colors mb-2"
-        />
-        <div className="flex justify-end">
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !newCommentBody.trim()}
-            className={`bg-primary text-primary-foreground border-none py-1.5 px-3.5 rounded-md text-[13px] font-semibold transition-colors ${isSubmitting || !newCommentBody.trim() ? 'opacity-60 cursor-not-allowed' : 'hover:bg-primary/90 cursor-pointer'}`}
-          >
-            {isSubmitting ? "Enviando..." : "Comentar"}
-          </button>
+      {/* Caja de Comentarios */}
+      <div className="p-6 border-b border-border bg-accent/20">
+        <div className="relative group">
+          <textarea
+            value={newCommentBody}
+            onChange={e => setNewCommentBody(e.target.value)}
+            placeholder="Escribe un comentario constructivo..."
+            rows={3}
+            className="w-full bg-card border border-border rounded-xl py-4 px-5 text-foreground text-sm font-medium resize-y outline-none focus:ring-1 focus:ring-primary transition-all mb-3 shadow-inner"
+          />
+          <div className="flex justify-between items-center">
+            <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-tight italic">Recuerda seguir las normas del foro.</p>
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting || !newCommentBody.trim()}
+              className={`flex items-center gap-2 bg-primary text-primary-foreground border-none py-2 px-6 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all ${isSubmitting || !newCommentBody.trim() ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:bg-primary/90 hover:translate-y-[-1px] active:translate-y-[0px] cursor-pointer'}`}
+            >
+              {isSubmitting ? <Loader2 className="animate-spin" /> : <><Send size={14} strokeWidth={3} /> Publicar</>}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="pb-4">
+      {/* Lista de Comentarios */}
+      <div className="pb-8 relative">
+        <div className="px-6 py-4 border-b border-border bg-accent/10">
+          <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Discusión ({comments.length})</h3>
+        </div>
+        
         {comments.length > 0 ? (
-          comments.map(c => <CommentItem key={c.id} comment={c} forumId={post.forum_id} onDelete={handleCommentDelete} onReplySubmit={onCommentSubmit} />)
+          comments.map(c => (
+            <CommentItem 
+              key={c.id} 
+              comment={c} 
+              forumId={post.forum_id} 
+              onDelete={handleCommentDelete} 
+              onReplySubmit={onCommentSubmit}
+              selection={{
+                isSelected: (id: number) => isSelected(id),
+                toggle: (id: number) => toggle(id),
+                isMod: isModOrAdmin
+              }}
+            />
+          ))
         ) : (
-          <div className="p-5 text-center text-sm text-muted-foreground">
-            Cargando comentarios...
+          <div className="p-12 text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground font-medium">Cargando la conversación...</p>
           </div>
         )}
-      </div>
 
-      <DeleteConfirmDialog 
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={confirmDelete}
-        isLoading={isDeleting}
-        title="¿Eliminar hilo?"
-        description="Esta acción eliminará el hilo y todos sus comentarios de forma permanente."
-      />
+        <BulkActionsToolbar
+          count={selectedCount}
+          onClear={clear}
+          actions={[
+            {
+              label: 'Eliminar Selección',
+              icon: <Trash2 className="w-4 h-4" />,
+              onClick: handleBulkDeleteComments,
+              variant: 'destructive',
+              className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20'
+            }
+          ]}
+        />
+      </div>
     </div>
   );
 }
+

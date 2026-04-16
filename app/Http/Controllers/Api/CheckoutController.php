@@ -12,9 +12,11 @@ use App\Models\BoosterPack;
 use App\Models\InventoryCard;
 use App\Models\InventoryPack;
 use App\Models\Cart;
+use App\Models\WalletTransaction;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use OpenApi\Attributes as OA;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -58,18 +60,16 @@ class CheckoutController extends Controller
                 $totalAmount = 0;
                 $orderItems = [];
 
-                // Validación de stock para cartas sueltas
+                // Validación de stock general
                 foreach ($validated['items'] as $item) {
-                    if ($item['purchasable_type'] === 'App\\Models\\Card') {
-                        $card = Card::find($item['purchasable_id']);
+                    $model = $item['purchasable_type']::find($item['purchasable_id']);
 
-                        if (!$card) {
-                            throw new \Exception("Carta no encontrada: ID {$item['purchasable_id']}");
-                        }
+                    if (!$model) {
+                        throw new \Exception("Producto no encontrado: {$item['purchasable_type']} ID {$item['purchasable_id']}");
+                    }
 
-                        if (($card->stock ?? 0) < $item['quantity']) {
-                            throw new \Exception("Stock insuficiente para '{$card->name}'. Stock disponible: {$card->stock}, solicitado: {$item['quantity']}");
-                        }
+                    if (($model->stock ?? 0) < $item['quantity']) {
+                        throw new \Exception("Stock insuficiente para '{$model->name}'. Stock disponible: {$model->stock}, solicitado: {$item['quantity']}");
                     }
                 }
 
@@ -137,6 +137,17 @@ class CheckoutController extends Controller
 
                     // Descontar saldo
                     $user->decrement('wallet_balance', $totalAmount);
+                    $newBalance = $user->fresh()->wallet_balance;
+
+                    // Registrar en el historial de la billetera
+                    $itemCount = count($orderItems);
+                    WalletTransaction::create([
+                        'user_id'       => $user->id,
+                        'type'          => 'purchase',
+                        'amount'        => -$totalAmount,
+                        'balance_after' => $newBalance,
+                        'description'   => "Compra en la tienda — {$itemCount} " . ($itemCount === 1 ? 'artículo' : 'artículos'),
+                    ]);
 
                     // Marcar como completado
                     $order->update([
@@ -297,7 +308,7 @@ class CheckoutController extends Controller
 
             return response()->json(['success' => true, 'message' => 'Sesión verificada, estado: ' . $session->payment_status]);
         } catch (\Exception $e) {
-            \Log::error('Stripe Verify Error: ' . $e->getMessage());
+            Log::error('Stripe Verify Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'error' => $e->getMessage()], 400);
         }
     }

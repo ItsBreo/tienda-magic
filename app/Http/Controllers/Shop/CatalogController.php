@@ -57,8 +57,8 @@ class CatalogController extends Controller
                         'card_set_id' => $card->set->code ?? null,
                         'stock' => $card->stock ?? 0,
                         'config' => [
-                            'description' => $card->data['type_line'] ?? 'Magic Card',
-                            'foil' => $card->data['foil'] ?? false,
+                            'description' => ($card->data['type_line'] ?? null) ?? 'Magic Card',
+                            'foil' => ($card->data['foil'] ?? null) ?? false,
                         ],
                         'set' => $card->set
                     ];
@@ -84,9 +84,9 @@ class CatalogController extends Controller
                         'type' => $pack->type ?? 'Booster',
                         'card_set_id' => $pack->card_set_id,
                         'config' => [
-                            'description' => $config['description'] ?? 'Magic Booster Pack',
-                            'foil' => $config['foil'] ?? false,
-                            'total_cards' => $config['total_cards'] ?? 15,
+                            'description' => ($config['description'] ?? null) ?? 'Magic Booster Pack',
+                            'foil' => ($config['foil'] ?? null) ?? false,
+                            'total_cards' => ($config['total_cards'] ?? null) ?? 15,
                         ],
                         'set' => $pack->set
                     ];
@@ -94,8 +94,8 @@ class CatalogController extends Controller
         }
 
         // List of sets and types for filter dropdowns
-        $sets = CardSet::select('id', 'name', 'code')->get();
-        $types = BoosterPack::select('type')->distinct()->pluck('type');
+        $sets = CardSet::where('is_active', true)->select('code as id', 'name', 'code')->get();
+        $types = BoosterPack::where('is_active', true)->select('type')->distinct()->pluck('type');
 
         return response()->json([
             'data' => [

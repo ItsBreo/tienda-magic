@@ -49,7 +49,7 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
     }
 
     // Logica para Sobres / Packs
-    return pack.card_set?.icon_svg_uri || pack.cover_image || pack.image_uri;
+    return pack.image_url || pack.cover_image || pack.image_uri || pack.card_set?.icon_svg_uri;
   };
 
   const handleBuyPack = () => {
@@ -89,13 +89,24 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
       </div>
 
       {/* Información del pack */}
-      <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
-        <HighlightedText text={pack.name} highlight={searchTerm} highlightClassName="bg-primary/30 text-primary rounded-sm px-0.5" />
-      </h3>
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium">
-          {pack.type}
-        </span>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-lg font-semibold text-foreground line-clamp-2">
+          <HighlightedText text={pack.name} highlight={searchTerm} highlightClassName="bg-primary/30 text-primary rounded-sm px-0.5" />
+        </h3>
+        {pack.card_set?.icon_svg_uri && (
+          <img 
+            src={pack.card_set.icon_svg_uri} 
+            alt="" 
+            className="w-5 h-5 opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all ml-2 shrink-0 filter dark:invert" 
+          />
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {pack.type === 'Singles' && (
+          <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium">
+            {pack.type}
+          </span>
+        )}
         {pack.config.foil && (
           <span className="text-xs px-2 py-1 rounded-full bg-accent text-muted-foreground">
             Foil

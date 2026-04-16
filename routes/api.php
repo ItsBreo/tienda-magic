@@ -30,7 +30,9 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminSetController;
 use App\Http\Controllers\Admin\AdminCardController;
+use App\Http\Controllers\Admin\AdminBoosterPackController;
 use App\Http\Controllers\Admin\AdminForumModController;
+use App\Http\Controllers\Admin\AdminPermissionController;
 
 // Controladores de Torneos
 use App\Http\Controllers\Tournament\TournamentController;
@@ -76,13 +78,12 @@ Route::get('/cards/set/{setCode}', [PackController::class, 'getCardsBySet']);
 
 // --- RUTAS DEL DASHBOARD ---
 Route::get('/sets/latest', [SetController::class, 'latest']);
-Route::get('/store-stats', [DashboardController::class, 'getStats']);
 
 // --- PERFILES PÚBLICOS ---
 Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
 
 // --- WEBHOOKS DE STRIPE (Sin autenticación) ---
-Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handleWebhook']);
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
 
 /*
 |--------------------------------------------------------------------------
@@ -182,6 +183,8 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
 
     // ========== BILLETERA ==========
     Route::post('/wallet/deposit', [DepositController::class, 'store']);
+    Route::get('/wallet/transactions', [WalletTransactionController::class, 'index']);
+    Route::get('/wallet/transactions/pdf', [WalletTransactionController::class, 'downloadPdf']);
 
     // ========== USUARIO (Cuenta Base y Billetera) ==========
     Route::prefix('account')->group(function () {
@@ -232,6 +235,8 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     Route::prefix('trade-sessions')->group(function () {
         Route::get('/{id}', [TradeController::class, 'showRoom']);
         Route::post('/{id}/confirm', [TradeController::class, 'confirmTrade']);
+        Route::post('/{id}/cancel', [TradeController::class, 'cancelTrade']);
+        Route::post('/{id}/change-card', [TradeController::class, 'changeCard']);
         // Chat de la sala
         Route::get('/{id}/messages', [TradeController::class, 'getMessages']);
         Route::post('/{id}/messages', [TradeController::class, 'sendMessage']);
@@ -287,23 +292,27 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     Route::delete('/saved/{thread}', [SavedThreadController::class, 'destroy']);
 
     // ========== TORNEOS ==========
-
     // Públicas (autenticado)
     Route::get('/tournaments',          [TournamentController::class, 'index']);
     Route::get('/tournaments/{tournament}', [TournamentController::class, 'show']);
 
-    // CRUD
-    Route::post('/tournaments',             [TournamentController::class, 'store']);
-    Route::patch('/tournaments/{tournament}', [TournamentController::class, 'update']);
-    Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy']);
+    // CRUD (Administrativo)
+    Route::post('/tournaments',             [TournamentController::class, 'store'])
+        ->middleware('permission:manage-tournaments');
+    Route::patch('/tournaments/{tournament}', [TournamentController::class, 'update'])
+        ->middleware('permission:manage-tournaments');
+    Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])
+        ->middleware('permission:manage-tournaments');
 
-    // Inscripciones
+    // Inscripciones (Públicas para registro propio)
     Route::post('/tournaments/{tournament}/register',   [TournamentController::class, 'register']);
     Route::delete('/tournaments/{tournament}/register', [TournamentController::class, 'unregister']);
 
-    // Gestión (creador/admin)
-    Route::get('/tournaments/{tournament}/registrations',                          [TournamentController::class, 'registrations']);
-    Route::patch('/tournaments/{tournament}/registrations/{registration}/confirm', [TournamentController::class, 'confirmRegistration']);
+    // Gestión de inscripciones (Administrativo)
+    Route::get('/tournaments/{tournament}/registrations',                          [TournamentController::class, 'registrations'])
+        ->middleware('permission:manage-tournaments');
+    Route::patch('/tournaments/{tournament}/registrations/{registration}/confirm', [TournamentController::class, 'confirmRegistration'])
+        ->middleware('permission:manage-tournaments');
 
     // ========== BÚSQUEDA ==========
     Route::get('/search/all', [SearchController::class, 'searchAll']);
@@ -333,31 +342,86 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     });
 
     // ========== ADMIN DASHBOARD ==========
-    // Solo accesible por admin y super_admin
+    // Solo accesible por admin y super_admin (el middleware 'admin' hace el filtro base)
+    // Pero ahora añadimos permisos granulares para control total
     Route::prefix('admin')->middleware(['admin'])->group(function () {
-        Route::apiResource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::apiResource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::apiResource('sets', AdminSetController::class)->only(['index', 'store', 'destroy']);
-        Route::apiResource('cards', AdminCardController::class)->only(['index', 'store', 'destroy']);
+        // Acciones masivas (Bulk) para sets, cartas, booster-packs, roles y usuarios
+        Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDelete'])
+            ->middleware('permission:manage-users');
+        Route::post('/users/bulk-toggle-active', [AdminUserController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-users');
+        Route::post('/users/bulk-change-role', [AdminUserController::class, 'bulkChangeRole'])
+            ->middleware('permission:assign-roles');
 
-        Route::patch('/users/{userId}/reputation', [UserProfileController::class, 'updateReputation']);
+        Route::post('/roles/bulk-delete', [AdminRoleController::class, 'bulkDelete'])
+            ->middleware('permission:manage-roles');
+
+        Route::post('/sets/bulk-delete', [AdminSetController::class, 'bulkDelete'])
+            ->middleware('permission:manage-sets');
+        Route::post('/sets/bulk-toggle-active', [AdminSetController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-sets');
+
+        Route::post('/cards/bulk-delete', [AdminCardController::class, 'bulkDelete'])
+            ->middleware('permission:manage-cards');
+        Route::post('/cards/bulk-toggle-active', [AdminCardController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-cards');
+
+        Route::post('/booster-packs/bulk-delete', [AdminBoosterPackController::class, 'bulkDelete'])
+            ->middleware('permission:manage-booster-packs');
+        Route::post('/booster-packs/bulk-toggle-active', [AdminBoosterPackController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-booster-packs');
+
+        Route::apiResource('users', AdminUserController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->middleware('permission:manage-users');
+
+        Route::apiResource('roles', AdminRoleController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->middleware('permission:manage-roles');
+
+        Route::get('/permissions', [AdminPermissionController::class, 'index'])
+            ->middleware('permission:manage-roles');
+
+        Route::apiResource('sets', AdminSetController::class)
+            ->middleware('permission:manage-sets');
+
+        Route::apiResource('cards', AdminCardController::class)
+            ->middleware('permission:manage-cards');
+
+        Route::apiResource('booster-packs', AdminBoosterPackController::class)
+            ->middleware('permission:manage-booster-packs');
+
+        Route::patch('/users/{userId}/reputation', [UserProfileController::class, 'updateReputation'])
+            ->middleware('permission:manage-users');
 
         // Asignar / cambiar rol a un usuario (incluyendo forum_id para moderadores)
-        Route::post('/users/{user}/assign-role', [AdminUserController::class, 'assignRole']);
+        Route::post('/users/{user}/assign-role', [AdminUserController::class, 'assignRole'])
+            ->middleware('permission:assign-roles');
     });
 
     // ========== MODERACIÓN DEL FORO ==========
     // Accesible para admin, super_admin y cualquier moderador sectorial
     Route::prefix('mod')->middleware(['role:moderator'])->group(function () {
-        // Ver threads de un foro (el moderador solo ve los suyos; el admin ve cualquiera)
-        Route::get('/forums/{forumId}/threads', [AdminForumModController::class, 'threads']);
+        // Acciones masivas para moderadores
+        Route::post('/threads/bulk-delete', [AdminForumModController::class, 'bulkDeleteThreads'])
+            ->middleware('permission:moderate-forum');
+        Route::post('/comments/bulk-delete', [AdminForumModController::class, 'bulkDeleteComments'])
+            ->middleware('permission:moderate-forum');
 
-        // Borrar contenido (la policy valida si tiene acceso al foro concreto)
-        Route::delete('/threads/{thread}',   [AdminForumModController::class, 'deleteThread']);
-        Route::delete('/comments/{comment}', [AdminForumModController::class, 'deleteComment']);
+        // Ver threads de un foro
+        Route::get('/forums/{forumId}/threads', [AdminForumModController::class, 'threads'])
+            ->middleware('permission:moderate-forum');
 
-        // Restaurar contenido (solo admin/super_admin — la comprobación está dentro del controlador)
-        Route::post('/threads/{threadId}/restore',   [AdminForumModController::class, 'restoreThread']);
-        Route::post('/comments/{commentId}/restore', [AdminForumModController::class, 'restoreComment']);
+        // Borrar contenido
+        Route::delete('/threads/{thread}',   [AdminForumModController::class, 'deleteThread'])
+            ->middleware('permission:moderate-forum');
+        Route::delete('/comments/{comment}', [AdminForumModController::class, 'deleteComment'])
+            ->middleware('permission:moderate-forum');
+
+        // Restaurar contenido
+        Route::post('/threads/{threadId}/restore',   [AdminForumModController::class, 'restoreThread'])
+            ->middleware('permission:restore-content');
+        Route::post('/comments/{commentId}/restore', [AdminForumModController::class, 'restoreComment'])
+            ->middleware('permission:restore-content');
     });
 });

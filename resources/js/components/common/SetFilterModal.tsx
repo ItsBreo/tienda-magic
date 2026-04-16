@@ -90,25 +90,25 @@ export default function SetFilterModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[600px] bg-zinc-950 border-zinc-800 text-zinc-100 p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-[600px] bg-card border-border text-foreground p-0 overflow-hidden shadow-2xl">
                 <DialogHeader className="p-6 pb-2">
                     <DialogTitle className="flex items-center gap-2 text-xl font-bold">
                         <Filter className={cn("h-5 w-5", colors.icon)} />
                         Filtrar por Set
                     </DialogTitle>
-                    <DialogDescription className="text-sm text-zinc-400 mt-1">
+                    <DialogDescription className="text-sm text-muted-foreground mt-1">
                         Selecciona uno o más de los sets disponibles para filtrar los artículos.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="px-6 py-2">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Buscar set por nombre o código..."
                             className={cn(
-                                "pl-10 bg-zinc-900 border-zinc-800 text-sm focus-visible:ring-1", 
-                                accentColor === "amber" ? "focus-visible:ring-amber-500" : "focus-visible:ring-emerald-500"
+                                "pl-10 bg-accent border-border text-sm focus-visible:ring-1", 
+                                accentColor === "amber" ? "focus-visible:ring-primary" : "focus-visible:ring-primary"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -118,7 +118,7 @@ export default function SetFilterModal({
 
                 <div className="px-6 py-4 max-h-[400px] overflow-y-auto custom-scrollbar">
                     {filteredSets.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-40 text-zinc-500 space-y-2">
+                        <div className="flex flex-col items-center justify-center h-40 text-muted-foreground space-y-2">
                             <Tag className="h-8 w-8 opacity-20" />
                             <p>No se encontraron sets</p>
                         </div>
@@ -138,7 +138,7 @@ export default function SetFilterModal({
                                             "flex items-center justify-between p-3 rounded-lg border text-left transition-all group",
                                             isSelected 
                                                 ? cn(colors.bg, "border-transparent text-white shadow-lg shadow-black/20")
-                                                : "bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-900"
+                                                : "bg-accent/30 border-border text-muted-foreground hover:border-primary/50 hover:bg-accent/50"
                                         )}
                                     >
                                         <div className="flex items-center gap-3 overflow-hidden">
@@ -152,10 +152,10 @@ export default function SetFilterModal({
                                                 <Tag className={cn("h-4 w-4", isSelected ? "text-white" : "text-zinc-600")} />
                                             )}
                                             <div className="flex flex-col min-w-0">
-                                                <span className={cn("text-sm font-medium truncate", isSelected ? "text-white" : "text-zinc-300")}>
+                                                <span className={cn("text-sm font-medium truncate", isSelected ? "text-white" : "text-foreground")}>
                                                     {set.name}
                                                 </span>
-                                                <span className={cn("text-[10px] uppercase font-bold tracking-wider", isSelected ? "text-white/70" : "text-zinc-500")}>
+                                                <span className={cn("text-[10px] uppercase font-bold tracking-wider", isSelected ? "text-white/70" : "text-muted-foreground")}>
                                                     {set.code}
                                                 </span>
                                             </div>
@@ -168,10 +168,10 @@ export default function SetFilterModal({
                     )}
                 </div>
 
-                <DialogFooter className="p-6 bg-zinc-900/50 border-t border-zinc-800 flex flex-col sm:flex-row gap-3">
+                <DialogFooter className="p-6 bg-accent/30 border-t border-border flex flex-col sm:flex-row gap-3">
                     <div className="flex items-center gap-2 mr-auto">
                          {tempSelected.length > 0 && (
-                            <Badge variant="secondary" className="bg-zinc-800 text-zinc-400 hover:bg-zinc-700 cursor-pointer" onClick={() => setTempSelected([])}>
+                            <Badge variant="secondary" className="bg-accent text-muted-foreground hover:bg-accent/80 cursor-pointer" onClick={() => setTempSelected([])}>
                                 {tempSelected.length} seleccionados (Limpiar)
                             </Badge>
                          )}
@@ -180,7 +180,7 @@ export default function SetFilterModal({
                         <Button 
                             variant="ghost" 
                             onClick={onClose}
-                            className="text-zinc-400 hover:text-white hover:bg-zinc-800 flex-1 sm:flex-none"
+                            className="text-muted-foreground hover:text-foreground hover:bg-accent flex-1 sm:flex-none"
                         >
                             Cancelar
                         </Button>

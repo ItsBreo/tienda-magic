@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import apiService from '@/services/ApiService';
 import { showAddToCartToast } from '@/utils/toastUtils';
 
-import PacksHeader from '@/components/packs/PacksHeader';
+//import PacksHeader from '@/components/packs/PacksHeader';
 import PacksGrid from '@/components/packs/PacksGrid';
 import PackDialog from '@/components/packs/PackDialog';
 import CardLightbox from '@/components/packs/CardLightbox';
@@ -207,7 +207,6 @@ export default function PacksView() {
         <div className="flex-1 bg-background text-foreground pb-20">
             <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
-            <PacksHeader />
 
             {/* Toolbar */}
             <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[60px] z-40">
@@ -244,63 +243,63 @@ export default function PacksView() {
                         </button>
                     </div>
 
-                    {/* Sort */}
-                    <select
-                        value={sortBy}
-                        onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                        className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-sm"
-                    >
-                        <option value="newest">Novedades</option>
-                        <option value="price_asc">Menor a Mayor</option>
-                        <option value="price_desc">Mayor a Menor</option>
-                        <option value="name_asc">A-Z</option>
-                        <option value="name_desc">Z-A</option>
-                    </select>
-                </div>
-
-                {/* Set filter Modal Button */}
-                {availableSets.length > 0 && (
-                    <div className="max-w-7xl mx-auto px-4 pb-3 flex flex-wrap items-center gap-3">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsFilterModalOpen(true)}
-                            className={cn(
-                                "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-medium",
-                                selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
-                            )}
+                    {/* Sort & Filter */}
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={sortBy}
+                            onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
+                            className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-sm h-10 focus:ring-1 focus:ring-primary outline-none transition-all"
                         >
-                            <Filter className="h-4 w-4" />
-                            Filtrar por Set
-                            {selectedSets.length > 0 && (
-                                <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
-                                    {selectedSets.length}
-                                </Badge>
-                            )}
-                        </Button>
+                            <option value="newest">Novedades</option>
+                            <option value="price_asc">Menor a Mayor</option>
+                            <option value="price_desc">Mayor a Menor</option>
+                            <option value="name_asc">A-Z</option>
+                            <option value="name_desc">Z-A</option>
+                        </select>
+
+                        {availableSets.length > 0 && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsFilterModalOpen(true)}
+                                className={cn(
+                                    "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4",
+                                    selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
+                                )}
+                            >
+                                <Filter className="h-4 w-4" />
+                                <span className="hidden sm:inline">Filtrar por Set</span>
+                                {selectedSets.length > 0 && (
+                                    <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                        {selectedSets.length}
+                                    </Badge>
+                                )}
+                            </Button>
+                        )}
 
                         {selectedSets.length > 0 && (
                             <button
                                 onClick={() => { setSelectedSets([]); setCurrentPage(1); }}
-                                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors px-2"
+                                title="Limpiar filtros"
                             >
-                                <X className="h-3 w-3" /> Limpiar filtros
+                                <X className="h-3 w-3" />
                             </button>
                         )}
-
-                        <SetFilterModal 
-                            isOpen={isFilterModalOpen}
-                            onClose={() => setIsFilterModalOpen(false)}
-                            availableSets={availableSets}
-                            selectedSets={selectedSets}
-                            onApply={(newSelection) => {
-                                setSelectedSets(newSelection as string[]);
-                                setCurrentPage(1);
-                            }}
-                            accentColor="emerald"
-                        />
                     </div>
-                )}
+                </div>
+
+                <SetFilterModal 
+                    isOpen={isFilterModalOpen}
+                    onClose={() => setIsFilterModalOpen(false)}
+                    availableSets={availableSets}
+                    selectedSets={selectedSets}
+                    onApply={(newSelection) => {
+                        setSelectedSets(newSelection as string[]);
+                        setCurrentPage(1);
+                    }}
+                    accentColor="emerald"
+                />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 pt-16 pb-8">

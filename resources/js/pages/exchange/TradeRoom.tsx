@@ -2,6 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiService } from '../../services/ApiService';
 import { toast } from 'sonner';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+if (typeof window !== 'undefined') {
+  (window as any).Pusher = Pusher;
+}
 
 interface ChatMessage {
   id: number;
@@ -19,21 +25,100 @@ export default function TradeRoom() {
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState('');
   const [sendingMsg, setSendingMsg] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const echoRef = useRef<Echo<any> | null>(null);
+
+  // Modal Inventario
+  const [showInventoryModal, setShowInventoryModal] = useState(false);
+  const [inventoryCards, setInventoryCards] = useState<any[]>([]);
+  const [loadingInventory, setLoadingInventory] = useState(false);
+  const [changingCard, setChangingCard] = useState(false);
+
+  const openInventoryModal = async () => {
+    setShowInventoryModal(true);
+    setLoadingInventory(true);
+    try {
+      const data = await apiService.getMyInventory();
+      // El backend devuelve un objeto con { inventoryCards: { data: [...] } } porque es paginado
+      const cards = data.inventoryCards?.data || [];
+      setInventoryCards(cards);
+    } catch {
+      toast.error('Error al cargar inventario');
+    } finally {
+      setLoadingInventory(false);
+    }
+  };
+
+  const handleChangeCard = async (newCardId: number) => {
+    if (changingCard) return;
+    setChangingCard(true);
+    try {
+      const data = await apiService.changeTradeCard(Number(sessionId), newCardId);
+      setRoom(data);
+      toast.success('Carta cambiada correctamente. Reconfirma el intercambio.');
+      setShowInventoryModal(false);
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al cambiar la carta');
+    } finally {
+      setChangingCard(false);
+    }
+  };
+
 
   useEffect(() => {
     loadRoom();
     loadUser();
   }, [sessionId]);
 
+  // Configuración de WebSockets (Echo)
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const token = localStorage.getItem('auth_token');
+    if (!token || echoRef.current) return;
+
+    const echo = new Echo({
+      broadcaster: 'reverb',
+      key: import.meta.env.VITE_REVERB_APP_KEY,
+      wsHost: import.meta.env.VITE_REVERB_HOST,
+      wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+      wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+      forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+      enabledTransports: ['ws', 'wss'],
+      authEndpoint: '/api/broadcasting/auth',
+      auth: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      },
+    });
+
+    echoRef.current = echo;
+
+    echo.private(`trade.${sessionId}`)
+        .listen('.trade.updated', (e: any) => {
+          console.log('RT: Trade Updated received', e);
+          loadRoom(); 
+        });
+
+    return () => {
+      if (echoRef.current) {
+        echoRef.current.leave(`trade.${sessionId}`);
+        echoRef.current = null;
+      }
+    };
+  }, [sessionId]);
+
   // Start polling once we have the session id
   useEffect(() => {
     if (!sessionId) return;
     fetchMessages();
-    pollingRef.current = setInterval(fetchMessages, 3000);
+    pollingRef.current = setInterval(fetchMessages, 8000); // Polling más lento como respaldo
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
@@ -62,11 +147,35 @@ export default function TradeRoom() {
   const fetchMessages = async () => {
     try {
       const data = await apiService.getTradeMessages(Number(sessionId));
+      setConversationId(data.conversation_id || null);
       setMessages(data.data ?? []);
     } catch {
       // Silencioso — el chat puede no estar inicializado aún
     }
   };
+
+  // Escuchar mensajes entrantes en tiempo real
+  useEffect(() => {
+    if (!conversationId || !echoRef.current) return;
+    
+    const channelName = `conversation.${conversationId}`;
+    const channel = echoRef.current.private(channelName);
+    
+    channel.listen('.message.sent', (e: any) => {
+      console.log('RT: Chat message received', e);
+      setMessages((prev) => {
+        // Prevenir duplicados
+        if (prev.some(m => m.id === e.id)) return prev;
+        return [...prev, e];
+      });
+    });
+
+    return () => {
+      if (echoRef.current) {
+        echoRef.current.leave(channelName);
+      }
+    };
+  }, [conversationId]);
 
   const handleSendMessage = async () => {
     const content = chatInput.trim();
@@ -75,7 +184,10 @@ export default function TradeRoom() {
     try {
       const msg = await apiService.sendTradeMessage(Number(sessionId), content);
       setChatInput('');
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
     } catch {
       toast.error('Error al enviar el mensaje');
     } finally {
@@ -104,6 +216,17 @@ export default function TradeRoom() {
     }
   };
 
+  const handleCancelTrade = async () => {
+    if (!confirm('¿Estás seguro de que deseas cancelar este intercambio? Esta acción no se puede deshacer.')) return;
+    try {
+      const data = await apiService.cancelTrade(Number(sessionId));
+      setRoom(data);
+      toast.success('El intercambio ha sido cancelado exitosamente.');
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al cancelar');
+    }
+  };
+
   const formatTime = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -116,13 +239,22 @@ export default function TradeRoom() {
     </div>
   );
 
-  const req = room.exchange_request;
+  const req = room.exchange_request || room.exchangeRequest;
+
+  if (!req || !req.exchange) {
+    return (
+      <div className="p-10 text-center text-destructive font-bold">
+        Error: No se pudo cargar la información estructurada de la sala. (exchangeRequest missing)
+      </div>
+    );
+  }
+
   const exch = req.exchange;
 
   const isUser1 = (exch.user_id === user.id);
-  const mySide = isUser1 ? exch.offered_card : req.offered_card;
+  const mySide = isUser1 ? exch.offered_card || exch.offeredCard : req.offered_card || req.offeredCard;
   const myStatus = isUser1 ? room.user1_confirmed : room.user2_confirmed;
-  const theirSide = isUser1 ? req.offered_card : exch.offered_card;
+  const theirSide = isUser1 ? req.offered_card || req.offeredCard : exch.offered_card || exch.offeredCard;
   const theirStatus = isUser1 ? room.user2_confirmed : room.user1_confirmed;
   const theirName = isUser1 ? req?.user?.name : exch?.user?.name;
 
@@ -131,7 +263,7 @@ export default function TradeRoom() {
 
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+        <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
           Sala de Transferencia
         </h1>
         <p className="text-muted-foreground mt-2 text-lg">
@@ -140,6 +272,11 @@ export default function TradeRoom() {
         {room.status === 'completed' && (
           <div className="inline-block mt-4 px-6 py-2 bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 rounded-full font-bold shadow-lg shadow-emerald-500/10">
             ✓ INTERCAMBIO COMPLETADO
+          </div>
+        )}
+        {room.status === 'cancelled' && (
+          <div className="inline-block mt-4 px-6 py-2 bg-destructive/20 border border-destructive/30 text-destructive rounded-full font-bold shadow-lg shadow-destructive/10">
+            ✕ INTERCAMBIO CANCELADO
           </div>
         )}
       </div>
@@ -152,7 +289,7 @@ export default function TradeRoom() {
           <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch relative">
 
             {/* Tu lado */}
-            <div className="flex-1 bg-background border-2 border-primary/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+            <div className="flex-1 bg-card border-2 border-primary/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full"></div>
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -177,13 +314,22 @@ export default function TradeRoom() {
                   </p>
                 </div>
               </div>
-              <div className="mt-6 text-center">
+              <div className="mt-6 text-center flex flex-col gap-2 relative">
                 {myStatus ? (
                   <p className="text-emerald-500 font-bold bg-emerald-500/10 py-3 rounded-xl border border-emerald-500/20">
                     Has confirmado
                   </p>
                 ) : (
                   <p className="text-amber-500 font-medium py-3">Esperando tu confirmación...</p>
+                )}
+                
+                {room.status === 'active' && !myStatus && !room.user1_confirmed && !room.user2_confirmed && (
+                  <button 
+                    onClick={openInventoryModal}
+                    className="mx-auto text-primary border border-primary/50 hover:bg-primary/10 hover:border-primary bg-transparent py-2 px-4 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    Cambiar Carta
+                  </button>
                 )}
               </div>
             </div>
@@ -199,7 +345,7 @@ export default function TradeRoom() {
             </div>
 
             {/* Lado rival */}
-            <div className="flex-1 bg-background border-2 border-destructive/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+            <div className="flex-1 bg-card border-2 border-destructive/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col justify-between">
               <div className="absolute top-0 left-0 w-32 h-32 bg-destructive/20 blur-3xl rounded-full"></div>
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -241,29 +387,40 @@ export default function TradeRoom() {
 
           </div>{/* end cards row */}
 
-          {/* Confirm button */}
-          {room.status === 'active' && !myStatus && (
-            <div className="text-center max-w-sm mx-auto">
-              <p className="text-muted-foreground text-sm mb-4">
-                Nota: Esta acción es irreversible. Asegúrate de verificar las condiciones y la carta recibida.
-              </p>
+          {/* Confirm/Cancel buttons */}
+          {room.status === 'active' && (
+            <div className="text-center max-w-sm mx-auto flex flex-col gap-3">
+              {!myStatus && (
+                <>
+                  <p className="text-muted-foreground text-sm mb-2">
+                    Nota: Esta acción es irreversible. Asegúrate de verificar las condiciones y la carta recibida.
+                  </p>
+                  <button
+                    id="confirm-trade-btn"
+                    onClick={handleConfirm}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 border border-primary/50 tracking-wide text-lg"
+                  >
+                    CONFIRMAR INTERCAMBIO
+                  </button>
+                </>
+              )}
               <button
-                id="confirm-trade-btn"
-                onClick={handleConfirm}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 border border-primary/50 tracking-wide text-lg"
+                id="cancel-trade-btn"
+                onClick={handleCancelTrade}
+                className="w-full bg-transparent border-2 border-destructive/50 hover:bg-destructive/10 hover:border-destructive text-destructive font-bold py-3 rounded-2xl transition-all active:scale-95"
               >
-                CONFIRMAR INTERCAMBIO
+                CANCELAR INTERCAMBIO
               </button>
             </div>
           )}
 
-          {room.status === 'completed' && (
+          {(room.status === 'completed' || room.status === 'cancelled') && (
             <div className="text-center">
               <button
                 onClick={() => navigate('/inventory')}
                 className="px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-lg transition-all"
               >
-                Ir a mi Inventario
+                Volver a mi Inventario
               </button>
             </div>
           )}
@@ -271,7 +428,7 @@ export default function TradeRoom() {
 
         {/* ── Chat panel ── */}
         <div
-          className="xl:col-span-2 flex flex-col bg-background border border-border rounded-3xl shadow-2xl overflow-hidden"
+          className="xl:col-span-2 flex flex-col bg-card border border-border rounded-3xl shadow-2xl overflow-hidden"
           style={{ minHeight: '520px', maxHeight: '640px' }}
         >
           {/* Chat header */}
@@ -327,7 +484,7 @@ export default function TradeRoom() {
 
           {/* Input area */}
           <div className="border-t border-border bg-accent/40 px-4 py-3 flex-shrink-0">
-            {room.status === 'completed' ? (
+            {room.status === 'completed' || room.status === 'cancelled' ? (
               <p className="text-center text-muted-foreground text-sm py-2 italic">El intercambio ha finalizado.</p>
             ) : (
               <div className="flex items-end gap-2">
@@ -361,6 +518,61 @@ export default function TradeRoom() {
         </div>{/* end chat panel */}
 
       </div>{/* end main grid */}
+
+      {/* Modal Inventario */}
+      {showInventoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-border rounded-3xl p-6 w-full max-w-4xl shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Selecciona una carta para ofrecer</h2>
+              <button onClick={() => setShowInventoryModal(false)} className="text-muted-foreground hover:text-foreground">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--primary) transparent' }}>
+              {loadingInventory ? (
+                <div className="flex justify-center items-center py-12 text-muted-foreground focus:outline-none">
+                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mr-3"></div>
+                  Cargando inventario...
+                </div>
+              ) : inventoryCards.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>No tienes cartas disponibles para intercambiar en tu inventario.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {inventoryCards.map((invCard: any) => {
+                    const isAvailable = invCard.quantity > invCard.quantity_locked;
+                    return (
+                      <div 
+                        key={invCard.id} 
+                        className={`bg-accent rounded-xl p-3 border ${isAvailable ? 'border-border hover:border-primary cursor-pointer' : 'border-destructive/50 opacity-50 cursor-not-allowed'} transition-colors relative flex flex-col items-center`}
+                        onClick={() => isAvailable && handleChangeCard(invCard.id)}
+                      >
+                       <div className="w-full aspect-[2.5/3.5] bg-background rounded-lg mb-2 overflow-hidden relative border border-border">
+                         {invCard.card?.image_url ? (
+                           <img src={invCard.card.image_url.startsWith('http') ? invCard.card.image_url : `/storage/${invCard.card.image_url}`} alt={invCard.card.name} className="w-full h-full object-cover" />
+                         ) : (
+                           <div className="w-full h-full flex items-center justify-center text-muted-foreground font-bold uppercase text-xs">Sin Imagen</div>
+                         )}
+                         {!isAvailable && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><span className="text-destructive font-bold text-xs px-2 py-1 bg-destructive/90 rounded rotate-[-15deg] border border-destructive/50">Bloqueada</span></div>}
+                       </div>
+                       <p className="text-foreground text-sm font-bold text-center truncate w-full">{invCard.card?.name || 'Carta Desconocida'}</p>
+                       <p className="text-[11px] text-muted-foreground mt-1 capitalize text-center bg-background px-2 py-0.5 rounded-full">{invCard.condition} • {invCard.language} {invCard.is_foil ? '• Foil' : ''}</p>
+                       <p className="text-[11px] text-primary font-medium mt-1.5 flex items-center gap-1">
+                         <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span> 
+                         Disp: {invCard.quantity - invCard.quantity_locked}
+                       </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

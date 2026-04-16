@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-    Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield
+    Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield, Package
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
@@ -29,6 +29,7 @@ export default function AdminLayout() {
         { name: 'Roles', href: '/admin/roles', icon: Shield },
         { name: 'Cartas', href: '/admin/cards', icon: BookOpen },
         { name: 'Sets', href: '/admin/sets', icon: Layers },
+        { name: 'Sobres', href: '/admin/booster-packs', icon: Package },
     ];
 
     // Verificar si una ruta está activa (para resaltar en el sidebar)

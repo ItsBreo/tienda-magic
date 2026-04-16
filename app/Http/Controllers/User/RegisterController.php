@@ -89,6 +89,12 @@ class RegisterController extends Controller
             'wallet_balance' => 0,
         ]);
 
+        // Crear su perfil automáticamente para que se pueda rastrear su reputación (inicia en 100 por la fórmula del modelo)
+        $user->profile()->create([
+            'display_name'     => $validated['username'],
+            'reputation_score' => 0,
+        ]);
+
         // Asignar rol por defecto usando la constante predefinida
         $defaultRole = Role::where('name', User::ROLE_USER)->first();
         if ($defaultRole) {

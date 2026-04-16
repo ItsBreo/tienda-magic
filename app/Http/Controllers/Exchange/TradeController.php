@@ -11,6 +11,7 @@ use App\Models\InventoryCard;
 use App\Events\MessageSent;
 use App\Services\ProfanityFilter;
 use App\Notifications\TradeAcceptedNotification;
+use App\Events\TradeSessionUpdated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
@@ -302,12 +303,162 @@ class TradeController extends Controller
             }
 
             DB::commit();
+
+            // Actualización en tiempo real vía WebSocket (Payload ligero para evitar 'Payload too large')
+            broadcast(new TradeSessionUpdated((clone $session)->unsetRelations()))->toOthers();
+
             return response()->json($session);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Error al confirmar: ' . $e->getMessage() . ' - File: ' . $e->getFile() . ' - Line: ' . $e->getLine()], 500);
         }
     }
+
+    #[OA\Post(
+        path: "/api/trade-sessions/{id}/cancel",
+        summary: "Cancelar intercambio",
+        description: "Cancela la sesión de intercambio desde la sala. Libera la oferta y reactiva el listado principal.",
+        tags: ["Trade Sessions"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la sesión", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Sesión cancelada")]
+    public function cancelTrade($id)
+    {
+        $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
+        $user = auth()->user();
+
+        $req = $session->exchangeRequest;
+        $exchange = $req->exchange;
+
+        if ($session->status !== 'active') {
+            return response()->json(['message' => 'La sesión no está activa o ya finalizó.'], 400);
+        }
+
+        $isUser1 = ($exchange->user_id === $user->id);
+        $isUser2 = ($req->user_id === $user->id);
+
+        if (!$isUser1 && !$isUser2) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            $session->status = 'cancelled';
+            $session->save();
+
+            $req->status = 'cancelled';
+            $req->save();
+
+            // Desbloquear la carta de la oferta (jugador 2)
+            InventoryCard::where('id', $req->offered_inventory_card_id)->decrement('quantity_locked', 1);
+
+            // Reactivar el listado original propuesto por el jugador 1 en el mercado
+            $exchange->status = 'active';
+            $exchange->save();
+
+            DB::commit();
+
+            // Actualización en tiempo real vía WebSocket
+            broadcast(new TradeSessionUpdated((clone $session)->unsetRelations()))->toOthers();
+
+            return response()->json($session);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error al cancelar: ' . $e->getMessage()], 500);
+        }
+    }
+
+    #[OA\Post(
+        path: "/api/trade-sessions/{id}/change-card",
+        summary: "Cambiar carta ofrecida",
+        description: "Cambia la carta que ofreces en la sala de intercambio. Resetea las confirmaciones.",
+        tags: ["Trade Sessions"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID de la sesión", schema: new OA\Schema(type: "integer"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "new_inventory_card_id", type: "integer")
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Carta cambiada y confirmaciones reseteadas")]
+    public function changeCard(Request $request, $id)
+    {
+        $request->validate([
+            'new_inventory_card_id' => 'required|integer|exists:inventory_card,id'
+        ]);
+
+        $session = TradeSession::with('exchangeRequest.exchange')->findOrFail($id);
+        $user = auth()->user();
+
+        if ($session->status !== 'active') {
+            return response()->json(['message' => 'La sesión no está activa.'], 400);
+        }
+
+        $req = $session->exchangeRequest;
+        $exchange = $req->exchange;
+
+        $isUser1 = ($exchange->user_id === $user->id);
+        $isUser2 = ($req->user_id === $user->id);
+
+        if (!$isUser1 && !$isUser2) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $newInvCardId = $request->new_inventory_card_id;
+        $invCard = InventoryCard::where('id', $newInvCardId)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $modelToUpdate = $isUser1 ? $exchange : $req;
+        $oldInvCardId = $modelToUpdate->offered_inventory_card_id;
+
+        if ($oldInvCardId == $newInvCardId) {
+            return response()->json($session);
+        }
+
+        if ($invCard->quantity <= $invCard->quantity_locked) {
+            return response()->json(['message' => 'No tienes cantidad disponible de esta carta.'], 400);
+        }
+
+        if ($isUser2 && $exchange->requested_card_id) {
+            if ($invCard->card_id !== $exchange->requested_card_id) {
+                $exchange->load('requestedCard');
+                return response()->json(['message' => "El creador solicita específicamente la carta: {$exchange->requestedCard->name}"], 400);
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            InventoryCard::where('id', $oldInvCardId)->decrement('quantity_locked', 1);
+            $invCard->increment('quantity_locked', 1);
+
+            $modelToUpdate->offered_inventory_card_id = $newInvCardId;
+            $modelToUpdate->save();
+
+            $session->user1_confirmed = false;
+            $session->user2_confirmed = false;
+            $session->save();
+
+            DB::commit();
+
+            $session->load([
+                'exchangeRequest.user',
+                'exchangeRequest.offeredCard.card',
+                'exchangeRequest.exchange.user',
+                'exchangeRequest.exchange.offeredCard.card'
+            ]);
+            broadcast(new TradeSessionUpdated((clone $session)->unsetRelations()))->toOthers();
+
+            return response()->json($session);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error al cambiar la carta: ' . $e->getMessage()], 500);
+        }
+    }
+
 
     #[OA\Post(
         path: "/api/trade-sessions/{id}/chat",

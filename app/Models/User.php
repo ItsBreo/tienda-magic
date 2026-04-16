@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-// HasApiTokens eliminado (era de Laravel\Sanctum, incompatible con JWT)
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -27,7 +26,7 @@ class User extends Authenticatable implements JWTSubject
     // HasApiTokens eliminado: era de Sanctum y genera conflicto con el JWTGuard
 
     /**
-     * Relaciones cargadas automáticamente para evitar el problema de N+1 queries 
+     * Relaciones cargadas automáticamente para evitar el problema de N+1 queries
      * al serializar colecciones o listar usuarios.
      */
     protected $with = ['roles', 'profile'];
@@ -77,7 +76,28 @@ class User extends Authenticatable implements JWTSubject
     protected $appends = [
         'is_admin',
         'role_name',
+        'reputation',
+        'all_permissions',
     ];
+
+    /**
+     * Accesor para obtener un array plano con los nombres de todos los permisos del usuario.
+     */
+    public function getAllPermissionsAttribute(): array
+    {
+        // Si es super_admin, técnicamente tiene todos, pero devolvemos los reales + bypass lógico
+        $permissionNames = [];
+        
+        foreach ($this->roles as $role) {
+            $ids = $role->permission_ids ?? [];
+            if (!empty($ids)) {
+                $names = Permission::whereIn('id', $ids)->pluck('name')->toArray();
+                $permissionNames = array_merge($permissionNames, $names);
+            }
+        }
+
+        return array_unique($permissionNames);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -103,6 +123,7 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'wallet_balance' => 'float',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -183,7 +204,6 @@ class User extends Authenticatable implements JWTSubject
                     ->withPivot('forum_id')
                     ->withTimestamps();
     }
-
     // Usuario - mazo 1:M
     public function decks()
     {
@@ -328,9 +348,9 @@ class User extends Authenticatable implements JWTSubject
         if ($this->isSuperAdmin()) return self::ROLE_SUPER_ADMIN;
         if ($this->isAdmin())      return self::ROLE_ADMIN;
 
-        $modRole = $this->roles->first(
-            fn($r) => in_array(strtolower($r->name), self::MOD_ROLES)
-        );
+        $modRole = $this->roles->first(function ($r) {
+            return in_array(strtolower($r->name), self::MOD_ROLES);
+        });
         if ($modRole) return strtolower($modRole->name);
 
         return self::ROLE_USER;
@@ -354,13 +374,13 @@ class User extends Authenticatable implements JWTSubject
         return Attribute::make(
             get: function () {
                 $baseScore = $this->profile->reputation_score ?? 0;
-                
+
                 // Asegurarse de que created_at no sea nulo al registrar
                 $daysActive = max($this->created_at ? $this->created_at->diffInDays(now()) : 0, 0);
                 $stabilityFactor = sqrt($daysActive);
 
                 $formula = 100 + $baseScore + $stabilityFactor;
-                
+
                 return (int) round($formula);
             }
         );
@@ -437,6 +457,34 @@ public function tournaments()
     return $this->belongsToMany(Tournament::class, 'tournament_registrations')
                 ->withPivot('status', 'registered_at', 'confirmed_at')
                 ->withTimestamps();
-}
+    }
 
+    /**
+     * Comprueba si el usuario tiene un permiso específico a través de sus roles.
+     * Ahora busca dentro de la columna JSON permission_ids de cada rol.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // Super Admin tiene todos los permisos por defecto
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Buscamos el ID del permiso pedido (podemos cachear esto si fuera necesario)
+        $permissionModel = Permission::where('name', $permission)->first();
+        if (!$permissionModel) {
+            return false;
+        }
+
+        $targetId = $permissionModel->id;
+
+        foreach ($this->roles as $role) {
+            $ids = $role->permission_ids ?? [];
+            if (in_array($targetId, $ids)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

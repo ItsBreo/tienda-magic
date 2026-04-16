@@ -4,8 +4,6 @@ import { CAT_LABELS } from "./constants";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
 const CAT_CLASS: Record<string, string> = {
   noticias:   "cat-noticias",
@@ -40,19 +38,19 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   };
 
   return (
-    <div className="flex flex-col items-center py-2.5 px-2 bg-accent gap-1 min-w-[42px]">
-      <button onClick={() => cast(1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm ${vote === 1 ? 'text-primary' : 'text-muted-foreground'}`}>▲</button>
-      <span className={`text-xs font-bold min-w-[20px] text-center ${score > 200 ? 'text-primary' : 'text-muted-foreground'}`}>{score}</span>
-      <button onClick={() => cast(-1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm ${vote === -1 ? 'text-destructive' : 'text-muted-foreground'}`}>▼</button>
+    <div className="flex flex-col items-center py-2.5 px-2 bg-accent gap-1 min-w-[42px] border-r border-border/50">
+      <button onClick={() => cast(1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm font-black transition-colors ${vote === 1 ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>▲</button>
+      <span className={`text-[11px] font-black min-w-[20px] text-center ${score > 50 ? 'text-primary' : 'text-muted-foreground'}`}>{score}</span>
+      <button onClick={() => cast(-1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm font-black transition-colors ${vote === -1 ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'}`}>▼</button>
     </div>
   );
 }
 
 function ActionBtn({ label, onClick, active, variant = "default" }: { label: string | React.ReactNode; onClick?: () => void; active?: boolean; variant?: "default" | "danger" }) {
-  const baseClasses = "flex items-center gap-1.5 py-1 px-2 rounded border-none bg-transparent text-xs cursor-pointer transition-all duration-150";
+  const baseClasses = "flex items-center gap-1.5 py-1.5 px-3 rounded-md border-none bg-transparent text-xs cursor-pointer transition-all duration-150 font-bold uppercase tracking-tight";
   const variants = {
-    default: `hover:bg-primary/10 hover:text-muted-foreground ${active ? 'text-primary font-semibold' : 'text-muted-foreground font-normal'}`,
-    danger: "hover:bg-destructive/10 text-destructive font-normal",
+    default: `hover:bg-primary/10 ${active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`,
+    danger: "hover:bg-destructive/10 text-destructive",
   };
 
   return (
@@ -62,13 +60,23 @@ function ActionBtn({ label, onClick, active, variant = "default" }: { label: str
   );
 }
 
-export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post; onOpen: () => void; onDeleteSuccess?: () => void }) {
+export default function PostCard({ 
+  post, 
+  onOpen, 
+  onDeleteSuccess,
+  selection 
+}: { 
+  post: Post; 
+  onOpen: () => void; 
+  onDeleteSuccess?: () => void;
+  selection?: {
+    isSelected: boolean;
+    toggle: () => void;
+    isMod: boolean;
+  }
+}) {
   const { user } = useAuth();
   const [isSaved, setIsSaved] = useState((post as any).isSaved || false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const canDelete = (post as any).can_delete || false;
 
   useEffect(() => {
     setIsSaved((post as any).isSaved || false);
@@ -80,8 +88,10 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
     try {
       if (newVal) {
         await ApiService.saveThread(post.id);
+        toast.success("Hilo guardado en favoritos");
       } else {
         await ApiService.unsaveThread(post.id);
+        toast.success("Hilo quitado de favoritos");
       }
     } catch (err) {
       console.error("Error al guardar/quitar hilo:", err);
@@ -89,83 +99,66 @@ export default function PostCard({ post, onOpen, onDeleteSuccess }: { post: Post
     }
   };
 
-  const handleDelete = async (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await ApiService.deleteThread(post.id);
-      toast.success("Post eliminado correctamente");
-      setShowDeleteDialog(false);
-      if (onDeleteSuccess) onDeleteSuccess();
-    } catch (err) {
-      console.error("Error al eliminar post:", err);
-      toast.error("No se pudo eliminar el post");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   return (
-    <div className="flex bg-card border border-border rounded-lg mb-2 overflow-hidden transition-colors duration-150 hover:border-muted group">
+    <div className={`flex bg-card border border-border rounded-xl mb-3 overflow-hidden transition-all duration-200 hover:border-primary/50 group shadow-md ${selection?.isSelected ? 'border-primary bg-primary/5' : ''}`}>
+      {selection?.isMod && (
+        <div className="flex items-center px-3 bg-accent/40 border-r border-border">
+          <input 
+            type="checkbox" 
+            checked={selection.isSelected}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              selection.toggle();
+            }}
+            className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-primary cursor-pointer"
+          />
+        </div>
+      )}
       <VoteCol threadId={post.id} initialScore={post.score} initialVote={post.userVote} />
 
-      <div className="py-2.5 px-3.5 flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-          <span className={`${CAT_CLASS[post.category]} text-[11px] font-semibold py-0.5 px-2 rounded-full tracking-wide`}>
+      <div className="py-3 px-4 flex-1 min-w-0 flex flex-col">
+        <div className="flex items-center gap-2 mb-2 flex-wrap min-w-0">
+          <span className={`text-[10px] font-black py-0.5 px-2.5 rounded uppercase tracking-widest border shrink-0 ${
+            post.category === 'noticias' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+            post.category === 'estrategia' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+            post.category === 'torneos' ? 'bg-primary/10 text-primary border-primary/20' :
+            'bg-muted text-muted-foreground border-border'
+          }`}>
             {CAT_LABELS[post.category]}
           </span>
-          <span className="text-xs text-muted-foreground">
-            por <b className="text-foreground font-semibold">{post.author}</b>
-            {post.isMod && " 🛡️"}
-          </span>
-          <span className="text-xs text-muted-foreground">· {post.timeAgo}</span>
+          <div className="flex items-center gap-1.5 min-w-0 truncate">
+            <span className="text-[11px] text-muted-foreground shrink-0 uppercase font-bold tracking-tight">por</span>
+            <b className="text-[11px] text-foreground font-black truncate leading-none">@{post.author}</b>
+            <span className="shrink-0 text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase tracking-tighter" title="Reputación">{post.reputation || 100}✨</span>
+            {post.isMod && <span className="text-[9px] font-black ml-1 bg-primary text-primary-foreground px-1 py-0.5 rounded">MOD</span>}
+          </div>
+          <span className="text-xs text-muted-foreground opacity-60">· {post.timeAgo}</span>
         </div>
 
-        <div onClick={onOpen} className="text-[15px] font-semibold text-foreground hover:text-primary mb-1.5 leading-snug cursor-pointer transition-colors duration-150">
+        <div onClick={onOpen} className="text-[17px] font-serif font-black text-foreground hover:text-primary mb-2 leading-tight cursor-pointer transition-colors duration-150 decoration-primary/20 hover:underline underline-offset-4">
           {post.title}
         </div>
 
-        <div className="text-[13px] text-muted-foreground mb-2 leading-relaxed line-clamp-2">
+        <div className="text-sm text-muted-foreground mb-3 leading-relaxed line-clamp-2 font-medium opacity-80">
           {post.preview}
         </div>
 
-        <div className="flex gap-1 mb-2 flex-wrap">
-          {post.tags.map(t => (
-            <span key={t} className="text-[11px] py-0.5 px-2 rounded-full bg-primary/10 text-muted-foreground border border-border cursor-pointer">
-              {t}
-            </span>
-          ))}
-        </div>
+        {post.tags.length > 0 && (
+          <div className="flex gap-1.5 mb-4 flex-wrap">
+            {post.tags.map(t => (
+              <span key={t} className="text-[9px] py-0.5 px-2 rounded-md bg-accent text-muted-foreground border border-border font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-colors cursor-pointer">
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
 
-        <div className="flex gap-0.5 mt-auto">
+        <div className="flex gap-1 mt-auto border-t border-border pt-2 mx-[-4px]">
           <ActionBtn label={`💬 ${post.comments} comentarios`} onClick={onOpen} />
           <ActionBtn label="🔗 Compartir" />
           <ActionBtn label={isSaved ? "🔖 Guardado" : "🔖 Guardar"} onClick={toggleSave} active={isSaved} />
-          
-          {canDelete && (
-            <div className="ml-auto">
-              <ActionBtn 
-                label={<Trash2 size={14} />} 
-                variant="danger" 
-                onClick={handleDelete} 
-              />
-            </div>
-          )}
         </div>
       </div>
-
-      <DeleteConfirmDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={confirmDelete}
-        isLoading={isDeleting}
-        title="¿Eliminar publicación?"
-        description={`Estás a punto de eliminar "${post.title}". Esta acción es permanente y borrará todos los comentarios asociados.`}
-      />
     </div>
   );
 }

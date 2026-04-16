@@ -59,6 +59,44 @@ class AdminSetController extends Controller
         ], 201);
     }
 
+    #[OA\Put(
+        path: "/api/admin/sets/{code}",
+        summary: "Actualizar set",
+        description: "Actualiza los datos de una expansión existente.",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "code", in: "path", required: true, description: "Código del set", schema: new OA\Schema(type: "string"))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "name", type: "string"),
+            new OA\Property(property: "released_at", type: "string", format: "date", nullable: true),
+            new OA\Property(property: "card_count", type: "integer"),
+            new OA\Property(property: "icon_svg_uri", type: "string", format: "url", nullable: true),
+            new OA\Property(property: "is_active", type: "boolean")
+        ])
+    )]
+    #[OA\Response(response: 200, description: "Set actualizado")]
+    public function update(Request $request, $code)
+    {
+        $set = CardSet::findOrFail($code);
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'released_at' => 'nullable|date',
+            'card_count' => 'sometimes|required|integer|min:0',
+            'icon_svg_uri' => 'nullable|url',
+            'is_active' => 'sometimes|boolean'
+        ]);
+
+        $set->update($validated);
+
+        return response()->json([
+            'message' => 'Set actualizado exitosamente',
+            'set' => $set
+        ]);
+    }
+
     #[OA\Delete(
         path: "/api/admin/sets/{code}",
         summary: "Eliminar set",
@@ -74,5 +112,38 @@ class AdminSetController extends Controller
         $set->delete();
 
         return response()->json(['message' => 'Set eliminado exitosamente.']);
+    }
+
+    /**
+     * Acciones Masivas (Bulk Actions)
+     */
+
+    public function bulkDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:card_sets,code'
+        ]);
+
+        CardSet::whereIn('code', $validated['ids'])->delete();
+
+        return response()->json([
+            'message' => count($validated['ids']) . ' sets eliminados correctamente.'
+        ]);
+    }
+
+    public function bulkToggleActive(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:card_sets,code',
+            'is_active' => 'required|boolean'
+        ]);
+
+        CardSet::whereIn('code', $validated['ids'])->update(['is_active' => $validated['is_active']]);
+
+        return response()->json([
+            'message' => 'Estado de ' . count($validated['ids']) . ' sets actualizado.'
+        ]);
     }
 }

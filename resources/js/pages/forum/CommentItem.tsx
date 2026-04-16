@@ -6,7 +6,23 @@ import { toast } from "sonner";
 import { Trash2, Edit2, MoreHorizontal } from "lucide-react";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
-function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; forumId: number; onDelete: (id: number) => void; onReplyTo: (author: string) => void }) {
+function ReplyItem({ 
+  reply, 
+  forumId, 
+  onDelete, 
+  onReplyTo,
+  selection
+}: { 
+  reply: Reply; 
+  forumId: number; 
+  onDelete: (id: number) => void; 
+  onReplyTo: (author: string) => void;
+  selection?: {
+    isSelected: (id: number) => boolean;
+    toggle: (id: number) => void;
+    isMod: boolean;
+  }
+}) {
   const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(reply.score || 0);
@@ -69,14 +85,26 @@ function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; foru
   }
 
   return (
-    <div className="py-2 pl-8 pr-3.5 border-b border-border flex gap-2.5 bg-accent/30 group">
+    <div className={`py-2 pl-4 pr-3.5 border-b border-border flex gap-2.5 transition-colors group ${selection?.isSelected(reply.id) ? 'bg-primary/5 border-l-2 border-l-primary' : 'bg-card/30'}`}>
+      {selection?.isMod && (
+        <div className="flex items-center pl-2">
+          <input 
+            type="checkbox" 
+            checked={selection.isSelected(reply.id)}
+            onChange={() => selection.toggle(reply.id)}
+            className="w-3.5 h-3.5 rounded border-border bg-accent text-primary focus:ring-primary cursor-pointer"
+          />
+        </div>
+      )}
       <div className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0" style={{ background: reply.avatarColor }}>
         {reply.initials}
       </div>
 
       <div className="flex-1">
         <div className="text-[11px] text-muted-foreground mb-1">
-          <b className="text-foreground font-semibold">{reply.author}</b> · {reply.timeAgo} ·{" "}
+          <b className="text-foreground font-semibold">{reply.author}</b>
+          <span className="ml-1 mr-1 text-[9px] font-bold text-primary bg-primary/10 px-1 py-0.5 rounded shadow-sm" title="Reputación">{reply.reputation || 100}✨</span>
+          · {reply.timeAgo} ·{" "}
           <span className={score < 0 ? 'text-destructive' : 'text-primary'}>{score > 0 ? `+${score}` : score}</span>
         </div>
         <div className={`text-[13px] leading-relaxed mb-1.5 ${isHidden ? 'text-muted-foreground opacity-70' : 'text-foreground'}`}>
@@ -120,7 +148,23 @@ function ReplyItem({ reply, forumId, onDelete, onReplyTo }: { reply: Reply; foru
   );
 }
 
-export default function CommentItem({ comment, forumId, onDelete, onReplySubmit }: { comment: Comment; forumId: number; onDelete: (id: number) => void, onReplySubmit?: (body: string, parentId?: number) => void }) {
+export default function CommentItem({ 
+  comment, 
+  forumId, 
+  onDelete, 
+  onReplySubmit,
+  selection
+}: { 
+  comment: Comment; 
+  forumId: number; 
+  onDelete: (id: number) => void, 
+  onReplySubmit?: (body: string, parentId?: number) => void;
+  selection?: {
+    isSelected: (id: number) => boolean;
+    toggle: (id: number) => void;
+    isMod: boolean;
+  }
+}) {
   const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(comment.score || 0);
@@ -213,7 +257,17 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
 
   return (
     <>
-      <div className="py-3 px-3.5 border-b border-border flex gap-2.5 group">
+      <div className={`py-3 px-3.5 border-b border-border flex gap-2.5 transition-colors group ${selection?.isSelected(comment.id) ? 'bg-primary/5 border-l-2 border-l-primary' : ''}`}>
+        {selection?.isMod && (
+          <div className="flex items-center">
+            <input 
+              type="checkbox" 
+              checked={selection.isSelected(comment.id)}
+              onChange={() => selection.toggle(comment.id)}
+              className="w-4 h-4 rounded border-border bg-accent text-primary focus:ring-primary cursor-pointer"
+            />
+          </div>
+        )}
         <div className="flex flex-col items-center gap-1">
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0" style={{ background: comment.avatarColor }}>
             {comment.initials}
@@ -223,7 +277,9 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
 
         <div className="flex-1">
           <div className="text-[11px] text-muted-foreground mb-1">
-            <b className="text-foreground font-semibold">{comment.author}</b> · {comment.timeAgo} ·{" "}
+            <b className="text-foreground font-semibold">{comment.author}</b>
+            <span className="ml-1 mr-1 text-[9px] font-bold text-primary bg-primary/10 px-1 py-0.5 rounded shadow-sm" title="Reputación">{comment.reputation || 100}✨</span>
+            · {comment.timeAgo} ·{" "}
             <span className={score < 0 ? 'text-destructive' : 'text-primary'}>{score > 0 ? `+${score}` : score}</span>
           </div>
           <div className={`text-[13px] leading-relaxed mb-2 ${isHidden ? 'text-muted-foreground opacity-70' : 'text-foreground'}`}>
@@ -298,7 +354,7 @@ export default function CommentItem({ comment, forumId, onDelete, onReplySubmit 
         description="Se eliminará el comentario y todas sus respuestas de forma permanente."
       />
 
-      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} forumId={forumId} onDelete={onDelete} onReplyTo={handleReplyClick} />)}
+      {comment.replies.map(r => <ReplyItem key={r.id} reply={r} forumId={forumId} onDelete={onDelete} onReplyTo={handleReplyClick} selection={selection} />)}
     </>
   );
 }
