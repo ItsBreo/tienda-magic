@@ -123,6 +123,7 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'wallet_balance' => 'float',
+            'is_active' => 'boolean',
         ];
     }
 

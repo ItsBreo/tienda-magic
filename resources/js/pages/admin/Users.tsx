@@ -10,6 +10,7 @@ interface User {
     name: string;
     username: string;
     email: string;
+    is_active: boolean;
     roles: { id: number; name: string }[];
 }
 
@@ -22,7 +23,7 @@ export default function AdminUsers() {
 
     // Form state
     const [form, setForm] = useState({
-        name: '', username: '', email: '', password: '', role_id: '1',
+        name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
     }); // Role 1 = User/Normal (or verify DB roles)
     const [submitting, setSubmitting] = useState(false);
 
@@ -80,7 +81,7 @@ export default function AdminUsers() {
             }
             setShowForm(false);
             setForm({
-                name: '', username: '', email: '', password: '', role_id: '1',
+                name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
             });
             setEditingUserId(null);
             fetchUsers();
@@ -99,7 +100,9 @@ export default function AdminUsers() {
                 <h1 className="text-2xl font-bold text-zinc-100">Gestión de Usuarios</h1>
                 <Button onClick={() => {
                     setEditingUserId(null);
-                    setForm({ name: '', username: '', email: '', password: '', role_id: '1' });
+                    setForm({
+                        name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
+                    });
                     setShowForm(!showForm);
                 }} className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold">
                     <Plus className="w-4 h-4 mr-2" />
@@ -137,6 +140,18 @@ export default function AdminUsers() {
                                 ))}
                             </select>
                         </div>
+                        <div className="flex items-center space-x-2 pt-6">
+                            <input
+                                type="checkbox"
+                                id="is_active"
+                                checked={form.is_active}
+                                onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+                                className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-emerald-600 focus:ring-emerald-500"
+                            />
+                            <label htmlFor="is_active" className="text-sm font-medium text-zinc-200">
+                                Cuenta Activa
+                            </label>
+                        </div>
                         <div className="md:col-span-2 mt-2">
                             <Button disabled={submitting} type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-black">
                                 {submitting ? 'Guardando...' : (editingUserId ? 'Actualizar Usuario' : 'Guardar Usuario')}
@@ -154,6 +169,7 @@ export default function AdminUsers() {
                             <th className="px-6 py-4 font-medium">Nombre</th>
                             <th className="px-6 py-4 font-medium">Nick</th>
                             <th className="px-6 py-4 font-medium">Email</th>
+                            <th className="px-6 py-4 font-medium">Estado</th>
                             <th className="px-6 py-4 font-medium">Roles</th>
                             <th className="px-6 py-4 font-medium text-right">Acciones</th>
                         </tr>
@@ -169,6 +185,11 @@ export default function AdminUsers() {
                                 <td className="px-6 py-4">{u.username}</td>
                                 <td className="px-6 py-4">{u.email}</td>
                                 <td className="px-6 py-4">
+                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${u.is_active ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                                        {u.is_active ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
                                     {u.roles?.map((r) => (
                                         <span key={r.id} className="px-2 py-1 bg-zinc-800 text-xs rounded-md border border-zinc-700 mr-2">{r.name}</span>
                                     ))}
@@ -181,7 +202,8 @@ export default function AdminUsers() {
                                             username: u.username,
                                             email: u.email,
                                             password: '', // En blanco por defecto al editar
-                                            role_id: u.roles.length > 0 ? u.roles[0].id.toString() : '1'
+                                            role_id: u.roles.length > 0 ? u.roles[0].id.toString() : '1',
+                                            is_active: u.is_active
                                         });
                                         setShowForm(true);
                                         window.scrollTo({ top: 0, behavior: 'smooth' }); // Subir al formulario
