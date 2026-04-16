@@ -45,7 +45,7 @@ class ForumController extends Controller
             ->when($sort === 'top', fn($q) => $q->orderByDesc('score'))
             ->when(in_array($sort, ['commented', 'comentado']), fn($q) => $q->orderByDesc('comments_count'))
             ->when($sort === 'hot', fn($q) => $q->orderByDesc('score')->latest())
-            ->paginate(20);
+            ->paginate($request->get('per_page', 20));
 
         return ThreadResource::collection($threads);
     }

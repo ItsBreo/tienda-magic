@@ -19,6 +19,7 @@ class ThreadResource extends JsonResource
             'tags'           => $this->tags,
             'is_pinned'      => $this->is_pinned,
             'is_locked'      => $this->is_locked,
+            'image_url'      => $this->image ? asset('storage/' . $this->image) : null,
             'comments_count' => $this->comments_count,
             'can_delete'     => (function () {
                 /** @var \App\Models\User|null $user */

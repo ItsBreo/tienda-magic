@@ -13,17 +13,15 @@ interface Achievement {
     obtained_at: string | null;
 }
 
-// Todos los logros posibles (para mostrar los bloqueados)
+// Todos los logros posibles actualizados según el último seeder
 const ALL_ACHIEVEMENTS: Omit<Achievement, 'obtained_at'>[] = [
     { slug: 'first_register',    name: 'Bienvenido Planeswalker', description: 'Creaste tu cuenta en la Tienda Magic.',           badge_icon: '🧙', xp_points: 10  },
-    { slug: 'email_verified',    name: 'Identidad Confirmada',    description: 'Verificaste tu correo electrónico.',              badge_icon: '✅', xp_points: 20  },
     { slug: 'first_pack_purchase',name: 'Primer Sobre',           description: 'Abriste tu primer sobre.',                       badge_icon: '📦', xp_points: 30  },
     { slug: 'first_card_purchase',name: 'Primera Carta',          description: 'Compraste tu primera carta en el mercado.',      badge_icon: '🃏', xp_points: 30  },
     { slug: 'first_card_listed', name: 'Primer Vendedor',         description: 'Pusiste una carta a la venta por primera vez.',  badge_icon: '🏪', xp_points: 25  },
-    { slug: 'first_deck',        name: 'Primer Mazo',             description: 'Creaste tu primer mazo.',                        badge_icon: '🗂️', xp_points: 25  },
-    { slug: 'transactions_10',   name: 'Comerciante',             description: 'Completaste 10 transacciones.',                  badge_icon: '💰', xp_points: 50  },
-    { slug: 'transactions_50',   name: 'Mercader Experto',        description: 'Completaste 50 transacciones.',                  badge_icon: '💎', xp_points: 150 },
-    { slug: 'verified_trader',   name: 'Verificado',              description: 'Trader de confianza de la comunidad.',           badge_icon: '🔵', xp_points: 100 },
+    { slug: 'transactions_10',   name: 'Comerciante',             description: 'Completaste 10 transacciones en total.',          badge_icon: '💰', xp_points: 50  },
+    { slug: 'transactions_50',   name: 'Mercader Experto',        description: 'Completaste 50 transacciones en total.',          badge_icon: '💎', xp_points: 150 },
+    { slug: 'verified_trader',   name: 'Verificado',              description: 'Alcanzaste 1000 de reputación en la comunidad.', badge_icon: '🔵', xp_points: 100 },
 ];
 
 export default function Achievements() {
@@ -31,15 +29,14 @@ export default function Achievements() {
     const [loading, setLoading]   = useState(true);
 
     useEffect(() => {
-    apiService.axiosInstance.get('/api/achievements')
-        .then(res => {
-            // Cubre los casos: { achievements: [] }, { data: [] }, o directamente []
-            const data = res.data?.achievements ?? res.data?.data ?? res.data ?? [];
-            setUnlocked(Array.isArray(data) ? data : []);
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false));
-}, []);
+        apiService.axiosInstance.get('/api/achievements')
+            .then(res => {
+                const data = res.data?.achievements ?? res.data?.data ?? res.data ?? [];
+                setUnlocked(Array.isArray(data) ? data : []);
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
 
     const unlockedSlugs = new Set(unlocked.map(a => a.slug));
     const locked = ALL_ACHIEVEMENTS.filter(a => !unlockedSlugs.has(a.slug));
@@ -47,15 +44,13 @@ export default function Achievements() {
     const maxXp   = ALL_ACHIEVEMENTS.reduce((sum, a) => sum + a.xp_points, 0);
 
     if (loading) return (
-        <>
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
-            </div>
-        </>
+        <div className="flex items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+        </div>
     );
 
     return (
-        <>
+        <div className="bg-[var(--bg)] min-h-screen text-[var(--text-primary)]">
             <Breadcrumbs items={[{ title: 'Mi Perfil', href: '/profile' }, { title: 'Logros', href: '/achievements' }]} />
             <div className="max-w-4xl mx-auto px-6 md:px-8 py-10">
 
@@ -81,7 +76,7 @@ export default function Achievements() {
                     <div className="w-full bg-accent rounded-full h-1.5">
                         <div
                             className="bg-gradient-to-r from-amber-700 to-amber-400 h-1.5 rounded-full transition-all duration-700"
-                            style={{ width: `${(totalXp / maxXp) * 100}%` }}
+                            style={{ width: maxXp > 0 ? `${(totalXp / maxXp) * 100}%` : '0%' }}
                         />
                     </div>
                 </div>
@@ -116,7 +111,7 @@ export default function Achievements() {
                     </>
                 )}
             </div>
-        </>
+        </div>
     );
 }
 

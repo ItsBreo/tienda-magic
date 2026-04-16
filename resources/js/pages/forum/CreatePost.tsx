@@ -5,7 +5,7 @@ interface CreatePostViewProps {
   forumsList: { id: number; name: string; slug: string }[];
   isSubmitting: boolean;
   onCancel: () => void;
-  onSubmit: (data: { forum_id: number; title: string; body: string; tags?: string[] }) => void;
+  onSubmit: (data: { forum_id: number; title: string; body: string; tags?: string[]; image?: File }) => void;
 }
 
 export default function CreatePostView({ forumsList, isSubmitting, onCancel, onSubmit }: CreatePostViewProps) {
@@ -14,6 +14,8 @@ export default function CreatePostView({ forumsList, isSubmitting, onCancel, onS
   const [body, setBody] = useState("");
   const [forumId, setForumId] = useState("");
   const [tags, setTags] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const handleSubmit = () => {
     if (!title.trim() || !body.trim() || !forumId) {
@@ -26,7 +28,29 @@ export default function CreatePostView({ forumsList, isSubmitting, onCancel, onS
       title,
       body,
       tags: tagsArray.length > 0 ? tagsArray : undefined,
+      image: image ? image : undefined,
     });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("La imagen es demasiado grande. Máximo 5MB.");
+        return;
+      }
+      setImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(null);
   };
 
   return (
@@ -71,6 +95,39 @@ export default function CreatePostView({ forumsList, isSubmitting, onCancel, onS
           value={tags} onChange={e => setTags(e.target.value)}
           className="p-2.5 rounded-md border border-border bg-accent text-foreground text-sm outline-none focus:border-primary transition-colors"
         />
+
+        {/* IMAGE UPLOAD SECTION */}
+        <div className="flex flex-col gap-2 mt-1">
+          <div className="flex items-center gap-3">
+             <label className="flex items-center gap-2 px-4 py-2 bg-[var(--surface-2)] border border-[var(--border)] rounded-md text-[13px] font-bold text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all">
+                <span>📷 Añadir imagen</span>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleImageChange} 
+                />
+             </label>
+             {image && <span className="text-[11px] text-[var(--text-muted)] truncate max-w-[200px]">{image.name}</span>}
+          </div>
+
+          {imagePreview && (
+            <div className="relative w-max mt-2 group">
+              <img 
+                src={imagePreview} 
+                alt="Vista previa" 
+                className="max-w-full max-h-[300px] rounded-lg border border-[var(--border)] shadow-sm object-cover" 
+              />
+              <button 
+                onClick={removeImage}
+                className="absolute top-2 right-2 bg-black/60 text-white w-6 h-6 rounded-full flex items-center justify-center text-[18px] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
+                title="Quitar imagen"
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="flex justify-end mt-2">
           <button

@@ -47,4 +47,15 @@ class ThreadPolicy
     {
         return $user->isAdmin() || $user->isModeratorOf((int) $thread->forum_id);
     }
+
+    /**
+     * ¿Puede el usuario moderar este thread?
+     * (Borrar, bloquear, etc. como moderador)
+     */
+    public function moderate(User $user, Thread $thread): bool
+    {
+        if ($user->isAdmin()) return true;
+
+        return $user->isModeratorOf((int) $thread->forum_id);
+    }
 }

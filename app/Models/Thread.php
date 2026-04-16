@@ -27,6 +27,7 @@ class Thread extends Model
         'tags',
         'is_pinned',
         'is_locked',
+        'image',
     ];
 
     protected $casts = [

@@ -7,6 +7,7 @@ use App\Models\Card;
 use App\Models\BoosterPack;
 use App\Models\CardPriceHistory;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class SeedMarketHistory extends Command
 {
@@ -29,55 +30,67 @@ class SeedMarketHistory extends Command
      */
     public function handle()
     {
-        $days = $this->option('days');
-        $this->info("🌱 Sembrando historial de precios para los últimos {$days} días...");
+        $days = (int) $this->option('days');
+        $this->info("🌱 Sembrando historial de precios para los últimos {$days} días (Modo Optimizado)...");
 
         $count = 0;
 
-        // Limpiar historial previo si se desea (opcional, para pruebas limpias)
-        if ($this->confirm('¿Quieres borrar el historial de precios existente antes de sembrar?')) {
-            CardPriceHistory::truncate();
-            $this->warn('Historial borrado.');
-        }
-
         // Sembrar para cartas
-        Card::chunk(100, function ($cards) use ($days, &$count) {
+        Card::chunk(200, function ($cards) use ($days, &$count) {
+            $dataToInsert = [];
             foreach ($cards as $card) {
                 $basePrice = $card->market_avg_price > 0 ? $card->market_avg_price : rand(50, 500) / 100;
-                $this->seedForItem($card->id, Card::class, $basePrice, $days, $count);
+                $currentPrice = $basePrice;
+                
+                for ($i = $days; $i >= 0; $i--) {
+                    $date = Carbon::now()->subDays($i);
+                    $variation = 1 + (rand(-50, 50) / 1000);
+                    $currentPrice = round($currentPrice * $variation, 2);
+
+                    $dataToInsert[] = [
+                        'priceable_id' => $card->id,
+                        'priceable_type' => Card::class,
+                        'price' => $currentPrice,
+                        'recorded_at' => $date
+                    ];
+                }
+            }
+            
+            if (!empty($dataToInsert)) {
+                \DB::table('card_price_history')->insert($dataToInsert);
+                $count += count($dataToInsert);
+                $this->line("   - Procesadas " . count($cards) . " cartas. Total puntos: {$count}");
             }
         });
 
         // Sembrar para sobres
-        BoosterPack::chunk(50, function ($packs) use ($days, &$count) {
+        BoosterPack::chunk(100, function ($packs) use ($days, &$count) {
+            $dataToInsert = [];
             foreach ($packs as $pack) {
                 $basePrice = $pack->price > 0 ? $pack->price : rand(300, 1000) / 100;
-                $this->seedForItem($pack->id, BoosterPack::class, $basePrice, $days, $count);
+                $currentPrice = $basePrice;
+
+                for ($i = $days; $i >= 0; $i--) {
+                    $date = Carbon::now()->subDays($i);
+                    $variation = 1 + (rand(-50, 50) / 1000);
+                    $currentPrice = round($currentPrice * $variation, 2);
+
+                    $dataToInsert[] = [
+                        'priceable_id' => $pack->id,
+                        'priceable_type' => BoosterPack::class,
+                        'price' => $currentPrice,
+                        'recorded_at' => $date
+                    ];
+                }
+            }
+
+            if (!empty($dataToInsert)) {
+                \DB::table('card_price_history')->insert($dataToInsert);
+                $count += count($dataToInsert);
+                $this->line("   - Procesados " . count($packs) . " sobres. Total puntos: {$count}");
             }
         });
 
-        $this->info("✅ Se han generado {$count} puntos de datos históricos.");
-    }
-
-    private function seedForItem($id, $type, $basePrice, $days, &$count)
-    {
-        $currentPrice = $basePrice;
-        
-        for ($i = $days; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            
-            // Variación aleatoria entre -5% y +5%
-            $variation = 1 + (rand(-50, 50) / 1000);
-            $currentPrice = round($currentPrice * $variation, 2);
-
-            CardPriceHistory::create([
-                'priceable_id' => $id,
-                'priceable_type' => $type,
-                'price' => $currentPrice,
-                'recorded_at' => $date
-            ]);
-            
-            $count++;
-        }
+        $this->info("✅ Se han generado {$count} puntos de datos históricos exitosamente.");
     }
 }

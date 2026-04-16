@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     XAxis,
     YAxis,
@@ -6,9 +6,10 @@ import {
     Tooltip,
     ResponsiveContainer,
     AreaChart,
-    Area
+    Area,
+    ReferenceLine
 } from 'recharts';
-import { TrendingUp, Activity, AlertCircle, Loader2 } from 'lucide-react';
+import { TrendingUp, Activity, AlertCircle, Loader2, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import apiService from '@/services/ApiService';
 
 interface PricePoint {
@@ -46,6 +47,23 @@ export const PriceChart: React.FC<PriceChartProps> = ({ data: initialData, type,
         }
     };
 
+    // Cálculos estadísticos
+    const stats = useMemo(() => {
+        if (data.length === 0) return null;
+
+        const prices = data.map(d => d.price);
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const sum = prices.reduce((a, b) => a + b, 0);
+        const avg = sum / prices.length;
+
+        const firstPrice = prices[0];
+        const lastPrice = prices[prices.length - 1];
+        const change = ((lastPrice - firstPrice) / firstPrice) * 100;
+
+        return { min, max, avg, change };
+    }, [data]);
+
     // Formatear fechas para el eje X
     const formattedData = data.map(point => ({
         ...point,
@@ -75,55 +93,92 @@ export const PriceChart: React.FC<PriceChartProps> = ({ data: initialData, type,
     }
 
     return (
-        <div className="h-full w-full">
-            <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={formattedData}>
-                    <defs>
-                        <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={color} stopOpacity={0.2} />
-                            <stop offset="95%" stopColor={color} stopOpacity={0} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} opacity={0.3} />
-                    <XAxis 
-                        dataKey="date" 
-                        stroke="#a1a1aa" 
-                        fontSize={10}
-                        tickLine={false}
-                        axisLine={false}
-                        minTickGap={30}
-                    />
-                    <YAxis 
-                        stroke="#a1a1aa" 
-                        fontSize={10}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `${value}€`}
-                        domain={['auto', 'auto']}
-                    />
-                    <Tooltip 
-                        contentStyle={{ 
-                            backgroundColor: 'white', 
-                            border: '1px solid #e4e4e7',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                            fontSize: '12px'
-                        }}
-                        itemStyle={{ color: color, fontWeight: 'bold' }}
-                        formatter={(value: number) => [`${value.toFixed(2)}€`, 'Precio']}
-                    />
-                    <Area 
-                        type="monotone" 
-                        dataKey="price" 
-                        stroke={color} 
-                        strokeWidth={3}
-                        fillOpacity={1} 
-                        fill="url(#colorPrice)" 
-                        animationDuration={1500}
-                        activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }}
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+        <div className="h-full w-full flex flex-col">
+            {/* Stats Header */}
+            {stats && (
+                <div className="grid grid-cols-4 gap-2 mb-6 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-700">
+                    <div className="text-center">
+                        <p className="text-[10px] text-zinc-500 uppercase font-bold">Mínimo</p>
+                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{stats.min.toFixed(2)}€</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-[10px] text-zinc-500 uppercase font-bold">Máximo</p>
+                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{stats.max.toFixed(2)}€</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-[10px] text-zinc-500 uppercase font-bold">Promedio</p>
+                        <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{stats.avg.toFixed(2)}€</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-[10px] text-zinc-500 uppercase font-bold">Variación</p>
+                        <div className={`flex items-center justify-center gap-0.5 text-sm font-bold ${stats.change > 0 ? 'text-emerald-500' : stats.change < 0 ? 'text-rose-500' : 'text-zinc-400'}`}>
+                            {stats.change > 0 ? <ArrowUpRight className="w-3 h-3" /> : stats.change < 0 ? <ArrowDownRight className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                            {Math.abs(stats.change).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex-1 min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={formattedData}>
+                        <defs>
+                            <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={color} stopOpacity={0.2} />
+                                <stop offset="95%" stopColor={color} stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} opacity={0.3} />
+                        <XAxis 
+                            dataKey="date" 
+                            stroke="#a1a1aa" 
+                            fontSize={10}
+                            tickLine={false}
+                            axisLine={false}
+                            minTickGap={30}
+                        />
+                        <YAxis 
+                            stroke="#a1a1aa" 
+                            fontSize={10}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}€`}
+                            domain={['auto', 'auto']}
+                        />
+                        <Tooltip 
+                            contentStyle={{ 
+                                backgroundColor: 'white', 
+                                border: '1px solid #e4e4e7',
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                                fontSize: '12px'
+                            }}
+                            itemStyle={{ color: color, fontWeight: 'bold' }}
+                            formatter={(value: any) => [`${parseFloat(value).toFixed(2)}€`, 'Precio']}
+                        />
+                        
+                        {stats && (
+                            <ReferenceLine 
+                                y={stats.avg} 
+                                stroke="#a1a1aa" 
+                                strokeDasharray="3 3" 
+                                label={{ value: 'Media', position: 'right', fill: '#a1a1aa', fontSize: 10, fontWeight: 'bold' }} 
+                            />
+                        )}
+
+                        <Area 
+                            type="monotone" 
+                            dataKey="price" 
+                            stroke={color} 
+                            strokeWidth={3}
+                            fillOpacity={1} 
+                            fill="url(#colorPrice)" 
+                            animationDuration={1500}
+                            activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 };

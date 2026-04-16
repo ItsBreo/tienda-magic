@@ -19,7 +19,7 @@ class PackOpeningController extends Controller
         $user = Auth::user();
 
         // Obtener la orden con sus items
-        $order = Order::with('items.boosterPack.cardSet')
+        $order = Order::with('items.purchasable.cardSet')
                     ->where('id', $orderId)
                     ->where('user_id', $user->id)
                     ->first();
@@ -45,7 +45,7 @@ class PackOpeningController extends Controller
                         ->where('user_id', $user->id)
                         ->first();
 
-            $orderItem = OrderItem::with('boosterPack')
+            $orderItem = OrderItem::with('purchasable')
                         ->where('id', $orderItemId)
                         ->where('order_id', $orderId)
                         ->first();
@@ -57,7 +57,7 @@ class PackOpeningController extends Controller
             // Todo en una transacción: si falla la generación, no guardamos nada
             $cards = DB::transaction(function () use ($user, $orderItem) {
                 // Generamos las cartas aleatorias del pack
-                $generatedCards = $this->generateRandomCards($orderItem->boosterPack);
+                $generatedCards = $this->generateRandomCards($orderItem->purchasable);
 
                 // Añadimos las cartas al inventario del usuario
                 foreach ($generatedCards as $card) {
@@ -75,6 +75,8 @@ class PackOpeningController extends Controller
 
                 return $generatedCards;
             });
+
+            event(new \App\Events\PackPurchased($user));
 
             return response()->json([
                 'success' => true,

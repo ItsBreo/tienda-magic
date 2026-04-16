@@ -4,11 +4,19 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Achievement;
+use Illuminate\Support\Facades\DB;
 
 class AchievementSeeder extends Seeder
 {
     public function run(): void
     {
+        // 1. Limpieza de logros eliminados para evitar basura en la UI
+        $toRemove = ['email_verified', 'first_deck_created', 'first_deck'];
+        Achievement::whereIn('slug', $toRemove)->delete();
+        DB::table('user_achievement')->whereIn('achievement_id', function($query) use ($toRemove) {
+            $query->select('id')->from('achievements')->whereIn('slug', $toRemove);
+        })->delete();
+
         $achievements = [
             [
                 'slug'        => 'first_register',
@@ -16,13 +24,6 @@ class AchievementSeeder extends Seeder
                 'description' => 'Creaste tu cuenta en la Tienda Magic.',
                 'badge_icon'  => '🧙',
                 'xp_points'   => 10,
-            ],
-            [
-                'slug'        => 'email_verified',
-                'name'        => 'Identidad Confirmada',
-                'description' => 'Verificaste tu correo electrónico.',
-                'badge_icon'  => '✅',
-                'xp_points'   => 20,
             ],
             [
                 'slug'        => 'first_pack_purchase',
@@ -48,28 +49,28 @@ class AchievementSeeder extends Seeder
             [
                 'slug'        => 'transactions_10',
                 'name'        => 'Comerciante',
-                'description' => 'Completaste 10 transacciones.',
+                'description' => 'Completaste 10 transacciones en total.',
                 'badge_icon'  => '💰',
                 'xp_points'   => 50,
             ],
             [
                 'slug'        => 'transactions_50',
                 'name'        => 'Mercader Experto',
-                'description' => 'Completaste 50 transacciones.',
+                'description' => 'Completaste 50 transacciones en total.',
                 'badge_icon'  => '💎',
                 'xp_points'   => 150,
             ],
             [
                 'slug'        => 'verified_trader',
                 'name'        => 'Verificado',
-                'description' => 'Trader de confianza de la comunidad.',
-                'badge_icon'  => '🔵', // badge estilo Twitter
+                'description' => 'Alcanzaste 1000 de reputación en la comunidad.',
+                'badge_icon'  => '🔵', 
                 'xp_points'   => 100,
             ],
         ];
 
         foreach ($achievements as $achievement) {
-            Achievement::firstOrCreate(
+            Achievement::updateOrCreate(
                 ['slug' => $achievement['slug']],
                 $achievement
             );

@@ -20,7 +20,8 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
   const { user } = useAuth();
   const [newCommentBody, setNewCommentBody] = useState("");
 
-  const canEdit = (post as any).can_edit || false;
+  const canDelete = post.can_delete || false;
+  const canEdit = post.can_edit || false;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(post.title || "");
@@ -52,6 +53,18 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
       window.location.reload(); 
     } catch (err) {
       toast.error("Error al actualizar la publicación");
+    }
+  };
+
+  const handleDeleteThread = async () => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este hilo permanentemente?")) return;
+    try {
+      await ApiService.deleteThread(post.id);
+      toast.success("Hilo eliminado correctamente");
+      onBack(); // Volver al feed
+    } catch (err) {
+      console.error("Error al eliminar hilo:", err);
+      toast.error("No se pudo eliminar el hilo");
     }
   };
 
@@ -88,6 +101,15 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
               className="flex items-center gap-1.5 text-[11px] font-black text-primary hover:bg-primary/10 px-2.5 py-1.5 rounded-md uppercase tracking-wider transition-all"
             >
               <Edit2 size={12} /> Editar
+            </button>
+          )}
+          {canDelete && (
+            <button 
+              onClick={handleDeleteThread}
+              className="text-xs font-bold text-red-500 hover:text-red-700 bg-transparent border-none cursor-pointer px-2 flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Eliminar
             </button>
           )}
         </div>
@@ -135,6 +157,12 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
             <h1 className="text-2xl font-serif font-black text-foreground mb-6 leading-tight decoration-primary/10 underline underline-offset-8 decoration-2">
               {post.title}
             </h1>
+            {post.image_url && (
+              <div className="mb-6 rounded-lg overflow-hidden border border-border max-w-full">
+                <img src={post.image_url} alt={post.title} className="max-w-full h-auto block" />
+              </div>
+            )}
+
             <div className="text-[15px] text-foreground leading-loose whitespace-pre-wrap mb-7 opacity-90 font-medium">
               {post.body || post.preview}
             </div>

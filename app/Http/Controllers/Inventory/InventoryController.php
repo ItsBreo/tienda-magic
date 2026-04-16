@@ -460,6 +460,8 @@ class InventoryController extends Controller
         $marketListing->listed_at = now();
         $marketListing->save();
 
+        event(new \App\Events\CardListed($user));
+
         // Bloquear cantidad exacta que se puso a la venta
         $inventoryCard->increment('quantity_locked', $validated['quantity']);
 
