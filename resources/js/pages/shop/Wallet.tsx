@@ -286,7 +286,16 @@ export default function WalletPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-800">
-                                        {transactions.map((tx) => (
+                                        {transactions.map((tx) => {
+                                            const isPositive = Number(tx.amount) > 0;
+                                            const badgeConfig: Record<string, { label: string; cls: string }> = {
+                                                deposit:   { label: 'Recarga',  cls: 'bg-emerald-500/10 text-emerald-400' },
+                                                purchase:  { label: 'Compra',   cls: 'bg-rose-500/10 text-rose-400'     },
+                                                withdrawal:{ label: 'Retiro',   cls: 'bg-amber-500/10 text-amber-400'   },
+                                            };
+                                            const badge = badgeConfig[tx.type] ?? { label: tx.type, cls: 'bg-zinc-600/20 text-zinc-400' };
+
+                                            return (
                                             <tr key={tx.id} className="hover:bg-zinc-800/20 transition-colors">
                                                 <td className="px-8 py-4 text-sm text-zinc-400">
                                                     <div className="flex items-center">
@@ -296,22 +305,19 @@ export default function WalletPage() {
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-zinc-100">
                                                     {tx.description || 'Transacción'}
-                                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${
-                                                        tx.type === 'deposit' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
-                                                    }`}>
-                                                        {tx.type === 'deposit' ? 'Entrada' : 'Gasto'}
+                                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold ${badge.cls}`}>
+                                                        {badge.label}
                                                     </span>
                                                 </td>
-                                                <td className={`px-6 py-4 text-sm font-bold ${
-                                                    tx.type === 'deposit' ? 'text-emerald-400' : 'text-rose-400'
-                                                }`}>
-                                                    {tx.type === 'deposit' ? '+' : '-'}{formatEuro(tx.amount)}
+                                                <td className={`px-6 py-4 text-sm font-bold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                    {isPositive ? '+' : ''}{formatEuro(Math.abs(Number(tx.amount)))}
                                                 </td>
                                                 <td className="px-8 py-4 text-sm font-medium text-zinc-100 text-right">
                                                     {formatEuro(tx.balance_after)}
                                                 </td>
                                             </tr>
-                                        ))}
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             ) : (
