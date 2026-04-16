@@ -160,7 +160,12 @@ export default function ManageExchanges() {
                  {req.status === 'accepted' && (
                   <div className="mt-4">
                      <p className="text-sm text-emerald-400 mb-2 font-medium bg-emerald-500/10 p-2 rounded-lg text-center">¡El usuario aceptó tu oferta!</p>
-                     <button onClick={() => navigate(`/trade/${req.trade_session?.id || req.id}`)} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg active:scale-95">Ir a Sala de Intercambio</button>
+                     <button 
+                        onClick={() => navigate(`/trade/${req.trade_session?.id}`)} 
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg active:scale-95"
+                     >
+                        Ir a Sala de Intercambio
+                     </button>
                   </div>
                  )}
               </div>

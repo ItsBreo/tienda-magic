@@ -2,6 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiService } from '../../services/ApiService';
 import { toast } from 'sonner';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+if (typeof window !== 'undefined') {
+  (window as any).Pusher = Pusher;
+}
 
 interface ChatMessage {
   id: number;
@@ -23,17 +29,95 @@ export default function TradeRoom() {
   const [sendingMsg, setSendingMsg] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const echoRef = useRef<Echo<any> | null>(null);
+
+  // Modal Inventario
+  const [showInventoryModal, setShowInventoryModal] = useState(false);
+  const [inventoryCards, setInventoryCards] = useState<any[]>([]);
+  const [loadingInventory, setLoadingInventory] = useState(false);
+  const [changingCard, setChangingCard] = useState(false);
+
+  const openInventoryModal = async () => {
+    setShowInventoryModal(true);
+    setLoadingInventory(true);
+    try {
+      const data = await apiService.getMyInventory();
+      // El backend devuelve un objeto con { inventoryCards: { data: [...] } } porque es paginado
+      const cards = data.inventoryCards?.data || [];
+      setInventoryCards(cards);
+    } catch {
+      toast.error('Error al cargar inventario');
+    } finally {
+      setLoadingInventory(false);
+    }
+  };
+
+  const handleChangeCard = async (newCardId: number) => {
+    if (changingCard) return;
+    setChangingCard(true);
+    try {
+      const data = await apiService.changeTradeCard(Number(sessionId), newCardId);
+      setRoom(data);
+      toast.success('Carta cambiada correctamente. Reconfirma el intercambio.');
+      setShowInventoryModal(false);
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al cambiar la carta');
+    } finally {
+      setChangingCard(false);
+    }
+  };
+
 
   useEffect(() => {
     loadRoom();
     loadUser();
   }, [sessionId]);
 
+  // Configuración de WebSockets (Echo)
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const token = localStorage.getItem('auth_token');
+    if (!token || echoRef.current) return;
+
+    const echo = new Echo({
+      broadcaster: 'reverb',
+      key: import.meta.env.VITE_REVERB_APP_KEY,
+      wsHost: import.meta.env.VITE_REVERB_HOST,
+      wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+      wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+      forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+      enabledTransports: ['ws', 'wss'],
+      authEndpoint: '/api/broadcasting/auth',
+      auth: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      },
+    });
+
+    echoRef.current = echo;
+
+    echo.private(`trade.${sessionId}`)
+        .listen('.trade.updated', (e: any) => {
+          console.log('RT: Trade Updated received', e);
+          loadRoom(); 
+        });
+
+    return () => {
+      if (echoRef.current) {
+        echoRef.current.leave(`trade.${sessionId}`);
+        echoRef.current = null;
+      }
+    };
+  }, [sessionId]);
+
   // Start polling once we have the session id
   useEffect(() => {
     if (!sessionId) return;
     fetchMessages();
-    pollingRef.current = setInterval(fetchMessages, 3000);
+    pollingRef.current = setInterval(fetchMessages, 8000); // Polling más lento como respaldo
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
@@ -104,6 +188,17 @@ export default function TradeRoom() {
     }
   };
 
+  const handleCancelTrade = async () => {
+    if (!confirm('¿Estás seguro de que deseas cancelar este intercambio? Esta acción no se puede deshacer.')) return;
+    try {
+      const data = await apiService.cancelTrade(Number(sessionId));
+      setRoom(data);
+      toast.success('El intercambio ha sido cancelado exitosamente.');
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al cancelar');
+    }
+  };
+
   const formatTime = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -142,6 +237,11 @@ export default function TradeRoom() {
             ✓ INTERCAMBIO COMPLETADO
           </div>
         )}
+        {room.status === 'cancelled' && (
+          <div className="inline-block mt-4 px-6 py-2 bg-rose-500/20 border border-rose-500/30 text-rose-400 rounded-full font-bold shadow-lg shadow-rose-500/10">
+            ✕ INTERCAMBIO CANCELADO
+          </div>
+        )}
       </div>
 
       {/* Main Grid: Cards left (3/5), Chat right (2/5) */}
@@ -177,13 +277,22 @@ export default function TradeRoom() {
                   </p>
                 </div>
               </div>
-              <div className="mt-6 text-center">
+              <div className="mt-6 text-center flex flex-col gap-2 relative">
                 {myStatus ? (
                   <p className="text-emerald-400 font-bold bg-emerald-500/10 py-3 rounded-xl border border-emerald-500/20">
                     Has confirmado
                   </p>
                 ) : (
                   <p className="text-amber-400 font-medium py-3">Esperando tu confirmación...</p>
+                )}
+                
+                {room.status === 'active' && !myStatus && (
+                  <button 
+                    onClick={openInventoryModal}
+                    className="mx-auto text-indigo-400 border border-indigo-500/50 hover:bg-indigo-500/10 hover:border-indigo-400 bg-transparent py-2 px-4 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    Cambiar Carta
+                  </button>
                 )}
               </div>
             </div>
@@ -242,28 +351,39 @@ export default function TradeRoom() {
           </div>{/* end cards row */}
 
           {/* Confirm button */}
-          {room.status === 'active' && !myStatus && (
-            <div className="text-center max-w-sm mx-auto">
-              <p className="text-zinc-400 text-sm mb-4">
-                Nota: Esta acción es irreversible. Asegúrate de verificar las condiciones y la carta recibida.
-              </p>
+          {room.status === 'active' && (
+            <div className="text-center max-w-sm mx-auto flex flex-col gap-3">
+              {!myStatus && (
+                <>
+                  <p className="text-zinc-400 text-sm mb-2">
+                    Nota: Esta acción es irreversible. Asegúrate de verificar las condiciones y la carta recibida.
+                  </p>
+                  <button
+                    id="confirm-trade-btn"
+                    onClick={handleConfirm}
+                    className="w-full bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 text-white font-bold py-4 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] transition-all active:scale-95 border border-emerald-400/50 tracking-wide text-lg"
+                  >
+                    CONFIRMAR INTERCAMBIO
+                  </button>
+                </>
+              )}
               <button
-                id="confirm-trade-btn"
-                onClick={handleConfirm}
-                className="w-full bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 text-white font-bold py-4 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] transition-all active:scale-95 border border-emerald-400/50 tracking-wide text-lg"
+                id="cancel-trade-btn"
+                onClick={handleCancelTrade}
+                className="w-full bg-transparent border-2 border-rose-500/50 hover:bg-rose-500/10 hover:border-rose-500 text-rose-400 font-bold py-3 rounded-2xl transition-all active:scale-95"
               >
-                CONFIRMAR INTERCAMBIO
+                CANCELAR INTERCAMBIO
               </button>
             </div>
           )}
 
-          {room.status === 'completed' && (
+          {(room.status === 'completed' || room.status === 'cancelled') && (
             <div className="text-center">
               <button
                 onClick={() => navigate('/inventory')}
                 className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all"
               >
-                Ir a mi Inventario
+                Volver a mi Inventario
               </button>
             </div>
           )}
@@ -327,7 +447,7 @@ export default function TradeRoom() {
 
           {/* Input area */}
           <div className="border-t border-zinc-700/60 bg-zinc-800/40 px-4 py-3 flex-shrink-0">
-            {room.status === 'completed' ? (
+            {room.status === 'completed' || room.status === 'cancelled' ? (
               <p className="text-center text-zinc-500 text-sm py-2 italic">El intercambio ha finalizado.</p>
             ) : (
               <div className="flex items-end gap-2">
@@ -361,6 +481,61 @@ export default function TradeRoom() {
         </div>{/* end chat panel */}
 
       </div>{/* end main grid */}
+
+      {/* Modal Inventario */}
+      {showInventoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900 border border-zinc-700/60 rounded-3xl p-6 w-full max-w-4xl shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">Selecciona una carta para ofrecer</h2>
+              <button onClick={() => setShowInventoryModal(false)} className="text-zinc-400 hover:text-white">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4f46e5 transparent' }}>
+              {loadingInventory ? (
+                <div className="flex justify-center items-center py-12 text-zinc-400">
+                  <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mr-3"></div>
+                  Cargando inventario...
+                </div>
+              ) : inventoryCards.length === 0 ? (
+                <div className="text-center py-12 text-zinc-500">
+                  <p>No tienes cartas disponibles para intercambiar en tu inventario.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {inventoryCards.map((invCard: any) => {
+                    const isAvailable = invCard.quantity > invCard.quantity_locked;
+                    return (
+                      <div 
+                        key={invCard.id} 
+                        className={`bg-zinc-800 rounded-xl p-3 border ${isAvailable ? 'border-zinc-700 hover:border-indigo-500 cursor-pointer' : 'border-rose-900/50 opacity-50 cursor-not-allowed'} transition-colors relative flex flex-col items-center`}
+                        onClick={() => isAvailable && handleChangeCard(invCard.id)}
+                      >
+                       <div className="w-full aspect-[2.5/3.5] bg-zinc-900 rounded-lg mb-2 overflow-hidden relative border border-zinc-700">
+                         {invCard.card?.image_url ? (
+                           <img src={invCard.card.image_url.startsWith('http') ? invCard.card.image_url : `/storage/${invCard.card.image_url}`} alt={invCard.card.name} className="w-full h-full object-cover" />
+                         ) : (
+                           <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold uppercase text-xs">Sin Imagen</div>
+                         )}
+                         {!isAvailable && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><span className="text-rose-400 font-bold text-xs px-2 py-1 bg-rose-950/90 rounded rotate-[-15deg] border border-rose-500/50">Bloqueada</span></div>}
+                       </div>
+                       <p className="text-white text-sm font-bold text-center truncate w-full">{invCard.card?.name || 'Carta Desconocida'}</p>
+                       <p className="text-[11px] text-zinc-400 mt-1 capitalize text-center bg-zinc-900 px-2 py-0.5 rounded-full">{invCard.condition} • {invCard.language} {invCard.is_foil ? '• Foil' : ''}</p>
+                       <p className="text-[11px] text-indigo-300 font-medium mt-1.5 flex items-center gap-1">
+                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block"></span> 
+                         Disp: {invCard.quantity - invCard.quantity_locked}
+                       </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

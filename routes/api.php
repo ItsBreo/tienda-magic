@@ -232,6 +232,8 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     Route::prefix('trade-sessions')->group(function () {
         Route::get('/{id}', [TradeController::class, 'showRoom']);
         Route::post('/{id}/confirm', [TradeController::class, 'confirmTrade']);
+        Route::post('/{id}/cancel', [TradeController::class, 'cancelTrade']);
+        Route::post('/{id}/change-card', [TradeController::class, 'changeCard']);
         // Chat de la sala
         Route::get('/{id}/messages', [TradeController::class, 'getMessages']);
         Route::post('/{id}/messages', [TradeController::class, 'sendMessage']);
