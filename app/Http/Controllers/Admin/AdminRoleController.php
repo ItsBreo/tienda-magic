@@ -20,7 +20,7 @@ class AdminRoleController extends Controller
     #[OA\Response(response: 200, description: "Lista de roles")]
     public function index()
     {
-        // Traemos todos los roles
+        // Traemos todos los roles (los permisos se cargan vía Appends/Accessor)
         $roles = Role::orderBy('id')->get();
         return response()->json($roles);
     }
@@ -36,7 +36,8 @@ class AdminRoleController extends Controller
         required: true,
         content: new OA\JsonContent(properties: [
             new OA\Property(property: "name", type: "string"),
-            new OA\Property(property: "description", type: "string", nullable: true)
+            new OA\Property(property: "description", type: "string", nullable: true),
+            new OA\Property(property: "permission_ids", type: "array", items: new OA\Items(type: "integer"))
         ])
     )]
     #[OA\Response(response: 201, description: "Rol creado")]
@@ -44,12 +45,15 @@ class AdminRoleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:roles,name',
-            'description' => 'nullable|string|max:1000'
+            'description' => 'nullable|string|max:1000',
+            'permission_ids' => 'sometimes|array',
+            'permission_ids.*' => 'exists:permissions,id'
         ]);
 
         $role = Role::create([
             'name' => $validated['name'],
-            'description' => $validated['description'] ?? null
+            'description' => $validated['description'] ?? null,
+            'permission_ids' => $validated['permission_ids'] ?? []
         ]);
 
         return response()->json([
@@ -70,7 +74,8 @@ class AdminRoleController extends Controller
         required: true,
         content: new OA\JsonContent(properties: [
             new OA\Property(property: "name", type: "string"),
-            new OA\Property(property: "description", type: "string", nullable: true)
+            new OA\Property(property: "description", type: "string", nullable: true),
+            new OA\Property(property: "permission_ids", type: "array", items: new OA\Items(type: "integer"))
         ])
     )]
     #[OA\Response(response: 200, description: "Rol actualizado")]
@@ -79,13 +84,20 @@ class AdminRoleController extends Controller
         $validated = $request->validate([
             // Ignoramos el ID del propio rol para la regla unique, permitiendo guardar sin cambiar el nombre
             'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($role->id)],
-            'description' => 'nullable|string|max:1000'
+            'description' => 'nullable|string|max:1000',
+            'permission_ids' => 'sometimes|array',
+            'permission_ids.*' => 'exists:permissions,id'
         ]);
 
         $role->name = $validated['name'];
         if (isset($validated['description'])) {
             $role->description = $validated['description'];
         }
+        
+        if (isset($validated['permission_ids'])) {
+            $role->permission_ids = $validated['permission_ids'];
+        }
+
         $role->save();
 
         return response()->json([

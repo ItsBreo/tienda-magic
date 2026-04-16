@@ -21,6 +21,7 @@ class Card extends Model
         'data' => 'array',
         'market_avg_price' => 'float',
         'mana_value' => 'float',
+        'is_active' => 'boolean',
     ];
 
     protected $appends = ['image_url'];
@@ -57,6 +58,14 @@ class Card extends Model
     public function scopeFilter($query, array $filters) {
         if ($filters['search'] ?? false) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
+        }
+
+        // Filtro de actividad (Cascada: el set debe estar activo para que la carta se considere activa en tienda)
+        if (!($filters['include_inactive'] ?? false)) {
+            $query->where('is_active', true)
+                  ->whereHas('cardSet', function($q) {
+                      $q->where('is_active', true);
+                  });
         }
         if ($filters['color'] ?? false) {
             $query->where('colors', 'like', '%' . $filters['color'] . '%');

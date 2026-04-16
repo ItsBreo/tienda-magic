@@ -182,7 +182,6 @@ class User extends Authenticatable implements JWTSubject
                     ->withPivot('forum_id')
                     ->withTimestamps();
     }
-
     // Usuario - mazo 1:M
     public function decks()
     {
@@ -327,9 +326,9 @@ class User extends Authenticatable implements JWTSubject
         if ($this->isSuperAdmin()) return self::ROLE_SUPER_ADMIN;
         if ($this->isAdmin())      return self::ROLE_ADMIN;
 
-        $modRole = $this->roles->first(
-            fn($r) => in_array(strtolower($r->name), self::MOD_ROLES)
-        );
+        $modRole = $this->roles->first(function ($r) {
+            return in_array(strtolower($r->name), self::MOD_ROLES);
+        });
         if ($modRole) return strtolower($modRole->name);
 
         return self::ROLE_USER;
@@ -436,6 +435,34 @@ public function tournaments()
     return $this->belongsToMany(Tournament::class, 'tournament_registrations')
                 ->withPivot('status', 'registered_at', 'confirmed_at')
                 ->withTimestamps();
-}
+    }
 
+    /**
+     * Comprueba si el usuario tiene un permiso específico a través de sus roles.
+     * Ahora busca dentro de la columna JSON permission_ids de cada rol.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // Super Admin tiene todos los permisos por defecto
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Buscamos el ID del permiso pedido (podemos cachear esto si fuera necesario)
+        $permissionModel = Permission::where('name', $permission)->first();
+        if (!$permissionModel) {
+            return false;
+        }
+
+        $targetId = $permissionModel->id;
+
+        foreach ($this->roles as $role) {
+            $ids = $role->permission_ids ?? [];
+            if (in_array($targetId, $ids)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
