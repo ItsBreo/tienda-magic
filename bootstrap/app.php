@@ -38,11 +38,12 @@ return Application::configure(basePath: dirname(__DIR__))
             // \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         ]);
 
-        // Excluir rutas de webhook de CSRF
+        // Excluir rutas de webhook y de WebSockets para evitar error 419
         $middleware->validateCsrfTokens(except: [
             'api/webhooks/stripe',
             'api/login',
             'api/register',
+            'api/broadcasting/auth',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
