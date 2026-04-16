@@ -174,8 +174,8 @@ class MagicApi {
         return response.data;
     }
 
-    async processCheckout(): Promise<any> {
-        const response = await this.api.post('/api/checkout/process');
+    async processCheckout(billingData: any): Promise<any> {
+        const response = await this.api.post('/api/checkout/process', billingData);
         return response.data;
     }
 

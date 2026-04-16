@@ -12,6 +12,7 @@ use App\Models\BoosterPack;
 use App\Models\InventoryCard;
 use App\Models\InventoryPack;
 use App\Models\Cart;
+use App\Models\WalletTransaction;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use OpenApi\Attributes as OA;
@@ -136,6 +137,17 @@ class CheckoutController extends Controller
 
                     // Descontar saldo
                     $user->decrement('wallet_balance', $totalAmount);
+                    $newBalance = $user->fresh()->wallet_balance;
+
+                    // Registrar en el historial de la billetera
+                    $itemCount = count($orderItems);
+                    WalletTransaction::create([
+                        'user_id'       => $user->id,
+                        'type'          => 'purchase',
+                        'amount'        => -$totalAmount,
+                        'balance_after' => $newBalance,
+                        'description'   => "Compra en la tienda — {$itemCount} " . ($itemCount === 1 ? 'artículo' : 'artículos'),
+                    ]);
 
                     // Marcar como completado
                     $order->update([

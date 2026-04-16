@@ -13,6 +13,7 @@ use App\Models\CartItem;
 use App\Models\BoosterPack;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\WalletTransaction;
 use App\Mail\OrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
 use OpenApi\Attributes as OA;
@@ -131,7 +132,13 @@ class CheckoutController extends Controller
         try {
             return DB::transaction(function () use ($request) {
                 $user = Auth::user();
-                $paymentMethod = $request->validated()['payment_method'];
+                $validated = $request->validated();
+                $paymentMethod = $validated['payment_method'];
+
+                // Billing info is now optional
+                $billingName = $validated['billing_name'] ?? null;
+                $billingTaxId = $validated['billing_tax_id'] ?? null;
+                $billingAddress = $validated['billing_address'] ?? null;
 
                 // Obtener y validar carrito
                 $cart = Cart::with(['items.boosterPack'])
@@ -228,18 +235,28 @@ class CheckoutController extends Controller
                     // Descontar fondos del wallet
                     $user->wallet_balance -= $total;
                     $user->save();
+
+                    // Registrar la transacción en el historial de la billetera
+                    $itemCount = count($validItems);
+                    WalletTransaction::create([
+                        'user_id'       => $user->id,
+                        'type'          => 'purchase',
+                        'amount'        => -$total,
+                        'balance_after' => $user->wallet_balance,
+                        'description'   => "Compra en la tienda — {$itemCount} " . ($itemCount === 1 ? 'artículo' : 'artículos'),
+                    ]);
                 }
                 // Aqui se integraria Stripe para pago con tarjeta
 
                 // Crear pedido
                 $order = Order::create([
                     'user_id' => $user->id,
-                    'subtotal' => $subtotal,
-                    'tax' => $tax,
-                    'total_price' => $total,
+                    'total_amount' => $total, // Corregido: total_amount en lugar de total_price
                     'payment_method' => $paymentMethod,
                     'status' => 'completed',
-                    'currency' => 'EUR'
+                    'billing_name' => $billingName,
+                    'billing_tax_id' => $billingTaxId,
+                    'billing_address' => $billingAddress
                 ]);
 
                 // Crear items de la orden con precios congelados

@@ -30,6 +30,7 @@ class BoosterPack extends Model
         'config' => 'array',
         'price' => 'float',
         'is_active' => 'boolean',
+        'card_set_id' => 'string', // Must stay string — stores set codes like 'msh', not integers
     ];
 
     protected $appends = ['cover_image', 'image_url'];
@@ -69,8 +70,12 @@ class BoosterPack extends Model
             return $this->image_uri;
         }
 
+        // booster_pack.card_set_id stores the set code string (e.g. 'msh'),
+        // while cards.set_code is the matching varchar column on cards.
+        $setCode = $this->card_set_id;
+
         // Buscar carta mítica del set para usar como portada
-        $mythicCard = \App\Models\Card::where('card_set_id', $this->card_set_id)
+        $mythicCard = \App\Models\Card::where('set_code', $setCode)
             ->where('rarity', 'mythic')
             ->whereNotNull('image_uri')
             ->orderBy('id')
@@ -81,7 +86,7 @@ class BoosterPack extends Model
         }
 
         // Si no hay míticas, buscar una rara
-        $rareCard = \App\Models\Card::where('card_set_id', $this->card_set_id)
+        $rareCard = \App\Models\Card::where('set_code', $setCode)
             ->where('rarity', 'rare')
             ->whereNotNull('image_uri')
             ->orderBy('id')
@@ -92,7 +97,7 @@ class BoosterPack extends Model
         }
 
         // Si no hay raras, usar cualquier carta con imagen
-        $anyCard = \App\Models\Card::where('card_set_id', $this->card_set_id)
+        $anyCard = \App\Models\Card::where('set_code', $setCode)
             ->whereNotNull('image_uri')
             ->orderBy('id')
             ->first();

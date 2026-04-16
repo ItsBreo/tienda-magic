@@ -78,12 +78,12 @@
             <tr>
                 <td>
                     <h1>Tienda Magic</h1>
-                    <p>Factura Original</p>
+                    <p>Recibo de Compra</p>
                 </td>
                 <td class="text-right">
-                    <strong>Factura #:</strong> FAC-{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}<br>
-                    <strong>Fecha:</strong> {{ $order->created_at->format('d/m/Y') }}<br>
-                    <strong>Estado:</strong> Pagado
+                    <strong>Recibo #:</strong> {{ str_pad($order->id, 8, '0', STR_PAD_LEFT) }}<br>
+                    <strong>Fecha:</strong> {{ $order->created_at->format('d/m/Y H:i') }}<br>
+                    <strong>Estado:</strong> Completado
                 </td>
             </tr>
         </table>
@@ -91,16 +91,11 @@
 
     <table class="details">
         <tr>
-            <td width="50%">
-                <strong>Facturar a:</strong><br>
-                {{ $user->name }}<br>
-                {{ $user->email }}
-            </td>
-            <td width="50%" class="text-right">
-                <strong>Emitido por:</strong><br>
-                Tienda Magic Ltd.<br>
-                Calle Principal 123, Ciudad<br>
-                info@tiendamagic.com
+            <td width="100%">
+                <strong>Datos del Cliente:</strong><br>
+                ID de Usuario: {{ $user->id }}<br>
+                Nombre: {{ $user->name }}<br>
+                Email: {{ $user->email }}
             </td>
         </tr>
     </table>
@@ -115,12 +110,20 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($items as $item)
+            @foreach($items ?? $order->items as $item)
             <tr>
-                <td>{{ $item->boosterPack->name ?? 'Booster Pack' }} - Set: {{ $item->boosterPack->cardSet->name ?? 'N/A' }}</td>
+                <td>
+                    @if($item->booster_pack_id)
+                        {{ $item->boosterPack->name }} ({{ $item->boosterPack->cardSet->name }})
+                    @elseif($item->card_id)
+                        {{ $item->card->name }} ({{ $item->card->rarity }})
+                    @else
+                        Producto
+                    @endif
+                </td>
                 <td class="text-right">{{ $item->quantity }}</td>
-                <td class="text-right">{{ number_format($item->price_at_purchase ?? $item->unit_price, 2) }} {{ $order->currency ?? 'EUR' }}</td>
-                <td class="text-right">{{ number_format($item->quantity * ($item->price_at_purchase ?? $item->unit_price), 2) }} {{ $order->currency ?? 'EUR' }}</td>
+                <td class="text-right">{{ number_format($item->unit_price, 2) }} {{ $order->currency ?? 'EUR' }}</td>
+                <td class="text-right">{{ number_format($item->total_price, 2) }} {{ $order->currency ?? 'EUR' }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -129,15 +132,15 @@
     <table class="totals-table">
         <tr>
             <td>Subtotal:</td>
-            <td class="text-right">{{ number_format($order->subtotal ?? $order->total_price / 1.21, 2) }} {{ $order->currency ?? 'EUR' }}</td>
+            <td class="text-right">{{ number_format($order->total_amount / 1.21, 2) }} {{ $order->currency ?? 'EUR' }}</td>
         </tr>
         <tr>
             <td>Impuestos (21%):</td>
-            <td class="text-right">{{ number_format($order->tax ?? ($order->total_price - ($order->total_price / 1.21)), 2) }} {{ $order->currency ?? 'EUR' }}</td>
+            <td class="text-right">{{ number_format($order->total_amount - ($order->total_amount / 1.21), 2) }} {{ $order->currency ?? 'EUR' }}</td>
         </tr>
         <tr>
             <td><strong>Total:</strong></td>
-            <td class="text-right"><strong>{{ number_format($order->total_price, 2) }} {{ $order->currency ?? 'EUR' }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($order->total_amount, 2) }} {{ $order->currency ?? 'EUR' }}</strong></td>
         </tr>
     </table>
 
