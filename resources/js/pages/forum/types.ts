@@ -10,6 +10,7 @@ export interface Post {
   can_delete?: boolean;
   can_edit?: boolean;
   isSaved?: boolean;
+  image_url?: string;
 }
 
 export interface Reply {

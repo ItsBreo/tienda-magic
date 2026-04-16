@@ -23,8 +23,9 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
   // const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Eliminado
   // const [isDeleting, setIsDeleting] = useState(false); // Eliminado
 
-  // const canDelete = (post as any).can_delete || false; // Eliminado
-  const canEdit = (post as any).can_edit || false;
+   // const canDelete = (post as any).can_delete || false; // Eliminado
+  const canDelete = post.can_delete || false;
+  const canEdit = post.can_edit || false;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(post.title || "");
@@ -61,7 +62,17 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
     }
   };
 
-  /* Eliminado: handleDelete, confirmDelete */
+  const handleDeleteThread = async () => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este hilo permanentemente?")) return;
+    try {
+      await ApiService.deleteThread(post.id);
+      toast.success("Hilo eliminado correctamente");
+      onBack(); // Volver al feed
+    } catch (err) {
+      console.error("Error al eliminar hilo:", err);
+      toast.error("No se pudo eliminar el hilo");
+    }
+  };
 
   const handleCommentDelete = (commentId: number) => {
     // Al borrar un comentario no expulsamos al usuario, solo quitamos el comentario de la lista
@@ -123,7 +134,15 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
               Editar
             </button>
           )}
-          {/* El botón de eliminar se ha movido a la barra de acciones masivas del feed principal */}
+          {canDelete && (
+            <button 
+              onClick={handleDeleteThread}
+              className="text-xs font-bold text-red-500 hover:text-red-700 bg-transparent border-none cursor-pointer px-2 flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Eliminar
+            </button>
+          )}
         </div>
       </div>
 
@@ -169,6 +188,13 @@ export default function ThreadDetailView({ post, comments, isSubmitting, onBack,
             <h1 className="text-xl font-bold text-[var(--text-primary)] mb-4 leading-tight">
               {post.title}
             </h1>
+            
+            {post.image_url && (
+              <div className="mb-6 rounded-lg overflow-hidden border border-[var(--border)] max-w-full">
+                <img src={post.image_url} alt={post.title} className="max-w-full h-auto block" />
+              </div>
+            )}
+
             <div className="text-[14px] text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap mb-5">
               {post.body || post.preview}
             </div>

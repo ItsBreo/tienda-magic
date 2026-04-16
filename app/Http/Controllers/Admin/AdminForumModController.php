@@ -141,10 +141,11 @@ class AdminForumModController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:threads,id'
+            'ids.*' => 'exists:threads,id' // Solo permitimos hilos existentes (no borrados físicamente)
         ]);
 
-        $threads = Thread::whereIn('id', $validated['ids'])->get();
+        // Cargamos los hilos incluyendo los que ya puedan estar en papelera (soft-delete)
+        $threads = Thread::withTrashed()->whereIn('id', $validated['ids'])->get();
         $deletedCount = 0;
         foreach ($threads as $thread) {
             /** @var Thread $thread */
@@ -166,7 +167,8 @@ class AdminForumModController extends Controller
             'ids.*' => 'exists:comments,id'
         ]);
 
-        $comments = Comment::whereIn('id', $validated['ids'])->get();
+        // Cargamos con 'thread' para que el Policy no haga N+1 al buscar el forum_id
+        $comments = Comment::withTrashed()->with('thread')->whereIn('id', $validated['ids'])->get();
         $deletedCount = 0;
         foreach ($comments as $comment) {
             /** @var Comment $comment */

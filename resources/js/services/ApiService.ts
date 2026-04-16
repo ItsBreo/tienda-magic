@@ -28,7 +28,6 @@ class MagicApi {
             baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000',
             headers: {
                 Accept: 'application/json',
-                'Content-Type': 'application/json',
             },
         });
 
@@ -203,14 +202,14 @@ class MagicApi {
         return response.data;
     }
 
-    async getForumThreads(forumSlug: string, sort: string = 'hot', page: number = 1): Promise<any> {
-        const response = await this.api.get(`/api/forums/${forumSlug}`, { params: { sort, page } });
+    async getForumThreads(forumSlug: string, sort: string = 'hot', page: number = 1, perPage: number = 20): Promise<any> {
+        const response = await this.api.get(`/api/forums/${forumSlug}`, { params: { sort, page, per_page: perPage } });
         console.log(`[ApiService] getForumThreads (${forumSlug}) recibidos:`, response.data);
         return response.data;
     }
 
-    async getThreads(sort: string = 'hot', page: number = 1): Promise<any> {
-        const response = await this.api.get('/api/threads', { params: { sort, page } });
+    async getThreads(sort: string = 'hot', page: number = 1, perPage: number = 20): Promise<any> {
+        const response = await this.api.get('/api/threads', { params: { sort, page, per_page: perPage } });
         console.log('[ApiService] getThreads recibidos:', response.data);
         return response.data;
     }
@@ -220,7 +219,7 @@ class MagicApi {
         return response.data;
     }
 
-    async createThread(data: { forum_id: number, title: string, body: string, tags?: string[] }): Promise<any> {
+    async createThread(data: any): Promise<any> {
         const response = await this.api.post('/api/threads', data);
         return response.data;
     }
@@ -240,8 +239,8 @@ class MagicApi {
         return response.data;
     }
 
-    async getSavedThreads(page: number = 1): Promise<any> {
-        const response = await this.api.get('/api/saved', { params: { page } });
+    async getSavedThreads(page: number = 1, perPage: number = 20): Promise<any> {
+        const response = await this.api.get('/api/saved', { params: { page, per_page: perPage } });
         return response.data;
     }
 

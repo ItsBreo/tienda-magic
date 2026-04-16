@@ -23,13 +23,15 @@ class ThreadController extends Controller
     {
         $sort = $request->get('sort', 'hot');
 
+        $perPage = $request->get('per_page', 20);
+        
         $threads = Thread::with(['user', 'forum', 'votes'])
             ->withCount('comments')
             ->when(in_array($sort, ['new', 'nuevo']), fn($q) => $q->latest())
             ->when($sort === 'top', fn($q) => $q->orderByDesc('score'))
             ->when(in_array($sort, ['commented', 'comentado']), fn($q) => $q->has('comments')->orderByDesc('comments_count'))
             ->when($sort === 'hot', fn($q) => $q->orderByDesc('score')->latest())
-            ->paginate(20);
+            ->paginate($perPage);
 
         return ThreadResource::collection($threads);
     }
@@ -50,12 +52,14 @@ class ThreadController extends Controller
             return ThreadResource::collection([]);
         }
 
+        $perPage = $request->get('per_page', 20);
+
         $threads = Thread::with(['user', 'forum', 'votes'])
             ->withCount('comments')
             ->where('title', 'like', "%{$query}%")
             ->orWhere('body', 'like', "%{$query}%")
             ->latest()
-            ->paginate(20);
+            ->paginate($perPage);
 
         return ThreadResource::collection($threads);
     }
@@ -108,7 +112,13 @@ class ThreadController extends Controller
             'body'     => 'required|string',
             'tags'     => 'nullable|array',
             'tags.*'   => 'string|max:50',
+            'image'    => 'nullable|image|max:5120', // Máximo 5MB
         ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('forum_images', 'public');
+            $validated['image'] = $path;
+        }
 
         $thread = $request->user()->threads()->create($validated);
         $thread->load(['user', 'forum']);

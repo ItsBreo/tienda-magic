@@ -18,13 +18,13 @@ class SavedThreadController extends Controller
         security: [["bearerAuth" => []]]
     )]
     #[OA\Response(response: 200, description: "Lista paginada de hilos guardados")]
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         $saved = Auth::user()
             ->savedThreads()
             ->with(['user', 'forum'])
             ->latest('saved_threads.created_at')
-            ->paginate(20);
+            ->paginate($request->get('per_page', 20));
 
         return ThreadResource::collection($saved);
     }

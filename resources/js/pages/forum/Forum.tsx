@@ -72,6 +72,7 @@ const mapThreadToPost = (t: any): Post => ({
   isSaved: t.is_saved || false,
   comments: t.comments_count || 0,
   timeAgo: formatDate(t.created_at),
+  image_url: t.image_url,
   tags: (() => { 
     if (Array.isArray(t.tags)) return t.tags;
     try { return JSON.parse(t.tags || "[]"); } catch { return []; }
@@ -94,6 +95,9 @@ export default function MagicForum() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
+  const [paginationData, setPaginationData] = useState<any>(null);
 
   // Estado de búsqueda dinámico
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || "");
@@ -144,6 +148,11 @@ export default function MagicForum() {
       .catch(err => console.error("Error al cargar la lista de foros:", err));
   }, []);
 
+  // Reiniciar a página 1 cuando cambia el contexto (categoría, orden, navegación, búsqueda) o cantidad por página
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, sortMode, activeSideNav, searchParams, perPage]);
+
   // Efecto para la búsqueda dinámica (con debounce en el popover)
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -189,28 +198,30 @@ export default function MagicForum() {
     let fetcher;
 
     if (searchQuery && searchQuery.length >= 3) {
-      if (view !== 'feed') handleSetView('feed'); // Asegurarnos que estamos en la vista de feed para mostrar resultados
+      if (view !== 'feed') handleSetView('feed');
       if (activeCategory !== null) setActiveCategory(null);
       if (activeSideNav !== 'search') setActiveSideNav('search');
-      fetcher = ApiService.axiosInstance.get(`/api/forum/search`, { params: { q: searchQuery } });
+      fetcher = ApiService.axiosInstance.get(`/api/forum/search`, { params: { q: searchQuery, page: currentPage, per_page: perPage } });
     } else {
       fetcher = activeSideNav === "guardados"
-        ? ApiService.getSavedThreads()
+        ? ApiService.getSavedThreads(currentPage, perPage)
         : (activeCategory
-            ? ApiService.getForumThreads(activeCategory, sortMode)
-            : ApiService.getThreads(sortMode));
+            ? ApiService.getForumThreads(activeCategory, sortMode, currentPage, perPage)
+            : ApiService.getThreads(sortMode, currentPage, perPage));
     }
 
     fetcher
       .then(res => {
-        // La respuesta de búsqueda está en res.data.data, las otras en res.data
-        const threads = res.data.data || res.data || [];
+        // En Laravel Resources con paginación, la data está en res.data y el meta en res.meta
+        const threads = res.data || [];
         const mappedPosts = threads.map(mapThreadToPost);
         setPosts(mappedPosts);
+        setPaginationData(res.meta || null);
       })
       .catch(err => {
         console.error("Error al cargar los hilos:", err);
         setPosts([]);
+        setPaginationData(null);
       })
       .finally(() => setIsLoading(false));
 
@@ -218,7 +229,7 @@ export default function MagicForum() {
       .then(res => setTournaments(res.data?.data || res.data || []))
       .catch(err => console.error("Error al cargar los torneos:", err));
 
-  }, [activeCategory, sortMode, refreshKey, activeSideNav, searchParams]);
+  }, [activeCategory, sortMode, refreshKey, activeSideNav, searchParams, currentPage, perPage]);
 
   const openThread = (post: Post) => {
     setActivePost(post);
@@ -257,9 +268,21 @@ export default function MagicForum() {
     .catch(err => console.error(`Error al cargar el hilo ${post.id}:`, err));
   };
 
-  const handleCreatePost = (data: { forum_id: number; title: string; body: string; tags?: string[] }) => {
+  const handleCreatePost = (data: { forum_id: number; title: string; body: string; tags?: string[]; image?: File }) => {
     setIsSubmitting(true);
-    ApiService.createThread(data)
+    
+    const formData = new FormData();
+    formData.append('forum_id', data.forum_id.toString());
+    formData.append('title', data.title);
+    formData.append('body', data.body);
+    if (data.tags) {
+      data.tags.forEach(tag => formData.append('tags[]', tag));
+    }
+    if (data.image) {
+      formData.append('image', data.image);
+    }
+
+    ApiService.createThread(formData)
     .then(() => {
         handleSetView("feed");
         setActiveSideNav("reciente");
@@ -289,14 +312,39 @@ export default function MagicForum() {
   };
 
   const handleBulkDeleteThreads = async () => {
+    if (selectedCount === 0) return;
     if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} hilos del foro?`)) return;
+
     try {
-      const { data } = await ApiService.axiosInstance.post('/api/mod/threads/bulk-delete', { ids: selectedList });
-      toast.success(data.message);
+      if (isModOrAdmin) {
+        // Modo Moderador: Borrado masivo por API
+        const { data } = await ApiService.axiosInstance.post('/api/mod/threads/bulk-delete', { ids: selectedList });
+        toast.success(data.message);
+      } else {
+        // Modo Usuario: Borrado individual en bucle (solo sus propios hilos)
+        // Aunque el checkbox ya solo sale si pueden borrar, filtramos por seguridad
+        const ownIds = selectedList.filter(id => {
+          const p = posts.find(post => post.id === Number(id));
+          return p && p.can_delete;
+        });
+
+        if (ownIds.length === 0) {
+          toast.error("No tienes permisos para borrar los hilos seleccionados");
+          return;
+        }
+
+        toast.info(`Borrando ${ownIds.length} hilos...`);
+        for (const id of ownIds) {
+          await ApiService.deleteThread(Number(id));
+        }
+        toast.success("Hilos eliminados correctamente");
+      }
+      
       clear();
       setRefreshKey(k => k + 1);
     } catch (error) {
-      toast.error('Error al realizar borrado masivo en el foro');
+      console.error("Error bulk delete:", error);
+      toast.error('Error al realizar el borrado de hilos');
     }
   };
 
@@ -306,7 +354,18 @@ export default function MagicForum() {
       return <CreatePostView forumsList={forumsList} isSubmitting={isSubmitting} onCancel={() => handleSetView('feed')} onSubmit={handleCreatePost} />;
     }
     if (view === 'thread' && activePost) {
-      return <ThreadDetailView post={activePost} comments={comments} isSubmitting={isSubmittingComment} onBack={() => handleSetView('feed')} onCommentSubmit={handleCreateComment} />;
+      return (
+        <ThreadDetailView 
+          post={activePost} 
+          comments={comments} 
+          isSubmitting={isSubmittingComment} 
+          onBack={() => {
+            handleSetView('feed');
+            setRefreshKey(k => k + 1);
+          }} 
+          onCommentSubmit={handleCreateComment} 
+        />
+      );
     }
 
     const isSearch = !!searchQuery;
@@ -332,6 +391,14 @@ export default function MagicForum() {
           isMod: isModOrAdmin
         }}
         onDeleteSuccess={() => setRefreshKey(k => k + 1)}
+        pagination={paginationData}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        perPage={perPage}
+        onPerPageChange={setPerPage}
+        selectedCount={selectedCount}
+        onClearSelection={clear}
+        onBulkDelete={handleBulkDeleteThreads}
       />
     );
   };
