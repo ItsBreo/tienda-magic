@@ -338,6 +338,18 @@ class MagicApi {
         return response.data;
     }
 
+    async cancelTrade(roomId: number): Promise<any> {
+        const response = await this.api.post(`/api/trade-sessions/${roomId}/cancel`);
+        return response.data;
+    }
+
+    async changeTradeCard(roomId: number, newInventoryCardId: number): Promise<any> {
+        const response = await this.api.post(`/api/trade-sessions/${roomId}/change-card`, {
+            new_inventory_card_id: newInventoryCardId
+        });
+        return response.data;
+    }
+
     async getTradeMessages(roomId: number): Promise<any> {
         const response = await this.api.get(`/api/trade-sessions/${roomId}/messages`);
         return response.data;

@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../../services/ApiService';
 import { toast } from 'sonner';
+import { useAuth } from '../../contexts/AuthContext';
+import { User, ShieldCheck } from 'lucide-react';
 
 export default function Exchanges() {
+  const { user } = useAuth();
   const [exchanges, setExchanges] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [genericCards, setGenericCards] = useState<any[]>([]);
@@ -129,8 +132,15 @@ export default function Exchanges() {
               <div className="w-10 h-10 bg-indigo-500/20 border border-indigo-500/30 rounded-full flex items-center justify-center">
                 <span className="text-indigo-400 font-bold">{exchange.user?.name?.charAt(0).toUpperCase()}</span>
               </div>
-              <div>
-                <p className="font-medium text-zinc-200">{exchange.user?.name}</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-zinc-200">{exchange.user?.name}</p>
+                  {exchange.user_id === user?.id && (
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30 font-bold uppercase tracking-tighter">
+                      Tu oferta
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-indigo-400 font-medium">Ofrece el siguiente artículo:</p>
               </div>
             </div>
@@ -177,12 +187,22 @@ export default function Exchanges() {
               )}
             </div>
 
-            <button 
-              onClick={() => handleRequestClick(exchange)}
-              className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-900/50 hover:shadow-indigo-900/80 active:scale-95"
-            >
-              Proponer Intercambio
-            </button>
+            {exchange.user_id === user?.id ? (
+              <button 
+                disabled
+                className="w-full bg-zinc-800 text-zinc-500 font-medium py-3 px-4 rounded-xl border border-zinc-700 cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Tu publicación
+              </button>
+            ) : (
+              <button 
+                onClick={() => handleRequestClick(exchange)}
+                className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-900/50 hover:shadow-indigo-900/80 active:scale-95"
+              >
+                Proponer Intercambio
+              </button>
+            )}
           </div>
         ))}
         {(!exchanges || exchanges.length === 0) && (

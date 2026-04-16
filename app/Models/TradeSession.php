@@ -17,4 +17,13 @@ class TradeSession extends Model
     {
         return $this->belongsTo(ExchangeRequest::class);
     }
+
+    /**
+     * Verifica si el usuario dado es participante de este intercambio.
+     */
+    public function isMember($userId)
+    {
+        return $this->exchangeRequest->user_id === (int)$userId || 
+               $this->exchangeRequest->exchange->user_id === (int)$userId;
+    }
 }

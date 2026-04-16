@@ -13,13 +13,7 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
     return $user !== null;
 });
 
-// LEGACY: Mantener temporalmente para compatibilidad con código antiguo
-// Broadcast::channel('trade.{sessionId}', function ($user, $sessionId) {
-//     $session = TradeSession::find($sessionId);
-//
-//     $isAuthorized = $session && $session->isMember($user->id);
-//
-//     Log::info("Intentando conectar a trade.{$sessionId} - Usuario: {$user->id} - Autorizado: " . ($isAuthorized ? 'SI' : 'NO'));
-//
-//     return $isAuthorized;
-// });
+Broadcast::channel('trade.{sessionId}', function ($user, $sessionId) {
+    $session = \App\Models\TradeSession::with('exchangeRequest.exchange')->find($sessionId);
+    return $session && $session->isMember($user->id);
+});

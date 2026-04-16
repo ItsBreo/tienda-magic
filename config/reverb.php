@@ -79,7 +79,7 @@ return [
                 'secret'                => env('REVERB_APP_SECRET'),
 
                 // Pasamos los nombres nuevos
-                'app_id'                => '123456',
+                'app_id'                => env('REVERB_APP_ID'),
                 'app_key'               => env('REVERB_APP_KEY'),
                 'app_secret'            => env('REVERB_APP_SECRET'),
 

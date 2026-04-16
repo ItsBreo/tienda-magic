@@ -80,7 +80,7 @@ if (el) {
                                 <Route path="/achievements" element={<Achievements />} />
                                 <Route path="/exchanges" element={<Exchanges />} />
                                 <Route path="/exchanges/manage" element={<ManageExchanges />} />
-                                <Route path="/exchanges/room/:id" element={<TradeRoom />} />
+                                <Route path="/trade/:sessionId" element={<TradeRoom />} />
                                 <Route path="/market" element={<Marketplace />} />
                                 <Route path="/market/product/:type/:id" element={<ProductDetail />} />
                                 <Route path="/forum/*" element={<Forum />} />

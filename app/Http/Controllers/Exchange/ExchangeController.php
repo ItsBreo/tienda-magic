@@ -26,9 +26,7 @@ class ExchangeController extends Controller
 
         $exchanges = Exchange::with(['user', 'offeredCard.card', 'requestedCard'])
             ->where('status', 'active')
-            ->when($userId, function($q) use ($userId) {
-                $q->where('user_id', '!=', $userId);
-            })
+            // Mostramos todos los intercambios activos, incluidos los propios
             ->orderBy('created_at', 'desc')
             ->get();
 
