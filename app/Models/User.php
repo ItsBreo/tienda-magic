@@ -77,7 +77,27 @@ class User extends Authenticatable implements JWTSubject
         'is_admin',
         'role_name',
         'reputation',
+        'all_permissions',
     ];
+
+    /**
+     * Accesor para obtener un array plano con los nombres de todos los permisos del usuario.
+     */
+    public function getAllPermissionsAttribute(): array
+    {
+        // Si es super_admin, técnicamente tiene todos, pero devolvemos los reales + bypass lógico
+        $permissionNames = [];
+        
+        foreach ($this->roles as $role) {
+            $ids = $role->permission_ids ?? [];
+            if (!empty($ids)) {
+                $names = Permission::whereIn('id', $ids)->pluck('name')->toArray();
+                $permissionNames = array_merge($permissionNames, $names);
+            }
+        }
+
+        return array_unique($permissionNames);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

@@ -78,7 +78,6 @@ Route::get('/cards/set/{setCode}', [PackController::class, 'getCardsBySet']);
 
 // --- RUTAS DEL DASHBOARD ---
 Route::get('/sets/latest', [SetController::class, 'latest']);
-Route::get('/store-stats', [DashboardController::class, 'getStats']);
 
 // --- PERFILES PÚBLICOS ---
 Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
@@ -346,6 +345,9 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     // Solo accesible por admin y super_admin (el middleware 'admin' hace el filtro base)
     // Pero ahora añadimos permisos granulares para control total
     Route::prefix('admin')->middleware(['admin'])->group(function () {
+        Route::get('/stats', [DashboardController::class, 'getStats'])
+            ->middleware('permission:view-admin-dashboard');
+            
         Route::apiResource('users', AdminUserController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->middleware('permission:manage-users');
