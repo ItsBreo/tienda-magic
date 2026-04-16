@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-// HasApiTokens eliminado (era de Laravel\Sanctum, incompatible con JWT)
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -27,7 +26,7 @@ class User extends Authenticatable implements JWTSubject
     // HasApiTokens eliminado: era de Sanctum y genera conflicto con el JWTGuard
 
     /**
-     * Relaciones cargadas automáticamente para evitar el problema de N+1 queries 
+     * Relaciones cargadas automáticamente para evitar el problema de N+1 queries
      * al serializar colecciones o listar usuarios.
      */
     protected $with = ['roles', 'profile'];
@@ -354,13 +353,13 @@ class User extends Authenticatable implements JWTSubject
         return Attribute::make(
             get: function () {
                 $baseScore = $this->profile->reputation_score ?? 0;
-                
+
                 // Asegurarse de que created_at no sea nulo al registrar
                 $daysActive = max($this->created_at ? $this->created_at->diffInDays(now()) : 0, 0);
                 $stabilityFactor = sqrt($daysActive);
 
                 $formula = 100 + $baseScore + $stabilityFactor;
-                
+
                 return (int) round($formula);
             }
         );
