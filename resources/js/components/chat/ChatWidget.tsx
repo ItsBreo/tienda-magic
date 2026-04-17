@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Loader2 } from 'lucide-react';
+import {
+ MessageSquare, Send, X, Loader2,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChat } from '@/hooks/useChat';
 
@@ -15,13 +17,17 @@ interface ChatWidgetProps {
   onClose?: () => void;
 }
 
-export default function ChatWidget({ conversationId, currentUser, token, onClose }: ChatWidgetProps) {
+export default function ChatWidget({
+ conversationId, currentUser, token, onClose,
+}: ChatWidgetProps) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const chatScrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { messages, isLoading, error, sendMessage, connectionStatus } = useChat(conversationId, token);
+  const {
+ messages, isLoading, error, sendMessage, connectionStatus,
+} = useChat(conversationId, token);
 
   // Auto-scroll interno al contenedor de mensajes
   useEffect(() => {
@@ -151,7 +157,7 @@ export default function ChatWidget({ conversationId, currentUser, token, onClose
                     <span className="text-xs text-zinc-600 px-1">
                       {message.created_at ? new Date(message.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
                       }) : ''}
                     </span>
                   </div>
@@ -166,7 +172,7 @@ export default function ChatWidget({ conversationId, currentUser, token, onClose
         <div className="flex gap-2 p-3 border-t border-zinc-800/60 bg-zinc-900/60 rounded-b-xl">
           <input
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Escribe tu mensaje..."
             className="flex-1 bg-zinc-800/80 border border-zinc-700/50 rounded-lg px-3.5 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:border-emerald-500/50 transition-colors"
@@ -179,8 +185,7 @@ export default function ChatWidget({ conversationId, currentUser, token, onClose
           >
             {sending
               ? <Loader2 className="h-4 w-4 animate-spin" />
-              : <Send className="h-4 w-4" />
-            }
+              : <Send className="h-4 w-4" />}
           </button>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, Package, Sparkles } from 'lucide-react';
+import {
+ Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, Package, Sparkles,
+} from 'lucide-react';
+import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSelection } from '@/hooks/useSelection';
@@ -31,12 +33,12 @@ export default function AdminBoosterPacks() {
     const [editingId, setEditingId] = useState<number | null>(null);
 
     const [form, setForm] = useState({
-        name: '', 
-        price: 0, 
-        card_set_id: '', 
-        type: 'booster', 
-        image_uri: '', 
-        is_active: true
+        name: '',
+        price: 0,
+        card_set_id: '',
+        type: 'booster',
+        image_uri: '',
+        is_active: true,
     });
 
     const {
@@ -46,7 +48,7 @@ export default function AdminBoosterPacks() {
         selectAll,
         clear,
         isSelected,
-        allSelected
+        allSelected,
     } = useSelection(packs);
 
     const fetchPacks = async () => {
@@ -89,7 +91,7 @@ export default function AdminBoosterPacks() {
         if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} sobres?`)) return;
         try {
             await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-delete', { ids: selectedList });
-            toast.success("Eliminación masiva completada");
+            toast.success('Eliminación masiva completada');
             clear();
             fetchPacks();
         } catch (error) {
@@ -101,7 +103,7 @@ export default function AdminBoosterPacks() {
         try {
             await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-toggle-active', {
                 ids: selectedList,
-                is_active: active
+                is_active: active,
             });
             toast.success(`${selectedCount} sobres ${active ? 'activados' : 'desactivados'}`);
             clear();
@@ -124,7 +126,9 @@ export default function AdminBoosterPacks() {
             }
             setShowForm(false);
             setEditingId(null);
-            setForm({ name: '', price: 0, card_set_id: '', type: 'booster', image_uri: '', is_active: true });
+            setForm({
+ name: '', price: 0, card_set_id: '', type: 'booster', image_uri: '', is_active: true,
+});
             fetchPacks();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al guardar');
@@ -141,13 +145,20 @@ export default function AdminBoosterPacks() {
             card_set_id: pack.card_set_id,
             type: pack.type,
             image_uri: pack.image_uri || '',
-            is_active: pack.is_active
+            is_active: pack.is_active,
         });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    if (loading) return <div className="p-20 flex flex-col items-center justify-center gap-4"><Loader2 className="animate-spin text-primary w-10 h-10" /><p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Forjando Sobres...</p></div>;
+    if (loading) {
+return (
+<div className="p-20 flex flex-col items-center justify-center gap-4">
+<Loader2 className="animate-spin text-primary w-10 h-10" />
+<p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Forjando Sobres...</p>
+</div>
+);
+}
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full font-literata">
@@ -156,10 +167,12 @@ export default function AdminBoosterPacks() {
                     <h1 className="text-4xl font-forum font-black text-foreground mb-2">Forja de Sobres</h1>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Configuración de Booster Packs, precios y visibilidad en el mercado.</p>
                 </div>
-                <Button onClick={() => {
+                <Button
+onClick={() => {
                     setShowForm(!showForm);
                     if (showForm) setEditingId(null);
-                }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
+                }}
+className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
                     <Plus className="w-4 h-4 mr-2" />
                     {editingId ? 'Cerrar' : 'Forjar Sobre'}
                 </Button>
@@ -198,10 +211,10 @@ export default function AdminBoosterPacks() {
                             <Input value={form.image_uri} onChange={(e) => setForm({ ...form, image_uri: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" />
                         </div>
                         <div className="flex items-center space-x-3 pt-6 ml-1">
-                            <Checkbox 
+                            <Checkbox
                                 id="active-mode"
-                                checked={form.is_active} 
-                                onCheckedChange={(val: boolean) => setForm({ ...form, is_active: val })} 
+                                checked={form.is_active}
+                                onCheckedChange={(val: boolean) => setForm({ ...form, is_active: val })}
                                 className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary transition-all"
                             />
                             <label htmlFor="active-mode" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">
@@ -226,7 +239,7 @@ export default function AdminBoosterPacks() {
                         <thead className="bg-accent/40 border-b border-border text-[9px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/60">
                             <tr>
                                 <th className="px-8 py-6 w-10">
-                                    <input 
+                                    <input
                                         type="checkbox"
                                         checked={allSelected}
                                         onChange={selectAll}
@@ -242,12 +255,14 @@ export default function AdminBoosterPacks() {
                         </thead>
                         <tbody className="divide-y divide-border/30">
                             {packs.map((p) => (
-                                <tr key={p.id} className={cn(
-                                    "group hover:bg-accent/20 transition-all duration-300",
-                                    isSelected(p.id) ? 'bg-primary/[0.03]' : ''
+                                <tr
+key={p.id}
+className={cn(
+                                    'group hover:bg-accent/20 transition-all duration-300',
+                                    isSelected(p.id) ? 'bg-primary/[0.03]' : '',
                                 )}>
                                     <td className="px-8 py-6">
-                                        <input 
+                                        <input
                                             type="checkbox"
                                             checked={isSelected(p.id)}
                                             onChange={() => toggle(p.id)}
@@ -275,16 +290,20 @@ export default function AdminBoosterPacks() {
                                         </Badge>
                                     </td>
                                     <td className="px-6 py-6 text-center">
-                                        <span className="text-[15px] font-black text-primary font-forum">{p.price.toFixed(2)} Oro</span>
+                                        <span className="text-[15px] font-black text-primary font-forum">
+{p.price.toFixed(2)}
+{' '}
+Oro
+</span>
                                     </td>
                                     <td className="px-6 py-6 text-center">
-                                        <button 
+                                        <button
                                             onClick={() => handleToggleActive(p)}
                                             className={cn(
-                                                "inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                                                p.is_active 
-                                                ? 'bg-primary/10 text-primary border border-primary/20' 
-                                                : 'bg-muted/10 text-muted-foreground/40 border border-border/50'
+                                                'inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
+                                                p.is_active
+                                                ? 'bg-primary/10 text-primary border border-primary/20'
+                                                : 'bg-muted/10 text-muted-foreground/40 border border-border/50',
                                             )}
                                         >
                                             {p.is_active ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
@@ -308,7 +327,7 @@ export default function AdminBoosterPacks() {
                 </div>
             </div>
 
-            <BulkActionsToolbar 
+            <BulkActionsToolbar
                 count={selectedCount}
                 onClear={clear}
                 actions={[
@@ -316,30 +335,30 @@ export default function AdminBoosterPacks() {
                         label: 'Alterar Producto',
                         icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
-                            const packToEdit = packs.find(p => p.id === selectedList[0]);
+                            const packToEdit = packs.find((p) => p.id === selectedList[0]);
                             if (packToEdit) handleEdit(packToEdit);
                         },
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     }] : []),
-                    { 
-                        label: 'Activar Oferta', 
-                        icon: <CheckCircle2 className="w-4 h-4" />, 
+                    {
+                        label: 'Activar Oferta',
+                        icon: <CheckCircle2 className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     },
-                    { 
-                        label: 'Pausar Oferta', 
-                        icon: <XCircle className="w-4 h-4" />, 
+                    {
+                        label: 'Pausar Oferta',
+                        icon: <XCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground'
+                        className: 'text-muted-foreground/60 hover:text-foreground',
                     },
-                    { 
-                        label: 'Eliminar Registros', 
-                        icon: <Trash2 className="w-4 h-4" />, 
+                    {
+                        label: 'Eliminar Registros',
+                        icon: <Trash2 className="w-4 h-4" />,
                         onClick: handleBulkDelete,
                         variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl'
-                    }
+                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
+                    },
                 ]}
             />
         </div>

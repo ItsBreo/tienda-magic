@@ -8,7 +8,7 @@ export default function Privacy() {
         <ShieldCheck className="h-8 w-8 text-amber-500" />
         <h1 className="text-3xl font-serif font-bold text-zinc-100">Política de Privacidad</h1>
       </div>
-      
+
       <div className="space-y-6 text-zinc-300 leading-relaxed font-inter">
         <p className="text-lg text-zinc-400 mb-6">
           En Black Lotus entendemos la importancia de tu privacidad. A continuación te explicamos de manera transparente cómo manejamos tu información.

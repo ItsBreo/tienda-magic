@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiService } from '../../services/ApiService';
 import { toast } from 'sonner';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { apiService } from '../../services/ApiService';
 import { cn } from '../../lib/utils';
 
 if (typeof window !== 'undefined') {
@@ -69,7 +69,6 @@ export default function TradeRoom() {
     }
   };
 
-
   useEffect(() => {
     loadRoom();
     loadUser();
@@ -104,7 +103,7 @@ export default function TradeRoom() {
     echo.private(`trade.${sessionId}`)
         .listen('.trade.updated', (e: any) => {
           console.log('RT: Trade Updated received', e);
-          loadRoom(); 
+          loadRoom();
         });
 
     return () => {
@@ -161,15 +160,15 @@ export default function TradeRoom() {
   // Escuchar mensajes entrantes en tiempo real
   useEffect(() => {
     if (!conversationId || !echoRef.current) return;
-    
+
     const channelName = `conversation.${conversationId}`;
     const channel = echoRef.current.private(channelName);
-    
+
     channel.listen('.message.sent', (e: any) => {
       console.log('RT: Chat message received', e);
       setMessages((prev) => {
         // Prevenir duplicados
-        if (prev.some(m => m.id === e.id)) return prev;
+        if (prev.some((m) => m.id === e.id)) return prev;
         return [...prev, e];
       });
     });
@@ -236,12 +235,14 @@ export default function TradeRoom() {
     return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   };
 
-  if (!room || !user) return (
+  if (!room || !user) {
+return (
     <div className="p-10 text-center text-muted-foreground flex flex-col items-center">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
       Cargando Sala...
     </div>
   );
+}
 
   const req = room.exchange_request || room.exchangeRequest;
 
@@ -263,9 +264,9 @@ export default function TradeRoom() {
   const theirName = isUser1 ? req?.user?.name : exch?.user?.name;
 
   return (
-    <div className="flex-1 bg-background text-foreground p-6">
+    <div className="flex-1 text-foreground p-6">
       <div className="max-w-7xl mx-auto min-h-[calc(100vh-120px)] flex flex-col">
-        
+
         {/* Header Elegante */}
         <div className="text-center mb-10 border-b border-border pb-8">
             <span className="text-[11px] uppercase tracking-widest font-black text-primary">Operación Segura</span>
@@ -297,11 +298,11 @@ export default function TradeRoom() {
             {/* Columna de Intercambio (3/5) */}
             <div className="xl:col-span-3 flex flex-col gap-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
-                    
+
                     {/* TU LADO */}
                     <div className={cn(
-                        "border rounded-2xl p-6 bg-card flex flex-col items-center transition-all duration-500",
-                        myStatus ? "border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "border-border"
+                        'border rounded-2xl p-6 bg-card/40 backdrop-blur-md flex flex-col items-center transition-all duration-500',
+                        myStatus ? 'border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'border-border',
                     )}>
                         <div className="w-full flex justify-between items-center mb-6">
                             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tu Aportación</span>
@@ -318,18 +319,23 @@ export default function TradeRoom() {
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 font-black uppercase text-4xl rotate-12">Carta</div>
                             )}
-                            {myStatus && <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-[1px]"></div>}
+                            {myStatus && <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-[1px]" />}
                         </div>
 
                         <div className="text-center w-full min-h-[60px]">
                             <h3 className="text-xl font-forum font-bold text-foreground truncate uppercase">{mySide?.card?.name || '---'}</h3>
                             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1 opacity-60">
-                                {mySide?.condition} • {mySide?.language} {mySide?.is_foil ? '• Foil' : ''}
+                                {mySide?.condition}
+{' '}
+•
+{mySide?.language}
+{' '}
+{mySide?.is_foil ? '• Foil' : ''}
                             </p>
                         </div>
 
                         {room.status === 'active' && !myStatus && (
-                            <button 
+                            <button
                                 onClick={openInventoryModal}
                                 className="mt-6 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
                             >
@@ -349,11 +355,14 @@ export default function TradeRoom() {
 
                     {/* LADO RIVAL */}
                     <div className={cn(
-                        "border rounded-2xl p-6 bg-card flex flex-col items-center transition-all duration-500",
-                        theirStatus ? "border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "border-border"
+                        'border rounded-2xl p-6 bg-card/40 backdrop-blur-md flex flex-col items-center transition-all duration-500',
+                        theirStatus ? 'border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'border-border',
                     )}>
                         <div className="w-full flex justify-between items-center mb-6">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recibes de {theirName}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+Recibes de
+{theirName}
+</span>
                             {theirStatus && <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded">CONFIRMADO</span>}
                         </div>
 
@@ -367,21 +376,26 @@ export default function TradeRoom() {
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 font-black uppercase text-4xl -rotate-12">Carta</div>
                             )}
-                            {theirStatus && <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-[1px]"></div>}
+                            {theirStatus && <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-[1px]" />}
                         </div>
 
                         <div className="text-center w-full min-h-[60px]">
                             <h3 className="text-xl font-forum font-bold text-foreground truncate uppercase">{theirSide?.card?.name || '---'}</h3>
                             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1 opacity-60">
-                                {theirSide?.condition} • {theirSide?.language} {theirSide?.is_foil ? '• Foil' : ''}
+                                {theirSide?.condition}
+{' '}
+•
+{theirSide?.language}
+{' '}
+{theirSide?.is_foil ? '• Foil' : ''}
                             </p>
                         </div>
-                        
+
                         {!theirStatus && room.status === 'active' && (
                             <div className="mt-6 flex items-center gap-2">
-                                <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce"></span>
-                                <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                                <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                                <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce" />
+                                <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
+                                <span className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
                             </div>
                         )}
                     </div>
@@ -397,7 +411,7 @@ export default function TradeRoom() {
                             Confirmar Operación
                         </button>
                     )}
-                    
+
                     {room.status === 'active' && (
                         <button
                             onClick={handleCancelTrade}
@@ -419,15 +433,18 @@ export default function TradeRoom() {
             </div>
 
             {/* Panel de Chat (2/5) */}
-            <div className="xl:col-span-2 bg-card border border-border rounded-2xl flex flex-col shadow-xl overflow-hidden min-h-[500px]">
+            <div className="xl:col-span-2 bg-card/40 backdrop-blur-md border border-border rounded-2xl flex flex-col shadow-xl overflow-hidden min-h-[500px]">
                 {/* Chat Header */}
                 <div className="px-5 py-4 border-b border-border bg-accent/10 flex items-center justify-between">
                     <div>
                         <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Canal de Chat</h4>
-                        <p className="text-[10px] text-muted-foreground uppercase font-medium">Privado con {theirName}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-medium">
+Privado con
+{theirName}
+</p>
                     </div>
                     <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        <span className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <span className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse" />
                         <span className="text-[8px] font-black text-emerald-500 uppercase">Encriptado</span>
                     </div>
                 </div>
@@ -442,10 +459,10 @@ export default function TradeRoom() {
                         messages.map((msg) => {
                             const isOwn = msg.user_id === user.id;
                             return (
-                                <div key={msg.id} className={cn("flex flex-col", isOwn ? "items-end" : "items-start")}>
+                                <div key={msg.id} className={cn('flex flex-col', isOwn ? 'items-end' : 'items-start')}>
                                     <div className={cn(
-                                        "max-w-[85%] px-4 py-3 rounded-xl text-sm leading-tight shadow-sm",
-                                        isOwn ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground"
+                                        'max-w-[85%] px-4 py-3 rounded-xl text-sm leading-tight shadow-sm',
+                                        isOwn ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-foreground',
                                     )}>
                                         {msg.content}
                                     </div>
@@ -494,22 +511,22 @@ export default function TradeRoom() {
       {/* Modal Inventario (Rediseñado) */}
       {showInventoryModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/90 backdrop-blur-md" onClick={() => setShowInventoryModal(false)}></div>
-          <div className="relative z-[110] bg-card border border-border p-8 rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-background/90 backdrop-blur-md" onClick={() => setShowInventoryModal(false)} />
+          <div className="relative z-[110] bg-card/60 backdrop-blur-md border border-border p-8 rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-8 border-b border-border pb-4">
               <h2 className="text-2xl font-forum font-bold text-foreground uppercase tracking-tight">Seleccionar Nueva Carta</h2>
-              <button 
+              <button
                 onClick={() => setShowInventoryModal(false)}
                 className="w-8 h-8 rounded-full bg-accent hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center text-muted-foreground"
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
               {loadingInventory ? (
                 <div className="flex flex-col justify-center items-center py-20 gap-4">
-                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Analizando Bóveda...</p>
                 </div>
               ) : (
@@ -517,11 +534,11 @@ export default function TradeRoom() {
                   {inventoryCards.map((invCard: any) => {
                     const isAvailable = invCard.quantity > invCard.quantity_locked;
                     return (
-                      <div 
-                        key={invCard.id} 
+                      <div
+                        key={invCard.id}
                         className={cn(
-                            "border rounded-xl p-3 bg-accent/20 flex flex-col items-center transition-all group",
-                            isAvailable ? "border-border hover:border-primary cursor-pointer" : "border-destructive/20 opacity-30 cursor-not-allowed"
+                            'border rounded-xl p-3 bg-accent/20 flex flex-col items-center transition-all group',
+                            isAvailable ? 'border-border hover:border-primary cursor-pointer' : 'border-destructive/20 opacity-30 cursor-not-allowed',
                         )}
                         onClick={() => isAvailable && handleChangeCard(invCard.id)}
                       >
@@ -533,9 +550,14 @@ export default function TradeRoom() {
                          )}
                        </div>
                        <p className="text-foreground text-[11px] font-bold text-center truncate w-full uppercase">{invCard.card?.name}</p>
-                       <p className="text-[9px] text-muted-foreground font-black uppercase mt-1 tracking-widest truncate w-full text-center">x{invCard.quantity - invCard.quantity_locked} Disp.</p>
+                       <p className="text-[9px] text-muted-foreground font-black uppercase mt-1 tracking-widest truncate w-full text-center">
+x
+{invCard.quantity - invCard.quantity_locked}
+{' '}
+Disp.
+</p>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               )}

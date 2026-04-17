@@ -42,7 +42,6 @@ export default function Dashboard() {
                     {/* 5. Acciones Rápidas */}
                     <QuickActionsSection />
 
-
                 </ErrorBoundary>
 
             </div>

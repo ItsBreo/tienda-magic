@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+ useCallback, useEffect, useRef, useState,
+} from 'react';
 
 interface UseImageUploadProps {
   onUpload?: (url: string, file: File) => void;
@@ -39,17 +41,15 @@ export function useImageUpload({ onUpload }: UseImageUploadProps = {}) {
     setFile(null);
     previewRef.current = null;
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   }, [previewUrl]);
 
-  useEffect(() => {
-    return () => {
+  useEffect(() => () => {
       if (previewRef.current) {
         URL.revokeObjectURL(previewRef.current);
       }
-    };
-  }, []);
+    }, []);
 
   return {
     previewUrl,

@@ -1,6 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, X, ExternalLink, ShieldCheck, Tag } from 'lucide-react';
+import {
+ ArrowLeft, X, ExternalLink, ShieldCheck, Tag,
+} from 'lucide-react';
 import TiltWrapper from '@/components/ui/TiltWrapper';
 import { Button } from '@/components/ui/button';
 
@@ -28,14 +30,16 @@ interface CardDetailModalProps {
   actionLabel?: string;
 }
 
-export default function CardDetailModal({ card, onClose, onAction, actionLabel }: CardDetailModalProps) {
+export default function CardDetailModal({
+ card, onClose, onAction, actionLabel,
+}: CardDetailModalProps) {
   if (!card) return null;
 
   const imgSrc = card.image_uris?.normal || card.image_uri || card.image_url;
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" style={{ pointerEvents: 'auto' }}>
-      
+
       {/* Botón de Cierre Flotante (Fuera del recuadro p/ móvil y desktop) */}
       <button
         onClick={onClose}
@@ -45,7 +49,7 @@ export default function CardDetailModal({ card, onClose, onAction, actionLabel }
       </button>
 
       <div className="bg-card w-full max-w-5xl rounded-3xl md:rounded-[2.5rem] shadow-2xl border border-border/50 overflow-hidden flex flex-col md:flex-row relative">
-         
+
          {/* Fondo decorativo interno */}
          <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
 
@@ -114,7 +118,7 @@ export default function CardDetailModal({ card, onClose, onAction, actionLabel }
              {/* Footer Boton de Acción (Vender, Comprar, etc) */}
              <div className="pt-8 mt-4 border-t border-border/50">
                 {onAction ? (
-                    <Button 
+                    <Button
                         onClick={onAction}
                         className="w-full h-14 text-sm sm:text-base font-black uppercase tracking-widest bg-primary text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-all rounded-xl shadow-lg shadow-primary/20"
                     >
@@ -130,6 +134,6 @@ export default function CardDetailModal({ card, onClose, onAction, actionLabel }
          </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

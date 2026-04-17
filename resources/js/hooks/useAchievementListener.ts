@@ -27,7 +27,7 @@ export function useAchievementListener() {
             const host = import.meta.env.VITE_REVERB_HOST;
             const port = import.meta.env.VITE_REVERB_PORT ?? 80;
             const scheme = import.meta.env.VITE_REVERB_SCHEME ?? 'https';
-            
+
             if (!appKey || appKey === 'reverb_key') {
                 console.log('📡 AchievementListener: Reverb key no configurada. Saltando conexión.');
                 return;
@@ -68,24 +68,23 @@ export function useAchievementListener() {
             channel.listen('.achievement.unlocked', (data: any) => {
                 console.log('🎉 EVENTO DE LOGRO RECIBIDO!', data);
                 const { achievement } = data;
-                
+
                 toast.success('¡Logro desbloqueado!', {
                     description: achievement.name,
                     icon: '🏆',
                     duration: 6000,
                     action: {
                         label: 'Ver Logros',
-                        onClick: () => window.location.href = '/achievements'
-                    }
+                        onClick: () => window.location.href = '/achievements',
+                    },
                 });
-                
+
                 // Intento de sonido
                 try {
                     const audio = new Audio('/sounds/achievement.mp3');
                     audio.play().catch(() => {});
                 } catch (e) {}
             });
-
         } catch (error) {
             console.error('❌ Error fatal inicializando Achievement Echo:', error);
         }

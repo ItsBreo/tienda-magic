@@ -1,5 +1,7 @@
 import React from 'react';
-import { Loader2, CreditCard, Wallet, AlertCircle, ShoppingBag, CheckCircle2 } from 'lucide-react';
+import {
+ Loader2, CreditCard, Wallet, AlertCircle, ShoppingBag, CheckCircle2,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface CartSummaryProps {
@@ -36,7 +38,11 @@ export default function CartSummary({
                 <div className="p-4 bg-accent/50 rounded-xl border border-border">
                     <div className="flex justify-between text-sm mb-2">
                         <span className="text-muted-foreground">Artículos</span>
-                        <span className="font-medium text-foreground">{itemCount} items</span>
+                        <span className="font-medium text-foreground">
+{itemCount}
+{' '}
+items
+</span>
                     </div>
                     <div className="flex justify-between text-sm mb-2">
                         <span className="text-muted-foreground">Impuestos</span>
@@ -45,21 +51,22 @@ export default function CartSummary({
                     <div className="mt-4 pt-4 border-t border-border flex justify-between items-end">
                         <span className="text-sm font-bold text-muted-foreground">Precio Total</span>
                         <span className="text-3xl font-black text-primary tabular-nums">
-                            {Number(total).toFixed(2)}€
-                        </span>
+                            {Number(total).toFixed(2)}
+€
+</span>
                     </div>
                 </div>
 
                 <div className="space-y-3">
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Método de Pago</p>
-                    
+
                     {/* Wallet Option */}
-                    <button 
+                    <button
                         disabled={isWalletInsufficient}
                         onClick={() => onPaymentMethodChange('wallet')}
                         className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${
-                            selectedPaymentMethod === 'wallet' 
-                                ? 'border-primary bg-primary/10' 
+                            selectedPaymentMethod === 'wallet'
+                                ? 'border-primary bg-primary/10'
                                 : isWalletInsufficient
                                     ? 'border-border bg-accent/50 opacity-50 cursor-not-allowed'
                                     : 'border-border hover:border-zinc-300 dark:hover:border-zinc-600'
@@ -71,18 +78,21 @@ export default function CartSummary({
                             </div>
                             <div className="text-left">
                                 <p className="text-sm font-bold text-foreground">Mi Billetera</p>
-                                <p className="text-[10px] text-muted-foreground">{Number(walletBalance).toFixed(2)}€ disponible</p>
+                                <p className="text-[10px] text-muted-foreground">
+{Number(walletBalance).toFixed(2)}
+€ disponible
+</p>
                             </div>
                         </div>
                         {selectedPaymentMethod === 'wallet' && <CheckCircle2 className="w-5 h-5 text-primary" />}
                     </button>
 
                     {/* Stripe Option */}
-                    <button 
+                    <button
                         onClick={() => onPaymentMethodChange('stripe')}
                         className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${
-                            selectedPaymentMethod === 'stripe' 
-                                ? 'border-primary bg-primary/10' 
+                            selectedPaymentMethod === 'stripe'
+                                ? 'border-primary bg-primary/10'
                                 : 'border-border hover:border-zinc-300 dark:hover:border-zinc-600'
                         }`}
                     >
@@ -99,13 +109,13 @@ export default function CartSummary({
                     </button>
                 </div>
 
-                <button 
+                <button
                     disabled={isCheckingOut || (selectedPaymentMethod === 'wallet' && isWalletInsufficient) || hasStockIssues}
                     onClick={() => onCheckout(selectedPaymentMethod)}
                     className="w-full h-14 bg-primary text-primary-foreground rounded-xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
                 >
                     {isCheckingOut ? (
-                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                         <>
                             {selectedPaymentMethod === 'wallet' ? 'Pagar con Billetera' : 'Continuar a Stripe'}
@@ -117,7 +127,12 @@ export default function CartSummary({
                     <div className="p-3 bg-destructive/10 rounded-xl border border-destructive/30 flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                         <p className="text-[10px] text-destructive">
-                            Saldo insuficiente. Necesitas {(parseFloat(total) - Number(walletBalance)).toFixed(2)}€ más. <Link to="/wallet" className="font-bold underline">Recargar billetera</Link>
+                            Saldo insuficiente. Necesitas
+{' '}
+{(parseFloat(total) - Number(walletBalance)).toFixed(2)}
+€ más.
+{' '}
+<Link to="/wallet" className="font-bold underline">Recargar billetera</Link>
                         </p>
                     </div>
                 )}

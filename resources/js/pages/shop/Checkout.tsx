@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, ArrowLeft, Loader2, Wallet } from 'lucide-react';
+import {
+ CreditCard, ArrowLeft, Loader2, Wallet,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import TiendaMagicLayout from '@/layouts/TiendaLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,7 +11,6 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { apiService } from '@/services/ApiService';
-import { toast } from 'sonner';
 
 interface CartItem {
     id: number;
@@ -91,9 +93,11 @@ export default function Checkout() {
         }
     };
 
-    if (loading) return (
+    if (loading) {
+return (
          TiendaMagicLayout({ children: <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-primary" /></div> })
     );
+}
 
     return (
         <TiendaMagicLayout>
@@ -152,10 +156,16 @@ export default function Checkout() {
                                                     </div>
                                                     <div className="text-right pl-4">
                                                         <p className="text-[11px] text-muted-foreground font-bold">
-                                                            €{Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0).toFixed(2)} × {item.quantity}
+                                                            €
+{Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0).toFixed(2)}
+{' '}
+×
+{' '}
+{item.quantity}
                                                         </p>
                                                         <p className="font-black text-primary text-lg">
-                                                            €{(Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0) * item.quantity).toFixed(2)}
+                                                            €
+{(Number(item.booster_pack_id ? item.booster_pack?.price || 0 : item.card?.market_avg_price || 0) * item.quantity).toFixed(2)}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -177,14 +187,14 @@ export default function Checkout() {
                                 </CardHeader>
                                 <CardContent className="p-6 space-y-8">
                                     <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                                        <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
                                         <div className="flex items-center gap-3 mb-2">
                                             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
                                                 <Wallet className="w-4 h-4" />
                                             </div>
                                             <p className="text-primary font-bold text-sm flex items-center gap-2">
                                                 Billetera Virtual
-                                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                                             </p>
                                         </div>
                                         <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
@@ -195,17 +205,26 @@ export default function Checkout() {
                                     <div className="space-y-3">
                                         <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-tight">
                                             <span>Subtotal</span>
-                                            <span className="text-foreground">€{Number(subtotal).toFixed(2)}</span>
+                                            <span className="text-foreground">
+€
+{Number(subtotal).toFixed(2)}
+</span>
                                         </div>
                                         <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase tracking-tight">
                                             <span>IVA (21%)</span>
-                                            <span className="text-foreground">€{Number(tax).toFixed(2)}</span>
+                                            <span className="text-foreground">
+€
+{Number(tax).toFixed(2)}
+</span>
                                         </div>
                                         <Separator className="bg-border/50" />
                                         <div className="flex justify-between items-end pt-2">
                                             <span className="text-foreground font-serif font-black text-lg">Total</span>
                                             <div className="text-right">
-                                                <span className="text-3xl font-black text-primary leading-none block">€{Number(total).toFixed(2)}</span>
+                                                <span className="text-3xl font-black text-primary leading-none block">
+€
+{Number(total).toFixed(2)}
+</span>
                                                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60">Impuestos incl.</span>
                                             </div>
                                         </div>

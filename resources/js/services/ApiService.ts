@@ -116,8 +116,8 @@ class MagicApi {
                 sort,
                 set,
                 search,
-                category: 'packs'
-            }
+                category: 'packs',
+            },
         });
         return response.data;
     }
@@ -196,7 +196,7 @@ class MagicApi {
 
     async downloadWalletTransactionsPdf(): Promise<Blob> {
         const response = await this.api.get('/api/wallet/transactions/pdf', {
-            responseType: 'blob'
+            responseType: 'blob',
         });
         return new Blob([response.data], { type: 'application/pdf' });
     }
@@ -254,7 +254,7 @@ class MagicApi {
         const response = await this.api.post('/api/votes', {
             votable_id: votableId,
             votable_type: votableType,
-            value: value
+            value,
         });
         return response.data;
     }
@@ -362,7 +362,7 @@ class MagicApi {
 
     async changeTradeCard(roomId: number, newInventoryCardId: number): Promise<any> {
         const response = await this.api.post(`/api/trade-sessions/${roomId}/change-card`, {
-            new_inventory_card_id: newInventoryCardId
+            new_inventory_card_id: newInventoryCardId,
         });
         return response.data;
     }
@@ -384,7 +384,7 @@ class MagicApi {
 
     async getAllCards(page: number = 1, search: string = ''): Promise<any> {
         const response = await this.api.get('/api/cards', {
-            params: { page, search }
+            params: { page, search },
         });
         return response.data;
     }
@@ -408,7 +408,7 @@ class MagicApi {
 
     async initiateMarketPurchase(listingId: number, paymentMethod: 'wallet' | 'stripe'): Promise<any> {
         const response = await this.api.post(`/api/market/cards/${listingId}/initiate-purchase`, {
-            payment_method: paymentMethod
+            payment_method: paymentMethod,
         });
         return response.data;
     }
@@ -485,11 +485,9 @@ class MagicApi {
         return response.data;
     }
 
-
     get axiosInstance(): AxiosInstance {
         return this.api;
     }
-
 }
 
 export const apiService = new MagicApi();

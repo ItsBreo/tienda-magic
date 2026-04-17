@@ -8,23 +8,21 @@ export function HeroSection() {
     const { user } = useAuth();
 
     return (
-        <div className="bg-background border-b border-border relative overflow-hidden">
+        <div className="border-b border-border relative overflow-hidden">
             {/* Un pequeño toque visual sutil de fondo, como el reflejo foil de una carta oscura */}
-            <div className="absolute top-0 right-0 -mt-32 -mr-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 -mt-32 -mr-32 w-96 h-96 rounded-full blur-3xl pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-6 py-12 md:py-20 relative z-10">
                 <div className="max-w-3xl">
-                    <p className="text-primary/80 text-xs font-bold tracking-widest uppercase mb-3">
-                        Planeswalker Reconocido
-                    </p>
+                    
 
                     {/* font-serif da el toque inconfundible de libro de fantasía/Magic */}
                     <h1 className="text-4xl md:text-6xl font-serif font-bold text-foreground mb-5 leading-tight">
                         Saludos,
-{' '}
-{user?.name || 'Viajero'}
-.
-</h1>
+                    {' '}
+                    {user?.name || 'Viajero'}
+                    .
+                    </h1>
 
                     <p className="text-lg text-muted-foreground mb-10 max-w-2xl leading-relaxed">
                         El Multiverso te espera. Explora las últimas expansiones, amplía tu colección o abre los sobres que has adquirido en la tienda.

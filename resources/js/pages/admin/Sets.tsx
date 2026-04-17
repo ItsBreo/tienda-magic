@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, CheckCircle } from 'lucide-react';
+import {
+ Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, CheckCircle,
+} from 'lucide-react';
+import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSelection } from '@/hooks/useSelection';
@@ -26,11 +28,11 @@ export default function AdminSets() {
     const [editingCode, setEditingCode] = useState<string | null>(null);
 
     const [form, setForm] = useState({
-        code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true
+        code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true,
     });
 
-    const selectableSets = sets.map(s => ({ ...s, id: s.code }));
-    
+    const selectableSets = sets.map((s) => ({ ...s, id: s.code }));
+
     const {
         selectedList,
         selectedCount,
@@ -38,7 +40,7 @@ export default function AdminSets() {
         selectAll,
         clear,
         isSelected,
-        allSelected
+        allSelected,
     } = useSelection(selectableSets);
 
     const fetchSets = async () => {
@@ -93,7 +95,7 @@ export default function AdminSets() {
         try {
             await apiService.axiosInstance.post('/api/admin/sets/bulk-toggle-active', {
                 ids: selectedList,
-                is_active: active
+                is_active: active,
             });
             toast.success(`${selectedCount} sets ${active ? 'activados' : 'desactivados'}`);
             clear();
@@ -116,7 +118,9 @@ export default function AdminSets() {
             }
             setShowForm(false);
             setEditingCode(null);
-            setForm({ code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true });
+            setForm({
+ code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true,
+});
             fetchSets();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error guardando set');
@@ -133,13 +137,20 @@ export default function AdminSets() {
             released_at: set.released_at || '',
             card_count: set.card_count,
             icon_svg_uri: set.icon_svg_uri || '',
-            is_active: set.is_active
+            is_active: set.is_active,
         });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    if (loading) return <div className="p-20 flex flex-col items-center justify-center gap-4"><Loader2 className="animate-spin text-primary w-10 h-10" /><p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Crónicas...</p></div>;
+    if (loading) {
+return (
+<div className="p-20 flex flex-col items-center justify-center gap-4">
+<Loader2 className="animate-spin text-primary w-10 h-10" />
+<p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Crónicas...</p>
+</div>
+);
+}
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full font-literata">
@@ -176,11 +187,11 @@ export default function AdminSets() {
                             <Input id="card_count" type="number" min="0" value={form.card_count} onChange={(e) => setForm({ ...form, card_count: parseInt(e.target.value, 10) })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
                         </div>
                         <div className="flex items-center space-x-3 pt-6 ml-1 col-span-2">
-                             <input 
-                                type="checkbox" 
-                                id="is_active" 
-                                checked={form.is_active} 
-                                onChange={(e) => setForm({...form, is_active: e.target.checked})}
+                             <input
+                                type="checkbox"
+                                id="is_active"
+                                checked={form.is_active}
+                                onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
                                 className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer transition-all"
                              />
                              <label htmlFor="is_active" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">Plano Conectado (Visibilidad en cascada)</label>
@@ -220,9 +231,11 @@ export default function AdminSets() {
                         </thead>
                         <tbody className="divide-y divide-border/30">
                             {sets.map((s) => (
-                                <tr key={s.code} className={cn(
-                                    "group hover:bg-accent/20 transition-all duration-300",
-                                    isSelected(s.code) ? 'bg-primary/[0.03]' : ''
+                                <tr
+key={s.code}
+className={cn(
+                                    'group hover:bg-accent/20 transition-all duration-300',
+                                    isSelected(s.code) ? 'bg-primary/[0.03]' : '',
                                 )}>
                                     <td className="px-8 py-6 text-center">
                                         <input
@@ -241,21 +254,27 @@ export default function AdminSets() {
                                             <div className="h-10 w-10 border border-dashed border-border/30 rounded-xl" />
                                         )}
                                     </td>
-                                    <td className="px-6 py-6 font-black text-[12px] text-muted-foreground/40 font-montserrat uppercase">#{s.code}</td>
+                                    <td className="px-6 py-6 font-black text-[12px] text-muted-foreground/40 font-montserrat uppercase">
+#
+{s.code}
+</td>
                                     <td className="px-6 py-6">
                                         <div className="flex flex-col">
                                             <span className="text-foreground font-black text-[16px] group-hover:text-primary transition-colors font-forum">{s.name}</span>
-                                            <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-widest font-montserrat opacity-60">Lanzado: {s.released_at || 'Desconocida'}</span>
+                                            <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-widest font-montserrat opacity-60">
+Lanzado:
+{s.released_at || 'Desconocida'}
+</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-6 text-center">
-                                        <button 
+                                        <button
                                             onClick={() => handleToggleActive(s)}
                                             className={cn(
-                                                "inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                                                s.is_active 
-                                                ? 'bg-primary/10 text-primary border border-primary/20' 
-                                                : 'bg-muted/10 text-muted-foreground/40 border border-border/50'
+                                                'inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
+                                                s.is_active
+                                                ? 'bg-primary/10 text-primary border border-primary/20'
+                                                : 'bg-muted/10 text-muted-foreground/40 border border-border/50',
                                             )}
                                         >
                                             {s.is_active ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
@@ -288,30 +307,30 @@ export default function AdminSets() {
                         label: 'Alterar Crónica',
                         icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
-                            const setToEdit = sets.find(s => s.code === selectedList[0]);
+                            const setToEdit = sets.find((s) => s.code === selectedList[0]);
                             if (setToEdit) handleEdit(setToEdit);
                         },
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     }] : []),
                     {
                         label: 'Abrir Planos',
                         icon: <CheckCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     },
                     {
                         label: 'Cerrar Planos',
                         icon: <XCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground'
+                        className: 'text-muted-foreground/60 hover:text-foreground',
                     },
                     {
                         label: 'Borrar Crónicas',
                         icon: <Trash2 className="w-4 h-4" />,
                         onClick: handleBulkDelete,
                         variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl'
-                    }
+                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
+                    },
                 ]}
             />
         </div>

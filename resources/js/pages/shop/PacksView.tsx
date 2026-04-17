@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Search, Loader2, Tag, X, Filter } from 'lucide-react';
+import {
+ Search, Loader2, Tag, X, Filter,
+} from 'lucide-react';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import apiService from '@/services/ApiService';
 import { showAddToCartToast } from '@/utils/toastUtils';
 
-//import PacksHeader from '@/components/packs/PacksHeader';
+// import PacksHeader from '@/components/packs/PacksHeader';
 import PacksGrid from '@/components/packs/PacksGrid';
 import PackDialog from '@/components/packs/PackDialog';
 import CardDetailModal from '@/components/common/CardDetailModal';
@@ -115,11 +117,11 @@ export default function PacksView() {
         if (!openCard && !openPack) return;
 
         if (openPack && packsData && packsData.length > 0) {
-            const pack = packsData.find(p => p.id === parseInt(openPack, 10));
+            const pack = packsData.find((p) => p.id === parseInt(openPack, 10));
             if (pack) {
                 setSelectedPack(pack);
                 setIsDialogOpen(true);
-                setSearchParams(prev => {
+                setSearchParams((prev) => {
                     prev.delete('openPack');
                     return prev;
                 }, { replace: true });
@@ -127,12 +129,12 @@ export default function PacksView() {
         }
 
         if (openCard && cardsData && cardsData.length > 0) {
-            const card = cardsData.find(c => c.id === parseInt(openCard, 10));
+            const card = cardsData.find((c) => c.id === parseInt(openCard, 10));
             if (card) {
                 setSelectedPack(null);
                 setSelectedCard(card);
                 setIsCardLightboxOpen(true);
-                setSearchParams(prev => {
+                setSearchParams((prev) => {
                     prev.delete('openCard');
                     return prev;
                 }, { replace: true });
@@ -143,7 +145,7 @@ export default function PacksView() {
     useEffect(() => {
         const openPackId = location.state?.openPackId;
         if (openPackId && packsData.length > 0) {
-            const pack = packsData.find(p => p.id === openPackId);
+            const pack = packsData.find((p) => p.id === openPackId);
             if (pack) {
                 setSelectedPack(pack);
                 setSelectedCard(null);
@@ -160,7 +162,7 @@ export default function PacksView() {
             await addToCart({
                 type: isPack ? 'pack' : 'card',
                 id: item.id,
-                quantity
+                quantity,
             });
             showAddToCartToast(`${item.name}`, quantity, isPack ? 'pack' : 'card');
         } catch (error: any) {
@@ -174,42 +176,37 @@ export default function PacksView() {
     // Grouping logic for when sets are selected
     const groupedData = useMemo(() => {
         if (selectedSets.length === 0) return null;
-        
+
         const groups: Record<string, { setName: string; items: Pack[] }> = {};
-        
-        currentData.forEach(item => {
+
+        currentData.forEach((item) => {
             // Find canonical set info
             const setCodeInput = (item as any).set?.code || item.card_set_id;
             const setIdInput = (item as any).set?.id;
-            
-            const setInfo = availableSets.find(s => 
-                (s.code && s.code === setCodeInput) || 
-                String(s.id) === String(setCodeInput) ||
-                String(s.id) === String(setIdInput)
-            );
-            
+
+            const setInfo = availableSets.find((s) => (s.code && s.code === setCodeInput)
+                || String(s.id) === String(setCodeInput)
+                || String(s.id) === String(setIdInput));
+
             // Use code as canonical key, fallback to ID or 'other'
             const key = setInfo?.code || String(setCodeInput) || 'other';
-            
+
             if (!groups[key]) {
-                groups[key] = { 
-                    setName: setInfo?.name || 'Otros', 
-                    items: [] 
+                groups[key] = {
+                    setName: setInfo?.name || 'Otros',
+                    items: [],
                 };
             }
             groups[key].items.push(item);
         });
-        
+
         return groups;
     }, [currentData, selectedSets, availableSets]);
 
     return (
-        <div className="flex-1 bg-background text-foreground pb-20">
-            <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
-
-
+        <div className="flex-1 text-foreground pb-20">
             {/* Toolbar */}
-            <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[60px] z-40">
+            <div className="bg-background/40 backdrop-blur-md border-b border-border sticky top-[60px] z-40">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[180px] sm:max-w-xs">
@@ -263,8 +260,8 @@ export default function PacksView() {
                                 size="sm"
                                 onClick={() => setIsFilterModalOpen(true)}
                                 className={cn(
-                                    "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4",
-                                    selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
+                                    'bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4',
+                                    selectedSets.length > 0 && 'border-primary/50 text-primary bg-primary/5',
                                 )}
                             >
                                 <Filter className="h-4 w-4" />
@@ -289,7 +286,7 @@ export default function PacksView() {
                     </div>
                 </div>
 
-                <SetFilterModal 
+                <SetFilterModal
                     isOpen={isFilterModalOpen}
                     onClose={() => setIsFilterModalOpen(false)}
                     availableSets={availableSets}
@@ -319,7 +316,9 @@ export default function PacksView() {
                                     <Tag className="w-5 h-5 text-primary" />
                                     <h2 className="text-xl font-bold text-foreground">{setName}</h2>
                                     <span className="text-sm text-muted-foreground bg-accent px-2 py-0.5 rounded-full border border-border">
-                                        {items.length} {items.length === 1 ? 'artículo' : 'artículos'}
+                                        {items.length}
+{' '}
+{items.length === 1 ? 'artículo' : 'artículos'}
                                     </span>
                                 </div>
                                 <PacksGrid

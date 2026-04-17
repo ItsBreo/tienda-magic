@@ -1,27 +1,27 @@
 import React from 'react';
-import { 
-    ScrollText, Zap, BookOpen, Skull, 
-    Flame, Droplets, TreePine, Sun, 
+import {
+    ScrollText, Zap, BookOpen, Skull,
+    Flame, Droplets, TreePine, Sun,
     CircleDashed, Info, Trophy, Swords,
-    BookMarked, Wand2, Sparkles, Scroll
+    BookMarked, Wand2, Sparkles, Scroll,
 } from 'lucide-react';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Badge } from '@/components/ui/badge';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 export default function Rules() {
     return (
-        <div className="flex-1 bg-background text-foreground pb-24 font-literata selection:bg-primary/30">
-            {/*<Breadcrumbs items={[{ title: 'Reglas de Juego', href: '/rules' }]} />*/}
+        <div className="flex-1 text-foreground pb-24 font-literata selection:bg-primary/30">
+            {/* <Breadcrumbs items={[{ title: 'Reglas de Juego', href: '/rules' }]} /> */}
 
             <main className="max-w-6xl mx-auto px-4 pt-16">
                  {/* GRIMOIRE HEADER */}
                 <div className="text-center mb-24 space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                    <div className="flex justify-center -mb-6">
-                        
-                    </div>
+                    <div className="flex justify-center -mb-6" />
                     <h1 className="text-6xl md:text-9xl font-forum font-black text-foreground uppercase tracking-tighter leading-none mt-20">
-                        El Grimorio del <span className="text-primary italic">Caminante</span>
+                        El Grimorio del
+{' '}
+<span className="text-primary italic">Caminante</span>
                     </h1>
                     <div className="flex items-center justify-center gap-6">
                          <div className="h-px w-20 bg-gradient-to-r from-transparent to-border" />
@@ -31,15 +31,17 @@ export default function Rules() {
                          <div className="h-px w-20 bg-gradient-to-l from-transparent to-border" />
                     </div>
                     <p className="max-w-3xl mx-auto text-muted-foreground text-xl italic leading-relaxed opacity-80">
-                        Bienvenido a Magic: The Gathering. Atraviesa los planos de la existencia <br /> 
+                        Bienvenido a Magic: The Gathering. Atraviesa los planos de la existencia
+{' '}
+<br />
                         y domina el arte del maná para convertirte en una leyenda del Multiverso.
                     </p>
                 </div>
 
                 <div className="space-y-24">
-                    
+
                     {/* SECTION 1: THE PLAYER */}
-                    <section className="relative p-10 md:p-16 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-black/5 overflow-hidden group">
+                    <section className="relative p-10 md:p-16 bg-card/40 backdrop-blur-md border border-border/50 rounded-2xl shadow-2xl shadow-black/5 overflow-hidden group">
                         <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-all duration-700 pointer-events-none">
                              <Wand2 size={200} className="rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                         </div>
@@ -51,8 +53,12 @@ export default function Rules() {
                                 <h2 className="text-3xl font-montserrat font-black uppercase tracking-tight">1. Eres un Planeswalker</h2>
                             </div>
                             <p className="text-foreground/90 leading-relaxed text-xl italic">
-                                Eres un hechicero capaz de viajar por distintos mundos. Empiezas con <span className="text-primary font-black underline decoration-primary/30 underline-offset-8">20 vidas</span> y tu mazo (biblioteca).
-                            </p>
+                                Eres un hechicero capaz de viajar por distintos mundos. Empiezas con
+{' '}
+<span className="text-primary font-black underline decoration-primary/30 underline-offset-8">20 vidas</span>
+{' '}
+y tu mazo (biblioteca).
+</p>
                             <div className="grid gap-6 mt-10">
                                 <div className="space-y-3 border-l-4 border-primary/20 pl-8 italic text-muted-foreground text-[15px] bg-accent/10 py-6 rounded-r-xl">
                                     <span className="block font-black uppercase text-foreground text-[11px] tracking-[0.3em] mb-2 opacity-60 font-montserrat">Victoria Mítica</span>
@@ -69,21 +75,38 @@ export default function Rules() {
                             <h2 className="text-3xl font-montserrat font-black uppercase tracking-tight">El Arte del Maná</h2>
                         </div>
                         <p className="text-muted-foreground leading-relaxed italic text-xl opacity-80 max-w-4xl">
-                            Para lanzar hechizos necesitas energía, y esa energía se llama <span className="text-foreground font-black">Maná</span>. Este brota de las Tierras que invocamos en cada turno.
-                        </p>
-                        
+                            Para lanzar hechizos necesitas energía, y esa energía se llama
+{' '}
+<span className="text-foreground font-black">Maná</span>
+. Este brota de las Tierras que invocamos en cada turno.
+</p>
+
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                             {[
-                                { name: 'Blanco', sub: 'Llanuras', icon: Sun, color: '#f0f2cf', bg: 'hover:shadow-[0_0_30px_-10px_rgba(240,242,207,0.4)]' },
-                                { name: 'Azul', sub: 'Islas', icon: Droplets, color: '#0e68ab', bg: 'hover:shadow-[0_0_30px_-10px_rgba(14,104,171,0.4)]' },
-                                { name: 'Negro', sub: 'Pantanos', icon: Skull, color: '#4a3f35', bg: 'hover:shadow-[0_0_30px_-10px_rgba(0,0,0,0.4)]' },
-                                { name: 'Rojo', sub: 'Montañas', icon: Flame, color: '#d3202e', bg: 'hover:shadow-[0_0_30px_-10px_rgba(211,32,46,0.4)]' },
-                                { name: 'Verde', sub: 'Bosques', icon: TreePine, color: '#00733e', bg: 'hover:shadow-[0_0_30px_-10px_rgba(0,115,62,0.4)]' },
-                                { name: 'Incoloro', sub: 'Artefactos', icon: CircleDashed, color: '#7b7b7b', bg: 'hover:shadow-[0_0_30px_-10px_rgba(123,123,123,0.4)]' },
+                                {
+ name: 'Blanco', sub: 'Llanuras', icon: Sun, color: '#f0f2cf', bg: 'hover:shadow-[0_0_30px_-10px_rgba(240,242,207,0.4)]',
+},
+                                {
+ name: 'Azul', sub: 'Islas', icon: Droplets, color: '#0e68ab', bg: 'hover:shadow-[0_0_30px_-10px_rgba(14,104,171,0.4)]',
+},
+                                {
+ name: 'Negro', sub: 'Pantanos', icon: Skull, color: '#4a3f35', bg: 'hover:shadow-[0_0_30px_-10px_rgba(0,0,0,0.4)]',
+},
+                                {
+ name: 'Rojo', sub: 'Montañas', icon: Flame, color: '#d3202e', bg: 'hover:shadow-[0_0_30px_-10px_rgba(211,32,46,0.4)]',
+},
+                                {
+ name: 'Verde', sub: 'Bosques', icon: TreePine, color: '#00733e', bg: 'hover:shadow-[0_0_30px_-10px_rgba(0,115,62,0.4)]',
+},
+                                {
+ name: 'Incoloro', sub: 'Artefactos', icon: CircleDashed, color: '#7b7b7b', bg: 'hover:shadow-[0_0_30px_-10px_rgba(123,123,123,0.4)]',
+},
                             ].map((c) => (
-                                <div key={c.name} className={cn(
-                                    "flex flex-col items-center p-8 bg-card border border-border/50 rounded-2xl transition-all duration-500 group shadow-lg shadow-black/[0.02] cursor-default",
-                                    c.bg
+                                <div
+key={c.name}
+className={cn(
+                                    'flex flex-col items-center p-8 bg-card/40 backdrop-blur-md border border-border/50 rounded-2xl transition-all duration-500 group shadow-lg shadow-black/[0.02] cursor-default',
+                                    c.bg,
                                 )}>
                                     <div className="p-4 rounded-full bg-accent/20 mb-6 group-hover:scale-125 transition-transform duration-500 border border-border/30">
                                         <c.icon size={28} style={{ color: c.color }} className="group-hover:rotate-12 transition-transform shadow-sm" />
@@ -96,12 +119,14 @@ export default function Rules() {
                     </section>
 
                     {/* SECTION 3: PHASES */}
-                    <section className="bg-card border border-border/50 rounded-2xl p-10 md:p-16 shadow-2xl shadow-black/5 relative overflow-hidden group">
+                    <section className="bg-card/40 backdrop-blur-md border border-border/50 rounded-2xl p-10 md:p-16 shadow-2xl shadow-black/5 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32 group-hover:bg-primary/10 transition-colors duration-1000" />
                         <h2 className="text-4xl font-forum font-black text-foreground uppercase tracking-tight mb-12 flex items-center gap-4">
-                             <Sparkles className="text-primary h-8 w-8" /> Ciclo de un Turno
-                        </h2>
-                        
+                             <Sparkles className="text-primary h-8 w-8" />
+{' '}
+Ciclo de un Turno
+</h2>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                             {[
                                 { t: 'Fase de Inicio', d: 'Enderezas tus tierras gastadas y robas tu carta del destino del mazo ancestral.' },
@@ -111,7 +136,10 @@ export default function Rules() {
                                 { t: 'Final', d: 'Tus heridas se sanan, los efectos temporales mueren y pasas el turno con un firme: "Vas".' },
                             ].map((p, i) => (
                                 <div key={p.t} className="flex gap-6 items-start group relative">
-                                    <span className="text-5xl font-forum font-black text-primary/10 group-hover:text-primary transition-colors duration-500 tabular-nums leading-none">0{i+1}</span>
+                                    <span className="text-5xl font-forum font-black text-primary/10 group-hover:text-primary transition-colors duration-500 tabular-nums leading-none">
+0
+{i + 1}
+</span>
                                     <div className="space-y-2">
                                         <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-foreground font-montserrat">{p.t}</h3>
                                         <p className="text-muted-foreground text-[14px] font-literata italic leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">{p.d}</p>

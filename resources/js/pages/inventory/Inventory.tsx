@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+    Search, Lock, Image as ImageIcon,
+    Layers, Package,
+    Loader2, Filter, DollarSign,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import HighlightedText from '@/components/common/HighlightedText';
-import {
-    Search, Lock, Image as ImageIcon,
-    Layers, Package,
-    Loader2, Filter, DollarSign
-} from 'lucide-react';
 import PackOpeningModal from '@/components/inventory/PackOpeningModal';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import PackDialog from '@/components/packs/PackDialog';
@@ -18,7 +19,6 @@ import CardDetailModal from '@/components/common/CardDetailModal';
 import {
     Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { toast } from 'sonner';
 
 interface SetData {
     id: number;
@@ -70,7 +70,9 @@ interface InventoryPack {
 const cleanDraftName = (name: string) => name.replace(/\[DRAFT\]|\(DRAFT\)|DRAFT/gi, '').trim();
 
 // --- Componente de Card Pack ---
-function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
+function InventoryPackCard({
+ pack, searchTerm, onView, onSell,
+}: {
     pack: InventoryPack;
     searchTerm: string;
     onView: (id: number) => void;
@@ -88,9 +90,10 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
                 ) : (
                     <Package className="w-12 h-12 text-muted-foreground/40" />
                 )}
-                
+
                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-black px-2 py-0.5 rounded border border-primary/30 uppercase tracking-tighter shadow-lg">
-                    x{pack.quantity}
+                    x
+{pack.quantity}
                 </div>
 
                 {pack.quantity_locked > 0 && (
@@ -117,7 +120,7 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
                 </div>
 
                 <div className="flex flex-col gap-2 w-full mt-auto pt-4">
-                    <Button 
+                    <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onSell(pack.id, cleanName)}
@@ -127,16 +130,16 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
                         <DollarSign size={12} className="mr-1" />
                         {pack.quantity <= pack.quantity_locked ? 'Publicado' : 'Vender'}
                     </Button>
-                    <Button 
+                    <Button
                         variant="outline"
                         size="sm"
                         onClick={() => onView(pack.id)}
                         disabled={pack.quantity <= pack.quantity_locked}
                         className={cn(
-                            "h-9 w-full font-black text-[10px] uppercase tracking-widest shadow-lg",
-                            pack.quantity <= pack.quantity_locked 
-                                ? "bg-accent text-muted-foreground border-border cursor-not-allowed opacity-50" 
-                                : "bg-primary text-primary-foreground border-none hover:bg-primary/90 shadow-primary/20"
+                            'h-9 w-full font-black text-[10px] uppercase tracking-widest shadow-lg',
+                            pack.quantity <= pack.quantity_locked
+                                ? 'bg-accent text-muted-foreground border-border cursor-not-allowed opacity-50'
+                                : 'bg-primary text-primary-foreground border-none hover:bg-primary/90 shadow-primary/20',
                         )}
                     >
                         {pack.quantity <= pack.quantity_locked ? 'En Venta' : 'Abrir Pack'}
@@ -148,13 +151,15 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
 }
 
 // --- Componente de Card Suelta ---
-function InventoryCardItem({ item, searchTerm, onSell, onView }: {
+function InventoryCardItem({
+ item, searchTerm, onSell, onView,
+}: {
     item: InventoryItem;
     searchTerm: string;
     onSell: (id: number, name: string) => void;
     onView: (card: CardData) => void;
 }) {
-    const card = item.card;
+    const { card } = item;
     const img = card.image_uris?.normal || card.image_uri || card.image_url;
     const cleanName = cleanDraftName(card.name);
 
@@ -168,7 +173,8 @@ function InventoryCardItem({ item, searchTerm, onSell, onView }: {
                 )}
 
                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-black px-2 py-0.5 rounded border border-primary/30 uppercase tracking-tighter shadow-lg">
-                    x{item.quantity}
+                    x
+{item.quantity}
                 </div>
 
                 {item.quantity_locked > 0 && (
@@ -195,10 +201,13 @@ function InventoryCardItem({ item, searchTerm, onSell, onView }: {
                     <div className="flex items-end justify-between mb-2">
                         <div className="flex flex-col">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Mercado</p>
-                            <p className="md:text-lg pl-0.5 text-base font-black text-foreground">€{card.market_avg_price?.toFixed(2) || '0.00'}</p>
+                            <p className="md:text-lg pl-0.5 text-base font-black text-foreground">
+€
+{card.market_avg_price?.toFixed(2) || '0.00'}
+</p>
                         </div>
                     </div>
-                    <Button 
+                    <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onSell(item.id, cleanName)}
@@ -222,7 +231,7 @@ export default function Inventory() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
-    
+
     // Filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSets, setSelectedSets] = useState<any[]>([]);
@@ -231,7 +240,7 @@ export default function Inventory() {
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
     // Opening State
-    const [openedPacks, setOpenedPacks] = useState<any[]>([]); 
+    const [openedPacks, setOpenedPacks] = useState<any[]>([]);
     const [isOpeningModalOpen, setIsOpeningModalOpen] = useState(false);
     const [selectedPackForModal, setSelectedPackForModal] = useState<InventoryPack | null>(null);
 
@@ -249,14 +258,16 @@ export default function Inventory() {
         try {
             const setsParam = selectedSets.length > 0 ? selectedSets.join(',') : '';
             const response = await apiService.axiosInstance.get('/api/inventory', {
-                params: { page, search: searchTerm, sets: setsParam, sort: sortBy }
+                params: {
+ page, search: searchTerm, sets: setsParam, sort: sortBy,
+},
             });
             setItems(response.data?.inventoryCards?.data || []);
             setPacks(response.data?.inventoryPacks || []);
             setCurrentPage(response.data?.inventoryCards?.current_page || 1);
             setLastPage(response.data?.inventoryCards?.last_page || 1);
             setStats(response.data?.stats || { totalCards: 0, totalPacks: 0 });
-        } catch (error) { 
+        } catch (error) {
             console.error('Inventory Fetch Error:', error);
             setItems([]);
             setPacks([]);
@@ -264,9 +275,9 @@ export default function Inventory() {
         } finally { setLoading(false); }
     };
 
-    useEffect(() => { 
+    useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            fetchInventory(1); 
+            fetchInventory(1);
         }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, selectedSets, sortBy]);
@@ -288,10 +299,10 @@ export default function Inventory() {
             toast.error(error.response?.data?.error || 'Error al abrir');
         } finally { setLoading(false); }
     };
-    
+
     const handleConfirmSell = async () => {
         if (!selectedItemForSell || !amountToSeller) return;
-        
+
         const price = parseFloat(amountToSeller);
         if (isNaN(price) || price <= 0) {
             toast.error('Por favor, ingresa un precio válido mayor a 0');
@@ -302,19 +313,19 @@ export default function Inventory() {
             setIsSubmittingSell(true);
             const response = await apiService.listOnMarket({
                 inventory_item_id: selectedItemForSell.id,
-                type: selectedItemForSell.type, 
-                amount_to_seller: price
+                type: selectedItemForSell.type,
+                amount_to_seller: price,
             });
-            
+
             toast.success(response.message || 'Puesto a la venta con éxito');
             setIsSellDialogOpen(false);
             setSelectedItemForSell(null);
             setAmountToSeller('');
-            
+
             setTimeout(() => {
                 navigate('/market');
             }, 1000);
-            
+
             fetchInventory(currentPage);
         } catch (error: any) {
             console.error('Error listing on market:', error);
@@ -326,8 +337,8 @@ export default function Inventory() {
 
     const availableSets = useMemo(() => {
         const setsMap = new Map();
-        packs.forEach(p => p.booster_pack?.set && setsMap.set(String(p.booster_pack.set.id), p.booster_pack.set));
-        items.forEach(i => i.card?.set && setsMap.set(String(i.card.set.id), i.card.set));
+        packs.forEach((p) => p.booster_pack?.set && setsMap.set(String(p.booster_pack.set.id), p.booster_pack.set));
+        items.forEach((i) => i.card?.set && setsMap.set(String(i.card.set.id), i.card.set));
         return Array.from(setsMap.values());
     }, [packs, items]);
 
@@ -335,9 +346,9 @@ export default function Inventory() {
     const showCards = category === 'all' || category === 'cards';
 
     return (
-        <div className="flex-1 bg-background text-foreground pb-20">
+        <div className="flex-1 text-foreground pb-20">
             {/* Toolbar (Parity with Shop) */}
-            <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[72px] md:top-[88px] z-40">
+            <div className="bg-background/40 backdrop-blur-md border-b border-border sticky top-[72px] md:top-[88px] z-40">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
                     {/* Search */}
                     <div className="relative flex-1 min-w-[180px] sm:max-w-xs">
@@ -397,8 +408,8 @@ export default function Inventory() {
                             variant="outline"
                             onClick={() => setIsFilterModalOpen(true)}
                             className={cn(
-                                "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4 shadow-sm",
-                                selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
+                                'bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4 shadow-sm',
+                                selectedSets.length > 0 && 'border-primary/50 text-primary bg-primary/5',
                             )}
                         >
                             <Filter className="h-4 w-4" />
@@ -409,7 +420,7 @@ export default function Inventory() {
                                 </Badge>
                             )}
                         </Button>
-                        
+
                         {selectedSets.length > 0 && (
                             <button
                                 onClick={() => { setSelectedSets([]); setCurrentPage(1); }}
@@ -439,16 +450,20 @@ export default function Inventory() {
                                         <Package className="w-5 h-5 text-primary" />
                                         <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Sobres en Bóveda</h2>
                                     </div>
-                                    <span className="text-[10px] font-black text-muted-foreground bg-accent/30 px-3 py-1 rounded-full">{packs.length} Resultados</span>
+                                    <span className="text-[10px] font-black text-muted-foreground bg-accent/30 px-3 py-1 rounded-full">
+{packs.length}
+{' '}
+Resultados
+</span>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                                    {packs.map(p => (
-                                        <InventoryPackCard 
-                                            key={p.id} 
-                                            pack={p} 
-                                            searchTerm={searchTerm} 
-                                            onView={() => setSelectedPackForModal(p)} 
-                                            onSell={(id, name) => { setSelectedItemForSell({id, name, type: 'pack'}); setIsSellDialogOpen(true); }}
+                                    {packs.map((p) => (
+                                        <InventoryPackCard
+                                            key={p.id}
+                                            pack={p}
+                                            searchTerm={searchTerm}
+                                            onView={() => setSelectedPackForModal(p)}
+                                            onSell={(id, name) => { setSelectedItemForSell({ id, name, type: 'pack' }); setIsSellDialogOpen(true); }}
                                         />
                                     ))}
                                 </div>
@@ -463,16 +478,20 @@ export default function Inventory() {
                                         <Layers className="w-5 h-5 text-primary" />
                                         <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Cartas Coleccionadas</h2>
                                     </div>
-                                    <span className="text-[10px] font-black text-muted-foreground bg-accent/30 px-3 py-1 rounded-full">{items.length} Resultados</span>
+                                    <span className="text-[10px] font-black text-muted-foreground bg-accent/30 px-3 py-1 rounded-full">
+{items.length}
+{' '}
+Resultados
+</span>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                                    {items.map(i => (
-                                        <InventoryCardItem 
-                                            key={i.id} 
-                                            item={i} 
-                                            searchTerm={searchTerm} 
+                                    {items.map((i) => (
+                                        <InventoryCardItem
+                                            key={i.id}
+                                            item={i}
+                                            searchTerm={searchTerm}
                                             onView={(card) => { setSelectedCardForModal(card); }}
-                                            onSell={(id, name) => { setSelectedItemForSell({id, name, type: 'card'}); setIsSellDialogOpen(true); }} 
+                                            onSell={(id, name) => { setSelectedItemForSell({ id, name, type: 'card' }); setIsSellDialogOpen(true); }}
                                         />
                                     ))}
                                 </div>
@@ -496,17 +515,17 @@ export default function Inventory() {
             {/* PAGINACIÓN */}
             {lastPage > 1 && (
                 <div className="flex items-center justify-center gap-4 mt-12 bg-card/50 backdrop-blur-md pb-10">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="font-bold border-border">Anterior</Button>
+                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="font-bold border-border">Anterior</Button>
                     <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(5, lastPage) }, (_, i) => {
                             const p = i + 1;
                             return (
-                                <button 
-                                    key={p} 
+                                <button
+                                    key={p}
                                     onClick={() => setCurrentPage(p)}
                                     className={cn(
-                                        "w-8 h-8 rounded-lg text-[10px] font-black transition-all",
-                                        currentPage === p ? "bg-primary text-primary-foreground" : "bg-accent/40 text-muted-foreground hover:bg-accent"
+                                        'w-8 h-8 rounded-lg text-[10px] font-black transition-all',
+                                        currentPage === p ? 'bg-primary text-primary-foreground' : 'bg-accent/40 text-muted-foreground hover:bg-accent',
                                     )}
                                 >
                                     {p}
@@ -514,12 +533,12 @@ export default function Inventory() {
                             );
                         })}
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))} disabled={currentPage === lastPage} className="font-bold border-border">Siguiente</Button>
+                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.min(lastPage, p + 1))} disabled={currentPage === lastPage} className="font-bold border-border">Siguiente</Button>
                 </div>
             )}
 
             {/* MODALES */}
-            <PackDialog 
+            <PackDialog
                 pack={selectedPackForModal?.booster_pack as any}
                 isOpen={!!selectedPackForModal}
                 onClose={() => setSelectedPackForModal(null)}
@@ -529,36 +548,39 @@ export default function Inventory() {
             />
 
             <SetFilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} availableSets={availableSets} selectedSets={selectedSets} onApply={(selection) => { setSelectedSets(selection); setCurrentPage(1); }} accentColor="primary" />
-            
-            <PackOpeningModal 
-                isOpen={isOpeningModalOpen} 
-                onClose={() => setIsOpeningModalOpen(false)} 
-                packs={openedPacks} 
-                packName={openedPacks[0]?.cards[0]?.set?.name || 'Sobres Abiertos'} 
+
+            <PackOpeningModal
+                isOpen={isOpeningModalOpen}
+                onClose={() => setIsOpeningModalOpen(false)}
+                packs={openedPacks}
+                packName={openedPacks[0]?.cards[0]?.set?.name || 'Sobres Abiertos'}
             />
 
             {/* MODAL UNIVERSAL DETALLE CARTA */}
-            <CardDetailModal 
+            <CardDetailModal
                 card={selectedCardForModal}
                 onClose={() => setSelectedCardForModal(null)}
             />
-        
+
              {/* DIALOG DE VENTA */}
             <Dialog open={isSellDialogOpen} onOpenChange={setIsSellDialogOpen}>
                 <DialogContent className="bg-card border-border rounded-xl p-6 max-w-sm">
                     <DialogHeader className="mb-4">
-                        <DialogTitle className="text-xl font-black uppercase tracking-tight">Vender {selectedItemForSell?.type === 'pack' ? 'Sobre' : 'Carta'}</DialogTitle>
+                        <DialogTitle className="text-xl font-black uppercase tracking-tight">
+Vender
+{selectedItemForSell?.type === 'pack' ? 'Sobre' : 'Carta'}
+</DialogTitle>
                         <DialogDescription className="text-xs text-muted-foreground font-bold">{selectedItemForSell?.name}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-black uppercase tracking-widest text-primary">Precio de Venta (€)</label>
-                            <Input type="number" step="0.01" className="h-12 bg-background border-border text-lg font-black" placeholder="0.00" value={amountToSeller} onChange={e => setAmountToSeller(e.target.value)} />
+                            <Input type="number" step="0.01" className="h-12 bg-background border-border text-lg font-black" placeholder="0.00" value={amountToSeller} onChange={(e) => setAmountToSeller(e.target.value)} />
                         </div>
                     </div>
                     <DialogFooter className="mt-6 flex gap-2">
                         <Button variant="ghost" className="flex-1 font-bold text-xs uppercase h-10" onClick={() => setIsSellDialogOpen(false)} disabled={isSubmittingSell}>Cancelar</Button>
-                        <Button 
+                        <Button
                             className="flex-1 bg-primary text-primary-foreground font-black uppercase text-xs h-10 shadow-lg shadow-primary/20"
                             onClick={handleConfirmSell}
                             disabled={isSubmittingSell}

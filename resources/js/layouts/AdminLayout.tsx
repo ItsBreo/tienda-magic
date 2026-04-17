@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-    Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield, Package
+    Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield, Package,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,12 +21,12 @@ export default function AdminLayout() {
     }, []);
 
     const navigation = [
-        { name: 'Dashboard',  href: '/admin',               icon: LayoutDashboard },
-        { name: 'Usuarios',   href: '/admin/users',          icon: Users },
-        { name: 'Roles',      href: '/admin/roles',          icon: Shield },
-        { name: 'Cartas',     href: '/admin/cards',          icon: BookOpen },
-        { name: 'Sets',       href: '/admin/sets',           icon: Layers },
-        { name: 'Sobres',     href: '/admin/booster-packs',  icon: Package },
+        { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+        { name: 'Usuarios', href: '/admin/users', icon: Users },
+        { name: 'Roles', href: '/admin/roles', icon: Shield },
+        { name: 'Cartas', href: '/admin/cards', icon: BookOpen },
+        { name: 'Sets', href: '/admin/sets', icon: Layers },
+        { name: 'Sobres', href: '/admin/booster-packs', icon: Package },
     ];
 
     const isActive = (path: string) => {
@@ -41,11 +41,11 @@ export default function AdminLayout() {
          * Solo el <main> de dentro tiene overflow-y-auto para scrollear contenido.
          */
         <div
-            className="flex w-full"
+            className="flex w-full relative z-10"
             style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
         >
-            {/* ── Sidebar — flujo normal, no necesita fixed ni sticky ── */}
-            <aside className="w-64 flex-shrink-0 bg-card border-r border-border flex flex-col">
+            {/* ── Sidebar ── */}
+            <aside className="w-64 flex-shrink-0 bg-card/60 backdrop-blur-md border-r border-border flex flex-col">
 
                 {/* Navigation — scrollable internamente si hay muchos links */}
                 <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-5 space-y-0.5">

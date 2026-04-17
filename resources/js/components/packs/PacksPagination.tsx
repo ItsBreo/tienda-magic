@@ -47,8 +47,12 @@ export default function PacksPagination({
         de
         <span className="text-foreground mx-1">{total}</span>
         <span className="text-muted-foreground/70 text-sm ml-2">
-          ({totalPacks} {category === 'cards' ? 'cartas' : 'sobres'})
-        </span>
+          (
+{totalPacks}
+{' '}
+{category === 'cards' ? 'cartas' : 'sobres'}
+)
+</span>
       </div>
 
       {/* Botón Siguiente */}

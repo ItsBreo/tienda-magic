@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle, CheckCircle, XCircle as XIcon, Search } from 'lucide-react';
+import {
+ Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle, CheckCircle, XCircle as XIcon, Search,
+} from 'lucide-react';
+import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSelection } from '@/hooks/useSelection';
@@ -36,11 +38,11 @@ export default function AdminCards() {
         selectAll,
         clear,
         isSelected,
-        allSelected
+        allSelected,
     } = useSelection(cards);
 
     const [form, setForm] = useState({
-        scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true
+        scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true,
     });
 
     useEffect(() => {
@@ -95,7 +97,7 @@ export default function AdminCards() {
         try {
             await apiService.axiosInstance.post('/api/admin/cards/bulk-toggle-active', {
                 ids: selectedList,
-                is_active: active
+                is_active: active,
             });
             toast.success(`${selectedCount} cartas ${active ? 'activadas' : 'desactivadas'}`);
             clear();
@@ -118,7 +120,9 @@ export default function AdminCards() {
             }
             setShowForm(false);
             setEditingId(null);
-            setForm({ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true });
+            setForm({
+ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true,
+});
             fetchCards();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error guardando carta');
@@ -133,17 +137,24 @@ export default function AdminCards() {
             name: card.name,
             set_code: card.set_code,
             scryfall_id: card.scryfall_id,
-            collector_number: '', 
+            collector_number: '',
             rarity: card.rarity,
-            mana_value: 0, 
+            mana_value: 0,
             price_usd: card.price_usd || 0,
-            is_active: card.is_active
+            is_active: card.is_active,
         });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    if (loading) return <div className="p-20 flex flex-col items-center justify-center gap-4"><Loader2 className="animate-spin text-primary w-10 h-10" /><p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Invocando el Grimorio...</p></div>;
+    if (loading) {
+return (
+<div className="p-20 flex flex-col items-center justify-center gap-4">
+<Loader2 className="animate-spin text-primary w-10 h-10" />
+<p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Invocando el Grimorio...</p>
+</div>
+);
+}
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full font-literata">
@@ -153,11 +164,15 @@ export default function AdminCards() {
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Base de datos maestra de hechizos y criaturas disponibles en la tienda.</p>
                 </div>
                 <div className="flex gap-4">
-                    <Button onClick={() => {
+                    <Button
+onClick={() => {
                         setEditingId(null);
-                        setForm({ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true });
+                        setForm({
+ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true,
+});
                         setShowForm(!showForm);
-                    }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
+                    }}
+className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
                         <Plus className="w-4 h-4 mr-2" />
                         {showForm ? 'Cerrar' : 'Nueva Carta'}
                     </Button>
@@ -183,11 +198,11 @@ export default function AdminCards() {
                             </select>
                         </div>
                         <div className="flex items-center space-x-3 pt-6 ml-1">
-                             <input 
-                                type="checkbox" 
-                                id="card_active" 
-                                checked={form.is_active} 
-                                onChange={(e) => setForm({...form, is_active: e.target.checked})}
+                             <input
+                                type="checkbox"
+                                id="card_active"
+                                checked={form.is_active}
+                                onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
                                 className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer transition-all"
                              />
                              <label htmlFor="card_active" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">Manifestación Activa</label>
@@ -228,9 +243,11 @@ export default function AdminCards() {
                             {cards.map((c) => {
                                 const isSetInactive = c.card_set && !c.card_set.is_active;
                                 return (
-                                    <tr key={c.id} className={cn(
-                                        "group hover:bg-accent/20 transition-all duration-300",
-                                        isSelected(c.id) ? 'bg-primary/[0.03]' : ''
+                                    <tr
+key={c.id}
+className={cn(
+                                        'group hover:bg-accent/20 transition-all duration-300',
+                                        isSelected(c.id) ? 'bg-primary/[0.03]' : '',
                                     )}>
                                         <td className="px-8 py-6">
                                             <input
@@ -245,8 +262,10 @@ export default function AdminCards() {
                                                 <span className="text-foreground font-black text-[16px] group-hover:text-primary transition-colors font-forum">{c.name}</span>
                                                 {isSetInactive && (
                                                     <span className="text-[9px] text-destructive font-black uppercase tracking-widest flex items-center gap-1 mt-1 opacity-70">
-                                                        <AlertTriangle className="w-3 h-3" /> Plano Inaccesible
-                                                    </span>
+                                                        <AlertTriangle className="w-3 h-3" />
+{' '}
+Plano Inaccesible
+</span>
                                                 )}
                                             </div>
                                         </td>
@@ -256,13 +275,13 @@ export default function AdminCards() {
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <button 
+                                            <button
                                                 onClick={() => handleToggleActive(c)}
                                                 className={cn(
-                                                    "inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                                                    c.is_active 
-                                                    ? 'bg-primary/10 text-primary border border-primary/20' 
-                                                    : 'bg-muted/10 text-muted-foreground/40 border border-border/50'
+                                                    'inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
+                                                    c.is_active
+                                                    ? 'bg-primary/10 text-primary border border-primary/20'
+                                                    : 'bg-muted/10 text-muted-foreground/40 border border-border/50',
                                                 )}
                                             >
                                                 {c.is_active ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
@@ -271,11 +290,11 @@ export default function AdminCards() {
                                         </td>
                                         <td className="px-6 py-6 text-center">
                                             <span className={cn(
-                                                "text-[10px] font-black uppercase tracking-[0.2em] font-montserrat",
+                                                'text-[10px] font-black uppercase tracking-[0.2em] font-montserrat',
                                                 c.rarity === 'mythic' ? 'text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.3)]'
                                                 : c.rarity === 'rare' ? 'text-amber-400'
-                                                : c.rarity === 'uncommon' ? 'text-slate-300 opacity-60' 
-                                                : 'text-muted-foreground/40'
+                                                : c.rarity === 'uncommon' ? 'text-slate-300 opacity-60'
+                                                : 'text-muted-foreground/40',
                                             )}>
                                                 {c.rarity}
                                             </span>
@@ -306,30 +325,30 @@ export default function AdminCards() {
                         label: 'Alterar Hechizo',
                         icon: <Search className="w-4 h-4" />,
                         onClick: () => {
-                            const cardToEdit = cards.find(c => c.id === selectedList[0]);
+                            const cardToEdit = cards.find((c) => c.id === selectedList[0]);
                             if (cardToEdit) handleEdit(cardToEdit);
                         },
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     }] : []),
                     {
                         label: 'Manifestar',
                         icon: <CheckCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     },
                     {
                         label: 'Ocultar',
                         icon: <XIcon className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground'
+                        className: 'text-muted-foreground/60 hover:text-foreground',
                     },
                     {
                         label: 'Eliminar del Libro',
                         icon: <Trash2 className="w-4 h-4" />,
                         onClick: handleBulkDelete,
                         variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl'
-                    }
+                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
+                    },
                 ]}
             />
         </div>

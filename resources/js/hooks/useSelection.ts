@@ -30,17 +30,11 @@ export function useSelection<T extends { id: number | string }>(items: T[]) {
         setSelectedIds(new Set());
     }, []);
 
-    const isSelected = useCallback((id: number | string) => {
-        return selectedIds.has(id);
-    }, [selectedIds]);
+    const isSelected = useCallback((id: number | string) => selectedIds.has(id), [selectedIds]);
 
-    const allSelected = useMemo(() => {
-        return items.length > 0 && selectedIds.size === items.length;
-    }, [items, selectedIds.size]);
+    const allSelected = useMemo(() => items.length > 0 && selectedIds.size === items.length, [items, selectedIds.size]);
 
-    const someSelected = useMemo(() => {
-        return selectedIds.size > 0 && selectedIds.size < items.length;
-    }, [items, selectedIds.size]);
+    const someSelected = useMemo(() => selectedIds.size > 0 && selectedIds.size < items.length, [items, selectedIds.size]);
 
     const selectedCount = selectedIds.size;
 

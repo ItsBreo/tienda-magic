@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import ApiService from "../../services/ApiService";
+import React, { useState, useEffect } from 'react';
+import ApiService from '../../services/ApiService';
 
 interface Props {
   onClose: () => void;
@@ -7,17 +7,17 @@ interface Props {
 }
 
 export default function TournamentModal({ onClose, onSuccess }: Props) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [startsAt, setStartsAt] = useState("");
-  const [location, setLocation] = useState("");
-  const [format, setFormat] = useState("standard");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [startsAt, setStartsAt] = useState('');
+  const [location, setLocation] = useState('');
+  const [format, setFormat] = useState('standard');
   const [maxPlayers, setMaxPlayers] = useState(16);
   const [entryFee, setEntryFee] = useState(0);
-  const [prize, setPrize] = useState("");
+  const [prize, setPrize] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError("");
+    setError('');
 
     try {
       await ApiService.createTournament({
@@ -48,7 +48,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
       });
       onSuccess();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Error al crear el torneo.");
+      setError(err?.response?.data?.message || 'Error al crear el torneo.');
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +79,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
               required
               type="text"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Open Modern Primavera"
               className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary transition-colors"
             />
@@ -92,7 +92,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
                 required
                 type="datetime-local"
                 value={startsAt}
-                onChange={e => setStartsAt(e.target.value)}
+                onChange={(e) => setStartsAt(e.target.value)}
                 className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
@@ -100,7 +100,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Formato</label>
               <select
                 value={format}
-                onChange={e => setFormat(e.target.value)}
+                onChange={(e) => setFormat(e.target.value)}
                 className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               >
                 <option value="standard">Standard</option>
@@ -118,7 +118,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
               required
               type="text"
               value={location}
-              onChange={e => setLocation(e.target.value)}
+              onChange={(e) => setLocation(e.target.value)}
               placeholder="Dirección o nombre del local"
               className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
             />
@@ -130,7 +130,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
               <input
                 type="number"
                 value={maxPlayers}
-                onChange={e => setMaxPlayers(Number(e.target.value))}
+                onChange={(e) => setMaxPlayers(Number(e.target.value))}
                 className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
@@ -139,7 +139,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
               <input
                 type="number"
                 value={entryFee}
-                onChange={e => setEntryFee(Number(e.target.value))}
+                onChange={(e) => setEntryFee(Number(e.target.value))}
                 className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
@@ -150,11 +150,11 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
             <textarea
               rows={3}
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={(e) => setDescription(e.target.value)}
               className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary resize-none"
             />
             <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Premio</label>
-            <input type="text" placeholder="Ej: Caja de sobres + trofeo" value={prize} onChange={e => setPrize(e.target.value)} className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary" />
+            <input type="text" placeholder="Ej: Caja de sobres + trofeo" value={prize} onChange={(e) => setPrize(e.target.value)} className="bg-accent border border-border rounded-md p-2.5 text-[13px] text-foreground outline-none focus:border-primary" />
           </div>
 
           {error && <p className="text-xs text-destructive font-medium">{error}</p>}
@@ -172,7 +172,7 @@ export default function TournamentModal({ onClose, onSuccess }: Props) {
               type="submit"
               className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-50"
             >
-              {isSubmitting ? "Creando..." : "Publicar Torneo"}
+              {isSubmitting ? 'Creando...' : 'Publicar Torneo'}
             </button>
           </div>
         </form>

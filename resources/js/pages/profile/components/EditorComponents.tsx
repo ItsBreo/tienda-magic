@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { ImagePlus, X } from "lucide-react";
-import { useImageUpload } from "@/hooks/use-image-upload";
+import React, { useState } from 'react';
+import { ImagePlus, X } from 'lucide-react';
+import { useImageUpload } from '@/hooks/use-image-upload';
 
 export function ProfileBg({ defaultImage, onFileSelected }: { defaultImage?: string, onFileSelected: (file: File | null) => void }) {
   const [hideDefault, setHideDefault] = useState(false);
-  const { previewUrl, fileInputRef, handleThumbnailClick, handleFileChange, handleRemove } =
-    useImageUpload({ 
-        onUpload: (url, file) => onFileSelected(file)
+  const {
+ previewUrl, fileInputRef, handleThumbnailClick, handleFileChange, handleRemove,
+} = useImageUpload({
+        onUpload: (url, file) => onFileSelected(file),
     });
 
   const currentImage = previewUrl || (!hideDefault ? defaultImage : null);
@@ -58,8 +59,10 @@ export function ProfileBg({ defaultImage, onFileSelected }: { defaultImage?: str
 }
 
 export function AvatarEditor({ defaultImage, onFileSelected }: { defaultImage?: string, onFileSelected: (file: File | null) => void }) {
-  const { previewUrl, fileInputRef, handleThumbnailClick, handleFileChange } = useImageUpload({
-    onUpload: (url, file) => onFileSelected(file)
+  const {
+ previewUrl, fileInputRef, handleThumbnailClick, handleFileChange,
+} = useImageUpload({
+    onUpload: (url, file) => onFileSelected(file),
   });
 
   const currentImage = previewUrl || defaultImage;

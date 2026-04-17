@@ -1,6 +1,6 @@
-export type Category = "noticias" | "estrategia" | "torneos" | "general";
-export type SortMode = "hot" | "nuevo" | "top";
-export type View = "feed" | "thread" | "create";
+export type Category = 'noticias' | 'estrategia' | 'torneos' | 'general';
+export type SortMode = 'hot' | 'nuevo' | 'top';
+export type View = 'feed' | 'thread' | 'create';
 
 export interface Post {
   id: number; forum_id: number; title: string; preview: string; body?: string; author: string;
@@ -32,5 +32,5 @@ export interface Comment {
 
 export interface Tournament {
   id: number;
-  name: string; status: "live" | "soon"; date: string;
+  name: string; status: 'live' | 'soon'; date: string;
 }

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Shield, ShieldCheck, Info, Edit2 } from 'lucide-react';
+import {
+ Trash2, Plus, Loader2, Shield, ShieldCheck, Info, Edit2,
+} from 'lucide-react';
+import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSelection } from '@/hooks/useSelection';
@@ -31,9 +33,9 @@ export default function AdminRoles() {
     const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
 
     const [form, setForm] = useState({
-        name: '', 
+        name: '',
         description: '',
-        permission_ids: [] as number[]
+        permission_ids: [] as number[],
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -44,7 +46,7 @@ export default function AdminRoles() {
         selectAll,
         clear,
         isSelected,
-        allSelected
+        allSelected,
     } = useSelection(roles);
 
     useEffect(() => {
@@ -86,7 +88,7 @@ export default function AdminRoles() {
         if (!window.confirm(`¿Seguro que deseas disolver ${selectedCount} rangos?`)) return;
         try {
             await apiService.axiosInstance.post('/api/admin/roles/bulk-delete', { ids: selectedList });
-            toast.success("Rangos disueltos correctamente");
+            toast.success('Rangos disueltos correctamente');
             clear();
             fetchRoles();
         } catch (error) {
@@ -95,11 +97,11 @@ export default function AdminRoles() {
     };
 
     const togglePermission = (id: number) => {
-        setForm(prev => ({
+        setForm((prev) => ({
             ...prev,
             permission_ids: prev.permission_ids.includes(id)
-                ? prev.permission_ids.filter(pId => pId !== id)
-                : [...prev.permission_ids, id]
+                ? prev.permission_ids.filter((pId) => pId !== id)
+                : [...prev.permission_ids, id],
         }));
     };
 
@@ -108,7 +110,7 @@ export default function AdminRoles() {
         setForm({
             name: role.name,
             description: role.description || '',
-            permission_ids: role.permissions?.map(p => p.id) || []
+            permission_ids: role.permissions?.map((p) => p.id) || [],
         });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -136,7 +138,14 @@ export default function AdminRoles() {
         }
     };
 
-    if (loading) return <div className="p-20 flex flex-col items-center justify-center gap-4"><Loader2 className="animate-spin text-primary w-10 h-10" /><p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Jerarquías...</p></div>;
+    if (loading) {
+return (
+<div className="p-20 flex flex-col items-center justify-center gap-4">
+<Loader2 className="animate-spin text-primary w-10 h-10" />
+<p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Jerarquías...</p>
+</div>
+);
+}
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full font-literata">
@@ -145,11 +154,13 @@ export default function AdminRoles() {
                     <h1 className="text-4xl font-forum font-black text-foreground mb-2">Círculo de Poder</h1>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Define los rangos, privilegios y capacidades de los caminantes en el sistema.</p>
                 </div>
-                <Button onClick={() => {
+                <Button
+onClick={() => {
                     setEditingRoleId(null);
                     setForm({ name: '', description: '', permission_ids: [] });
                     setShowForm(!showForm);
-                }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
+                }}
+className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
                     <Plus className="w-4 h-4 mr-2" />
                     {showForm ? 'Cerrar' : 'Nuevo Rango'}
                 </Button>
@@ -180,33 +191,33 @@ export default function AdminRoles() {
                                 <label className="text-[11px] font-black font-montserrat uppercase tracking-[0.2em] text-foreground">Conceder Privilegios (Permisos)</label>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {permissionsList.map(perm => {
+                                {permissionsList.map((perm) => {
                                     const isSelected = form.permission_ids.includes(perm.id);
                                     return (
-                                        <div 
-                                            key={perm.id} 
+                                        <div
+                                            key={perm.id}
                                             onClick={() => togglePermission(perm.id)}
                                             className={cn(
-                                                "group relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex flex-col justify-between min-h-[100px]",
-                                                isSelected 
-                                                ? 'bg-primary/5 border-primary shadow-xl shadow-primary/5' 
-                                                : 'bg-accent/20 border-border/30 hover:border-primary/40'
+                                                'group relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex flex-col justify-between min-h-[100px]',
+                                                isSelected
+                                                ? 'bg-primary/5 border-primary shadow-xl shadow-primary/5'
+                                                : 'bg-accent/20 border-border/30 hover:border-primary/40',
                                             )}
                                         >
                                             <div className="flex justify-between items-start mb-2">
                                                 <p className={cn(
-                                                    "text-[13px] font-black uppercase tracking-tight font-montserrat transition-colors",
-                                                    isSelected ? 'text-primary' : 'text-foreground'
+                                                    'text-[13px] font-black uppercase tracking-tight font-montserrat transition-colors',
+                                                    isSelected ? 'text-primary' : 'text-foreground',
                                                 )}>
                                                     {perm.display_name}
                                                 </p>
                                                 <div className={cn(
-                                                    "h-5 w-5 rounded-lg border-2 flex items-center justify-center transition-all",
-                                                    isSelected 
-                                                    ? 'bg-primary border-primary text-primary-foreground rotate-0 scale-100' 
-                                                    : 'border-border/60 bg-transparent rotate-90 scale-90'
+                                                    'h-5 w-5 rounded-lg border-2 flex items-center justify-center transition-all',
+                                                    isSelected
+                                                    ? 'bg-primary border-primary text-primary-foreground rotate-0 scale-100'
+                                                    : 'border-border/60 bg-transparent rotate-90 scale-90',
                                                 )}>
-                                                    {isSelected && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="4" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>}
+                                                    {isSelected && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="4" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>}
                                                 </div>
                                             </div>
                                             <p className="text-[11px] text-muted-foreground/60 leading-relaxed italic line-clamp-2">{perm.description || 'Sin descripción en los archivos.'}</p>
@@ -251,9 +262,11 @@ export default function AdminRoles() {
                         </thead>
                         <tbody className="divide-y divide-border/30">
                             {roles.map((r) => (
-                                <tr key={r.id} className={cn(
-                                    "group hover:bg-accent/20 transition-all duration-300",
-                                    isSelected(r.id) ? 'bg-primary/[0.03]' : ''
+                                <tr
+key={r.id}
+className={cn(
+                                    'group hover:bg-accent/20 transition-all duration-300',
+                                    isSelected(r.id) ? 'bg-primary/[0.03]' : '',
                                 )}>
                                     <td className="px-8 py-6">
                                         <input
@@ -263,7 +276,10 @@ export default function AdminRoles() {
                                             className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
                                         />
                                     </td>
-                                    <td className="px-6 py-6 font-black text-[11px] text-muted-foreground/30 font-montserrat">#{r.id}</td>
+                                    <td className="px-6 py-6 font-black text-[11px] text-muted-foreground/30 font-montserrat">
+#
+{r.id}
+</td>
                                     <td className="px-6 py-6">
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-2 mb-1">
@@ -277,7 +293,7 @@ export default function AdminRoles() {
                                     <td className="px-6 py-6">
                                         <div className="flex flex-wrap gap-1.5 max-w-md">
                                             {r.permissions && r.permissions.length > 0 ? (
-                                                r.permissions.map(p => (
+                                                r.permissions.map((p) => (
                                                     <Badge key={p.id} variant="outline" className="bg-accent/40 text-[8px] font-black uppercase tracking-[0.1em] text-muted-foreground/60 border-border/30 h-5 px-2 hover:border-primary/30 hover:text-primary transition-all">
                                                         {p.display_name}
                                                     </Badge>
@@ -315,18 +331,18 @@ export default function AdminRoles() {
                         label: 'Alterar Rango',
                         icon: <ShieldCheck className="w-4 h-4" />,
                         onClick: () => {
-                            const roleToEdit = roles.find(r => r.id === selectedList[0]);
+                            const roleToEdit = roles.find((r) => r.id === selectedList[0]);
                             if (roleToEdit) handleEdit(roleToEdit);
                         },
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     }] : []),
                     {
                         label: 'Disolver Rangos',
                         icon: <Trash2 className="w-4 h-4" />,
                         onClick: handleBulkDelete,
                         variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl'
-                    }
+                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
+                    },
                 ]}
             />
         </div>

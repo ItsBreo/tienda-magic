@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { 
-    Wallet, CreditCard, 
-    Loader2, CheckCircle, Download, 
+import {
+    Wallet, CreditCard,
+    Loader2, CheckCircle, Download,
     Calendar, History, ShieldCheck,
-    Coins, Zap, RefreshCw
+    Coins, Zap, RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import apiService from '@/services/ApiService';
@@ -17,10 +17,18 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const RECHARGE_AMOUNTS = [
-    { amount: 5, label: '5€', bonus: '', description: 'Ofrenda Menor' },
-    { amount: 10, label: '10€', bonus: '', description: 'Tesorillo Estándar' },
-    { amount: 20, label: '20€', bonus: '+1€', description: 'Bolsa del Viajero' },
-    { amount: 50, label: '50€', bonus: '+5€', description: 'Cofre del Planeswalker' },
+    {
+ amount: 5, label: '5€', bonus: '', description: 'Ofrenda Menor',
+},
+    {
+ amount: 10, label: '10€', bonus: '', description: 'Tesorillo Estándar',
+},
+    {
+ amount: 20, label: '20€', bonus: '+1€', description: 'Bolsa del Viajero',
+},
+    {
+ amount: 50, label: '50€', bonus: '+5€', description: 'Cofre del Planeswalker',
+},
 ];
 
 export default function WalletPage() {
@@ -59,13 +67,13 @@ export default function WalletPage() {
             toastShown.current = true;
             if (status === 'success') {
                 toast.success('¡Riquezas añadidas a tu cuenta!', {
-                    description: 'Tu saldo de oro ha sido actualizado correctamente.'
+                    description: 'Tu saldo de oro ha sido actualizado correctamente.',
                 });
                 const refreshUserData = async () => {
                     try {
                         const userData = await apiService.checkAuth();
                         updateUser(userData);
-                        fetchTransactions(); 
+                        fetchTransactions();
                     } catch (error) { console.error(error); }
                 };
                 refreshUserData();
@@ -124,9 +132,9 @@ export default function WalletPage() {
 
     if (!user) {
         return (
-            <div className="min-h-[80vh] flex items-center justify-center p-6 bg-background">
+            <div className="min-h-[80vh] flex items-center justify-center p-6">
                 <div className="text-center max-w-sm animate-in fade-in zoom-in duration-500">
-                    <div className="w-24 h-24 bg-card border border-border rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl">
+                    <div className="w-24 h-24 bg-card/40 backdrop-blur-md border border-border rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl">
                         <Wallet className="w-12 h-12 text-muted-foreground/30" strokeWidth={1.5} />
                     </div>
                     <h2 className="text-3xl font-montserrat font-black mb-4 uppercase tracking-tighter">Bóveda Privada</h2>
@@ -140,16 +148,15 @@ export default function WalletPage() {
     }
 
     return (
-        <div className="flex-1 bg-background text-foreground pb-20 font-literata">
-            
+        <div className="flex-1 text-foreground pb-20 font-literata">
 
             <main className="max-w-7xl mx-auto px-4 pt-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-                     
+
                     {/* LEFT COLUMN: BALANCE */}
                     <div className="lg:col-span-4 space-y-8">
                         {/* PREMIUM BALANCE CARD */}
-                        <div className="relative bg-card border border-border rounded-xl p-8 shadow-2xl overflow-hidden group">
+                        <div className="relative bg-card/40 backdrop-blur-md border border-border rounded-xl p-8 shadow-2xl overflow-hidden group">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-transform group-hover:scale-110" />
                             <div className="relative z-10 flex flex-col gap-6">
                                 <div className="flex items-center justify-between">
@@ -164,11 +171,15 @@ export default function WalletPage() {
                                     </span>
                                     <div className="mt-4 flex flex-wrap gap-2">
                                          <Badge variant="outline" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/10 text-[8px] font-black uppercase tracking-widest gap-1 py-1 px-3">
-                                             <ShieldCheck size={10} /> Transacciones seguras
-                                         </Badge>
+                                             <ShieldCheck size={10} />
+{' '}
+Transacciones seguras
+</Badge>
                                          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 text-[8px] font-black uppercase tracking-widest gap-1 py-1 px-3">
-                                             <Zap size={10} className="fill-current" /> Entrega Instantánea
-                                         </Badge>
+                                             <Zap size={10} className="fill-current" />
+{' '}
+Entrega Instantánea
+</Badge>
                                     </div>
                                 </div>
                             </div>
@@ -187,7 +198,7 @@ export default function WalletPage() {
 
                     {/* RIGHT COLUMN: RECHARGE & HISTORY */}
                     <div className="lg:col-span-8 space-y-12">
-                         
+
                          {/* RECHARGE SECTION AT THE TOP OF THIS COLUMN */}
                          <section className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
@@ -199,10 +210,12 @@ export default function WalletPage() {
                                      </div>
                                  </div>
                                  <Badge variant="outline" className="h-10 px-4 py-0 bg-accent/20 border-border text-[9px] font-black uppercase tracking-widest flex items-center gap-2 self-start md:self-center">
-                                     <ShieldCheck size={14} className="text-emerald-500" /> Transacciones Encriptadas
-                                 </Badge>
+                                     <ShieldCheck size={14} className="text-emerald-500" />
+{' '}
+Transacciones Encriptadas
+</Badge>
                              </div>
-                             
+
                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                  {RECHARGE_AMOUNTS.map((option) => (
                                      <button
@@ -210,8 +223,8 @@ export default function WalletPage() {
                                          onClick={() => handleRecharge(option.amount)}
                                          disabled={loading}
                                          className={cn(
-                                             "relative flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card/40 transition-all duration-300 group overflow-hidden shadow-sm",
-                                             loading ? "opacity-30 cursor-not-allowed" : "hover:border-primary hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1"
+                                             'relative flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card/20 backdrop-blur-md transition-all duration-300 group overflow-hidden shadow-sm',
+                                             loading ? 'opacity-30 cursor-not-allowed' : 'hover:border-primary hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1',
                                          )}
                                      >
                                          {loading && selectedAmount === option.amount ? (
@@ -223,8 +236,10 @@ export default function WalletPage() {
                                                  </span>
                                                  {option.bonus && (
                                                      <Badge className="bg-primary text-primary-foreground text-[8px] font-black uppercase tracking-tighter px-1.5 h-4 mb-2">
-                                                         {option.bonus} BONUS
-                                                     </Badge>
+                                                         {option.bonus}
+{' '}
+BONUS
+</Badge>
                                                  )}
                                                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center opacity-60 group-hover:opacity-100 transition-opacity">
                                                      {option.description}
@@ -244,8 +259,8 @@ export default function WalletPage() {
                                      <h2 className="text-2xl font-montserrat font-black text-foreground uppercase tracking-tight">Registro de Movimientos</h2>
                                  </div>
                                  <div className="flex items-center gap-2">
-                                     <Button 
-                                        variant="outline" 
+                                     <Button
+                                        variant="outline"
                                         size="sm"
                                         onClick={handleDownloadPdf}
                                         disabled={downloading || transactions.length === 0}
@@ -254,19 +269,19 @@ export default function WalletPage() {
                                         {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
                                         Exportar Registro
                                      </Button>
-                                     <Button 
-                                        variant="secondary" 
+                                     <Button
+                                        variant="secondary"
                                         size="icon"
                                         onClick={() => fetchTransactions()}
                                         disabled={transactionsLoading}
                                         className="h-9 w-9 shadow-sm"
                                      >
-                                        <RefreshCw className={cn("h-4 w-4", transactionsLoading && "animate-spin")} />
+                                        <RefreshCw className={cn('h-4 w-4', transactionsLoading && 'animate-spin')} />
                                      </Button>
                                  </div>
                              </div>
 
-                             <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                             <div className="bg-card/40 backdrop-blur-md border border-border rounded-xl overflow-hidden shadow-xl shadow-black/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                  <div className="overflow-x-auto">
                                      <table className="w-full text-left">
                                          <thead>
@@ -306,10 +321,10 @@ export default function WalletPage() {
                                                                      </span>
                                                                      <div className="flex gap-2">
                                                                         <span className={cn(
-                                                                            "px-2 py-0.5 rounded text-[8px] font-black border tracking-tighter",
-                                                                            tx.type === 'deposit' ? "bg-primary/5 text-primary border-primary/20" :
-                                                                            tx.type === 'purchase' ? "bg-destructive/5 text-destructive border-destructive/20" :
-                                                                            "bg-amber-500/5 text-amber-500 border-amber-500/20"
+                                                                            'px-2 py-0.5 rounded text-[8px] font-black border tracking-tighter',
+                                                                            tx.type === 'deposit' ? 'bg-primary/5 text-primary border-primary/20'
+                                                                            : tx.type === 'purchase' ? 'bg-destructive/5 text-destructive border-destructive/20'
+                                                                            : 'bg-amber-500/5 text-amber-500 border-amber-500/20',
                                                                         )}>
                                                                             {tx.type.toUpperCase()}
                                                                         </span>
@@ -318,13 +333,17 @@ export default function WalletPage() {
                                                              </td>
                                                              <td className="px-6 py-5 text-right space-y-1">
                                                                  <span className={cn(
-                                                                     "text-sm font-black italic block",
-                                                                     isPositive ? "text-primary" : "text-destructive"
+                                                                     'text-sm font-black italic block',
+                                                                     isPositive ? 'text-primary' : 'text-destructive',
                                                                  )}>
-                                                                     {isPositive ? '+' : '-'} {formatEuro(Math.abs(Number(tx.amount)))}
+                                                                     {isPositive ? '+' : '-'}
+{' '}
+{formatEuro(Math.abs(Number(tx.amount)))}
                                                                  </span>
                                                                  <span className="text-[10px] font-medium text-muted-foreground font-forum italic opacity-60">
-                                                                     Saldo: {formatEuro(tx.balance_after)}
+                                                                     Saldo:
+{' '}
+{formatEuro(tx.balance_after)}
                                                                  </span>
                                                              </td>
                                                          </tr>
@@ -348,11 +367,11 @@ export default function WalletPage() {
                              {/* PAGINACIÓN DE TRANSACCIONES */}
                              {lastPage > 1 && (
                                  <div className="flex items-center justify-center gap-4 mt-6">
-                                     <Button 
-                                         variant="outline" 
-                                         size="sm" 
-                                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                                         disabled={currentPage === 1 || transactionsLoading} 
+                                     <Button
+                                         variant="outline"
+                                         size="sm"
+                                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                         disabled={currentPage === 1 || transactionsLoading}
                                          className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all text-xs h-8"
                                      >
                                          Anterior
@@ -361,15 +380,15 @@ export default function WalletPage() {
                                          {Array.from({ length: Math.min(5, lastPage) }, (_, i) => {
                                              const p = i + 1;
                                              return (
-                                                 <button 
-                                                     key={p} 
+                                                 <button
+                                                     key={p}
                                                      onClick={() => setCurrentPage(p)}
                                                      disabled={transactionsLoading}
                                                      className={cn(
-                                                         "w-8 h-8 rounded-lg text-[10px] font-black transition-all",
-                                                         currentPage === p 
-                                                             ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                                                             : "bg-card/50 text-muted-foreground hover:bg-accent border border-border"
+                                                         'w-8 h-8 rounded-lg text-[10px] font-black transition-all',
+                                                         currentPage === p
+                                                             ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                                             : 'bg-card/50 text-muted-foreground hover:bg-accent border border-border',
                                                      )}
                                                  >
                                                      {p}
@@ -377,11 +396,11 @@ export default function WalletPage() {
                                              );
                                          })}
                                      </div>
-                                     <Button 
-                                         variant="outline" 
-                                         size="sm" 
-                                         onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))} 
-                                         disabled={currentPage === lastPage || transactionsLoading} 
+                                     <Button
+                                         variant="outline"
+                                         size="sm"
+                                         onClick={() => setCurrentPage((p) => Math.min(lastPage, p + 1))}
+                                         disabled={currentPage === lastPage || transactionsLoading}
                                          className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all text-xs h-8"
                                      >
                                          Siguiente

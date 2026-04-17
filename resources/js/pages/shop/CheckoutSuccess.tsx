@@ -29,12 +29,10 @@ export default function CheckoutSuccess() {
         };
 
         verifyAndRedirect();
-
     }, [navigate, sessionId]);
 
     return (
-        <>
-            <div className="flex-1 flex flex-col justify-center items-center py-20">
+        <div className="flex-1 flex flex-col justify-center items-center py-20">
                 <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
                 <div className="max-w-md mx-auto p-8 text-center">
@@ -94,6 +92,5 @@ export default function CheckoutSuccess() {
                     </button>
                 </div>
             </div>
-        </>
     );
 }

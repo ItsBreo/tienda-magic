@@ -21,6 +21,12 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    server: {
+        host: '127.0.0.1',
+        hmr: {
+            host: '127.0.0.1',
+        },
+    },
     resolve: {
         alias: {
             // Esto asegura que @ apunte siempre a la carpeta del proyecto, sea Windows o Linux

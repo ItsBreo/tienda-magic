@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Search, Loader2, TrendingUp, ShoppingCart, User, Package, Calendar, XCircle, PlusCircle, ArrowRight, Tag, SlidersHorizontal, X, Filter } from 'lucide-react';
+import {
+ Search, Loader2, TrendingUp, ShoppingCart, User, Package, Calendar, XCircle, PlusCircle, ArrowRight, Tag, SlidersHorizontal, X, Filter,
+} from 'lucide-react';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import apiService from '@/services/ApiService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+ Card, CardHeader, CardTitle, CardContent,
+} from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import HighlightedText from '@/components/common/HighlightedText';
 
@@ -49,7 +53,7 @@ export default function Marketplace() {
     const [sortBy, setSortBy] = useState<string>('newest');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [availableSetsState, setAvailableSetsState] = useState<{code: string, name: string, id?: number | string}[]>([]);
+    const [availableSetsState, setAvailableSetsState] = useState<{ code: string, name: string, id?: number | string }[]>([]);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -71,17 +75,17 @@ export default function Marketplace() {
                 setListings(Array.isArray(response) ? response : response.data || []);
                 setTotalPages(1);
             } else {
-                const params: any = { 
+                const params: any = {
                     page: currentPage,
-                    set: selectedSets.length > 0 ? selectedSets.join(',') : undefined
+                    set: selectedSets.length > 0 ? selectedSets.join(',') : undefined,
                 };
                 if (type !== 'all') params.type = type;
                 response = await apiService.axiosInstance.get('/api/market', { params });
-                
+
                 const responseData = response.data;
                 setListings(responseData.data || []);
                 setTotalPages(responseData.last_page || 1);
-                
+
                 // Extract sets from the metadata returned by the API
                 const metaSets = responseData.sets || [];
                 if (Array.isArray(metaSets) && metaSets.length > 0) {
@@ -107,11 +111,11 @@ export default function Marketplace() {
 
         if (searchTerm.trim()) {
             const lower = searchTerm.toLowerCase();
-            result = result.filter(l => l.listable.name.toLowerCase().includes(lower));
+            result = result.filter((l) => l.listable.name.toLowerCase().includes(lower));
         }
 
         if (selectedSets.length > 0) {
-            result = result.filter(l => {
+            result = result.filter((l) => {
                 const set = l.listable.card_set || l.listable.cardSet;
                 return set?.code && selectedSets.includes(set.code);
             });
@@ -129,22 +133,20 @@ export default function Marketplace() {
     const grouped = useMemo(() => {
         if (selectedSets.length === 0) return null;
         const groups: Record<string, { setName: string; items: Listing[] }> = {};
-        filteredListings.forEach(l => {
+        filteredListings.forEach((l) => {
             const setCodeInput = l.listable.set?.code || (l.listable as any).card_set_id;
             const setIdInput = l.listable.set?.id;
-            
-            const setInfo = availableSets.find(s => 
-                (s.code && s.code === setCodeInput) || 
-                String(s.id) === String(setCodeInput) ||
-                String(s.id) === String(setIdInput)
-            );
-            
+
+            const setInfo = availableSets.find((s) => (s.code && s.code === setCodeInput)
+                || String(s.id) === String(setCodeInput)
+                || String(s.id) === String(setIdInput));
+
             const key = setInfo?.code || String(setCodeInput) || 'other';
 
             if (!groups[key]) {
                 groups[key] = {
                     setName: setInfo?.name || 'Otros',
-                    items: []
+                    items: [],
                 };
             }
             groups[key].items.push(l);
@@ -172,16 +174,14 @@ export default function Marketplace() {
     };
 
     const toggleSet = (code: string) => {
-        setSelectedSets(prev =>
-            prev.includes(code) ? prev.filter(s => s !== code) : [...prev, code]
-        );
+        setSelectedSets((prev) => (prev.includes(code) ? prev.filter((s) => s !== code) : [...prev, code]));
     };
 
     const renderCard = (listing: Listing) => (
         <div
             key={listing.id}
             className={cn(
-                "border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1"
+                'border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1',
             )}
             onClick={() => handleNavigateToProduct(listing)}
         >
@@ -192,7 +192,7 @@ export default function Marketplace() {
                     alt={listing.listable.name}
                     className="group-hover/img:scale-110 transition-transform duration-500 max-h-full object-contain drop-shadow-md"
                 />
-                
+
                 <div className="absolute top-2 right-2 bg-primary/20 backdrop-blur-sm text-[10px] font-black text-primary px-2 py-0.5 rounded border border-primary/30 uppercase tracking-tighter shadow-sm">
                     {listing.listable_type.includes('Card') ? 'Carta' : 'Sobre'}
                 </div>
@@ -217,13 +217,14 @@ export default function Marketplace() {
                     <div className="flex flex-col">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Precio</p>
                         <p className="md:text-xl text-lg font-black text-primary">
-                            €{Number(listing.price_total).toFixed(2)}
+                            €
+{Number(listing.price_total).toFixed(2)}
                         </p>
                     </div>
 
                     <div className="flex flex-col gap-2 items-end">
                         {type === 'my' ? (
-                            <Button 
+                            <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={(e) => { e.stopPropagation(); handleCancel(e, listing.id); }}
@@ -232,7 +233,7 @@ export default function Marketplace() {
                                 Cancelar
                             </Button>
                         ) : (
-                            <Button 
+                            <Button
                                 variant="outline"
                                 size="sm"
                                 className="h-8 px-4 bg-primary text-primary-foreground border-none hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 rounded-lg"
@@ -247,7 +248,7 @@ export default function Marketplace() {
     );
 
     return (
-        <div className="flex-1 bg-background text-foreground p-6">
+        <div className="flex-1 text-foreground p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header Elegante sin iconos */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-border pb-6">
@@ -267,18 +268,18 @@ export default function Marketplace() {
 
                 {/* ── BARRA DE CONTROLES PRINCIPAL (Diseño Fino) ── */}
                 <div className="flex flex-col lg:flex-row items-center gap-3 mb-8 w-full border-b border-border pb-6">
-                    
+
                     {/* 1. Selector de Tipos (Misma altura h-10) */}
                     <div className="flex bg-accent p-1 rounded-lg w-full lg:w-auto overflow-x-auto flex-shrink-0">
-                        {(['all', 'card', 'pack', 'my'] as const).map(t => (
+                        {(['all', 'card', 'pack', 'my'] as const).map((t) => (
                             <button
                                 key={t}
                                 onClick={() => setType(t)}
                                 className={cn(
-                                    "px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap",
-                                    type === t 
-                                        ? "bg-primary text-primary-foreground shadow-sm" 
-                                        : "text-muted-foreground hover:text-foreground hover:bg-background/20"
+                                    'px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap',
+                                    type === t
+                                        ? 'bg-primary text-primary-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-background/20',
                                 )}
                             >
                                 {t === 'all' ? 'Todo' : t === 'card' ? 'Cartas' : t === 'pack' ? 'Sobres' : 'Mis Anuncios'}
@@ -288,7 +289,7 @@ export default function Marketplace() {
 
                     {/* 2. Filtros y Búsqueda */}
                     <div className="flex flex-1 flex-col sm:flex-row items-center gap-2 w-full">
-                        
+
                         {/* Buscador */}
                         <div className="relative flex-1 min-w-[200px] w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -296,7 +297,7 @@ export default function Marketplace() {
                                 type="text"
                                 placeholder="Buscar por nombre..."
                                 value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-9 pr-4 h-10 bg-background border border-border text-sm font-medium rounded-lg focus-visible:ring-1 focus-visible:ring-primary shadow-sm hover:border-primary/50 transition-all w-full"
                             />
                         </div>
@@ -305,7 +306,7 @@ export default function Marketplace() {
                         <div className="relative w-full sm:w-auto">
                             <select
                                 value={sortBy}
-                                onChange={e => setSortBy(e.target.value)}
+                                onChange={(e) => setSortBy(e.target.value)}
                                 className="w-full sm:w-auto h-10 pl-3 pr-8 bg-background border border-border text-foreground text-sm font-medium rounded-lg focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-sm hover:border-primary/50 transition-all"
                             >
                                 <option value="newest">Novedades</option>
@@ -323,8 +324,8 @@ export default function Marketplace() {
                                 variant="outline"
                                 onClick={() => setIsFilterModalOpen(true)}
                                 className={cn(
-                                    "h-10 rounded-lg border-border bg-background text-sm font-medium px-4 gap-2 transition-all shadow-sm hover:border-primary/50 hover:bg-accent/30 w-full sm:w-auto flex-shrink-0",
-                                    selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5 ring-1 ring-primary/20"
+                                    'h-10 rounded-lg border-border bg-background text-sm font-medium px-4 gap-2 transition-all shadow-sm hover:border-primary/50 hover:bg-accent/30 w-full sm:w-auto flex-shrink-0',
+                                    selectedSets.length > 0 && 'border-primary/50 text-primary bg-primary/5 ring-1 ring-primary/20',
                                 )}
                             >
                                 <Filter className="h-4 w-4" />
@@ -337,7 +338,7 @@ export default function Marketplace() {
                                 )}
                             </Button>
                         )}
-                        
+
                     </div>
                 </div>
 
@@ -349,15 +350,17 @@ export default function Marketplace() {
                             onClick={() => setSelectedSets([])}
                             className="text-[10px] uppercase font-black tracking-widest text-destructive bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
                         >
-                            <X className="h-3 w-3" /> Limpiar Todo
-                        </button>
+                            <X className="h-3 w-3" />
+{' '}
+Limpiar Todo
+</button>
                     </div>
                 )}
 
-                <SetFilterModal 
+                <SetFilterModal
                     isOpen={isFilterModalOpen}
                     onClose={() => setIsFilterModalOpen(false)}
-                    availableSets={availableSetsState.map(s => ({ ...s, id: (s as any).id || s.code }))}
+                    availableSets={availableSetsState.map((s) => ({ ...s, id: (s as any).id || s.code }))}
                     selectedSets={selectedSets}
                     onApply={(newSelection) => setSelectedSets(newSelection as string[])}
                     accentColor="emerald"
@@ -366,8 +369,17 @@ export default function Marketplace() {
                 {/* Results count */}
                 {!loading && (
                     <p className="text-sm text-muted-foreground mb-4">
-                        {filteredListings.length} {filteredListings.length === 1 ? 'resultado' : 'resultados'}
-                        {searchTerm && <> para "<span className="text-foreground">{searchTerm}</span>"</>}
+                        {filteredListings.length}
+{' '}
+{filteredListings.length === 1 ? 'resultado' : 'resultados'}
+                        {searchTerm && (
+<>
+{' '}
+para "
+<span className="text-foreground">{searchTerm}</span>
+"
+</>
+)}
                     </p>
                 )}
 
@@ -392,7 +404,11 @@ export default function Marketplace() {
                                 <div className="flex items-center gap-3 mb-4">
                                     <Tag className="w-4 h-4 text-primary" />
                                     <h2 className="text-xl font-bold text-foreground">{setName}</h2>
-                                    <span className="text-sm text-muted-foreground bg-accent px-2 py-0.5 rounded-full border border-border">{items.length} artículos</span>
+                                    <span className="text-sm text-muted-foreground bg-accent px-2 py-0.5 rounded-full border border-border">
+{items.length}
+{' '}
+artículos
+</span>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {items.map(renderCard)}
@@ -410,11 +426,11 @@ export default function Marketplace() {
                 {/* PAGINACIÓN */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-center gap-4 mt-12 pb-10">
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                            disabled={currentPage === 1} 
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
                             className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all"
                         >
                             Anterior
@@ -430,14 +446,14 @@ export default function Marketplace() {
                                     }
                                 }
                                 return (
-                                    <button 
-                                        key={p} 
+                                    <button
+                                        key={p}
                                         onClick={() => setCurrentPage(p)}
                                         className={cn(
-                                            "w-9 h-9 rounded-lg text-xs font-black transition-all",
-                                            currentPage === p 
-                                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                                                : "bg-card/50 text-muted-foreground hover:bg-accent border border-border"
+                                            'w-9 h-9 rounded-lg text-xs font-black transition-all',
+                                            currentPage === p
+                                                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                                : 'bg-card/50 text-muted-foreground hover:bg-accent border border-border',
                                         )}
                                     >
                                         {p}
@@ -445,11 +461,11 @@ export default function Marketplace() {
                                 );
                             })}
                         </div>
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                            disabled={currentPage === totalPages} 
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
                             className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all"
                         >
                             Siguiente
@@ -461,6 +477,6 @@ export default function Marketplace() {
     );
 }
 
-const ChevronRight = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6" /></svg>
-);
+function ChevronRight({ className }: { className?: string }) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6" /></svg>;
+}

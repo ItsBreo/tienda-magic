@@ -1,17 +1,19 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogHeader, 
-    DialogTitle, 
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+ Search, Tag, Check, Filter, X,
+} from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
     DialogDescription,
-    DialogFooter 
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Tag, Check, Filter, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+    DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface CardSet {
     id: string | number;
@@ -26,7 +28,7 @@ interface SetFilterModalProps {
     availableSets: CardSet[];
     selectedSets: (string | number)[];
     onApply: (selected: (string | number)[]) => void;
-    accentColor?: "amber" | "emerald" | "primary";
+    accentColor?: 'amber' | 'emerald' | 'primary';
 }
 
 export default function SetFilterModal({
@@ -35,15 +37,15 @@ export default function SetFilterModal({
     availableSets,
     selectedSets,
     onApply,
-    accentColor = "primary"
+    accentColor = 'primary',
 }: SetFilterModalProps) {
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
     const [tempSelected, setTempSelected] = useState<(string | number)[]>([]);
 
     useEffect(() => {
         if (isOpen) {
             setTempSelected([...selectedSets]);
-            setSearchTerm("");
+            setSearchTerm('');
         }
     }, [isOpen, selectedSets]);
 
@@ -51,14 +53,12 @@ export default function SetFilterModal({
         if (!searchTerm.trim()) return availableSets;
         const s = searchTerm.toLowerCase();
         return availableSets.filter(
-            set => set.name.toLowerCase().includes(s) || set.code.toLowerCase().includes(s)
+            (set) => set.name.toLowerCase().includes(s) || set.code.toLowerCase().includes(s),
         );
     }, [availableSets, searchTerm]);
 
     const toggleSet = (key: string | number) => {
-        setTempSelected(prev => 
-            prev.includes(key) ? prev.filter(i => i !== key) : [...prev, key]
-        );
+        setTempSelected((prev) => (prev.includes(key) ? prev.filter((i) => i !== key) : [...prev, key]));
     };
 
     const handleApply = () => {
@@ -96,7 +96,7 @@ export default function SetFilterModal({
                         />
                         {searchTerm && (
                             <button
-                                onClick={() => setSearchTerm("")}
+                                onClick={() => setSearchTerm('')}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
                             >
                                 <X className="h-4 w-4" />
@@ -111,8 +111,10 @@ export default function SetFilterModal({
                                 className="text-[10px] font-black uppercase tracking-widest px-2.5 h-6 bg-primary/5 text-primary border-primary/20 cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors"
                                 onClick={() => setTempSelected([])}
                             >
-                                {tempSelected.length} — Limpiar
-                            </Badge>
+                                {tempSelected.length}
+{' '}
+— Limpiar
+</Badge>
                         </div>
                     )}
                 </div>
@@ -129,61 +131,61 @@ export default function SetFilterModal({
                             {filteredSets.map((set) => {
                                 const selectionKey = set.code || set.id;
                                 const isSelected = tempSelected.includes(selectionKey);
-                                
+
                                 return (
                                     <button
                                         key={set.id}
                                         onClick={() => toggleSet(selectionKey)}
                                         className={cn(
-                                            "flex items-center justify-between p-3.5 rounded-xl border text-left transition-all duration-200 group",
-                                            isSelected 
-                                                ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 hover:bg-primary/90"
-                                                : "bg-accent/20 border-border/50 text-muted-foreground hover:border-primary/30 hover:bg-accent/40"
+                                            'flex items-center justify-between p-3.5 rounded-xl border text-left transition-all duration-200 group',
+                                            isSelected
+                                                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 hover:bg-primary/90'
+                                                : 'bg-accent/20 border-border/50 text-muted-foreground hover:border-primary/30 hover:bg-accent/40',
                                         )}
                                     >
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             {set.icon_svg_uri ? (
                                                 <div className={cn(
-                                                    "h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0",
-                                                    isSelected ? "bg-primary-foreground/10" : "bg-accent/60"
+                                                    'h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0',
+                                                    isSelected ? 'bg-primary-foreground/10' : 'bg-accent/60',
                                                 )}>
-                                                    <img 
-                                                        src={set.icon_svg_uri} 
-                                                        alt="" 
+                                                    <img
+                                                        src={set.icon_svg_uri}
+                                                        alt=""
                                                         className={cn(
-                                                            "h-5 w-5",
-                                                            isSelected ? "filter brightness-0 invert" : "opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all"
+                                                            'h-5 w-5',
+                                                            isSelected ? 'filter brightness-0 invert' : 'opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all',
                                                         )}
                                                     />
                                                 </div>
                                             ) : (
                                                 <div className={cn(
-                                                    "h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0",
-                                                    isSelected ? "bg-primary-foreground/10" : "bg-accent/60"
+                                                    'h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0',
+                                                    isSelected ? 'bg-primary-foreground/10' : 'bg-accent/60',
                                                 )}>
-                                                    <Tag className={cn("h-4 w-4", isSelected ? "text-primary-foreground" : "text-muted-foreground/40")} />
+                                                    <Tag className={cn('h-4 w-4', isSelected ? 'text-primary-foreground' : 'text-muted-foreground/40')} />
                                                 </div>
                                             )}
                                             <div className="flex flex-col min-w-0">
                                                 <span className={cn(
-                                                    "text-[13px] font-black truncate leading-tight font-montserrat",
-                                                    isSelected ? "text-primary-foreground" : "text-foreground"
+                                                    'text-[13px] font-black truncate leading-tight font-montserrat',
+                                                    isSelected ? 'text-primary-foreground' : 'text-foreground',
                                                 )}>
                                                     {set.name}
                                                 </span>
                                                 <span className={cn(
-                                                    "text-[9px] uppercase font-black tracking-[0.3em] mt-0.5",
-                                                    isSelected ? "text-primary-foreground/60" : "text-muted-foreground/30"
+                                                    'text-[9px] uppercase font-black tracking-[0.3em] mt-0.5',
+                                                    isSelected ? 'text-primary-foreground/60' : 'text-muted-foreground/30',
                                                 )}>
                                                     {set.code}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className={cn(
-                                            "h-5 w-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200",
-                                            isSelected 
-                                                ? "bg-primary-foreground/20 text-primary-foreground" 
-                                                : "bg-border/40 text-transparent group-hover:text-muted-foreground/20"
+                                            'h-5 w-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200',
+                                            isSelected
+                                                ? 'bg-primary-foreground/20 text-primary-foreground'
+                                                : 'bg-border/40 text-transparent group-hover:text-muted-foreground/20',
                                         )}>
                                             <Check className="h-3 w-3" />
                                         </div>
@@ -197,14 +199,14 @@ export default function SetFilterModal({
                 {/* Footer */}
                 <DialogFooter className="p-8 pt-5 bg-accent/10 border-t border-border/50">
                     <div className="flex items-center gap-3 w-full">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={onClose}
                             className="text-[10px] font-black uppercase tracking-widest h-12 rounded-xl border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent flex-1 font-montserrat"
                         >
                             Cancelar
                         </Button>
-                        <Button 
+                        <Button
                             onClick={handleApply}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] h-12 rounded-xl shadow-xl shadow-primary/20 flex-1 font-montserrat transition-all"
                         >
