@@ -1,4 +1,5 @@
-import React from "react";
+import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -6,9 +7,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -23,8 +23,8 @@ export default function DeleteConfirmDialog({
   isOpen,
   onClose,
   onConfirm,
-  title = "¿Estás seguro?",
-  description = "Esta acción no se puede deshacer. Esto eliminará permanentemente el contenido de nuestra base de datos.",
+  title = '¿Estás seguro?',
+  description = 'Esta acción no se puede deshacer. Esto eliminará permanentemente el contenido de nuestra base de datos.',
   isLoading = false,
 }: DeleteConfirmDialogProps) {
   return (
@@ -58,7 +58,7 @@ export default function DeleteConfirmDialog({
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-200 shadow-lg shadow-red-900/20"
           >
-            {isLoading ? "Eliminando..." : "Sí, eliminar definitivamente"}
+            {isLoading ? 'Eliminando...' : 'Sí, eliminar definitivamente'}
           </Button>
         </DialogFooter>
       </DialogContent>

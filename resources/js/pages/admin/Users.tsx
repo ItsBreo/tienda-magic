@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, UserCheck, UserMinus, UserCog, Edit2, Shield, Mail, User } from 'lucide-react';
+import {
+ Trash2, Plus, Loader2, UserCheck, UserMinus, UserCog, Edit2, Shield, Mail, User,
+} from 'lucide-react';
+import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSelection } from '@/hooks/useSelection';
@@ -30,14 +32,14 @@ export default function AdminUsers() {
     });
     const [submitting, setSubmitting] = useState(false);
 
-    const { 
-        selectedList, 
-        selectedCount, 
-        toggle, 
-        selectAll, 
-        clear, 
-        isSelected, 
-        allSelected 
+    const {
+        selectedList,
+        selectedCount,
+        toggle,
+        selectAll,
+        clear,
+        isSelected,
+        allSelected,
     } = useSelection(users);
 
     useEffect(() => {
@@ -80,7 +82,7 @@ export default function AdminUsers() {
         if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} usuarios?`)) return;
         try {
             await apiService.axiosInstance.post('/api/admin/users/bulk-delete', { ids: selectedList });
-            toast.success("Usuarios eliminados correctamente");
+            toast.success('Usuarios eliminados correctamente');
             clear();
             fetchUsers();
         } catch (error) {
@@ -90,9 +92,9 @@ export default function AdminUsers() {
 
     const handleBulkToggleActive = async (active: boolean) => {
         try {
-            await apiService.axiosInstance.post('/api/admin/users/bulk-toggle-active', { 
-                ids: selectedList, 
-                is_active: active 
+            await apiService.axiosInstance.post('/api/admin/users/bulk-toggle-active', {
+                ids: selectedList,
+                is_active: active,
             });
             toast.success(`${selectedCount} usuarios ${active ? 'activados' : 'desactivados'}`);
             clear();
@@ -103,15 +105,15 @@ export default function AdminUsers() {
     };
 
     const handleBulkChangeRole = async () => {
-        const roleId = prompt('Introduce el ID del nuevo rol para los usuarios seleccionados:\n' + 
-            availableRoles.map(r => `${r.id}: ${r.name}`).join('\n'));
+        const roleId = prompt(`Introduce el ID del nuevo rol para los usuarios seleccionados:\n${
+            availableRoles.map((r) => `${r.id}: ${r.name}`).join('\n')}`);
         if (!roleId) return;
         try {
-            await apiService.axiosInstance.post('/api/admin/users/bulk-change-role', { 
-                ids: selectedList, 
-                role_id: parseInt(roleId) 
+            await apiService.axiosInstance.post('/api/admin/users/bulk-change-role', {
+                ids: selectedList,
+                role_id: parseInt(roleId),
             });
-            toast.success('Rol actualizado para ' + selectedCount + ' usuarios');
+            toast.success(`Rol actualizado para ${selectedCount} usuarios`);
             clear();
             fetchUsers();
         } catch (error) {
@@ -128,7 +130,7 @@ export default function AdminUsers() {
             email: u.email,
             password: '',
             role_id: roleId,
-            is_active: u.is_active
+            is_active: u.is_active,
         });
         setShowForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -146,7 +148,9 @@ export default function AdminUsers() {
                 toast.success('Usuario creado');
             }
             setShowForm(false);
-            setForm({ name: '', username: '', email: '', password: '', role_id: '1', is_active: true });
+            setForm({
+ name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
+});
             setEditingUserId(null);
             fetchUsers();
         } catch (error: any) {
@@ -156,7 +160,14 @@ export default function AdminUsers() {
         }
     };
 
-    if (loading) return <div className="p-20 flex flex-col items-center justify-center gap-4"><Loader2 className="animate-spin text-primary w-10 h-10" /><p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Pergaminos...</p></div>;
+    if (loading) {
+return (
+<div className="p-20 flex flex-col items-center justify-center gap-4">
+<Loader2 className="animate-spin text-primary w-10 h-10" />
+<p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Pergaminos...</p>
+</div>
+);
+}
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full font-literata">
@@ -165,11 +176,15 @@ export default function AdminUsers() {
                     <h1 className="text-4xl font-forum font-black text-foreground mb-2">Libro de Almas</h1>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Gestión de usuarios, permisos y estados de acceso al sistema.</p>
                 </div>
-                <Button onClick={() => {
+                <Button
+onClick={() => {
                     setEditingUserId(null);
-                    setForm({ name: '', username: '', email: '', password: '', role_id: '1', is_active: true });
+                    setForm({
+ name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
+});
                     setShowForm(!showForm);
-                }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
+                }}
+className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
                     <Plus className="w-4 h-4 mr-2" />
                     {showForm ? 'Cerrar' : 'Nuevo Usuario'}
                 </Button>
@@ -193,13 +208,16 @@ export default function AdminUsers() {
                             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Contraseña {editingUserId && '(Opcional)'}</label>
+                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">
+Contraseña
+{editingUserId && '(Opcional)'}
+</label>
                             <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required={!editingUserId} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Rol del Sistema</label>
                             <select value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })} className="w-full bg-accent/40 border border-border/50 rounded-xl px-4 h-12 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all font-medium appearance-none">
-                                {availableRoles.map(role => (
+                                {availableRoles.map((role) => (
                                     <option key={role.id} value={role.id}>{role.name}</option>
                                 ))}
                             </select>
@@ -236,9 +254,9 @@ export default function AdminUsers() {
                         <thead className="bg-accent/40 border-b border-border text-[9px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/60">
                             <tr>
                                 <th className="px-8 py-6 w-10">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={allSelected} 
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
                                         onChange={selectAll}
                                         className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
                                     />
@@ -253,19 +271,24 @@ export default function AdminUsers() {
                         </thead>
                         <tbody className="divide-y divide-border/30">
                             {users.map((u) => (
-                                <tr key={u.id} className={cn(
-                                    "group hover:bg-accent/20 transition-all duration-300",
-                                    isSelected(u.id) ? 'bg-primary/[0.03]' : ''
+                                <tr
+key={u.id}
+className={cn(
+                                    'group hover:bg-accent/20 transition-all duration-300',
+                                    isSelected(u.id) ? 'bg-primary/[0.03]' : '',
                                 )}>
                                     <td className="px-8 py-5">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={isSelected(u.id)} 
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected(u.id)}
                                             onChange={() => toggle(u.id)}
                                             className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
                                         />
                                     </td>
-                                    <td className="px-6 py-5 font-black text-[11px] text-muted-foreground/30 font-montserrat">#{u.id}</td>
+                                    <td className="px-6 py-5 font-black text-[11px] text-muted-foreground/30 font-montserrat">
+#
+{u.id}
+</td>
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 rounded-xl bg-accent border border-border/50 flex items-center justify-center text-[10px] font-black text-muted-foreground shadow-inner">
@@ -273,7 +296,10 @@ export default function AdminUsers() {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-foreground font-black text-[15px] group-hover:text-primary transition-colors">{u.name}</span>
-                                                <span className="text-[10px] text-muted-foreground/50 uppercase font-black tracking-widest font-montserrat">@{u.username}</span>
+                                                <span className="text-[10px] text-muted-foreground/50 uppercase font-black tracking-widest font-montserrat">
+@
+{u.username}
+</span>
                                             </div>
                                         </div>
                                     </td>
@@ -284,9 +310,11 @@ export default function AdminUsers() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 text-center">
-                                        <Badge variant="outline" className={cn(
-                                            "text-[8px] font-black uppercase tracking-widest px-2.5 h-5 rounded-lg",
-                                            u.is_active ? 'bg-primary/5 text-primary border-primary/20' : 'bg-destructive/5 text-destructive border-destructive/20'
+                                        <Badge
+variant="outline"
+className={cn(
+                                            'text-[8px] font-black uppercase tracking-widest px-2.5 h-5 rounded-lg',
+                                            u.is_active ? 'bg-primary/5 text-primary border-primary/20' : 'bg-destructive/5 text-destructive border-destructive/20',
                                         )}>
                                             {u.is_active ? 'Vivo' : 'Exiliado'}
                                         </Badge>
@@ -318,7 +346,7 @@ export default function AdminUsers() {
                 </div>
             </div>
 
-            <BulkActionsToolbar 
+            <BulkActionsToolbar
                 count={selectedCount}
                 onClear={clear}
                 actions={[
@@ -326,36 +354,36 @@ export default function AdminUsers() {
                         label: 'Editar Ficha',
                         icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
-                            const userToEdit = users.find(u => u.id === selectedList[0]);
+                            const userToEdit = users.find((u) => u.id === selectedList[0]);
                             if (userToEdit) handleEdit(userToEdit);
                         },
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     }] : []),
-                    { 
-                        label: 'Desexiliar', 
-                        icon: <UserCheck className="w-4 h-4" />, 
+                    {
+                        label: 'Desexiliar',
+                        icon: <UserCheck className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     },
-                    { 
-                        label: 'Exiliar', 
-                        icon: <UserMinus className="w-4 h-4" />, 
+                    {
+                        label: 'Exiliar',
+                        icon: <UserMinus className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground'
+                        className: 'text-muted-foreground/60 hover:text-foreground',
                     },
-                    { 
-                        label: 'Reasignar Rango', 
-                        icon: <UserCog className="w-4 h-4" />, 
+                    {
+                        label: 'Reasignar Rango',
+                        icon: <UserCog className="w-4 h-4" />,
                         onClick: handleBulkChangeRole,
-                        className: 'text-primary hover:text-primary'
+                        className: 'text-primary hover:text-primary',
                     },
-                    { 
-                        label: 'Borrar Alma', 
-                        icon: <Trash2 className="w-4 h-4" />, 
+                    {
+                        label: 'Borrar Alma',
+                        icon: <Trash2 className="w-4 h-4" />,
                         onClick: handleBulkDelete,
                         variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl'
-                    }
+                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
+                    },
                 ]}
             />
         </div>

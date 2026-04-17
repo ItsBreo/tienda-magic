@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import {
+ Loader2, Trophy, ChevronLeft, Lock, Star, Sparkles, Target,
+} from 'lucide-react';
 import apiService from '@/services/ApiService';
-import { Loader2, Trophy, ChevronLeft, Lock, Star, Sparkles, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useTitle } from '@/hooks/useTitle';
@@ -16,23 +18,37 @@ interface Achievement {
 }
 
 const ALL_ACHIEVEMENTS: Omit<Achievement, 'obtained_at'>[] = [
-    { slug: 'first_register',    name: 'Bienvenido Planeswalker', description: 'Creaste tu cuenta en la Black Lotus.',           badge_icon: '🧙', xp_points: 10  },
-    { slug: 'first_pack_purchase',name: 'Primer Sobre',           description: 'Abriste tu primer sobre.',                       badge_icon: '📦', xp_points: 30  },
-    { slug: 'first_card_purchase',name: 'Primera Carta',          description: 'Compraste tu primera carta en el mercado.',      badge_icon: '🃏', xp_points: 30  },
-    { slug: 'first_card_listed', name: 'Primer Vendedor',         description: 'Pusiste una carta a la venta por primera vez.',  badge_icon: '🏪', xp_points: 25  },
-    { slug: 'transactions_10',   name: 'Comerciante',             description: 'Completaste 10 transacciones en total.',          badge_icon: '💰', xp_points: 50  },
-    { slug: 'transactions_50',   name: 'Mercader Experto',        description: 'Completaste 50 transacciones en total.',          badge_icon: '💎', xp_points: 150 },
-    { slug: 'verified_trader',   name: 'Verificado',              description: 'Alcanzaste 1000 de reputación en la comunidad.', badge_icon: '🔵', xp_points: 100 },
+    {
+ slug: 'first_register', name: 'Bienvenido Planeswalker', description: 'Creaste tu cuenta en la Black Lotus.', badge_icon: '🧙', xp_points: 10,
+},
+    {
+ slug: 'first_pack_purchase', name: 'Primer Sobre', description: 'Abriste tu primer sobre.', badge_icon: '📦', xp_points: 30,
+},
+    {
+ slug: 'first_card_purchase', name: 'Primera Carta', description: 'Compraste tu primera carta en el mercado.', badge_icon: '🃏', xp_points: 30,
+},
+    {
+ slug: 'first_card_listed', name: 'Primer Vendedor', description: 'Pusiste una carta a la venta por primera vez.', badge_icon: '🏪', xp_points: 25,
+},
+    {
+ slug: 'transactions_10', name: 'Comerciante', description: 'Completaste 10 transacciones en total.', badge_icon: '💰', xp_points: 50,
+},
+    {
+ slug: 'transactions_50', name: 'Mercader Experto', description: 'Completaste 50 transacciones en total.', badge_icon: '💎', xp_points: 150,
+},
+    {
+ slug: 'verified_trader', name: 'Verificado', description: 'Alcanzaste 1000 de reputación en la comunidad.', badge_icon: '🔵', xp_points: 100,
+},
 ];
 
 export default function Achievements() {
     useTitle('Hazañas y Logros');
     const [unlocked, setUnlocked] = useState<Achievement[]>([]);
-    const [loading, setLoading]   = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         apiService.axiosInstance.get('/api/achievements')
-            .then(res => {
+            .then((res) => {
                 const data = res.data?.achievements ?? res.data?.data ?? res.data ?? [];
                 setUnlocked(Array.isArray(data) ? data : []);
             })
@@ -40,20 +56,19 @@ export default function Achievements() {
             .finally(() => setLoading(false));
     }, []);
 
-    const unlockedSlugs = new Set(unlocked.map(a => a.slug));
-    const locked = ALL_ACHIEVEMENTS.filter(a => !unlockedSlugs.has(a.slug));
-    
+    const unlockedSlugs = new Set(unlocked.map((a) => a.slug));
+    const locked = ALL_ACHIEVEMENTS.filter((a) => !unlockedSlugs.has(a.slug));
+
     // Stats
     const totalXp = unlocked.reduce((sum, a) => sum + a.xp_points, 0);
-    const maxXp   = ALL_ACHIEVEMENTS.reduce((sum, a) => sum + a.xp_points, 0);
+    const maxXp = ALL_ACHIEVEMENTS.reduce((sum, a) => sum + a.xp_points, 0);
     const progress = maxXp > 0 ? (totalXp / maxXp) * 100 : 0;
 
     if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
 
     return (
         <div className="flex-1 bg-background text-foreground pb-20 font-literata">
-            
-            
+
             {/* ACTION TOOLBAR (Parity with Inventory/Shop) */}
             <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[72px] md:top-[88px] z-40">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-4">
@@ -66,17 +81,25 @@ export default function Achievements() {
 
                     <div className="flex items-center gap-3 ml-auto">
                         <Badge variant="outline" className="h-10 px-4 bg-accent/20 border-border text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                             <Trophy size={14} className="text-amber-500" /> {unlocked.length}/{ALL_ACHIEVEMENTS.length}
+                             <Trophy size={14} className="text-amber-500" />
+{' '}
+{unlocked.length}
+/
+{ALL_ACHIEVEMENTS.length}
                         </Badge>
                         <Badge variant="outline" className="h-10 px-4 bg-accent/20 border-border text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                             <Star size={14} className="text-primary" /> {totalXp} XP
-                        </Badge>
+                             <Star size={14} className="text-primary" />
+{' '}
+{totalXp}
+{' '}
+XP
+</Badge>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 pt-12">
-                
+
                 {/* VAULT PROGRESS (Simplified to match style) */}
                 <div className="mb-16 space-y-4">
                     <div className="flex items-center justify-between font-montserrat">
@@ -84,10 +107,13 @@ export default function Achievements() {
                             <Target className="h-4 w-4 text-primary" />
                             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Sincronización de Hazañas</span>
                         </div>
-                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">{Math.round(progress)}% Completado</span>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">
+{Math.round(progress)}
+% Completado
+</span>
                     </div>
                     <div className="h-2 w-full bg-accent/30 rounded-full overflow-hidden border border-border/50">
-                        <div 
+                        <div
                             className="h-full bg-primary rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(108,92,231,0.2)]"
                             style={{ width: `${progress}%` }}
                         />
@@ -105,9 +131,9 @@ export default function Achievements() {
                                 </div>
                                 <span className="text-[10px] font-black text-muted-foreground bg-accent/30 px-3 py-1 rounded-full uppercase">Obtenidos</span>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {unlocked.map(a => (
+                                {unlocked.map((a) => (
                                     <AchievementCard key={a.slug} achievement={a} unlocked />
                                 ))}
                             </div>
@@ -124,9 +150,9 @@ export default function Achievements() {
                                 </div>
                                 <span className="text-[10px] font-black text-muted-foreground bg-accent/10 px-3 py-1 rounded-full uppercase">Cerradas</span>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 opacity-40 grayscale">
-                                {locked.map(a => (
+                                {locked.map((a) => (
                                     <AchievementCard key={a.slug} achievement={{ ...a, obtained_at: null }} unlocked={false} />
                                 ))}
                             </div>
@@ -141,13 +167,13 @@ export default function Achievements() {
 function AchievementCard({ achievement: a, unlocked }: { achievement: Achievement; unlocked: boolean }) {
     return (
         <div className={cn(
-            "border border-border p-5 bg-card w-full flex flex-col group transition-all duration-300 rounded-xl",
-            unlocked ? "hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1" : ""
+            'border border-border p-5 bg-card w-full flex flex-col group transition-all duration-300 rounded-xl',
+            unlocked ? 'hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1' : '',
         )}>
             <div className="flex items-center gap-4 mb-4">
                 <div className={cn(
-                    "w-14 h-14 rounded-lg flex items-center justify-center text-3xl transition-transform duration-500",
-                    unlocked ? "bg-accent/30 border border-primary/20 shadow-inner" : "bg-accent/10 border border-border/50"
+                    'w-14 h-14 rounded-lg flex items-center justify-center text-3xl transition-transform duration-500',
+                    unlocked ? 'bg-accent/30 border border-primary/20 shadow-inner' : 'bg-accent/10 border border-border/50',
                 )}>
                     {unlocked ? a.badge_icon : <Lock className="h-6 w-6 text-muted-foreground/30" />}
                 </div>
@@ -157,15 +183,18 @@ function AchievementCard({ achievement: a, unlocked }: { achievement: Achievemen
                      </h3>
                      <div className="flex items-center gap-2 mt-1">
                         <span className={cn(
-                            "text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-widest",
-                            unlocked ? "bg-primary/10 text-primary border-primary/20" : "bg-accent text-muted-foreground border-border"
+                            'text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-widest',
+                            unlocked ? 'bg-primary/10 text-primary border-primary/20' : 'bg-accent text-muted-foreground border-border',
                         )}>
-                            +{a.xp_points} XP
-                        </span>
+                            +
+{a.xp_points}
+{' '}
+XP
+</span>
                      </div>
                 </div>
             </div>
-            
+
             <p className="text-xs text-muted-foreground font-medium leading-relaxed mb-4 line-clamp-2 h-10 italic">
                 {a.description}
             </p>

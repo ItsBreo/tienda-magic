@@ -12,7 +12,7 @@ export function QuickActionsSection() {
     const { user } = useAuth();
 
     // Filtramos las acciones según el rol del usuario (Role logic parity)
-    const filteredActions = QUICK_ACTIONS.filter(action => {
+    const filteredActions = QUICK_ACTIONS.filter((action) => {
         if (action.adminOnly) {
             // Asumiendo que el usuario tiene un campo 'role' o similar
              return user?.role === 'admin' || user?.is_admin;
@@ -21,7 +21,7 @@ export function QuickActionsSection() {
     });
 
     return (
-        <div className="px-6 py-12 bg-background/50">
+        <div className="px-6 py-12">
             <div className="mx-auto max-w-7xl">
                 <div className="flex items-center justify-between mb-8 border-b border-border pb-4">
                     <h2 className="text-3xl font-montserrat font-black text-foreground uppercase tracking-tight">
@@ -37,16 +37,16 @@ export function QuickActionsSection() {
                         <Card
                             key={index}
                             className={cn(
-                                "bg-card border-border hover:border-primary/50 transition-all duration-300 rounded-2xl cursor-pointer group shadow-sm hover:shadow-xl hover:-translate-y-1",
-                                action.disabled && "opacity-60 cursor-not-allowed grayscale"
+                                'bg-card/40 backdrop-blur-md border-border hover:border-primary/50 transition-all duration-300 rounded-2xl cursor-pointer group shadow-sm hover:shadow-xl hover:-translate-y-1',
+                                action.disabled && 'opacity-60 cursor-not-allowed grayscale',
                             )}
                             onClick={() => !action.disabled && navigate(action.href)}
                         >
                             <CardContent className="p-6">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className={cn(
-                                        "w-12 h-12 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 shadow-md",
-                                        action.theme
+                                        'w-12 h-12 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 shadow-md',
+                                        action.theme,
                                     )}>
                                         <action.icon className="h-6 w-6" />
                                     </div>

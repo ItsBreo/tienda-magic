@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Package, ShoppingCart, Plus, Minus } from 'lucide-react';
+import {
+ Package, ShoppingCart, Plus, Minus,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HighlightedText from '@/components/common/HighlightedText';
 import { cn } from '@/lib/utils';
@@ -45,7 +47,9 @@ interface PackCardProps {
   searchTerm?: string;
 }
 
-export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: PackCardProps) {
+export default function PackCard({
+ pack, onClick, onBuyPack, searchTerm = '',
+}: PackCardProps) {
   const [quantity, setQuantity] = useState(1);
 
   // SANITIZACIÓN: Eliminar DRAFT del nombre
@@ -69,20 +73,20 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
     <div
       key={pack.id}
       className={cn(
-        "border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1",
-        isOutOfStock && "opacity-80 grayscale-[0.5]"
+        'border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1',
+        isOutOfStock && 'opacity-80 grayscale-[0.5]',
       )}
     >
       {/* Contenedor de Imagen */}
-      <div 
+      <div
         className="group/img cursor-pointer flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden"
         onClick={() => onClick(pack)}
       >
         {getImageSrc() ? (
-          <img 
-            className="group-hover/img:scale-110 transition-transform duration-500 max-h-full object-contain drop-shadow-md" 
-            src={getImageSrc()} 
-            alt={cleanName} 
+          <img
+            className="group-hover/img:scale-110 transition-transform duration-500 max-h-full object-contain drop-shadow-md"
+            src={getImageSrc()}
+            alt={cleanName}
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
@@ -105,10 +109,10 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
                 <HighlightedText text={cleanName} highlight={searchTerm} highlightClassName="bg-primary/20 text-primary rounded-sm" />
             </h3>
             {pack.card_set?.icon_svg_uri && (
-                <img 
-                    src={pack.card_set.icon_svg_uri} 
-                    alt="" 
-                    className="w-5 h-5 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all filter dark:invert shrink-0 mt-0.5" 
+                <img
+                    src={pack.card_set.icon_svg_uri}
+                    alt=""
+                    className="w-5 h-5 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all filter dark:invert shrink-0 mt-0.5"
                 />
             )}
         </div>
@@ -116,8 +120,8 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
         <div className="flex items-center gap-2 h-5 mt-1 mb-2">
             {showStock && (
                 <span className={cn(
-                    "text-[10px] font-black uppercase tracking-tighter",
-                    pack.stock && pack.stock > 0 ? "text-green-500" : "text-destructive"
+                    'text-[10px] font-black uppercase tracking-tighter',
+                    pack.stock && pack.stock > 0 ? 'text-green-500' : 'text-destructive',
                 )}>
                     {pack.stock && pack.stock > 0 ? `Stock: ${pack.stock}` : 'Agotado'}
                 </span>
@@ -144,14 +148,15 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
             <div className="flex flex-col">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Precio</p>
                 <p className="md:text-xl text-lg font-black text-primary">
-                    €{pack.price.toFixed(2)}
+                    €
+{pack.price.toFixed(2)}
                 </p>
             </div>
 
             <div className="flex flex-col gap-2 items-end">
                 <div className="flex items-center bg-accent/30 rounded-lg border border-border overflow-hidden h-8 w-24">
-                    <button 
-                        onClick={() => setQuantity(prev => Math.max(prev - 1, 1))}
+                    <button
+                        onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
                         className="flex-1 flex items-center justify-center hover:bg-accent text-muted-foreground transition-colors h-full"
                     >
                         <Minus size={12} strokeWidth={3} />
@@ -159,22 +164,22 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
                     <span className="w-8 text-center text-xs font-black text-foreground tabular-nums">
                         {quantity}
                     </span>
-                    <button 
-                        onClick={() => setQuantity(prev => Math.min(prev + 1, pack.stock || 99))}
+                    <button
+                        onClick={() => setQuantity((prev) => Math.min(prev + 1, pack.stock || 99))}
                         className="flex-1 flex items-center justify-center hover:bg-accent text-muted-foreground transition-colors h-full"
                     >
                         <Plus size={12} strokeWidth={3} />
                     </button>
                 </div>
 
-                <Button 
+                <Button
                     variant="outline"
                     size="sm"
                     onClick={handleBuyPack}
                     disabled={isOutOfStock}
                     className={cn(
-                        "h-9 px-4 bg-primary text-primary-foreground border-none hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20",
-                        isOutOfStock && "bg-muted text-muted-foreground shadow-none"
+                        'h-9 px-4 bg-primary text-primary-foreground border-none hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20',
+                        isOutOfStock && 'bg-muted text-muted-foreground shadow-none',
                     )}
                 >
                     <ShoppingCart className="w-3.5 h-3.5 mr-2" />

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, PackageOpen, ChevronRight, ChevronLeft, Layers } from 'lucide-react';
+import {
+ X, Sparkles, PackageOpen, ChevronRight, ChevronLeft, Layers,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Carousel,
@@ -9,7 +11,7 @@ import {
     CarouselNext,
     CarouselPrevious,
     type CarouselApi,
-} from "@/components/ui/interfaces-carousel";
+} from '@/components/ui/interfaces-carousel';
 import { cn } from '@/lib/utils';
 
 interface Card {
@@ -35,7 +37,9 @@ interface PackOpeningModalProps {
     packName: string;
 }
 
-export default function PackOpeningModal({ isOpen, onClose, cards, packs, packName }: PackOpeningModalProps) {
+export default function PackOpeningModal({
+ isOpen, onClose, cards, packs, packName,
+}: PackOpeningModalProps) {
     const [api, setApi] = useState<CarouselApi>();
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
@@ -49,7 +53,7 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
         setCount(api.scrollSnapList().length);
         setCurrent(api.selectedScrollSnap() + 1);
 
-        api.on("select", () => {
+        api.on('select', () => {
             setCurrent(api.selectedScrollSnap() + 1);
         });
     }, [api]);
@@ -58,7 +62,7 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
 
     const handleRevealPack = (index: number) => {
         if (!revealedPacks.includes(index)) {
-            setRevealedPacks(prev => [...prev, index]);
+            setRevealedPacks((prev) => [...prev, index]);
         }
     };
 
@@ -93,17 +97,17 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                 <div className="hidden md:flex items-center gap-2 bg-accent/30 px-4 py-2 rounded-xl border border-border">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mr-2">Sobre</span>
                                     {displayPacks.map((_, i) => (
-                                        <div 
-                                            key={i} 
+                                        <div
+                                            key={i}
                                             className={cn(
-                                                "w-2 h-2 rounded-full transition-all duration-300",
-                                                current === i + 1 ? "bg-primary w-4" : "bg-border"
-                                            )} 
+                                                'w-2 h-2 rounded-full transition-all duration-300',
+                                                current === i + 1 ? 'bg-primary w-4' : 'bg-border',
+                                            )}
                                         />
                                     ))}
                                 </div>
                             )}
-                            <button 
+                            <button
                                 onClick={onClose}
                                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-accent/50 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
                             >
@@ -119,19 +123,19 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                 {displayPacks.map((pack) => (
                                     <CarouselItem key={pack.index} className="h-full">
                                         <div className="h-full flex flex-col p-6 lg:p-10">
-                                            
+
                                             {/* Grid de Cartas del Sobre Actual */}
                                             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2 pb-10">
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4 lg:gap-6">
                                                     {pack.cards.map((card, cardIdx) => {
                                                         const isRevealed = revealedPacks.includes(pack.index);
                                                         const imageSrc = card.image_uris?.normal || card.image_uri;
-                                                        
+
                                                         const isMythic = card.rarity === 'mythic';
                                                         const isRare = card.rarity === 'rare';
-                                                        
+
                                                         return (
-                                                            <div 
+                                                            <div
                                                                 key={`${card.id}-${cardIdx}`}
                                                                 className="relative aspect-[2.5/3.5] perspective-1000"
                                                                 onClick={() => !isRevealed && handleRevealPack(pack.index)}
@@ -139,22 +143,22 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                                                 <motion.div
                                                                     initial={false}
                                                                     animate={{ rotateY: isRevealed ? 180 : 0 }}
-                                                                    transition={{ 
-                                                                        type: "spring", 
-                                                                        stiffness: 40, 
+                                                                    transition={{
+                                                                        type: 'spring',
+                                                                        stiffness: 40,
                                                                         damping: 12,
-                                                                        delay: isRevealed ? cardIdx * 0.08 : 0 
+                                                                        delay: isRevealed ? cardIdx * 0.08 : 0,
                                                                     }}
-                                                                    style={{ transformStyle: "preserve-3d" }}
+                                                                    style={{ transformStyle: 'preserve-3d' }}
                                                                     className="w-full h-full relative"
                                                                 >
                                                                     {/* BACK FACE (Hidden initially, visible when flipped) */}
-                                                                    <div 
+                                                                    <div
                                                                         className={cn(
-                                                                            "absolute inset-0 backface-hidden rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/20 via-primary/5 to-background flex flex-col items-center justify-center gap-3 shadow-xl cursor-not-allowed group/card",
-                                                                            !isRevealed && "cursor-pointer hover:border-primary transition-colors"
+                                                                            'absolute inset-0 backface-hidden rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/20 via-primary/5 to-background flex flex-col items-center justify-center gap-3 shadow-xl cursor-not-allowed group/card',
+                                                                            !isRevealed && 'cursor-pointer hover:border-primary transition-colors',
                                                                         )}
-                                                                        style={{ transform: "rotateY(0deg)" }}
+                                                                        style={{ transform: 'rotateY(0deg)' }}
                                                                     >
                                                                         <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center animate-pulse group-hover/card:bg-primary/40 transition-colors">
                                                                             <Sparkles className="w-7 h-7 text-primary" />
@@ -164,18 +168,18 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                                                     </div>
 
                                                                     {/* FRONT FACE (The Card) */}
-                                                                    <div 
+                                                                    <div
                                                                         className={cn(
-                                                                            "absolute inset-0 backface-hidden rounded-xl overflow-hidden border shadow-2xl bg-card",
-                                                                            isMythic ? "border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.4)]" :
-                                                                            isRare ? "border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.3)]" :
-                                                                            "border-border"
+                                                                            'absolute inset-0 backface-hidden rounded-xl overflow-hidden border shadow-2xl bg-card',
+                                                                            isMythic ? 'border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.4)]'
+                                                                            : isRare ? 'border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.3)]'
+                                                                            : 'border-border',
                                                                         )}
-                                                                        style={{ transform: "rotateY(180deg)" }}
+                                                                        style={{ transform: 'rotateY(180deg)' }}
                                                                     >
                                                                         {imageSrc ? (
-                                                                            <img 
-                                                                                src={imageSrc} 
+                                                                            <img
+                                                                                src={imageSrc}
                                                                                 alt={card.name}
                                                                                 className="w-full h-full object-cover"
                                                                             />
@@ -184,30 +188,30 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                                                                 <span className="text-xs font-black text-foreground uppercase tracking-tight">{card.name}</span>
                                                                             </div>
                                                                         )}
-                                                                        
+
                                                                         {/* Raridad Overlay */}
                                                                         <div className={cn(
-                                                                            "absolute bottom-0 inset-x-0 p-1.5 bg-black/80 backdrop-blur-sm text-[9px] font-black text-center uppercase tracking-[0.2em] z-20",
-                                                                            isMythic ? 'text-orange-400 bg-gradient-to-t from-orange-950/90 to-black/80' :
-                                                                            isRare ? 'text-amber-400' :
-                                                                            card.rarity === 'uncommon' ? 'text-blue-400' :
-                                                                            'text-zinc-400'
+                                                                            'absolute bottom-0 inset-x-0 p-1.5 bg-black/80 backdrop-blur-sm text-[9px] font-black text-center uppercase tracking-[0.2em] z-20',
+                                                                            isMythic ? 'text-orange-400 bg-gradient-to-t from-orange-950/90 to-black/80'
+                                                                            : isRare ? 'text-amber-400'
+                                                                            : card.rarity === 'uncommon' ? 'text-blue-400'
+                                                                            : 'text-zinc-400',
                                                                         )}>
                                                                             {card.rarity}
                                                                         </div>
 
                                                                         {/* Shine effect for high rarity */}
                                                                         {(isMythic || isRare) && (
-                                                                            <motion.div 
-                                                                                animate={{ 
+                                                                            <motion.div
+                                                                                animate={{
                                                                                     x: ['-100%', '200%'],
-                                                                                    opacity: [0, 1, 0]
+                                                                                    opacity: [0, 1, 0],
                                                                                 }}
-                                                                                transition={{ 
-                                                                                    duration: 2, 
-                                                                                    repeat: Infinity, 
+                                                                                transition={{
+                                                                                    duration: 2,
+                                                                                    repeat: Infinity,
                                                                                     repeatDelay: 1,
-                                                                                    delay: 1
+                                                                                    delay: 1,
                                                                                 }}
                                                                                 className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 z-10"
                                                                             />
@@ -234,7 +238,7 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
 
                                                 <div className="flex items-center gap-3 w-full sm:w-auto">
                                                     {!revealedPacks.includes(pack.index) ? (
-                                                        <Button 
+                                                        <Button
                                                             onClick={() => handleRevealPack(pack.index)}
                                                             className="flex-1 sm:flex-none h-12 px-10 bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 rounded-xl"
                                                         >
@@ -243,14 +247,16 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                                     ) : (
                                                         <>
                                                             {current < displayPacks.length ? (
-                                                                <Button 
+                                                                <Button
                                                                     onClick={() => api?.scrollNext()}
                                                                     className="flex-1 sm:flex-none h-12 px-8 bg-foreground text-background font-black uppercase text-xs tracking-widest rounded-xl flex items-center gap-2"
                                                                 >
-                                                                    Siguiente Sobre <ChevronRight size={16} />
+                                                                    Siguiente Sobre
+{' '}
+<ChevronRight size={16} />
                                                                 </Button>
                                                             ) : (
-                                                                <Button 
+                                                                <Button
                                                                     onClick={onClose}
                                                                     className="flex-1 sm:flex-none h-12 px-12 bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 rounded-xl"
                                                                 >
@@ -265,7 +271,7 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                     </CarouselItem>
                                 ))}
                             </CarouselContent>
-                            
+
                             {/* Navegación manual por si el usuario quiere volver atrás (solo si están revelados) */}
                             {displayPacks.length > 1 && (
                                 <>

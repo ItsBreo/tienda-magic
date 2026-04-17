@@ -1,69 +1,74 @@
-"use client"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { Moon, Sun } from "lucide-react"
-import { flushSync } from "react-dom"
-import { cn } from "@/lib/utils"
+'use client';
 
-interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
+import {
+ useCallback, useEffect, useRef, useState,
+} from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { flushSync } from 'react-dom';
+import { cn } from '@/lib/utils';
+
+interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<'button'> {
   duration?: number
 }
 
-export const AnimatedThemeToggler = ({
+export function AnimatedThemeToggler({
   className,
   duration = 400,
   ...props
-}: AnimatedThemeTogglerProps) => {
-  const [isDark, setIsDark] = useState(false)
-  const buttonRef = useRef<HTMLButtonElement>(null)
+}: AnimatedThemeTogglerProps) {
+  const [isDark, setIsDark] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const updateTheme = () => {
-      setIsDark(document.documentElement.classList.contains("dark"))
-    }
-    updateTheme()
-    const observer = new MutationObserver(updateTheme)
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class"],
-    })
-    return () => observer.disconnect()
-  }, [])
+      attributeFilter: ['class'],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const toggleTheme = useCallback(() => {
-    const button = buttonRef.current
-    if (!button) return
+    const button = buttonRef.current;
+    if (!button) return;
 
-    const { top, left, width, height } = button.getBoundingClientRect()
-    const x = left + width / 2
-    const y = top + height / 2
+    const {
+ top, left, width, height,
+} = button.getBoundingClientRect();
+    const x = left + width / 2;
+    const y = top + height / 2;
 
-    const viewportWidth = window.visualViewport?.width ?? window.innerWidth
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
 
     const maxRadius = Math.hypot(
       Math.max(x, viewportWidth - x),
-      Math.max(y, viewportHeight - y)
-    )
+      Math.max(y, viewportHeight - y),
+    );
 
     const applyTheme = () => {
-      const newTheme = !isDark
-      setIsDark(newTheme)
-      document.documentElement.classList.toggle("dark", newTheme)
-      document.documentElement.style.colorScheme = newTheme ? "dark" : "light"
-      localStorage.setItem("appearance", newTheme ? "dark" : "light")
-    }
+      const newTheme = !isDark;
+      setIsDark(newTheme);
+      document.documentElement.classList.toggle('dark', newTheme);
+      document.documentElement.style.colorScheme = newTheme ? 'dark' : 'light';
+      localStorage.setItem('appearance', newTheme ? 'dark' : 'light');
+    };
 
-    if (typeof document.startViewTransition !== "function") {
-      applyTheme()
-      return
+    if (typeof document.startViewTransition !== 'function') {
+      applyTheme();
+      return;
     }
 
     const transition = document.startViewTransition(() => {
-      flushSync(applyTheme)
-    })
+      flushSync(applyTheme);
+    });
 
-    const ready = transition?.ready
-    if (ready && typeof ready.then === "function") {
+    const ready = transition?.ready;
+    if (ready && typeof ready.then === 'function') {
       ready.then(() => {
         document.documentElement.animate(
           {
@@ -74,13 +79,13 @@ export const AnimatedThemeToggler = ({
           },
           {
             duration,
-            easing: "ease-in-out",
-            pseudoElement: "::view-transition-new(root)",
-          }
-        )
-      })
+            easing: 'ease-in-out',
+            pseudoElement: '::view-transition-new(root)',
+          },
+        );
+      });
     }
-  }, [isDark, duration])
+  }, [isDark, duration]);
 
   return (
     <button
@@ -88,13 +93,13 @@ export const AnimatedThemeToggler = ({
       ref={buttonRef}
       onClick={toggleTheme}
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors", 
-        className
+        'flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors',
+        className,
       )}
       {...props}
     >
       {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       <span className="sr-only">Toggle theme</span>
     </button>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 // resources/js/app.tsx
 import '../css/app.css';
-import { StrictMode, useEffect } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
     BrowserRouter, Routes, Route, Navigate,
@@ -8,9 +8,10 @@ import {
 import { Toaster } from 'sonner';
 
 // Hooks y Contextos
-import { initializeTheme } from './hooks/use-appearance';
+import { initializeTheme, useAppearance } from './hooks/use-appearance';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { FlickeringGrid } from './components/ui/flickering-grid';
 
 // Páginas y Componentes de Layout
 import Login from './pages/auth/Login';
@@ -48,13 +49,37 @@ import Privacy from './pages/static/Privacy';
 import Contact from './pages/static/Contact';
 import Support from './pages/static/Support';
 
+const GlobalBackground = () => {
+    const { appearance } = useAppearance();
+    const [isDark, setIsDark] = useState(false);
+
+    useEffect(() => {
+        console.log("FlickeringGrid is active and mounting...");
+        const checkDark = () => {
+            const dark = appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            setIsDark(dark);
+        };
+        checkDark();
+    }, [appearance]);
+
+    return (
+        <FlickeringGrid
+            className="fixed inset-0 z-0 pointer-events-none"
+            squareSize={3}
+            gridGap={6}
+            color={isDark ? '#8b9467' : '#6c5ce7'} // Colores temáticos
+            maxOpacity={isDark ? 0.35 : 0.08}
+            flickerChance={0.3}
+        />
+    );
+};
+
 initializeTheme();
 
 const el = document.getElementById('root') || document.getElementById('app');
 
 if (el) {
     // FIX 2: Garantizamos que el marco principal ocupe toda la ventana del navegador.
-    // Esto evita que componentes con 'height: 100%' como tu Foro colapsen visualmente.
     el.classList.add('min-h-screen', 'flex', 'flex-col');
 
     const root = createRoot(el);
@@ -64,7 +89,8 @@ if (el) {
             <AuthProvider>
                 <CartProvider>
                     <BrowserRouter>
-                        <Toaster position="top-right" expand={true} richColors closeButton />
+                        <GlobalBackground />
+                        <Toaster position="top-right" expand richColors closeButton />
                         <Routes>
                             {/* Públicas */}
                             <Route path="/login" element={<Login />} />
@@ -115,7 +141,7 @@ if (el) {
                     </BrowserRouter>
                 </CartProvider>
             </AuthProvider>
-        </StrictMode>
+        </StrictMode>,
     );
 } else {
     // Error silenciado: no se encontró el elemento raíz

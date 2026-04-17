@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import apiService from '@/services/ApiService';
+import React, {
+ createContext, useContext, useState, useEffect, useCallback,
+} from 'react';
 import { toast } from 'sonner';
+import apiService from '@/services/ApiService';
 
 interface CartItem {
     id: number;
@@ -60,7 +62,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         try {
             const data = {
                 [type === 'card' ? 'card_id' : 'booster_pack_id']: id,
-                quantity
+                quantity,
             };
             await apiService.axiosInstance.post('/api/cart', data);
             await fetchCart(false);
@@ -89,7 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const removeItem = async (itemId: number) => {
         try {
             await apiService.axiosInstance.delete(`/api/cart/${itemId}`);
-            setItems(prev => prev.filter(item => item.id !== itemId));
+            setItems((prev) => prev.filter((item) => item.id !== itemId));
             toast.success('Producto eliminado');
         } catch (error) {
             console.error('Error removing item:', error);
@@ -115,7 +117,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             updateQuantity,
             removeItem,
             totalAmount,
-            itemCount
+            itemCount,
         }}>
             {children}
         </CartContext.Provider>

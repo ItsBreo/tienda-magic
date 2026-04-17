@@ -19,7 +19,9 @@ interface CardItemProps {
     showStock?: boolean;
 }
 
-export default function CardItem({ card, onClick, className = '', showStock = false }: CardItemProps) {
+export default function CardItem({
+ card, onClick, className = '', showStock = false,
+}: CardItemProps) {
     // Determinar color de rareza
     const getRarityColor = (rarity: string) => {
         switch (rarity?.toLowerCase()) {

@@ -1,36 +1,40 @@
 import React from 'react';
-import { 
-    Mail, MessageSquare, MapPin, 
+import {
+    Mail, MessageSquare, MapPin,
     Send, ExternalLink, Globe,
-    Shield, HelpCircle
+    Shield, HelpCircle,
 } from 'lucide-react';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 export default function Contact() {
     return (
-        <div className="flex-1 bg-background text-foreground pb-20 font-literata selection:bg-primary/30">
-            {/*<Breadcrumbs items={[{ title: 'Contacto', href: '/contact' }]} />*/}
+        <div className="flex-1 text-foreground pb-20 font-literata selection:bg-primary/30">
+            {/* <Breadcrumbs items={[{ title: 'Contacto', href: '/contact' }]} /> */}
 
             <main className="max-w-6xl mx-auto px-4 pt-16">
                  {/* INTRO HERO */}
                 <div className="text-center mb-20 space-y-8 animate-in fade-in slide-in-from-top-6 duration-1000 mt-20">
-                    
+
                     <h1 className="text-6xl md:text-8xl font-forum font-black text-foreground uppercase tracking-tighter leading-none">
-                        Contacta con el <span className="text-primary italic">Gremio</span>
+                        Contacta con el
+{' '}
+<span className="text-primary italic">Gremio</span>
                     </h1>
                     <p className="max-w-2xl mx-auto text-muted-foreground text-xl leading-relaxed italic opacity-80">
-                        ¿Tienes dudas sobre un pedido, un intercambio o algún torneo? <br />
+                        ¿Tienes dudas sobre un pedido, un intercambio o algún torneo?
+{' '}
+<br />
                         Nuestros escribas están listos para asistirte en tu viaje por el Multiverso.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
                     {/* EMAIL CARD */}
-                    <Card className="bg-card border-border/50 rounded-2xl shadow-2xl shadow-black/5 hover:border-primary/40 transition-all duration-500 group overflow-hidden relative">
+                    <Card className="bg-card/40 backdrop-blur-md border-border/50 rounded-2xl shadow-2xl shadow-black/5 hover:border-primary/40 transition-all duration-500 group overflow-hidden relative">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-16 translate-x-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <CardContent className="p-10 space-y-8">
                             <div className="flex items-center gap-6">
@@ -53,7 +57,7 @@ export default function Contact() {
                     </Card>
 
                     {/* FORUM CARD */}
-                    <Card className="bg-card border-border/50 rounded-2xl shadow-2xl shadow-black/5 hover:border-primary/40 transition-all duration-500 group overflow-hidden relative">
+                    <Card className="bg-card/40 backdrop-blur-md border-border/50 rounded-2xl shadow-2xl shadow-black/5 hover:border-primary/40 transition-all duration-500 group overflow-hidden relative">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-16 translate-x-16 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <CardContent className="p-10 space-y-8">
                             <div className="flex items-center gap-6">
@@ -76,7 +80,7 @@ export default function Contact() {
                     </Card>
 
                     {/* PHYSICAL LOCATION */}
-                    <Card className="bg-card border-border/50 rounded-2xl shadow-2xl shadow-black/5 md:col-span-2 overflow-hidden border-l-8 border-l-primary/30 relative group">
+                    <Card className="bg-card/40 backdrop-blur-md border-border/50 rounded-2xl shadow-2xl shadow-black/5 md:col-span-2 overflow-hidden border-l-8 border-l-primary/30 relative group">
                         <div className="absolute inset-0 bg-primary/[0.01] pointer-events-none" />
                         <CardContent className="p-0 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border/50">
                             <div className="p-12 md:w-1/2 space-y-8">
@@ -101,7 +105,7 @@ export default function Contact() {
                             <div className="md:w-1/2 relative bg-accent/10 flex items-center justify-center p-12 group overflow-hidden">
                                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1547394765-185e1e68f34e?auto=format&fit=crop&q=80&w=800')] bg-cover bg-center opacity-10 blur-sm grayscale group-hover:blur-0 group-hover:opacity-30 group-hover:scale-110 transition-all duration-1000" />
                                 <div className="relative text-center space-y-4">
-                                     <div className="p-6 bg-background/50 backdrop-blur-md rounded-full border border-border/50 inline-block shadow-2xl group-hover:scale-125 transition-transform duration-700">
+                                     <div className="p-6 bg-background/20 backdrop-blur-md rounded-full border border-border/50 inline-block shadow-2xl group-hover:scale-125 transition-transform duration-700">
                                         <Globe size={40} className="text-primary/40 animate-pulse" />
                                      </div>
                                      <p className="text-[10px] font-black uppercase tracking-[1em] text-muted-foreground/40 mt-4">Mapa Místico Próximamente</p>

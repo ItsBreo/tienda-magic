@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-    ArrowLeft, 
-    Wallet, 
-    CreditCard, 
-    Info, 
-    ChevronRight, 
-    TrendingUp, 
-    Users, 
-    ShoppingBag, 
+import {
+    ArrowLeft,
+    Wallet,
+    CreditCard,
+    Info,
+    ChevronRight,
+    TrendingUp,
+    Users,
+    ShoppingBag,
     FileText,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ApiService from '../../services/ApiService';
@@ -77,6 +77,7 @@ const ProductDetail: React.FC = () => {
                 setPageTitle(data.product.name);
             }
             
+
             // Seleccionar por defecto el más barato si hay anuncios
             if (data.listings.length > 0) {
                 setSelectedListing(data.listings[0]);
@@ -91,7 +92,7 @@ const ProductDetail: React.FC = () => {
 
     const handlePurchase = async () => {
         if (!selectedListing) return;
-        
+
         if (selectedListing.seller.id === user?.id) {
             toast.error('No puedes comprar tu propio artículo');
             return;
@@ -118,26 +119,28 @@ const ProductDetail: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex-1 flex items-center justify-center bg-background">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <div className="flex-1 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
             </div>
         );
     }
 
     if (!product) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                 <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
                 <h1 className="text-2xl font-bold text-foreground">Producto no encontrado</h1>
                 <Link to="/market" className="mt-4 text-primary hover:underline flex items-center gap-2">
-                    <ArrowLeft className="w-4 h-4" /> Volver al mercado
-                </Link>
+                    <ArrowLeft className="w-4 h-4" />
+{' '}
+Volver al mercado
+</Link>
             </div>
         );
     }
 
     return (
-        <div className="flex-1 bg-background p-4 md:p-8 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
             <div className="max-w-7xl mx-auto">
                 {/* Header / Breadcrumbs */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
@@ -150,15 +153,15 @@ const ProductDetail: React.FC = () => {
                     {/* Left Column: Product Info & Chart */}
                     <div className="lg:col-span-8 space-y-6">
                         {/* Product Card */}
-                        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm overflow-hidden relative">
+                        <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border p-6 shadow-sm overflow-hidden relative">
                             <div className="flex flex-col md:flex-row gap-8">
                                 {/* Image Container */}
                                 <div className="w-full md:w-56 flex-shrink-0 group">
                                     <div className="aspect-[2.5/3.5] bg-accent rounded-xl overflow-hidden shadow-lg transform transition-transform group-hover:scale-[1.02]">
                                         {product.image_url ? (
-                                            <img 
-                                                src={product.image_url} 
-                                                alt={product.name} 
+                                            <img
+                                                src={product.image_url}
+                                                alt={product.name}
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
@@ -180,8 +183,12 @@ const ProductDetail: React.FC = () => {
                                                 {product.rarity || 'Common'}
                                             </span>
                                             <span className="px-3 py-1 bg-accent text-muted-foreground rounded-full text-xs font-medium">
-                                                {product.cardSet?.name} ({product.cardSet?.code?.toUpperCase()})
-                                            </span>
+                                                {product.cardSet?.name}
+{' '}
+(
+{product.cardSet?.code?.toUpperCase()}
+)
+</span>
                                             {product.type_line && (
                                                 <span className="px-3 py-1 bg-accent text-muted-foreground rounded-full text-xs font-medium">
                                                     {product.type_line}
@@ -270,14 +277,14 @@ const ProductDetail: React.FC = () => {
                         </div>
 
                         {/* Price History Chart */}
-                        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+                        <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                                     <TrendingUp className="w-5 h-5 text-primary" />
                                     Historial de Precios
                                 </h3>
                                 <div className="flex gap-1">
-                                    {['7D', '30D', '90D', 'All'].map(p => (
+                                    {['7D', '30D', '90D', 'All'].map((p) => (
                                         <button key={p} className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${p === '30D' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent text-muted-foreground'}`}>
                                             {p}
                                         </button>
@@ -292,7 +299,7 @@ const ProductDetail: React.FC = () => {
                         </div>
 
                         {/* Sellers Table */}
-                        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+                        <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border shadow-sm overflow-hidden">
                             <div className="p-6 border-b border-border">
                                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                                     <Users className="w-5 h-5 text-primary" />
@@ -311,8 +318,8 @@ const ProductDetail: React.FC = () => {
                                     </thead>
                                     <tbody className="divide-y divide-border">
                                         {listings.length > 0 ? listings.map((listing) => (
-                                            <tr 
-                                                key={listing.id} 
+                                            <tr
+                                                key={listing.id}
                                                 className={`group transition-colors ${selectedListing?.id === listing.id ? 'bg-primary/10' : 'hover:bg-accent/50'}`}
                                                 onClick={() => setSelectedListing(listing)}
                                             >
@@ -333,22 +340,27 @@ const ProductDetail: React.FC = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                                                        <CheckCircle2 className="w-3 h-3" /> Digital-NM
-                                                    </span>
+                                                        <CheckCircle2 className="w-3 h-3" />
+{' '}
+Digital-NM
+</span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     {listing.seller?.id === user?.id ? (
                                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">TUYO</span>
                                                     ) : (
-                                                        <p className="text-base font-bold text-foreground">{Number(listing.price_total).toFixed(2)}€</p>
+                                                        <p className="text-base font-bold text-foreground">
+{Number(listing.price_total).toFixed(2)}
+€
+</p>
                                                     )}
                                                     <p className="text-[10px] text-muted-foreground">Envío Gratis</p>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <button 
+                                                    <button
                                                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                                            selectedListing?.id === listing.id 
-                                                                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
+                                                            selectedListing?.id === listing.id
+                                                                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                                                                 : 'bg-accent text-muted-foreground hover:bg-zinc-200 dark:hover:bg-zinc-700'
                                                         }`}
                                                     >
@@ -371,7 +383,7 @@ const ProductDetail: React.FC = () => {
 
                     {/* Right Column: Checkout Sidebar */}
                     <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit space-y-6">
-                        <div className="bg-card rounded-2xl border border-border p-6 shadow-xl shadow-primary/5">
+                        <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border p-6 shadow-xl shadow-primary/5">
                             <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                                 <ShoppingBag className="w-5 h-5 text-primary" />
                                 Confirmar Compra
@@ -390,25 +402,30 @@ const ProductDetail: React.FC = () => {
                                         </div>
                                         <div className="flex justify-between text-sm mb-2">
                                             <span className="text-muted-foreground">Plataforma (Fee)</span>
-                                            <span className="font-medium text-foreground">+{Number(selectedListing.fee_platform).toFixed(2)}€</span>
+                                            <span className="font-medium text-foreground">
++
+{Number(selectedListing.fee_platform).toFixed(2)}
+€
+</span>
                                         </div>
                                         <div className="mt-4 pt-4 border-t border-border flex justify-between items-end">
                                             <span className="text-sm font-bold text-muted-foreground">Precio Total</span>
                                             <span className="text-3xl font-black text-primary tabular-nums">
-                                                {Number(selectedListing.price_total).toFixed(2)}€
-                                            </span>
+                                                {Number(selectedListing.price_total).toFixed(2)}
+€
+</span>
                                         </div>
                                     </div>
 
                                     <div className="space-y-3">
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Método de Pago</p>
-                                        
+
                                         {/* Wallet Option */}
-                                        <button 
+                                        <button
                                             onClick={() => setPaymentMethod('wallet')}
                                             className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${
-                                                paymentMethod === 'wallet' 
-                                                    ? 'border-primary bg-primary/10' 
+                                                paymentMethod === 'wallet'
+                                                    ? 'border-primary bg-primary/10'
                                                     : 'border-border hover:border-zinc-300 dark:hover:border-zinc-600'
                                             }`}
                                         >
@@ -418,18 +435,21 @@ const ProductDetail: React.FC = () => {
                                                 </div>
                                                 <div className="text-left">
                                                     <p className="text-sm font-bold text-foreground">Mi Billetera</p>
-                                                    <p className="text-[10px] text-muted-foreground">{Number(user?.wallet_balance || 0).toFixed(2)}€ disponible</p>
+                                                    <p className="text-[10px] text-muted-foreground">
+{Number(user?.wallet_balance || 0).toFixed(2)}
+€ disponible
+</p>
                                                 </div>
                                             </div>
                                             {paymentMethod === 'wallet' && <CheckCircle2 className="w-5 h-5 text-primary" />}
                                         </button>
 
                                         {/* Stripe Option */}
-                                        <button 
+                                        <button
                                             onClick={() => setPaymentMethod('stripe')}
                                             className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between group ${
-                                                paymentMethod === 'stripe' 
-                                                    ? 'border-primary bg-primary/10' 
+                                                paymentMethod === 'stripe'
+                                                    ? 'border-primary bg-primary/10'
                                                     : 'border-border hover:border-zinc-300 dark:hover:border-zinc-600'
                                             }`}
                                         >
@@ -446,13 +466,13 @@ const ProductDetail: React.FC = () => {
                                         </button>
                                     </div>
 
-                                    <button 
+                                    <button
                                         disabled={processing || (paymentMethod === 'wallet' && (user?.wallet_balance || 0) < selectedListing.price_total) || selectedListing.seller?.id === user?.id}
                                         onClick={handlePurchase}
                                         className="w-full h-14 bg-primary text-primary-foreground rounded-xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
                                     >
                                         {processing ? (
-                                            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                         ) : (
                                             <>
                                                 {paymentMethod === 'wallet' ? 'Pagar con Billetera' : 'Continuar a Stripe'}
@@ -464,7 +484,9 @@ const ProductDetail: React.FC = () => {
                                         <div className="p-3 bg-destructive/10 rounded-xl border border-destructive/30 flex items-start gap-2">
                                             <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                                             <p className="text-[10px] text-destructive">
-                                                Saldo insuficiente. <Link to="/wallet" className="font-bold underline">Recargar billetera</Link>
+                                                Saldo insuficiente.
+{' '}
+<Link to="/wallet" className="font-bold underline">Recargar billetera</Link>
                                             </p>
                                         </div>
                                     )}
@@ -495,7 +517,7 @@ const ProductDetail: React.FC = () => {
                         </div>
 
                         {/* Recent Activity / Market stats */}
-                        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+                        <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-border p-6 shadow-sm">
                             <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                                 <FileText className="w-4 h-4 text-primary" />
                                 Detalles del Mercado

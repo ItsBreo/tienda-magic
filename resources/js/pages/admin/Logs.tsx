@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Loader2, Database, User, Globe, Monitor, Search, Clock, Info } from 'lucide-react';
+import {
+ Loader2, Database, User, Globe, Monitor, Search, Clock, Info,
+} from 'lucide-react';
+import apiService from '@/services/ApiService';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -36,11 +38,11 @@ export default function AuditLogs() {
         try {
             setLoading(true);
             const response = await apiService.axiosInstance.get('/api/admin/logs', {
-                params: { 
+                params: {
                     page,
                     action: actionFilter,
-                    search: searchTerm
-                }
+                    search: searchTerm,
+                },
             });
             setLogs(response.data.data);
             setLastPage(response.data.last_page);
@@ -85,18 +87,18 @@ export default function AuditLogs() {
                     <h1 className="text-4xl font-forum font-black text-foreground mb-2">Archivos de la Ciudadela</h1>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Historial completo de acciones, eventos y transacciones del sistema.</p>
                 </div>
-                
+
                 <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-                        <Input 
-                            placeholder="Buscar acción..." 
+                        <Input
+                            placeholder="Buscar acción..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 bg-card border-border/50 h-11 rounded-xl text-xs font-medium"
                         />
                     </div>
-                    <select 
+                    <select
                         value={actionFilter}
                         onChange={(e) => setActionFilter(e.target.value)}
                         className="bg-card border border-border/50 rounded-xl px-4 h-11 text-[10px] font-black uppercase tracking-widest text-muted-foreground outline-none focus:ring-1 focus:ring-primary transition-all appearance-none pr-8 cursor-pointer shadow-sm"
@@ -147,16 +149,19 @@ export default function AuditLogs() {
                                                 </span>
                                                 {log.user && (
                                                     <span className="text-[9px] text-muted-foreground/50 uppercase font-black tracking-widest font-montserrat">
-                                                        @{log.user.username}
+                                                        @
+{log.user.username}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <Badge variant="outline" className={cn(
-                                            "text-[8px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg border",
-                                            getActionColor(log.action)
+                                        <Badge
+variant="outline"
+className={cn(
+                                            'text-[8px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg border',
+                                            getActionColor(log.action),
                                         )}>
                                             {log.action.replace('.', ': ')}
                                         </Badge>
@@ -167,7 +172,10 @@ export default function AuditLogs() {
                                                 <div className="flex flex-col gap-1">
                                                     {Object.entries(log.payload).map(([key, value]) => (
                                                         <div key={key} className="flex gap-2">
-                                                            <span className="text-[9px] font-black uppercase text-muted-foreground/40">{key}:</span>
+                                                            <span className="text-[9px] font-black uppercase text-muted-foreground/40">
+{key}
+:
+</span>
                                                             <span className="text-[11px] text-foreground font-medium truncate">
                                                                 {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                                                             </span>
@@ -209,23 +217,29 @@ export default function AuditLogs() {
                 {lastPage > 1 && (
                     <div className="px-8 py-6 bg-accent/20 border-t border-border flex justify-between items-center">
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                            Página {currentPage} de {lastPage}
+                            Página
+{' '}
+{currentPage}
+{' '}
+de
+{' '}
+{lastPage}
                         </p>
                         <div className="flex gap-2">
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 disabled={currentPage === 1}
-                                onClick={() => setCurrentPage(p => p - 1)}
+                                onClick={() => setCurrentPage((p) => p - 1)}
                                 className="h-9 px-4 border-border/50 font-black uppercase tracking-widest text-[9px] rounded-lg"
                             >
                                 Anterior
                             </Button>
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 disabled={currentPage === lastPage}
-                                onClick={() => setCurrentPage(p => p + 1)}
+                                onClick={() => setCurrentPage((p) => p + 1)}
                                 className="h-9 px-4 border-border/50 font-black uppercase tracking-widest text-[9px] rounded-lg"
                             >
                                 Siguiente
@@ -234,7 +248,7 @@ export default function AuditLogs() {
                     </div>
                 )}
             </div>
-            
+
             <div className="mt-8 flex items-center justify-center gap-2 opacity-30">
                 <Info size={14} />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em]">Los registros son inmutables y se conservan para auditoría permanente.</p>

@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import {
+ useState, useEffect, useRef, useCallback, useMemo,
+} from 'react';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,9 +99,7 @@ export function useChat(conversationId: string | null, authToken: string | null)
 
         // Ordenación explícita por fecha (cronológica ascendente)
         const sortedMessages = Array.isArray(messagesData)
-          ? [...messagesData].sort((a, b) => {
-              return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-            })
+          ? [...messagesData].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
           : [];
 
         setMessages(sortedMessages);
@@ -148,13 +148,12 @@ export function useChat(conversationId: string | null, authToken: string | null)
         // Dependiendo de cómo serialice Laravel, el mensaje puede venir en e.message o directamente en e
         const nuevoMensaje = e.message || e;
 
-        setMessages(prev => {
+        setMessages((prev) => {
           // Evitar duplicados por si acaso
-          if (prev.some(m => m.id === nuevoMensaje.id)) return prev;
+          if (prev.some((m) => m.id === nuevoMensaje.id)) return prev;
           return [...prev, nuevoMensaje];
         });
       });
-
     } catch (e) {
       console.error('❌ No se puede suscribir al canal WebSocket:', e);
       setConnectionStatus('disconnected');
@@ -185,11 +184,10 @@ export function useChat(conversationId: string | null, authToken: string | null)
       console.log('📤 Mensaje enviado con éxito:', newMessage);
 
       // Actualización instantánea (optimista)
-      setMessages(prev => {
-        if (prev.some(m => m.id === newMessage.id)) return prev;
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === newMessage.id)) return prev;
         return [...prev, newMessage];
       });
-
     } catch (err) {
       console.error('Error sending message:', err);
       setError('No se pudo enviar el mensaje');

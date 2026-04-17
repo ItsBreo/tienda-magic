@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Loader2, Package, Plus, Minus, Info, Sparkles } from 'lucide-react';
+import {
+ ShoppingCart, Loader2, Package, Plus, Minus, Info, Sparkles,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -62,13 +64,13 @@ interface PackDialogProps {
   onOpenPack?: (quantity: number) => void;
 }
 
-export default function PackDialog({ 
-    pack, 
-    isOpen, 
-    onClose, 
-    mode = 'shop', 
+export default function PackDialog({
+    pack,
+    isOpen,
+    onClose,
+    mode = 'shop',
     availableQuantity = 0,
-    onOpenPack 
+    onOpenPack,
 }: PackDialogProps) {
   const [packCards, setPackCards] = useState<Card[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
@@ -127,7 +129,7 @@ export default function PackDialog({
           await addToCart({
             type: 'pack',
             id: pack.id,
-            quantity: quantity
+            quantity,
           });
           onClose();
       }
@@ -148,7 +150,7 @@ export default function PackDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-background border-border text-foreground max-w-[98vw] lg:max-w-7xl h-[95vh] lg:h-[85vh] flex flex-col p-0 rounded-2xl shadow-2xl overflow-hidden border-none outline-none">
-        
+
         {/* Header - Fixed */}
         <DialogHeader className="px-8 py-5 border-b border-border bg-card/50 backdrop-blur-xl shrink-0">
           <div className="flex flex-col gap-0.5">
@@ -157,7 +159,7 @@ export default function PackDialog({
             </DialogTitle>
             <DialogDescription className="text-muted-foreground font-semibold flex items-center gap-2 mt-1 text-xs lg:text-sm">
               <Info size={14} className="text-primary" />
-              {mode === 'inventory' 
+              {mode === 'inventory'
                 ? `Tienes ${availableQuantity} sobres disponibles en tu bóveda`
                 : 'Explora las cartas más destacadas de esta colección oficial'}
             </DialogDescription>
@@ -169,9 +171,11 @@ export default function PackDialog({
           <div className="flex-1 overflow-y-auto bg-background/30 custom-scrollbar p-5 lg:p-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
-                Posibles Hallazgos ({packCards.length})
-              </h3>
-              <div className="h-px flex-1 bg-border/40 ml-4"></div>
+                Posibles Hallazgos (
+{packCards.length}
+)
+</h3>
+              <div className="h-px flex-1 bg-border/40 ml-4" />
             </div>
 
             {loadingCards ? (
@@ -201,7 +205,7 @@ export default function PackDialog({
           {/* Panel Lateral de Acción */}
           <div className="w-full lg:w-[380px] bg-card/80 backdrop-blur-lg border-t lg:border-t-0 lg:border-l border-border flex flex-col shrink-0">
             <div className="p-6 lg:p-8 flex flex-col h-full">
-              
+
               <div className="relative group/set mb-6 lg:mb-8 mx-auto">
                 <div className="absolute inset-0 bg-primary/20 blur-[80px] rounded-full opacity-60 group-hover/set:opacity-100 transition-opacity duration-700" />
                 <div className="relative w-36 h-36 lg:w-44 lg:h-44 bg-gradient-to-tr from-accent/20 to-accent/5 rounded-[32px] border border-border overflow-hidden flex items-center justify-center p-8 transition-all duration-500 group-hover/set:border-primary/40 group-hover/set:bg-accent/20 shadow-xl">
@@ -235,7 +239,10 @@ export default function PackDialog({
                     <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">
                        {mode === 'inventory' ? 'Valor Est' : 'Precio Unitario'}
                     </span>
-                    <span className="text-xl font-black text-foreground">€{pack.price.toFixed(2)}</span>
+                    <span className="text-xl font-black text-foreground">
+€
+{pack.price.toFixed(2)}
+</span>
                   </div>
                   <div className="flex justify-between items-center py-2.5 border-b border-border/40">
                     <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Capacidad</span>
@@ -249,7 +256,7 @@ export default function PackDialog({
                 {pack.config?.description && (
                   <div className="bg-accent/20 p-3 rounded-lg border border-border/30">
                     <p className="text-muted-foreground text-[11px] leading-snug font-medium italic opacity-80">
-                      {pack.config.description.length > 150 ? pack.config.description.substring(0, 150) + '...' : pack.config.description}
+                      {pack.config.description.length > 150 ? `${pack.config.description.substring(0, 150)}...` : pack.config.description}
                     </p>
                   </div>
                 )}
@@ -294,15 +301,15 @@ export default function PackDialog({
                     <div className="flex flex-col gap-2">
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Seleccionar</span>
                         <div className="flex items-center bg-accent/40 rounded-xl border border-border h-12 w-32 overflow-hidden shadow-sm">
-                        <button 
-                            onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                        <button
+                            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                             className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full"
                         >
                             <Minus size={14} strokeWidth={4} />
                         </button>
                         <span className="w-10 text-center text-sm font-black text-foreground">{quantity}</span>
-                        <button 
-                            onClick={() => setQuantity(q => Math.min(99, pack.stock || 99))}
+                        <button
+                            onClick={() => setQuantity((q) => Math.min(99, pack.stock || 99))}
                             className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full"
                         >
                             <Plus size={14} strokeWidth={4} />
@@ -312,7 +319,10 @@ export default function PackDialog({
 
                     <div className="text-right">
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 block">Total Pedido</span>
-                        <span className="text-3xl font-black text-primary drop-shadow-[0_0_10px_rgba(var(--primary),0.2)]">€{(pack.price * quantity).toFixed(2)}</span>
+                        <span className="text-3xl font-black text-primary drop-shadow-[0_0_10px_rgba(var(--primary),0.2)]">
+€
+{(pack.price * quantity).toFixed(2)}
+</span>
                     </div>
                     </div>
 

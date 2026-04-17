@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { apiService } from '../../services/ApiService';
 import { toast } from 'sonner';
+import { apiService } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function Exchanges() {
@@ -8,14 +8,14 @@ export default function Exchanges() {
   const [exchanges, setExchanges] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [genericCards, setGenericCards] = useState<any[]>([]);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [loadingInventory, setLoadingInventory] = useState(false);
-  
+
   const [selectedExchange, setSelectedExchange] = useState<any>(null);
   const [selectedInventoryCardId, setSelectedInventoryCardId] = useState<any>('');
-  
+
   const [newOfferCardId, setNewOfferCardId] = useState<any>('');
   const [newRequestCardId, setNewRequestCardId] = useState<any>('');
   const [cardSearch, setCardSearch] = useState('');
@@ -47,7 +47,7 @@ export default function Exchanges() {
       } else if (Array.isArray(resp)) {
         arr = resp;
       }
-      setInventory(arr); 
+      setInventory(arr);
     } catch (error) {
       toast.error('Error al cargar tu inventario');
     } finally {
@@ -58,7 +58,7 @@ export default function Exchanges() {
   const loadGenericCards = async (search: string = '') => {
     try {
       const data = await apiService.getAllCards(1, search);
-      let arr = Array.isArray(data) ? data : (data?.data || []);
+      const arr = Array.isArray(data) ? data : (data?.data || []);
       setGenericCards(arr);
     } catch (error) {
       setGenericCards([]);
@@ -75,7 +75,7 @@ export default function Exchanges() {
     if (!selectedInventoryCardId) return toast.error('Selecciona una carta para ofrecer');
     try {
       await apiService.requestExchange(selectedExchange.id, {
-        offered_inventory_card_id: selectedInventoryCardId
+        offered_inventory_card_id: selectedInventoryCardId,
       });
       toast.success('Solicitud enviada correctamente');
       setIsModalOpen(false);
@@ -104,9 +104,9 @@ export default function Exchanges() {
   };
 
   return (
-    <div className="flex-1 bg-background text-foreground p-6">
+    <div className="flex-1 text-foreground p-6">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Header Elegante sin iconos */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-border pb-6">
             <div className="flex flex-col gap-1">
@@ -116,7 +116,7 @@ export default function Exchanges() {
                 </h1>
             </div>
             <div className="flex items-center gap-3">
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(true)}
                   className="bg-foreground text-background font-black text-xs uppercase tracking-widest h-11 px-8 rounded-xl hover:bg-primary hover:text-primary-foreground hover:scale-105 transition-all shadow-md group"
@@ -132,20 +132,20 @@ export default function Exchanges() {
         {/* Grid de ofertas estilo Marketplace */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {(exchanges || []).map((exchange: any) => (
-            <div key={exchange.id} className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1">
-              
+            <div key={exchange.id} className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card/40 backdrop-blur-md w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1">
+
               {/* Contenedor de Imagen de lo que OFRECE */}
               <div className="group/img flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden">
                 {exchange.offered_card?.card?.image_url ? (
-                  <img 
-                    src={exchange.offered_card.card.image_url.startsWith('http') ? exchange.offered_card.card.image_url : `/storage/${exchange.offered_card.card.image_url}`} 
-                    alt={exchange.offered_card?.card?.name} 
+                  <img
+                    src={exchange.offered_card.card.image_url.startsWith('http') ? exchange.offered_card.card.image_url : `/storage/${exchange.offered_card.card.image_url}`}
+                    alt={exchange.offered_card?.card?.name}
                     className="group-hover/img:scale-110 transition-transform duration-500 max-h-full object-contain drop-shadow-md"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase opacity-20">NO IMG</div>
                 )}
-                
+
                 <div className="absolute top-2 right-2 bg-primary/20 backdrop-blur-sm text-[10px] font-black text-primary px-2 py-0.5 rounded border border-primary/30 uppercase tracking-tighter shadow-sm">
                   OFRECE
                 </div>
@@ -174,7 +174,7 @@ export default function Exchanges() {
                 {/* Lo que pide a cambio */}
                 <div className="w-full mt-auto pt-3 border-t border-border/50">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60 mb-2">Busca a cambio:</p>
-                  
+
                   {exchange.requested_card ? (
                     <div className="flex items-center gap-2">
                        <span className="text-xs font-bold text-foreground truncate">{exchange.requested_card.name}</span>
@@ -190,7 +190,7 @@ export default function Exchanges() {
                       Tus artículos
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => handleRequestClick(exchange)}
                       className="h-9 w-full bg-primary text-primary-foreground border-none hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 rounded-lg transition-all"
                     >
@@ -212,14 +212,18 @@ export default function Exchanges() {
       {/* Modal para Hacer una Oferta */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative z-[70] bg-card border border-border p-8 rounded-3xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
+          <div className="relative z-[70] bg-card/60 backdrop-blur-md border border-border p-8 rounded-3xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <h2 className="text-2xl font-forum font-bold mb-2 text-foreground uppercase tracking-tight">Proponer Intercambio</h2>
-            <p className="text-muted-foreground text-sm mb-6">Ofrece una carta a <span className="text-primary font-bold">{selectedExchange?.user?.name}</span>.</p>
-            
+            <p className="text-muted-foreground text-sm mb-6">
+Ofrece una carta a
+<span className="text-primary font-bold">{selectedExchange?.user?.name}</span>
+.
+</p>
+
             <div className="mb-6 space-y-2">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Carta a ofrecer</label>
-              <select 
+              <select
                 className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none transition-all"
                 value={selectedInventoryCardId}
                 onChange={(e) => setSelectedInventoryCardId(e.target.value)}
@@ -237,13 +241,18 @@ export default function Exchanges() {
                   const available = inv.quantity - inv.quantity_locked;
                   return (
                     <option key={`inv-${inv.id}`} value={inv.id}>
-                      {inv.card?.name} ({available} disp.)
-                    </option>
+                      {inv.card?.name}
+{' '}
+(
+{available}
+{' '}
+disp.)
+</option>
                   );
                 })}
               </select>
-              
-              {selectedExchange?.requested_card_id && (inventory || []).filter(inv => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0 && (
+
+              {selectedExchange?.requested_card_id && (inventory || []).filter((inv) => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0 && (
                 <p className="text-[10px] text-destructive uppercase font-black tracking-widest mt-2">
                   No tienes la carta requerida.
                 </p>
@@ -251,17 +260,17 @@ export default function Exchanges() {
             </div>
 
             <div className="flex gap-3">
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="flex-1 bg-accent border border-border hover:bg-background text-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 type="button"
                 onClick={submitRequest}
-                disabled={selectedExchange?.requested_card_id && (inventory || []).filter(inv => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0}
+                disabled={selectedExchange?.requested_card_id && (inventory || []).filter((inv) => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0}
                 className="flex-1 bg-primary border border-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all disabled:opacity-50"
               >
                 Enviar Oferta
@@ -274,15 +283,15 @@ export default function Exchanges() {
       {/* Modal para Crear Publicación */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsCreateModalOpen(false)}></div>
-          <div className="relative z-[70] bg-card border border-border p-8 rounded-3xl w-full max-w-[500px] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsCreateModalOpen(false)} />
+          <div className="relative z-[70] bg-card/60 backdrop-blur-md border border-border p-8 rounded-3xl w-full max-w-[500px] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <h2 className="text-2xl font-forum font-bold mb-2 text-foreground uppercase tracking-tight">Publicar Oferta</h2>
             <p className="text-muted-foreground text-sm mb-6">Ofrece una carta y opcionalmente pide otra.</p>
-            
+
             <div className="space-y-4 mb-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-primary uppercase tracking-widest">¿Qué ofreces?</label>
-                <select 
+                <select
                   className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none"
                   value={newOfferCardId}
                   onChange={(e) => setNewOfferCardId(e.target.value)}
@@ -293,25 +302,31 @@ export default function Exchanges() {
                     if (available <= 0) return null;
                     return (
                     <option key={`off-${inv.id}`} value={inv.id}>
-                      {inv.card?.name} ({available} disp.)
-                    </option>
-                  )})}
+                      {inv.card?.name}
+{' '}
+(
+{available}
+{' '}
+disp.)
+</option>
+                  );
+})}
                 </select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-primary uppercase tracking-widest">¿Qué quieres a cambio?</label>
-                
+
                 <div className="flex gap-2">
-                    <input 
-                        type="text" 
-                        placeholder="Buscar carta..." 
+                    <input
+                        type="text"
+                        placeholder="Buscar carta..."
                         className="flex-1 bg-background border border-border text-sm font-medium text-foreground p-2 rounded-lg focus:ring-1 focus:ring-primary outline-none"
                         value={cardSearch}
                         onChange={(e) => setCardSearch(e.target.value)}
-                        onKeyDown={(e) => { if(e.key === 'Enter') loadGenericCards(cardSearch); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') loadGenericCards(cardSearch); }}
                     />
-                    <button 
+                    <button
                         type="button"
                         onClick={() => loadGenericCards(cardSearch)}
                         className="bg-accent text-foreground hover:bg-primary/20 hover:text-primary border border-border px-4 rounded-lg text-xs font-black uppercase tracking-widest"
@@ -320,7 +335,7 @@ export default function Exchanges() {
                     </button>
                 </div>
 
-                <select 
+                <select
                   className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none"
                   value={newRequestCardId}
                   onChange={(e) => setNewRequestCardId(e.target.value)}
@@ -337,14 +352,14 @@ export default function Exchanges() {
             </div>
 
             <div className="flex gap-3 mt-8">
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
                 className="flex-1 bg-accent border border-border hover:bg-background text-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 type="button"
                 onClick={submitCreateListing}
                 className="flex-1 bg-primary border border-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all"

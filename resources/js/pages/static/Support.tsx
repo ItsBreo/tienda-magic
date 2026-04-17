@@ -8,7 +8,7 @@ export default function Support() {
         <LifeBuoy className="h-8 w-8 text-amber-500" />
         <h1 className="text-3xl font-serif font-bold text-zinc-100">Soporte Técnico</h1>
       </div>
-      
+
       <div className="space-y-8 text-zinc-300 leading-relaxed font-inter">
         <p className="text-lg text-zinc-400">
           Encuentra soluciones a los problemas más comunes o solicita asistencia técnica especializada a nuestros artificieros.
@@ -16,9 +16,11 @@ export default function Support() {
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-            <Wrench className="h-5 w-5 text-zinc-500" /> Problemas Frecuentes (FAQ)
-          </h2>
-          
+            <Wrench className="h-5 w-5 text-zinc-500" />
+{' '}
+Problemas Frecuentes (FAQ)
+</h2>
+
           <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg divide-y divide-zinc-800">
             <div className="p-4">
               <h3 className="font-bold text-amber-500 mb-1">No puedo acceder a mi bóveda/inventario</h3>
@@ -37,8 +39,10 @@ export default function Support() {
 
         <section className="bg-red-500/5 p-6 rounded-lg border border-red-500/20">
           <h2 className="text-lg font-bold text-red-400 flex items-center gap-2 mb-2">
-            <AlertCircle className="h-5 w-5" /> Reportar un Bug o Fraude
-          </h2>
+            <AlertCircle className="h-5 w-5" />
+{' '}
+Reportar un Bug o Fraude
+</h2>
           <p className="text-sm mb-4">
             ¿Has encontrado una brecha en la matrix o a un jugador haciendo trampas? Abre un ticket de soporte crítico.
           </p>

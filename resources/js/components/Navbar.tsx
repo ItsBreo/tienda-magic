@@ -50,7 +50,7 @@ export function Navbar() {
   }, []);
 
   const navLink = (to: string, label: string) => {
-    const active = location.pathname === to || location.pathname.startsWith(to + '/');
+    const active = location.pathname === to || location.pathname.startsWith(`${to}/`);
     return (
       <Link
         to={to}
@@ -66,7 +66,7 @@ export function Navbar() {
   };
 
   // Icon Button Style (Matches AnimatedThemeToggler exactly: h-8 w-8)
-  const iconButtonClass = "flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors";
+  const iconButtonClass = 'flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors';
 
   return (
     <header className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50 w-full transition-all duration-300">
@@ -89,10 +89,12 @@ export function Navbar() {
 
               <div className="relative" ref={aboutRef}>
                 <button
-                  onClick={() => { setAboutOpen(o => !o); setComunidadOpen(false); setUserMenuOpen(false); }}
+                  onClick={() => { setAboutOpen((o) => !o); setComunidadOpen(false); setUserMenuOpen(false); }}
                   className={`flex items-center gap-2 text-base font-bold transition-colors ${aboutOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                 >
-                  Nosotros <ChevronDown className={cn("h-4 w-4 transition-transform", aboutOpen && "rotate-180")} />
+                  Nosotros
+{' '}
+<ChevronDown className={cn('h-4 w-4 transition-transform', aboutOpen && 'rotate-180')} />
                 </button>
                 {aboutOpen && (
                   <div className="absolute left-0 top-full mt-4 w-56 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
@@ -104,10 +106,12 @@ export function Navbar() {
 
               <div className="relative" ref={comunidadRef}>
                 <button
-                  onClick={() => { setComunidadOpen(o => !o); setAboutOpen(false); setUserMenuOpen(false); }}
+                  onClick={() => { setComunidadOpen((o) => !o); setAboutOpen(false); setUserMenuOpen(false); }}
                   className={`flex items-center gap-2 text-base font-bold transition-colors ${comunidadOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                 >
-                  Comunidad <ChevronDown className={cn("h-4 w-4 transition-transform", comunidadOpen && "rotate-180")} />
+                  Comunidad
+{' '}
+<ChevronDown className={cn('h-4 w-4 transition-transform', comunidadOpen && 'rotate-180')} />
                 </button>
                 {comunidadOpen && (
                   <div className="absolute left-0 top-full mt-4 w-56 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
@@ -118,7 +122,7 @@ export function Navbar() {
                 )}
               </div>
             </nav>
-            
+
           </div>
 
           {/* ── RIGHT SIDE ── */}
@@ -142,26 +146,43 @@ export function Navbar() {
                     {/* Saldo a la IZQ del nombre */}
                     <div className="flex flex-col items-end mr-1">
                         <span className="text-[11px] font-black text-primary uppercase tracking-widest leading-none mb-0.5">Cartera</span>
-                        <span className="text-sm md:text-base font-black text-foreground">€{user.wallet_balance?.toFixed(2) || '0.00'}</span>
+                        <span className="text-sm md:text-base font-black text-foreground">
+€
+{user.wallet_balance?.toFixed(2) || '0.00'}
+</span>
                     </div>
 
                     <div className="relative" ref={userMenuRef}>
                         <button
-                            onClick={() => { setUserMenuOpen(o => !o); setAboutOpen(false); setComunidadOpen(false); }}
+                            onClick={() => { setUserMenuOpen((o) => !o); setAboutOpen(false); setComunidadOpen(false); }}
                             className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
                         >
                             <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[11px] font-black text-primary">{(user?.name || 'U').substring(0, 1).toUpperCase()}</span>
                             </div>
                             <span className="text-sm font-bold text-foreground truncate max-w-[100px] hidden md:block">{user.username || user.name}</span>
-                            <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", userMenuOpen && "rotate-180")} />
+                            <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', userMenuOpen && 'rotate-180')} />
                         </button>
 
                         {userMenuOpen && (
                             <div className="absolute right-0 top-full mt-4 w-60 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                                <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors"><User className="h-5 w-5 text-primary" /> Mi Perfil</Link>
-                                {isAdmin && <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors"><Shield className="h-5 w-5 text-primary" /> Admin Panel</Link>}
-                                <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-destructive hover:bg-destructive/10 w-full text-left"><LogOut className="h-5 w-5" /> Cerrar Sesión</button>
+                                <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors">
+<User className="h-5 w-5 text-primary" />
+{' '}
+Mi Perfil
+</Link>
+                                {isAdmin && (
+<Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors">
+<Shield className="h-5 w-5 text-primary" />
+{' '}
+Admin Panel
+</Link>
+)}
+                                <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-destructive hover:bg-destructive/10 w-full text-left">
+<LogOut className="h-5 w-5" />
+{' '}
+Cerrar Sesión
+</button>
                             </div>
                         )}
                     </div>

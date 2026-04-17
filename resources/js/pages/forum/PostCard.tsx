@@ -7,17 +7,28 @@ import { toast } from "sonner";
 import { Trash2, MessageSquare, Bookmark, Share2, Flame, ChevronUp, ChevronDown } from "lucide-react"; 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import {
+ Trash2, MessageSquare, Bookmark, Share2, Flame,
+} from 'lucide-react';
+import { Post } from './types';
+import { CAT_LABELS } from './constants';
+import ApiService from '../../services/ApiService';
+import { useAuth } from '../../contexts/AuthContext';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const CAT_COLORS: Record<string, string> = {
-  noticias:   "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  estrategia: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-  torneos:    "bg-primary/10 text-primary border-primary/20",
-  general:    "bg-muted text-muted-foreground border-border",
+  noticias: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  estrategia: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  torneos: 'bg-primary/10 text-primary border-primary/20',
+  general: 'bg-muted text-muted-foreground border-border',
 };
 
 function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number; initialScore: number; initialVote?: number; }) {
   const [score, setScore] = useState(initialScore);
-  const [vote,  setVote]  = useState<1 | -1 | 0>(initialVote as any);
+  const [vote, setVote] = useState<1 | -1 | 0>(initialVote as any);
 
   useEffect(() => {
     setScore(initialScore);
@@ -27,39 +38,47 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   const cast = async (dir: 1 | -1) => {
     const newVote = vote === dir ? 0 : dir;
     const scoreDiff = newVote - vote;
-    setScore(s => s + scoreDiff);
+    setScore((s) => s + scoreDiff);
     setVote(newVote);
     try {
-      const data = await ApiService.vote(threadId, "thread", dir);
+      const data = await ApiService.vote(threadId, 'thread', dir);
       setScore(data.score);
       setVote(data.user_vote || 0);
     } catch (err) {
-      console.error("Error al votar", err);
-      setScore(s => s - scoreDiff);
+      console.error('Error al votar', err);
+      setScore((s) => s - scoreDiff);
       setVote(vote);
     }
   };
 
   return (
+<<<<<<< HEAD
     <div className="flex flex-col items-center py-4 px-2 bg-zinc-50 dark:bg-zinc-900/50 gap-1.5 min-w-[50px] border-r border-border/50">
       <button 
         onClick={() => cast(1)} 
+=======
+    <div className="flex flex-col items-center py-4 px-2 bg-accent/30 gap-1.5 min-w-[50px] border-r border-border/50">
+      <button
+        onClick={() => cast(1)}
+>>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
         className={cn(
-            "w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90",
-            vote === 1 ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            'w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90',
+            vote === 1 ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
         )}
       >
         <ChevronUp size={18} strokeWidth={3} />
       </button>
       <span className={cn(
-          "text-[12px] font-black font-forum text-center tabular-nums",
-          score > 50 ? 'text-primary' : 'text-muted-foreground'
-      )}>{score}</span>
-      <button 
-        onClick={() => cast(-1)} 
+          'text-[12px] font-black font-forum text-center tabular-nums',
+          score > 50 ? 'text-primary' : 'text-muted-foreground',
+      )}>
+{score}
+</span>
+      <button
+        onClick={() => cast(-1)}
         className={cn(
-            "w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90",
-            vote === -1 ? 'bg-destructive/10 text-destructive' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            'w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90',
+            vote === -1 ? 'bg-destructive/10 text-destructive' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
         )}
       >
         <ChevronDown size={18} strokeWidth={3} />
@@ -68,33 +87,35 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   );
 }
 
-function ActionBtn({ label, icon: Icon, onClick, active, variant = "default" }: { label: string; icon: any; onClick?: () => void; active?: boolean; variant?: "default" | "danger" }) {
+function ActionBtn({
+ label, icon: Icon, onClick, active, variant = 'default',
+}: { label: string; icon: any; onClick?: () => void; active?: boolean; variant?: 'default' | 'danger' }) {
   return (
-    <button 
-        onClick={onClick} 
+    <button
+        onClick={onClick}
         className={cn(
-            "flex items-center gap-2 py-2 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-200 group font-montserrat",
-            variant === "danger" 
-                ? "text-destructive hover:bg-destructive/10" 
-                : active 
-                    ? "text-primary bg-primary/5" 
-                    : "text-muted-foreground/60 hover:text-foreground hover:bg-accent"
+            'flex items-center gap-2 py-2 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-200 group font-montserrat',
+            variant === 'danger'
+                ? 'text-destructive hover:bg-destructive/10'
+                : active
+                    ? 'text-primary bg-primary/5'
+                    : 'text-muted-foreground/60 hover:text-foreground hover:bg-accent',
         )}
     >
-      <Icon size={14} className={cn("transition-transform group-hover:scale-110", active && "fill-current")} />
+      <Icon size={14} className={cn('transition-transform group-hover:scale-110', active && 'fill-current')} />
       {label}
     </button>
   );
 }
 
-export default function PostCard({ 
-  post, 
-  onOpen, 
+export default function PostCard({
+  post,
+  onOpen,
   onDeleteSuccess,
-  selection 
-}: { 
-  post: Post; 
-  onOpen: () => void; 
+  selection,
+}: {
+  post: Post;
+  onOpen: () => void;
   onDeleteSuccess?: () => void;
   selection?: {
     isSelected: boolean;
@@ -115,13 +136,13 @@ export default function PostCard({
     try {
       if (newVal) {
         await ApiService.saveThread(post.id);
-        toast.success("Hilo guardado en favoritos");
+        toast.success('Hilo guardado en favoritos');
       } else {
         await ApiService.unsaveThread(post.id);
-        toast.success("Hilo quitado de favoritos");
+        toast.success('Hilo quitado de favoritos');
       }
     } catch (err) {
-      console.error("Error al guardar/quitar hilo:", err);
+      console.error('Error al guardar/quitar hilo:', err);
       setIsSaved(!newVal);
     }
   };
@@ -130,6 +151,7 @@ export default function PostCard({
 
   return (
     <div className={cn(
+<<<<<<< HEAD
         "flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-md min-h-[160px]",
         selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.03]' : 'hover:border-primary/40 hover:shadow-primary/5 hover:-translate-y-0.5'
     )}>
@@ -137,6 +159,15 @@ export default function PostCard({
         <div className="flex items-center px-4 bg-zinc-50/50 dark:bg-zinc-900/40 border-r border-border/50">
           <input 
             type="checkbox" 
+=======
+        'flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-lg shadow-black/5 min-h-[160px]',
+        selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.02]' : 'hover:border-primary/30 hover:shadow-primary/5',
+    )}>
+      {canSelect && (
+        <div className="flex items-center px-4 bg-accent/20 border-r border-border/50">
+          <input
+            type="checkbox"
+>>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
             checked={selection?.isSelected || false}
             onChange={(e) => {
               e.stopPropagation();
@@ -146,27 +177,35 @@ export default function PostCard({
           />
         </div>
       )}
-      
+
       <VoteCol threadId={post.id} initialScore={post.score} initialVote={post.userVote} />
 
       <div className="py-5 px-6 flex-1 min-w-0 flex flex-col justify-between">
         <div className="space-y-4">
             <div className="flex items-center gap-3 flex-wrap font-montserrat overflow-hidden">
                 <span className={cn(
-                    "text-[8px] font-black py-1 px-3 rounded-lg uppercase tracking-widest border shrink-0",
-                    CAT_COLORS[post.category] || "bg-muted text-muted-foreground border-border"
+                    'text-[8px] font-black py-1 px-3 rounded-lg uppercase tracking-widest border shrink-0',
+                    CAT_COLORS[post.category] || 'bg-muted text-muted-foreground border-border',
                 )}>
                     {CAT_LABELS[post.category]}
                 </span>
                 <div className="flex items-center gap-2 min-w-0 truncate">
                     <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-tight">por</span>
-                    <b className="text-[11px] text-foreground font-black truncate leading-none hover:text-primary transition-colors cursor-pointer">@{post.author}</b>
+                    <b className="text-[11px] text-foreground font-black truncate leading-none hover:text-primary transition-colors cursor-pointer">
+@
+{post.author}
+</b>
                     <Badge variant="outline" className="text-[9px] font-black text-primary bg-primary/5 border-primary/10 px-2 py-0 h-5" title="Reputación">
-                        {post.reputation || 100} EP
-                    </Badge>
+                        {post.reputation || 100}
+{' '}
+EP
+</Badge>
                     {post.isMod && <Badge className="bg-primary text-primary-foreground text-[8px] font-black h-4 px-1">MOD</Badge>}
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest font-montserrat">· {post.timeAgo}</span>
+                <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest font-montserrat">
+·
+{post.timeAgo}
+</span>
             </div>
 
             <div className="flex gap-6 items-start">
@@ -189,9 +228,10 @@ export default function PostCard({
         <div className="flex flex-col gap-4">
             {post.tags.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
-                    {post.tags.map(t => (
+                    {post.tags.map((t) => (
                         <span key={t} className="text-[8px] py-1 px-2.5 rounded-lg bg-accent/50 text-muted-foreground/60 border border-border/50 font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-colors cursor-pointer font-montserrat">
-                            #{t}
+                            #
+{t}
                         </span>
                     ))}
                 </div>
@@ -200,7 +240,16 @@ export default function PostCard({
             <div className="flex items-center gap-1 border-t border-border/40 pt-1 -mx-2">
                 <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={onOpen} />
                 <ActionBtn icon={Share2} label="Share" />
+<<<<<<< HEAD
                 <ActionBtn icon={Bookmark} label={isSaved ? "Saved" : "Save"} onClick={toggleSave} active={isSaved} />
+=======
+                <ActionBtn icon={Bookmark} label={isSaved ? 'Saved' : 'Save'} onClick={toggleSave} active={isSaved} />
+                {post.can_delete && (
+                    <div className="ml-auto">
+                        <ActionBtn icon={Trash2} label="" variant="danger" />
+                    </div>
+                )}
+>>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
             </div>
         </div>
       </div>

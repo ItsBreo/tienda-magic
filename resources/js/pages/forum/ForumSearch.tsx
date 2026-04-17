@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '@/services/ApiService';
-import { Input } from '@/components/ui/input';
-import { Search, MessageSquare, Eye, ThumbsUp, Pin } from 'lucide-react';
+import {
+ Search, MessageSquare, Eye, ThumbsUp, Pin,
+} from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import apiService from '@/services/ApiService';
 
 // --- INTERFACES DE TYPESCRIPT ---
 interface UserData {
@@ -48,13 +50,13 @@ export default function ForumSearch() {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiService.axiosInstance.get(`/api/forum/search`, {
-                params: { q: query }
+            const response = await apiService.axiosInstance.get('/api/forum/search', {
+                params: { q: query },
             });
             setResults(response.data.data);
         } catch (err) {
-            console.error("Error al realizar la búsqueda:", err);
-            setError("Ocurrió un error al buscar. Por favor, inténtalo de nuevo más tarde.");
+            console.error('Error al realizar la búsqueda:', err);
+            setError('Ocurrió un error al buscar. Por favor, inténtalo de nuevo más tarde.');
         } finally {
             setLoading(false);
         }
@@ -77,7 +79,7 @@ export default function ForumSearch() {
         <div key={thread.id} className="flex items-start gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-lg hover:bg-zinc-800/50 transition-colors">
             <div className="flex-shrink-0">
                 {/* Placeholder for user avatar */}
-                <div className="h-10 w-10 rounded-full bg-zinc-700"></div>
+                <div className="h-10 w-10 rounded-full bg-zinc-700" />
             </div>
             <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -87,7 +89,13 @@ export default function ForumSearch() {
                     </Link>
                 </div>
                 <p className="text-sm text-zinc-400 mt-1">
-                    Iniciado por <span className="font-medium text-zinc-300">{thread.user?.username || 'Desconocido'}</span> en el foro <Link to={`/forums/${thread.forum?.slug || ''}`} className="font-medium text-amber-500 hover:underline">{thread.forum?.name || 'Foro'}</Link>
+                    Iniciado por
+{' '}
+<span className="font-medium text-zinc-300">{thread.user?.username || 'Desconocido'}</span>
+{' '}
+en el foro
+{' '}
+<Link to={`/forums/${thread.forum?.slug || ''}`} className="font-medium text-amber-500 hover:underline">{thread.forum?.name || 'Foro'}</Link>
                     {' • '}
                     <span title={new Date(thread.created_at).toLocaleString()}>{formatDistanceToNow(new Date(thread.created_at), { addSuffix: true, locale: es })}</span>
                 </p>

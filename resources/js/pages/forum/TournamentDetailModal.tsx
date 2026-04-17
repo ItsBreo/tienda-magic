@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
-import ApiService from "../../services/ApiService";
-import { useAuth } from "../../contexts/AuthContext";
-import { Trash2 } from "lucide-react";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
-import { toast } from "sonner";
+import React, { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import ApiService from '../../services/ApiService';
+import { useAuth } from '../../contexts/AuthContext';
+import DeleteConfirmDialog from './DeleteConfirmDialog';
 
 const FORMAT_LABEL: Record<string, string> = {
-  standard: "Standard", modern: "Modern", pioneer: "Pioneer",
-  legacy: "Legacy", draft: "Draft", sealed: "Sealed", commander: "Commander",
+  standard: 'Standard',
+modern: 'Modern',
+pioneer: 'Pioneer',
+  legacy: 'Legacy',
+draft: 'Draft',
+sealed: 'Sealed',
+commander: 'Commander',
 };
 
 export default function TournamentDetailModal({ tournamentId, onClose }: { tournamentId: number; onClose: () => void }) {
@@ -16,7 +21,7 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [animate, setAnimate] = useState(false);
 
   // Estados para borrado
@@ -26,12 +31,12 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
   const load = () => {
     setIsLoading(true);
     ApiService.getTournamentDetail(tournamentId)
-      .then(res => {
+      .then((res) => {
         const data = res.data ?? res;
         setTournament(data);
         setIsRegistered((data.confirmed_players ?? []).some((p: any) => p.id === user?.id));
       })
-      .catch(() => setError("Error cargando el torneo."))
+      .catch(() => setError('Error cargando el torneo.'))
       .finally(() => setIsLoading(false));
   };
 
@@ -48,19 +53,19 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
     setIsDeleting(true);
     try {
       await ApiService.axiosInstance.delete(`/api/tournaments/${tournamentId}`);
-      toast.success("Torneo eliminado correctamente");
+      toast.success('Torneo eliminado correctamente');
       setShowDeleteDialog(false);
       handleClose();
       // Refrescar la página o el estado global para quitar el torneo de la lista
-      window.location.reload(); 
+      window.location.reload();
     } catch (err) {
-      toast.error("No se pudo eliminar el torneo");
+      toast.error('No se pudo eliminar el torneo');
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const canRegister = tournament?.status === "upcoming" && !tournament?.is_full;
+  const canRegister = tournament?.status === 'upcoming' && !tournament?.is_full;
 
   return (
     <>
@@ -73,11 +78,11 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
           {/* Header */}
           <div className="p-4 px-5 border-b border-border flex items-center justify-between">
             <span className="text-[15px] font-bold text-foreground">
-              {isLoading ? "Cargando…" : tournament?.name}
+              {isLoading ? 'Cargando…' : tournament?.name}
             </span>
             <div className="flex items-center gap-3">
               {tournament?.can_delete && (
-                <button 
+                <button
                   onClick={handleDelete}
                   className="p-1.5 text-destructive hover:bg-destructive/10 rounded-md transition-colors cursor-pointer"
                   title="Eliminar torneo"
@@ -97,12 +102,12 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
                 {tournament.description && <p className="text-[13px] text-muted-foreground leading-relaxed mb-3.5">{tournament.description}</p>}
                 <div className="flex flex-col">
                   {[
-                    ["Fecha", tournament.starts_at],
-                    ["Lugar", tournament.location],
-                    ["Formato", FORMAT_LABEL[tournament.format] ?? tournament.format],
-                    ["Plazas", `${tournament.max_players - tournament.spots_left} / ${tournament.max_players}`],
-                    ["Entrada", tournament.entry_fee > 0 ? `${tournament.entry_fee} €` : "Gratuito"],
-                    ["Premio", tournament.prize ?? "—"],
+                    ['Fecha', tournament.starts_at],
+                    ['Lugar', tournament.location],
+                    ['Formato', FORMAT_LABEL[tournament.format] ?? tournament.format],
+                    ['Plazas', `${tournament.max_players - tournament.spots_left} / ${tournament.max_players}`],
+                    ['Entrada', tournament.entry_fee > 0 ? `${tournament.entry_fee} €` : 'Gratuito'],
+                    ['Premio', tournament.prize ?? '—'],
                   ].map(([lbl, val], i, arr) => (
                     <div key={lbl} className={`flex justify-between items-center py-2 ${i < arr.length - 1 ? 'border-b border-border' : ''}`}>
                       <span className="text-xs text-muted-foreground">{lbl}</span>
@@ -113,7 +118,11 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
               </div>
 
               <div className="p-4 px-5 border-b border-border">
-                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2.5">Inscritos ({tournament.confirmed_players?.length || 0})</div>
+                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2.5">
+Inscritos (
+{tournament.confirmed_players?.length || 0}
+)
+</div>
                 <div className="flex flex-col gap-1.5">
                   {(tournament.confirmed_players || []).map((p: any) => (
                     <div key={p.id} className="flex items-center gap-2">
@@ -131,11 +140,11 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
                 {error && <div className="text-xs text-destructive">{error}</div>}
                 {canRegister && (
                   <button
-                    onClick={() => isRegistered ? ApiService.unregisterTournament(tournamentId).then(load) : ApiService.registerTournament(tournamentId).then(load)}
+                    onClick={() => (isRegistered ? ApiService.unregisterTournament(tournamentId).then(load) : ApiService.registerTournament(tournamentId).then(load))}
                     disabled={isSubmitting}
                     className={`w-full py-2 rounded-md text-[13px] font-semibold cursor-pointer transition-opacity ${isSubmitting ? 'opacity-70' : 'opacity-100'} ${isRegistered ? 'bg-transparent border border-border text-muted-foreground' : 'bg-primary text-primary-foreground'}`}
                   >
-                    {isSubmitting ? "Procesando…" : isRegistered ? "Cancelar inscripción" : "Inscribirse al torneo"}
+                    {isSubmitting ? 'Procesando…' : isRegistered ? 'Cancelar inscripción' : 'Inscribirse al torneo'}
                   </button>
                 )}
               </div>
@@ -144,7 +153,7 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
         </div>
       </div>
 
-      <DeleteConfirmDialog 
+      <DeleteConfirmDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={confirmDelete}

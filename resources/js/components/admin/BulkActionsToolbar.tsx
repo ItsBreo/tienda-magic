@@ -40,9 +40,9 @@ export function BulkActionsToolbar({ count, actions, onClear }: BulkActionsToolb
                             variant={action.variant || 'ghost'}
                             onClick={action.onClick}
                             className={cn(
-                                "h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest gap-2 transition-all active:scale-95 font-montserrat border border-transparent",
-                                !action.className && "text-foreground hover:bg-accent hover:border-border/50",
-                                action.className
+                                'h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest gap-2 transition-all active:scale-95 font-montserrat border border-transparent',
+                                !action.className && 'text-foreground hover:bg-accent hover:border-border/50',
+                                action.className,
                             )}
                         >
                             {action.icon}

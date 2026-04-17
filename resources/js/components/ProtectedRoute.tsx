@@ -7,7 +7,7 @@ import { useAchievementListener } from '@/hooks/useAchievementListener';
 
 export function ProtectedLayout() {
     const { isAuthenticated, isLoading } = useAuth();
-    
+
     // Escuchar logros en tiempo real (solo si está autenticado el hook internamente lo maneja)
     useAchievementListener();
 

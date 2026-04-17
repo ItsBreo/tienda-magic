@@ -65,6 +65,7 @@
         "laravel-vite-plugin": "^2.0",
         "lucide-react": "^0.475.0",
         "next-themes": "^0.4.6",
+        "ogl": "^1.0.11",
         "or": "^0.2.0",
         "pusher-js": "^8.5.0",
         "react": "^19.2.0",

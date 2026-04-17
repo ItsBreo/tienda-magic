@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Layers, Sparkles, UserPlus, Lock } from 'lucide-react';
+import {
+ Eye, EyeOff, Layers, Sparkles, UserPlus, Lock,
+} from 'lucide-react';
 import { GiLotus } from 'react-icons/gi';
 import { toast } from 'sonner';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -11,14 +13,16 @@ import { useTitle } from '@/hooks/useTitle';
 
 // --- SUB-COMPONENTES DE DISEÑO ---
 
-const GlassInputWrapper = ({ children, error }: { children: React.ReactNode, error?: any }) => (
-  <div className={cn(
-    "rounded-2xl border bg-foreground/5 backdrop-blur-sm transition-all duration-300",
-    error ? "border-red-500/50 bg-red-500/5" : "border-border focus-within:border-primary/70 focus-within:bg-primary/5 shadow-sm"
+function GlassInputWrapper({ children, error }: { children: React.ReactNode, error?: any }) {
+  return (
+<div className={cn(
+    'rounded-2xl border bg-foreground/5 backdrop-blur-sm transition-all duration-300',
+    error ? 'border-red-500/50 bg-red-500/5' : 'border-border focus-within:border-primary/70 focus-within:bg-primary/5 shadow-sm',
   )}>
     {children}
   </div>
 );
+}
 
 export default function Register() {
     useTitle('Forja tu cuenta');
@@ -81,8 +85,8 @@ export default function Register() {
     };
 
     return (
-        <div className="h-screen flex flex-col md:flex-row bg-background w-full overflow-hidden font-montserrat">
-            
+        <div className="h-screen flex flex-col md:flex-row w-full overflow-hidden font-montserrat">
+
             {/* COLUMNA IZQUIERDA: FORMULARIO */}
             <section className="flex-1 flex items-center justify-center p-6 md:p-12 relative overflow-y-auto custom-scrollbar">
                 {/* Theme Toggler */}
@@ -101,7 +105,9 @@ export default function Register() {
                             </div>
                             <div>
                                 <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase">
-                                    Forja tu <span className="text-primary italic">Destino</span>
+                                    Forja tu
+{' '}
+<span className="text-primary italic">Destino</span>
                                 </h1>
                                 <p className="text-muted-foreground text-sm font-bold uppercase tracking-[0.2em] mt-2 opacity-70">
                                     Únete al Multiverso de Black Lotus
@@ -115,11 +121,11 @@ export default function Register() {
                                 <div className="animate-element animate-delay-200">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Nombre Real</label>
                                     <GlassInputWrapper error={errors.name}>
-                                        <input 
+                                        <input
                                             value={formData.name}
                                             onChange={(e) => handleChange('name', e.target.value)}
-                                            placeholder="Tu nombre" 
-                                            className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-foreground font-medium" 
+                                            placeholder="Tu nombre"
+                                            className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-foreground font-medium"
                                             required
                                         />
                                     </GlassInputWrapper>
@@ -128,11 +134,11 @@ export default function Register() {
                                 <div className="animate-element animate-delay-200">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Mote (User)</label>
                                     <GlassInputWrapper error={errors.username}>
-                                        <input 
+                                        <input
                                             value={formData.username}
                                             onChange={(e) => handleChange('username', e.target.value)}
-                                            placeholder="@usuario" 
-                                            className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-foreground font-medium" 
+                                            placeholder="@usuario"
+                                            className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-foreground font-medium"
                                             required
                                         />
                                     </GlassInputWrapper>
@@ -143,12 +149,12 @@ export default function Register() {
                             <div className="animate-element animate-delay-300">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Canal de Contacto (Email)</label>
                                 <GlassInputWrapper error={errors.email}>
-                                    <input 
+                                    <input
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => handleChange('email', e.target.value)}
-                                        placeholder="tu@email.com" 
-                                        className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-foreground font-medium" 
+                                        placeholder="tu@email.com"
+                                        className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-foreground font-medium"
                                         required
                                     />
                                 </GlassInputWrapper>
@@ -160,12 +166,12 @@ export default function Register() {
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Grimorio</label>
                                     <GlassInputWrapper error={errors.password}>
                                         <div className="relative">
-                                            <input 
+                                            <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 value={formData.password}
                                                 onChange={(e) => handleChange('password', e.target.value)}
-                                                placeholder="••••••••" 
-                                                className="w-full bg-transparent text-sm p-3.5 pr-10 rounded-2xl focus:outline-none text-foreground font-medium" 
+                                                placeholder="••••••••"
+                                                className="w-full bg-transparent text-sm p-3.5 pr-10 rounded-2xl focus:outline-none text-foreground font-medium"
                                                 required
                                             />
                                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
@@ -179,12 +185,12 @@ export default function Register() {
                                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Confirmación</label>
                                     <GlassInputWrapper error={errors.password_confirmation}>
                                         <div className="relative">
-                                            <input 
+                                            <input
                                                 type={showConfirmPassword ? 'text' : 'password'}
                                                 value={formData.password_confirmation}
                                                 onChange={(e) => handleChange('password_confirmation', e.target.value)}
-                                                placeholder="••••••••" 
-                                                className="w-full bg-transparent text-sm p-3.5 pr-10 rounded-2xl focus:outline-none text-foreground font-medium" 
+                                                placeholder="••••••••"
+                                                className="w-full bg-transparent text-sm p-3.5 pr-10 rounded-2xl focus:outline-none text-foreground font-medium"
                                                 required
                                             />
                                             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
@@ -204,8 +210,8 @@ export default function Register() {
                                 />
                             </div>
 
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 disabled={processing}
                                 className="animate-element animate-delay-600 w-full rounded-2xl bg-primary py-5 font-black text-primary-foreground uppercase tracking-widest text-xs hover:bg-primary/90 transition-all active:scale-[0.98] shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
                             >
@@ -224,7 +230,8 @@ export default function Register() {
                         </form>
 
                         <p className="animate-element animate-delay-700 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                            ¿Ya tienes cuenta?{' '}
+                            ¿Ya tienes cuenta?
+{' '}
                             <Link to="/login" className="text-primary hover:underline transition-all">
                                 Gira tus tierras e inicia sesión
                             </Link>
@@ -235,9 +242,9 @@ export default function Register() {
 
             {/* COLUMNA DERECHA: HERO IMAGE */}
             <section className="hidden lg:block flex-1 relative overflow-hidden bg-card">
-                <div 
-                    className="animate-slide-right animate-delay-300 absolute inset-0 bg-cover bg-center group" 
-                    style={{ backgroundImage: `url('https://images.unsplash.com/photo-1549490349-8643362247b5?w=1600&q=80')` }}
+                <div
+                    className="animate-slide-right animate-delay-300 absolute inset-0 bg-cover bg-center group"
+                    style={{ backgroundImage: 'url(\'https://images.unsplash.com/photo-1549490349-8643362247b5?w=1600&q=80\')' }}
                 >
                     {/* Overlay de Gradiente */}
                     <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent opacity-80" />

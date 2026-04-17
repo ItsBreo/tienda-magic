@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ShoppingCart, Package, Loader2, CreditCard, Wallet } from 'lucide-react';
+import {
+ ShoppingCart, Package, Loader2, CreditCard, Wallet,
+} from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -13,7 +15,9 @@ export default function Cart() {
     useTitle('Mi Carrito');
     const navigate = useNavigate();
     const { user, updateUser } = useAuth();
-    const { items, loading, updateQuantity, removeItem, fetchCart } = useCart();
+    const {
+ items, loading, updateQuantity, removeItem, fetchCart,
+} = useCart();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'wallet' | 'stripe'>('wallet');
     const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
@@ -42,7 +46,7 @@ export default function Cart() {
             return;
         }
 
-        setUpdatingItems(prev => new Set(prev).add(itemId));
+        setUpdatingItems((prev) => new Set(prev).add(itemId));
 
         try {
             await updateQuantity(itemId, newQuantity);
@@ -50,7 +54,7 @@ export default function Cart() {
         } catch (error: any) {
             // Error handling is partly in context, but we can add specific page feedback
         } finally {
-            setUpdatingItems(prev => {
+            setUpdatingItems((prev) => {
                 const newSet = new Set(prev);
                 newSet.delete(itemId);
                 return newSet;
@@ -79,32 +83,28 @@ export default function Cart() {
         return (user?.wallet_balance || 0) < total;
     };
 
-    const hasStockIssues = () => {
-        return items.some(item => {
+    const hasStockIssues = () => items.some((item) => {
             const stock = item.stock || item.booster_pack?.stock || item.card?.stock || 0;
             console.log('Verificando stock para item:', item, 'Stock disponible:', stock);
             return item.quantity > stock;
         });
-    };
 
-    const mapItemsToPayload = () => {
-        return items.map(item => {
+    const mapItemsToPayload = () => items.map((item) => {
             if (item.card_id) {
                 return {
                     purchasable_type: 'App\\Models\\Card',
                     purchasable_id: item.card_id,
-                    quantity: item.quantity
+                    quantity: item.quantity,
                 };
-            } else if (item.booster_pack_id) {
+            } if (item.booster_pack_id) {
                 return {
                     purchasable_type: 'App\\Models\\BoosterPack',
                     purchasable_id: item.booster_pack_id,
-                    quantity: item.quantity
+                    quantity: item.quantity,
                 };
             }
             return null;
         }).filter(Boolean);
-    };
 
     const handleCheckout = async (paymentMethod: 'wallet' | 'stripe') => {
         if (items.length === 0) {
@@ -122,7 +122,7 @@ export default function Cart() {
         try {
             const payload = {
                 payment_method: paymentMethod,
-                items: mapItemsToPayload()
+                items: mapItemsToPayload(),
             };
 
             const response = await apiService.axiosInstance.post('/api/checkout/process', payload);
@@ -137,14 +137,11 @@ export default function Cart() {
 
                 await fetchCart();
                 navigate('/checkout/success');
-            } else {
-                if (response.data?.checkout_url) {
+            } else if (response.data?.checkout_url) {
                     window.location.href = response.data.checkout_url;
                 } else {
                     throw new Error('No se recibió URL de checkout de Stripe');
                 }
-            }
-
         } catch (error: any) {
             console.error('Error en checkout:', error);
             if (error.response?.status === 422) {
@@ -171,7 +168,7 @@ export default function Cart() {
             <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
             <div className="max-w-6xl mx-auto px-4 pt-24">
-                
+
                 {/* Header Elegante sin iconos */}
                 <div className="mb-6 border-b border-border pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div className="flex flex-col gap-1">

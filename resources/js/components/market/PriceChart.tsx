@@ -7,9 +7,11 @@ import {
     ResponsiveContainer,
     AreaChart,
     Area,
-    ReferenceLine
+    ReferenceLine,
 } from 'recharts';
-import { TrendingUp, Activity, AlertCircle, Loader2, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import {
+ TrendingUp, Activity, AlertCircle, Loader2, ArrowUpRight, ArrowDownRight, Minus,
+} from 'lucide-react';
 import apiService from '@/services/ApiService';
 
 interface PricePoint {
@@ -24,7 +26,9 @@ interface PriceChartProps {
     color?: string;
 }
 
-export const PriceChart: React.FC<PriceChartProps> = ({ data: initialData, type, id, color = '#6366f1' }) => {
+export const PriceChart: React.FC<PriceChartProps> = ({
+ data: initialData, type, id, color = '#6366f1',
+}) => {
     const [data, setData] = useState<PricePoint[]>(initialData || []);
     const [loading, setLoading] = useState(!initialData && !!type && !!id);
     const api = apiService;
@@ -51,7 +55,7 @@ export const PriceChart: React.FC<PriceChartProps> = ({ data: initialData, type,
     const stats = useMemo(() => {
         if (data.length === 0) return null;
 
-        const prices = data.map(d => d.price);
+        const prices = data.map((d) => d.price);
         const min = Math.min(...prices);
         const max = Math.max(...prices);
         const sum = prices.reduce((a, b) => a + b, 0);
@@ -61,17 +65,19 @@ export const PriceChart: React.FC<PriceChartProps> = ({ data: initialData, type,
         const lastPrice = prices[prices.length - 1];
         const change = ((lastPrice - firstPrice) / firstPrice) * 100;
 
-        return { min, max, avg, change };
+        return {
+ min, max, avg, change,
+};
     }, [data]);
 
     // Formatear fechas para el eje X
-    const formattedData = data.map(point => ({
+    const formattedData = data.map((point) => ({
         ...point,
         date: new Date(point.recorded_at).toLocaleDateString(undefined, {
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
         }),
-        fullDate: new Date(point.recorded_at).toLocaleString()
+        fullDate: new Date(point.recorded_at).toLocaleString(),
     }));
 
     if (loading) {
@@ -99,22 +105,32 @@ export const PriceChart: React.FC<PriceChartProps> = ({ data: initialData, type,
                 <div className="grid grid-cols-4 gap-2 mb-6 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-700">
                     <div className="text-center">
                         <p className="text-[10px] text-zinc-500 uppercase font-bold">Mínimo</p>
-                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{stats.min.toFixed(2)}€</p>
+                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+{stats.min.toFixed(2)}
+€
+</p>
                     </div>
                     <div className="text-center">
                         <p className="text-[10px] text-zinc-500 uppercase font-bold">Máximo</p>
-                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{stats.max.toFixed(2)}€</p>
+                        <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+{stats.max.toFixed(2)}
+€
+</p>
                     </div>
                     <div className="text-center">
                         <p className="text-[10px] text-zinc-500 uppercase font-bold">Promedio</p>
-                        <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{stats.avg.toFixed(2)}€</p>
+                        <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+{stats.avg.toFixed(2)}
+€
+</p>
                     </div>
                     <div className="text-center">
                         <p className="text-[10px] text-zinc-500 uppercase font-bold">Variación</p>
                         <div className={`flex items-center justify-center gap-0.5 text-sm font-bold ${stats.change > 0 ? 'text-emerald-500' : stats.change < 0 ? 'text-rose-500' : 'text-zinc-400'}`}>
                             {stats.change > 0 ? <ArrowUpRight className="w-3 h-3" /> : stats.change < 0 ? <ArrowDownRight className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
-                            {Math.abs(stats.change).toFixed(1)}%
-                        </div>
+                            {Math.abs(stats.change).toFixed(1)}
+%
+</div>
                     </div>
                 </div>
             )}
@@ -129,50 +145,52 @@ export const PriceChart: React.FC<PriceChartProps> = ({ data: initialData, type,
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} opacity={0.3} />
-                        <XAxis 
-                            dataKey="date" 
-                            stroke="#a1a1aa" 
+                        <XAxis
+                            dataKey="date"
+                            stroke="#a1a1aa"
                             fontSize={10}
                             tickLine={false}
                             axisLine={false}
                             minTickGap={30}
                         />
-                        <YAxis 
-                            stroke="#a1a1aa" 
+                        <YAxis
+                            stroke="#a1a1aa"
                             fontSize={10}
                             tickLine={false}
                             axisLine={false}
                             tickFormatter={(value) => `${value}€`}
                             domain={['auto', 'auto']}
                         />
-                        <Tooltip 
-                            contentStyle={{ 
-                                backgroundColor: 'white', 
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: 'white',
                                 border: '1px solid #e4e4e7',
                                 borderRadius: '12px',
                                 boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                                fontSize: '12px'
+                                fontSize: '12px',
                             }}
-                            itemStyle={{ color: color, fontWeight: 'bold' }}
+                            itemStyle={{ color, fontWeight: 'bold' }}
                             formatter={(value: any) => [`${parseFloat(value).toFixed(2)}€`, 'Precio']}
                         />
-                        
+
                         {stats && (
-                            <ReferenceLine 
-                                y={stats.avg} 
-                                stroke="#a1a1aa" 
-                                strokeDasharray="3 3" 
-                                label={{ value: 'Media', position: 'right', fill: '#a1a1aa', fontSize: 10, fontWeight: 'bold' }} 
+                            <ReferenceLine
+                                y={stats.avg}
+                                stroke="#a1a1aa"
+                                strokeDasharray="3 3"
+                                label={{
+ value: 'Media', position: 'right', fill: '#a1a1aa', fontSize: 10, fontWeight: 'bold',
+}}
                             />
                         )}
 
-                        <Area 
-                            type="monotone" 
-                            dataKey="price" 
-                            stroke={color} 
+                        <Area
+                            type="monotone"
+                            dataKey="price"
+                            stroke={color}
                             strokeWidth={3}
-                            fillOpacity={1} 
-                            fill="url(#colorPrice)" 
+                            fillOpacity={1}
+                            fill="url(#colorPrice)"
                             animationDuration={1500}
                             activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }}
                         />
