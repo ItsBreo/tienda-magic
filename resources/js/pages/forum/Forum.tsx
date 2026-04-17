@@ -227,34 +227,25 @@ export default function MagicForum() {
     setActivePost(post);
     handleSetView("thread");
     setComments([]);
+
+    const mapComment = (c: any): any => ({
+      id: c.id, 
+      author: c.author?.name || c.user?.username || c.user?.name || "Desconocido", 
+      author_id: c.author?.id || c.user?.id || 0,
+      reputation: c.author?.reputation || c.user?.reputation || 100,
+      avatarColor: c.parent_id ? "hsl(var(--secondary))" : "hsl(var(--primary))",
+      initials: (c.author?.name || c.user?.username || c.user?.name || "US").substring(0, 2).toUpperCase(),
+      timeAgo: c.created_at || formatDate(c.created_at), 
+      score: c.score || 0, 
+      userVote: c.user_vote || 0, 
+      body: c.body,
+      can_delete: c.can_delete,
+      can_edit: c.can_edit,
+      replies: (c.replies || []).map(mapComment),
+    });
+
     ApiService.getThread(post.id).then(res => {
-      const mapped = (res.data?.comments || []).map((c: any) => ({
-        id: c.id, 
-        author: c.user?.username || c.user?.name || c.author?.name || "Desconocido", 
-        author_id: c.user?.id || c.author?.id || 0,
-        reputation: c.user?.reputation || c.author?.reputation || 100,
-        avatarColor: "hsl(var(--primary))",
-        initials: (c.user?.username || c.user?.name || c.author?.name || "US").substring(0, 2).toUpperCase(),
-        timeAgo: formatDate(c.created_at), 
-        score: c.score, 
-        userVote: c.user_vote || 0, 
-        body: c.body,
-        can_delete: c.can_delete,
-        can_edit: c.can_edit,
-        replies: (c.replies || []).map((r: any) => ({
-          id: r.id, 
-          author: r.user?.username || r.user?.name || r.author?.name || "Desconocido", 
-          author_id: r.user?.id || r.author?.id || 0,
-          reputation: r.user?.reputation || r.author?.reputation || 100,
-          avatarColor: "hsl(var(--secondary))",
-          initials: (r.user?.username || r.user?.name || r.author?.name || "US").substring(0, 2).toUpperCase(),
-          timeAgo: formatDate(r.created_at), 
-          score: r.score, 
-          body: r.body,
-          can_delete: r.can_delete,
-          can_edit: r.can_edit,
-        })),
-      }));
+      const mapped = (res.data?.comments || []).map(mapComment);
       setComments(mapped);
     })
     .catch(err => console.error(`Error al cargar el hilo ${post.id}:`, err));

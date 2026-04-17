@@ -19,6 +19,7 @@ export interface Reply {
   reputation?: number;
   can_delete?: boolean;
   can_edit?: boolean;
+  replies?: Reply[];
 }
 
 export interface Comment {

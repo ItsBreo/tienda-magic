@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use OpenApi\Attributes as OA;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 #[OA\Info(
     version: "1.0.0",
@@ -20,5 +21,5 @@ use OpenApi\Attributes as OA;
 )]
 abstract class Controller
 {
-    //
+    use AuthorizesRequests;
 }
