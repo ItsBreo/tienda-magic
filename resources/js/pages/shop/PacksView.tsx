@@ -164,7 +164,6 @@ export default function PacksView() {
                 id: item.id,
                 quantity,
             });
-            showAddToCartToast(`${item.name}`, quantity, isPack ? 'pack' : 'card');
         } catch (error: any) {
             console.error('Error al añadir al carrito:', error);
             toast.error('Error al añadir al carrito');

@@ -67,7 +67,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             await apiService.axiosInstance.post('/api/cart', data);
             await fetchCart(false);
             setDrawerOpen(true);
-            toast.success('Producto añadido al carrito');
         } catch (error: any) {
             console.error('Error adding to cart:', error);
             const message = error.response?.data?.message || 'No se pudo añadir al carrito';

@@ -224,7 +224,6 @@ export default function TradeRoom() {
     try {
       const data = await apiService.cancelTrade(Number(sessionId));
       setRoom(data);
-      toast.success('El intercambio ha sido cancelado exitosamente.');
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Error al cancelar');
     }

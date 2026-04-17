@@ -50,7 +50,6 @@ export default function Cart() {
 
         try {
             await updateQuantity(itemId, newQuantity);
-            toast.success('Cantidad actualizada');
         } catch (error: any) {
             // Error handling is partly in context, but we can add specific page feedback
         } finally {

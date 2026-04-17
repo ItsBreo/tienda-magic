@@ -24,7 +24,7 @@ export function HeroSection() {
                     .
                     </h1>
 
-                    <p className="text-lg text-muted-foreground mb-10 max-w-2xl leading-relaxed">
+                    <p className="text-lg mb-10 max-w-2xl leading-relaxed">
                         El Multiverso te espera. Explora las últimas expansiones, amplía tu colección o abre los sobres que has adquirido en la tienda.
                     </p>
 

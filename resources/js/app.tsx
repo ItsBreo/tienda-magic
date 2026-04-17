@@ -90,7 +90,20 @@ if (el) {
                 <CartProvider>
                     <BrowserRouter>
                         <GlobalBackground />
-                        <Toaster position="top-right" expand richColors closeButton />
+                        <Toaster 
+                            position="top-right" 
+                            expand 
+                            closeButton
+                            theme="dark"
+                            toastOptions={{
+                                className: 'bg-[#1a1d23]/80 backdrop-blur-2xl border border-[#6c5ce7]/30 text-[#6c5ce7] font-forum shadow-[0_0_40px_rgba(108,92,231,0.2)] rounded-2xl py-5 px-6 text-lg border-l-4 border-l-[#6c5ce7]',
+                                descriptionClassName: 'text-[#b0b4b8] font-literata italic text-xs mt-1 leading-relaxed opacity-80',
+                                style: {
+                                    background: 'rgba(26, 29, 35, 0.85)',
+                                    color: '#6c5ce7',
+                                }
+                            }}
+                        />
                         <Routes>
                             {/* Públicas */}
                             <Route path="/login" element={<Login />} />
