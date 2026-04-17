@@ -32,8 +32,8 @@ class PackOpeningController extends Controller
             ->with('boosterPack')
             ->first();
 
-        if (!$inventoryPack || $inventoryPack->quantity < $count) {
-            return response()->json(['error' => 'No tienes suficientes sobres'], 404);
+        if (!$inventoryPack || $inventoryPack->quantity_available < $count) {
+            return response()->json(['error' => 'No tienes suficientes sobres disponibles (algunos pueden estar en venta o intercambio)'], 422);
         }
 
         $booster = $inventoryPack->boosterPack;

@@ -70,10 +70,11 @@ interface InventoryPack {
 }
 
 // --- Componente de Card (Paridad con PackCard de la Tienda) ---
-function InventoryPackCard({ pack, searchTerm, onView }: {
+function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
     pack: InventoryPack;
     searchTerm: string;
     onView: (id: number) => void;
+    onSell: (id: number, name: string) => void;
 }) {
     const data = pack.booster_pack;
     const setIcon = data.set?.icon_svg_uri;
@@ -115,18 +116,30 @@ function InventoryPackCard({ pack, searchTerm, onView }: {
                     </span>
                 </div>
 
-                <div className="flex items-end justify-between mt-auto pt-4">
-                    <div className="flex flex-col">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Valor Est.</p>
-                        <p className="md:text-lg text-base font-black text-primary">€{data.price?.toFixed(2)}</p>
-                    </div>
+                <div className="flex flex-col gap-2 w-full md:w-auto">
+                    <Button 
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onSell(pack.id, data.name)}
+                        className="h-9 px-4 bg-accent/50 text-foreground hover:bg-primary/20 hover:text-primary font-black uppercase tracking-widest text-[9px] rounded-lg transition-all border border-border/60"
+                        disabled={pack.quantity <= pack.quantity_locked}
+                    >
+                        <DollarSign size={12} className="mr-1" />
+                        {pack.quantity <= pack.quantity_locked ? 'Publicado' : 'Vender'}
+                    </Button>
                     <Button 
                         variant="outline"
                         size="sm"
                         onClick={() => onView(pack.id)}
-                        className="h-9 px-4 bg-primary text-primary-foreground border-none hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
+                        disabled={pack.quantity <= pack.quantity_locked}
+                        className={cn(
+                            "h-9 px-4 font-black text-[10px] uppercase tracking-widest shadow-lg",
+                            pack.quantity <= pack.quantity_locked 
+                                ? "bg-accent text-muted-foreground border-border cursor-not-allowed opacity-50" 
+                                : "bg-primary text-primary-foreground border-none hover:bg-primary/90 shadow-primary/20"
+                        )}
                     >
-                        Abrir Pack
+                        {pack.quantity <= pack.quantity_locked ? 'En Venta' : 'Abrir Pack'}
                     </Button>
                 </div>
             </div>
@@ -216,7 +229,7 @@ export default function Inventory() {
 
     // Selling State
     const [isSellDialogOpen, setIsSellDialogOpen] = useState(false);
-    const [selectedItemForSell, setSelectedItemForSell] = useState<{ id: number, name: string } | null>(null);
+    const [selectedItemForSell, setSelectedItemForSell] = useState<{ id: number, name: string, type: 'card' | 'pack' } | null>(null);
     const [amountToSeller, setAmountToSeller] = useState('');
     const [isSubmittingSell, setIsSubmittingSell] = useState(false);
 
@@ -278,7 +291,7 @@ export default function Inventory() {
             setIsSubmittingSell(true);
             const response = await apiService.listOnMarket({
                 inventory_item_id: selectedItemForSell.id,
-                type: 'card', 
+                type: selectedItemForSell.type, 
                 amount_to_seller: price
             });
             
@@ -387,7 +400,13 @@ export default function Inventory() {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                                     {packs.map(p => (
-                                        <InventoryPackCard key={p.id} pack={p} searchTerm={searchTerm} onView={() => setSelectedPackForModal(p)} />
+                                        <InventoryPackCard 
+                                            key={p.id} 
+                                            pack={p} 
+                                            searchTerm={searchTerm} 
+                                            onView={() => setSelectedPackForModal(p)} 
+                                            onSell={(id, name) => { setSelectedItemForSell({id, name, type: 'pack'}); setIsSellDialogOpen(true); }}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -405,7 +424,7 @@ export default function Inventory() {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                                     {items.map(i => (
-                                        <InventoryCardItem key={i.id} item={i} searchTerm={searchTerm} onSell={(id, name) => { setSelectedItemForSell({id, name}); setIsSellDialogOpen(true); }} />
+                                        <InventoryCardItem key={i.id} item={i} searchTerm={searchTerm} onSell={(id, name) => { setSelectedItemForSell({id, name, type: 'card'}); setIsSellDialogOpen(true); }} />
                                     ))}
                                 </div>
                             </div>
@@ -456,7 +475,7 @@ export default function Inventory() {
                 isOpen={!!selectedPackForModal}
                 onClose={() => setSelectedPackForModal(null)}
                 mode="inventory"
-                availableQuantity={selectedPackForModal?.quantity}
+                availableQuantity={selectedPackForModal ? (selectedPackForModal.quantity - selectedPackForModal.quantity_locked) : 0}
                 onOpenPack={(qty) => selectedPackForModal && handleOpenPack(selectedPackForModal.id, qty)}
             />
 
@@ -473,7 +492,7 @@ export default function Inventory() {
             <Dialog open={isSellDialogOpen} onOpenChange={setIsSellDialogOpen}>
                 <DialogContent className="bg-card border-border rounded-xl p-6 max-w-sm">
                     <DialogHeader className="mb-4">
-                        <DialogTitle className="text-xl font-black uppercase tracking-tight">Vender Carta</DialogTitle>
+                        <DialogTitle className="text-xl font-black uppercase tracking-tight">Vender {selectedItemForSell?.type === 'pack' ? 'Sobre' : 'Carta'}</DialogTitle>
                         <DialogDescription className="text-xs text-muted-foreground font-bold">{selectedItemForSell?.name}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
