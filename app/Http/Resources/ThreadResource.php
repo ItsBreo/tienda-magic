@@ -39,9 +39,9 @@ class ThreadResource extends JsonResource
                 'slug' => $this->forum->slug,
             ],
             'author' => [
-                'id'     => $this->user->id,
-                'name'   => $this->user->name,
-                'avatar' => $this->user->avatar ?? null,
+                'id'         => $this->user->id,
+                'name'       => $this->user->name,
+                'avatar_url' => $this->user->avatar_url,
             ],
             // Solo se incluye si se cargó la relación votes con with()
             'user_vote' => $this->whenLoaded('votes', function () {

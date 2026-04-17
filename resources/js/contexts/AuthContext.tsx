@@ -18,6 +18,7 @@ interface User {
     role_name?: string;
     permissions?: string[];
     two_factor_enabled?: boolean;
+    avatar_url?: string;
 }
 
 interface LoginCredentials {

@@ -7,6 +7,7 @@ import { GiLotus } from 'react-icons/gi';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
 import { cn } from '@/lib/utils';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -157,9 +158,12 @@ export function Navbar() {
                             onClick={() => { setUserMenuOpen((o) => !o); setAboutOpen(false); setComunidadOpen(false); }}
                             className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
                         >
-                            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
-                                <span className="text-[11px] font-black text-primary">{(user?.name || 'U').substring(0, 1).toUpperCase()}</span>
-                            </div>
+                            <UserAvatar
+                                src={user.avatar_url}
+                                name={user.username || user.name}
+                                className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30"
+                                fallbackClassName="text-[11px] text-primary"
+                            />
                             <span className="text-sm font-bold text-foreground truncate max-w-[100px] hidden md:block">{user.username || user.name}</span>
                             <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', userMenuOpen && 'rotate-180')} />
                         </button>

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Trash2, Edit2, MoreHorizontal, MessageSquare, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/common/UserAvatar";
 
 interface CommentSelection {
   isSelected: (id: number) => boolean;
@@ -168,9 +169,14 @@ Comentario oculto · puntuación
           )}
 
           <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black text-white shadow-sm ring-2 ring-background ring-offset-1" style={{ background: item.avatarColor }}>
-              {item.initials}
-            </div>
+            <UserAvatar 
+              src={item.avatar_url}
+              name={item.author}
+              initials={item.initials}
+              className="w-8 h-8 rounded-xl shadow-sm ring-2 ring-background ring-offset-1"
+              imageClassName="object-cover"
+              fallbackClassName="text-[10px] text-white font-black"
+            />
             {item.replies && item.replies.length > 0 && !isEditing && (
               <div className="w-[1px] flex-1 bg-border/40 rounded-full" />
             )}

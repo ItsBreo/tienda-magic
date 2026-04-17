@@ -32,7 +32,7 @@ class MarketController extends Controller
     #[OA\Response(response: 200, description: "Listado del mercado")]
     public function index(Request $request)
     {
-        $query = MarketListing::with(['listable', 'seller'])->active();
+        $query = MarketListing::with(['listable', 'seller.profile'])->active();
 
         // Filtros
         if ($request->has('type')) {
@@ -73,7 +73,7 @@ class MarketController extends Controller
         $product = $modelType::with('set')->findOrFail($id);
 
         // Obtener todos los anuncios activos para este producto
-        $listings = MarketListing::with('seller')
+        $listings = MarketListing::with('seller.profile')
             ->where('listable_type', $modelType)
             ->where('listable_id', $id)
             ->active()

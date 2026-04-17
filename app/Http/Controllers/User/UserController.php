@@ -49,6 +49,7 @@ class UserController extends Controller
             'is_admin'       => $user->is_admin,
             'permissions'    => $user->all_permissions,
             'reputation'     => $user->reputation,
+            'avatar_url'     => $user->avatar_url,
             'created_at'     => $user->created_at,
             'updated_at'     => $user->updated_at
         ]);

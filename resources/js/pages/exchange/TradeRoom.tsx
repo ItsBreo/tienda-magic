@@ -5,6 +5,7 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { apiService } from '../../services/ApiService';
 import { cn } from '../../lib/utils';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 if (typeof window !== 'undefined') {
   (window as any).Pusher = Pusher;
@@ -15,6 +16,7 @@ interface ChatMessage {
   content: string;
   user_id: number;
   user_name: string;
+  user_avatar?: string;
   created_at: string;
 }
 
@@ -458,16 +460,24 @@ Privado con
                         messages.map((msg) => {
                             const isOwn = msg.user_id === user.id;
                             return (
-                                <div key={msg.id} className={cn('flex flex-col', isOwn ? 'items-end' : 'items-start')}>
-                                    <div className={cn(
-                                        'max-w-[85%] px-4 py-3 rounded-xl text-sm leading-tight shadow-sm',
-                                        isOwn ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-foreground',
-                                    )}>
-                                        {msg.content}
+                                <div key={msg.id} className={cn('flex items-end gap-2 mb-4', isOwn ? 'flex-row-reverse' : 'flex-row')}>
+                                    <UserAvatar 
+                                        src={msg.user_avatar}
+                                        name={msg.user_name}
+                                        className="h-8 w-8 rounded-lg bg-card border border-border flex-shrink-0 mb-5"
+                                        fallbackClassName="text-[10px] font-black text-primary"
+                                    />
+                                    <div className={cn('flex flex-col', isOwn ? 'items-end' : 'items-start')}>
+                                        <div className={cn(
+                                            'max-w-[100%] px-4 py-3 rounded-xl text-sm leading-tight shadow-sm',
+                                            isOwn ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-foreground',
+                                        )}>
+                                            {msg.content}
+                                        </div>
+                                        <span className="text-[9px] text-muted-foreground font-medium mt-1 uppercase tracking-tighter px-1">
+                                            {formatTime(msg.created_at)}
+                                        </span>
                                     </div>
-                                    <span className="text-[9px] text-muted-foreground font-medium mt-1 uppercase tracking-tighter px-1">
-                                        {formatTime(msg.created_at)}
-                                    </span>
                                 </div>
                             );
                         })

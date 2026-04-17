@@ -7,12 +7,13 @@ import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/common/UserAvatar";
 
 const CAT_COLORS: Record<string, string> = {
-  noticias: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  estrategia: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  noticias: 'bg-primary/10 text-primary border-primary/20',
+  estrategia: 'bg-primary/10 text-primary border-primary/20',
   torneos: 'bg-primary/10 text-primary border-primary/20',
-  general: 'bg-muted text-muted-foreground border-border',
+  general: 'bg-primary/10 text-primary border-primary/20',
 };
 
 function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number; initialScore: number; initialVote?: number; }) {
@@ -155,47 +156,48 @@ export default function PostCard({
 
       <div className="py-5 px-6 flex-1 min-w-0 flex flex-col justify-between">
         <div className="space-y-4">
-            <div className="flex items-center gap-3 flex-wrap font-montserrat overflow-hidden">
-                <span className={cn(
-                    'text-[8px] font-black py-1 px-3 rounded-lg uppercase tracking-widest border shrink-0',
-                    CAT_COLORS[post.category] || 'bg-muted text-muted-foreground border-border',
-                )}>
-                    {CAT_LABELS[post.category]}
-                </span>
-                <div className="flex items-center gap-2 min-w-0 truncate">
-                    <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-tight">por</span>
-                    <b className="text-[11px] text-foreground font-black truncate leading-none hover:text-primary transition-colors cursor-pointer">
-@
-{post.author}
-</b>
-                    <Badge variant="outline" className="text-[9px] font-black text-primary bg-primary/5 border-primary/10 px-2 py-0 h-5" title="Reputación">
-                        {post.reputation || 100}
-{' '}
-EP
-</Badge>
-                    {post.isMod && <Badge className="bg-primary text-primary-foreground text-[8px] font-black h-4 px-1">MOD</Badge>}
-                </div>
-                <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest font-montserrat">
-·
-{post.timeAgo}
-</span>
+          <div className="flex items-center gap-3 flex-wrap font-montserrat overflow-hidden">
+            <span className={cn(
+                'text-[8px] font-black py-1 px-3 rounded-lg uppercase tracking-widest border shrink-0 w-24 text-center',
+                CAT_COLORS[post.category] || 'bg-primary/10 text-primary border-primary/20',
+            )}>
+                {CAT_LABELS[post.category]}
+            </span>
+            <div className="flex items-center gap-2">
+              <UserAvatar 
+                src={post.avatar_url}
+                name={post.author}
+                className="w-5 h-5 rounded-md bg-accent border border-border/50"
+                fallbackClassName="text-[10px] text-muted-foreground"
+              />
+              <b className="text-[11px] text-foreground font-black truncate leading-none hover:text-primary transition-colors cursor-pointer">@{post.author}</b>
             </div>
+            
+            <Badge variant="outline" className="text-[9px] font-black text-primary bg-primary/5 border-primary/10 px-2 py-0 h-5" title="Reputación">
+                {post.reputation || 100} EP
+            </Badge>
+            {post.isMod && <Badge className="bg-primary text-primary-foreground text-[8px] font-black h-4 px-1">MOD</Badge>}
+            
+            <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest font-montserrat">
+              · {post.timeAgo}
+            </span>
+          </div>
 
-            <div className="flex gap-6 items-start">
-                <div className="flex-1 min-w-0">
-                    <h3 onClick={() => onOpen()} className="text-xl font-forum font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-[1.2] mb-3 line-clamp-2">
-                        {post.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground font-literata italic leading-relaxed line-clamp-2 opacity-80 mb-4">
-                        {post.preview}
-                    </p>
-                </div>
-                {post.image_url && (
-                    <div onClick={() => onOpen()} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-border cursor-pointer group-hover:border-primary/50 transition-all shadow-sm">
-                        <img src={post.image_url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    </div>
-                )}
+          <div className="flex gap-6 items-start">
+            <div className="flex-1 min-w-0">
+                <h3 onClick={() => onOpen()} className="text-xl font-forum font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-[1.2] mb-3 line-clamp-2">
+                    {post.title}
+                </h3>
+                <p className="text-sm text-muted-foreground font-literata italic leading-relaxed line-clamp-2 opacity-80 mb-4">
+                    {post.preview}
+                </p>
             </div>
+            {post.image_url && (
+                <div onClick={() => onOpen()} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-border cursor-pointer group-hover:border-primary/50 transition-all shadow-sm">
+                    <img src={post.image_url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                </div>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -203,8 +205,7 @@ EP
                 <div className="flex gap-2 flex-wrap">
                     {post.tags.map((t) => (
                         <span key={t} className="text-[8px] py-1 px-2.5 rounded-lg bg-accent/50 text-muted-foreground/60 border border-border/50 font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-colors cursor-pointer font-montserrat">
-                            #
-{t}
+                            #{t}
                         </span>
                     ))}
                 </div>

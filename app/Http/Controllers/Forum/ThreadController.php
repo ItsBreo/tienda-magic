@@ -26,7 +26,7 @@ class ThreadController extends Controller
 
         $perPage = $request->get('per_page', 20);
         
-        $threads = Thread::with(['user', 'forum', 'votes'])
+        $threads = Thread::with(['user.profile', 'forum', 'votes'])
             ->withCount('comments')
             ->when(in_array($sort, ['new', 'nuevo']), fn($q) => $q->latest())
             ->when($sort === 'top', fn($q) => $q->orderByDesc('score'))
@@ -55,7 +55,7 @@ class ThreadController extends Controller
 
         $perPage = $request->get('per_page', 20);
 
-        $threads = Thread::with(['user', 'forum', 'votes'])
+        $threads = Thread::with(['user.profile', 'forum', 'votes'])
             ->withCount('comments')
             ->where('title', 'like', "%{$query}%")
             ->orWhere('body', 'like', "%{$query}%")
@@ -79,11 +79,11 @@ class ThreadController extends Controller
         $thread->increment('views_count');
 
         $thread->load([
-            'user',
+            'user.profile',
             'forum',
             'votes',
             'comments' => fn($q) => $q->whereNull('parent_id')
-                ->with(['user', 'replies.user', 'replies.replies.user']),
+                ->with(['user.profile', 'replies.user.profile', 'replies.replies.user.profile']),
         ]);
 
         return new ThreadResource($thread);

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { UserAvatar } from '@/components/common/UserAvatar';
 import {
  Card, CardHeader, CardTitle, CardContent,
 } from '@/components/ui/card';
@@ -217,9 +218,12 @@ export default function Marketplace() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">
-                    <div className="w-5 h-5 rounded bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary flex-shrink-0">
-                        {listing.seller?.username?.slice(0, 1).toUpperCase() || '?'}
-                    </div>
+                    <UserAvatar 
+                        src={(listing.seller as any)?.avatar_url}
+                        name={listing.seller?.username}
+                        className="w-5 h-5 rounded bg-primary/10 border border-primary/20 flex-shrink-0"
+                        fallbackClassName="text-[10px] font-black text-primary"
+                    />
                     <p className="text-[11px] font-black tracking-wider uppercase text-muted-foreground truncate">{listing.seller?.username || 'Desconocido'}</p>
                 </div>
 

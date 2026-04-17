@@ -108,6 +108,9 @@ class RegisterController extends Controller
         // así el frontend puede autenticarse sin tener que hacer un segundo request de login
         $token = Auth::guard('api')->login($user);
 
+        $user = Auth::guard('api')->user();
+        $user->load('profile');
+
         return response()->json([
             'message' => 'Usuario registrado e inicio de sesión exitoso.',
             'token'   => $token,          // 👈 Igual que en login, el frontend lo guarda
@@ -119,6 +122,7 @@ class RegisterController extends Controller
                 'wallet_balance' => $user->wallet_balance,
                 'is_admin'       => $user->is_admin ?? false,
                 'reputation'     => $user->reputation,
+                'avatar_url'     => $user->avatar_url,
             ],
         ], 201);
     }

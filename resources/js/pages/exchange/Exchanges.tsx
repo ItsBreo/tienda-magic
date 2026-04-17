@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { apiService } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 export default function Exchanges() {
   const { user } = useAuth();
@@ -160,9 +161,12 @@ export default function Exchanges() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">
-                    <div className="w-5 h-5 rounded bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary flex-shrink-0">
-                        {exchange.user?.name?.charAt(0).toUpperCase()}
-                    </div>
+                    <UserAvatar 
+                        src={(exchange.user as any)?.avatar_url}
+                        name={exchange.user?.name}
+                        className="w-5 h-5 rounded bg-primary/10 border border-primary/20 flex-shrink-0"
+                        fallbackClassName="text-[10px] font-black text-primary"
+                    />
                     <p className="text-[11px] font-black tracking-wider uppercase text-muted-foreground truncate flex-1">{exchange.user?.name}</p>
                     {exchange.user_id === user?.id && (
                         <span className="text-[8px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded uppercase tracking-widest font-black shrink-0">

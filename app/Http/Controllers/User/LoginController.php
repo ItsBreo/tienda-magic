@@ -104,6 +104,7 @@ class LoginController extends Controller
         }
 
         Log::info('Successful login', ['user_id' => $user->id]);
+        $user->load('profile');
         AuditLogger::log('auth.login', $user);
 
         return response()->json([

@@ -12,6 +12,7 @@ import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 interface ThreadDetailViewProps {
   post: Post;
@@ -128,9 +129,12 @@ Eliminar
 
       <div className="p-8 border-b border-border/50 bg-card/50">
         <div className="flex items-center gap-4 mb-8">
-            <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-[14px] font-black text-primary shadow-sm">
-                {(post.author || 'U').substring(0, 2).toUpperCase()}
-            </div>
+            <UserAvatar 
+              src={post.avatar_url}
+              name={post.author}
+              className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 shadow-sm"
+              fallbackClassName="text-[14px] text-primary"
+            />
             <div>
                 <div className="flex items-center gap-3 mb-1 font-montserrat">
                     <span className="text-sm font-black text-foreground uppercase tracking-tight">

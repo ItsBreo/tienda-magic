@@ -78,6 +78,7 @@ class User extends Authenticatable implements JWTSubject
         'role_name',
         'reputation',
         'all_permissions',
+        'avatar_url',
     ];
 
     /**
@@ -384,6 +385,14 @@ class User extends Authenticatable implements JWTSubject
                 return (int) round($formula);
             }
         );
+    }
+
+    /**
+     * Accesor para obtener la URL del avatar desde el perfil.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->profile?->avatar_url;
     }
 
     /**

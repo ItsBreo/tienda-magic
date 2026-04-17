@@ -4,6 +4,7 @@ import {
     Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield, Package,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 const NAV_HEIGHT = 80; // Altura aproximada del Navbar principal (py-5 + contenido)
 
@@ -69,9 +70,12 @@ export default function AdminLayout() {
                 <div className="p-4 border-t border-border flex-shrink-0 space-y-2">
                     {/* User card */}
                     <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-accent/30 border border-border/50">
-                        <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-black border border-primary/30 flex-shrink-0 text-sm">
-                            {user?.name?.charAt(0).toUpperCase() ?? 'A'}
-                        </div>
+                        <UserAvatar 
+                            src={user?.avatar_url}
+                            name={user?.name}
+                            className="h-8 w-8 rounded-lg bg-primary/20 border border-primary/30 flex-shrink-0"
+                            fallbackClassName="text-primary font-black text-sm"
+                        />
                         <div className="flex flex-col min-w-0">
                             <span className="text-[11px] font-black uppercase tracking-widest text-foreground truncate">{user?.name}</span>
                             <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest">{user?.role_name ?? 'Admin'}</span>

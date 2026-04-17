@@ -560,6 +560,7 @@ class TradeController extends Controller
                 'content'    => $m->content,
                 'user_id'    => $m->user_id,
                 'user_name'  => $m->user->name ?? 'Usuario',
+                'user_avatar' => $m->user->avatar_url,
                 'created_at' => $m->created_at->toIso8601String(),
             ]);
 
@@ -630,6 +631,7 @@ class TradeController extends Controller
             'content'    => $message->content,
             'user_id'    => $message->user_id,
             'user_name'  => $message->user->name ?? 'Usuario',
+            'user_avatar' => $message->user->avatar_url,
             'created_at' => $message->created_at->toIso8601String(),
         ], 201);
     }

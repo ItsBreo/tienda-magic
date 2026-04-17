@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import { X, Search, Loader2, MessageSquare, Flame, Trash2, LayoutDashboard, Bookmark, Newspaper, Swords, Trophy, MessageCircle, UserCircle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { UserAvatar } from '@/components/common/UserAvatar';
 import { Category, SortMode, View, Post, Comment, Tournament } from "./types";
 import { RULES, CAT_LABELS } from "./constants";
 import { Input } from "@/components/ui/input";
@@ -85,6 +86,7 @@ const mapThreadToPost = (t: any): Post => ({
   comments: t.comments_count || 0,
   timeAgo: formatDate(t.created_at),
   image_url: t.image_url,
+  avatar_url: t.user?.avatar_url || t.author?.avatar_url,
   tags: (() => {
     if (Array.isArray(t.tags)) return t.tags;
     try { return JSON.parse(t.tags || '[]'); } catch { return []; }
@@ -139,6 +141,13 @@ export default function MagicForum() {
   } = useSelection(posts);
 
   const isModOrAdmin = user?.is_admin || (user as any)?.all_permissions?.includes('moderate-forum');
+
+  // Bloquear el scroll del body mientras estamos en el foro (estilo Admin)
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   const handleSetView = (newView: View) => {
     if (view === newView) return;
@@ -242,6 +251,7 @@ export default function MagicForum() {
       author: c.author?.name || c.user?.username || c.user?.name || 'Desconocido',
       author_id: c.author?.id || c.user?.id || 0,
       reputation: c.author?.reputation || c.user?.reputation || 100,
+      avatar_url: c.author?.avatar_url || c.user?.avatar_url,
       avatarColor: c.parent_id ? 'hsl(var(--secondary))' : 'hsl(var(--primary))',
       initials: (c.author?.name || c.user?.username || c.user?.name || 'US').substring(0, 2).toUpperCase(),
       timeAgo: c.created_at || formatDate(c.created_at),
@@ -393,10 +403,10 @@ export default function MagicForum() {
   };
 
   return (
-    <div className="flex min-h-screen font-literata">
-      <div className="flex-1 max-w-[1440px] mx-auto grid grid-cols-[240px_1fr_280px] h-full shadow-2xl">
+    <div className="flex h-[calc(100vh-80px)] font-literata">
+      <div className="flex-1 max-w-[1440px] mx-auto grid grid-cols-[240px_1fr_280px] h-full shadow-2xl bg-background overflow-hidden">
 
-        <aside className="bg-card/40 backdrop-blur-md border-r border-border flex flex-col sticky top-0 h-screen">
+        <aside className="bg-card/40 backdrop-blur-md border-r border-border flex flex-col h-full">
           <div className="p-6 flex items-center gap-3 border-b border-border/50 mb-4">
              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
                 <span className="text-primary font-black font-forum text-xl">M</span>
@@ -519,9 +529,12 @@ export default function MagicForum() {
 
           <div className="mt-auto p-6 border-t border-border/50">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/40 border border-border/30 cursor-pointer hover:border-primary/30 transition-all group">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-[12px] font-black text-primary shadow-sm">
-                {user?.name?.substring(0, 2).toUpperCase() || 'US'}
-              </div>
+              <UserAvatar 
+                src={user?.avatar_url}
+                name={user?.name}
+                className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20"
+                fallbackClassName="text-[12px] text-primary"
+              />
               <div className="min-w-0">
                 <div className="text-[11px] font-black uppercase tracking-widest text-foreground truncate">{user?.username || user?.name || 'Usuario'}</div>
                 <div className="text-[9px] text-primary font-black uppercase tracking-[0.2em] mt-0.5 opacity-80">
@@ -552,7 +565,7 @@ export default function MagicForum() {
           />
         </main>
 
-        <aside className="p-6 flex flex-col gap-6 sticky top-0 h-screen border-l border-border/50 bg-background/20 backdrop-blur-md">
+        <aside className="p-6 flex flex-col gap-6 h-full border-l border-border/50 bg-background/20 backdrop-blur-md">
           <Widget title="Grandes Torneos">
             <div className="px-4 py-2 space-y-1">
               {tournaments.length === 0 ? (
