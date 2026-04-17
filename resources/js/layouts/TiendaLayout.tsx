@@ -38,7 +38,7 @@ export default function TiendaLayout({ children }: TiendaLayoutProps) {
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="text-center md:text-left">
-                    <p className="text-muted-foreground text-[13px]">© {new Date().getFullYear()} Tienda Magic. Todos los derechos reservados.</p>
+                    <p className="text-muted-foreground text-[13px]">© {new Date().getFullYear()} Black Lotus. Todos los derechos reservados.</p>
                     <p className="text-muted-foreground opacity-70 text-[12px] mt-1">
                         Tu tienda especializada en cartas Magic: The Gathering
                     </p>

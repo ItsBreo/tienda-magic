@@ -39,4 +39,10 @@ class AchievementListener
         Log::debug("AchievementListener: Procesando Transacción Completada para el usuario {$event->user->id}");
         $this->service->checkTransactionMilestones($event->user);
     }
+
+    public function handleTradeCompleted($event): void
+    {
+        Log::debug("AchievementListener: Procesando Intercambio Completado para el usuario {$event->user->id}");
+        $this->service->checkTradeMilestones($event->user);
+    }
 }

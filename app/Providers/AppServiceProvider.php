@@ -37,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(PackPurchased::class,        [AchievementListener::class, 'handlePackPurchased']);
         Event::listen(CardPurchased::class,        [AchievementListener::class, 'handleCardPurchased']);
         Event::listen(CardListed::class,           [AchievementListener::class, 'handleCardListed']);
+        Event::listen(\App\Events\TradeCompleted::class,   [AchievementListener::class, 'handleTradeCompleted']);
         Event::listen(TransactionCompleted::class, [AchievementListener::class, 'handleTransactionCompleted']);
 
         Message::observe(MessageObserver::class);

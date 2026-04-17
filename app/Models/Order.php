@@ -48,7 +48,7 @@ class Order extends Model
         foreach ($orderItems as $item) {
             $product = $item->purchasable;
 
-            // Deduct stock safely
+            // ... (stock updates) ...
             if (isset($product->stock)) {
                 $deductAmount = min($product->stock, $item->quantity);
                 if ($deductAmount > 0) {
@@ -67,6 +67,9 @@ class Order extends Model
                 ]);
                 $inventoryCard->quantity = ($inventoryCard->quantity ?? 0) + $item->quantity;
                 $inventoryCard->save();
+
+                // EVENTO: LOGROS
+                event(new \App\Events\CardPurchased($this->user));
             } elseif ($product instanceof BoosterPack) {
                 // Add pack to inventory
                 $inventoryPack = InventoryPack::firstOrNew([
@@ -75,8 +78,14 @@ class Order extends Model
                 ]);
                 $inventoryPack->quantity = ($inventoryPack->quantity ?? 0) + $item->quantity;
                 $inventoryPack->save();
+
+                // EVENTO: LOGROS
+                event(new \App\Events\PackPurchased($this->user));
             }
         }
+
+        // EVENTO GLOBAL: TRANSACCION
+        event(new \App\Events\TransactionCompleted($this->user));
 
         // Vaciar carrito
         $cart = Cart::where('user_id', $this->user_id)->first();

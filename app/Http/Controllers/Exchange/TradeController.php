@@ -277,6 +277,10 @@ class TradeController extends Controller
                 $exchange->status = 'completed';
                 $exchange->save();
 
+                // ---------- ACHIEVEMENT EVENTS ----------
+                event(new \App\Events\TradeCompleted($exchange->user));
+                event(new \App\Events\TradeCompleted($req->user));
+
                 // ---------- AUDIT LOG ----------
                 $timestamp = now()->format('Y-m-d_H-i-s');
                 $creatorUsername = $exchange->user->username ?? $exchange->user->name ?? 'unknown';

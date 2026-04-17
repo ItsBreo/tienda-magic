@@ -67,6 +67,28 @@ class AchievementSeeder extends Seeder
                 'badge_icon'  => '🔵', 
                 'xp_points'   => 100,
             ],
+            [
+                'slug'        => 'first_trade',
+                'name'        => 'Primer Intercambio',
+                'description' => 'Completaste tu primer intercambio con otro Planeswalker.',
+                'badge_icon'  => '🧙',
+                'xp_points'   => 50,
+            ],
+            [
+                'slug'        => 'trades_10',
+                'name'        => 'Coleccionista Activo',
+                'description' => 'Has completado 10 intercambios exitosos.',
+                'badge_icon'  => '🔄',
+                'xp_points'   => 100,
+            ],
+            [
+                'slug'        => 'trades_100', // Changed to trades_50 in plan but user requested 50, let's stick to what I planned or what user said. User said 10 and 50.
+                'slug'        => 'trades_50',
+                'name'        => 'Maestro del Trueque',
+                'description' => 'Eres un experto comerciante con 50 intercambios completados.',
+                'badge_icon'  => '👑',
+                'xp_points'   => 250,
+            ],
         ];
 
         foreach ($achievements as $achievement) {

@@ -348,6 +348,10 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
     // Solo accesible por admin y super_admin (el middleware 'admin' hace el filtro base)
     // Pero ahora añadimos permisos granulares para control total
     Route::prefix('admin')->middleware(['admin'])->group(function () {
+        // Estadísticas del Dashboard Administrativo
+        Route::get('/stats', [DashboardController::class, 'getStats'])
+             ->middleware('permission:manage-users');
+
         // Acciones masivas (Bulk) para sets, cartas, booster-packs, roles y usuarios
         Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDelete'])
             ->middleware('permission:manage-users');

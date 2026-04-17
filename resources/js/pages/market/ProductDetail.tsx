@@ -278,7 +278,11 @@ const ProductDetail: React.FC = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <p className="text-base font-bold text-foreground">{Number(listing.price_total).toFixed(2)}€</p>
+                                                    {listing.seller?.id === user?.id ? (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">TUYO</span>
+                                                    ) : (
+                                                        <p className="text-base font-bold text-foreground">{Number(listing.price_total).toFixed(2)}€</p>
+                                                    )}
                                                     <p className="text-[10px] text-muted-foreground">Envío Gratis</p>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
@@ -384,7 +388,7 @@ const ProductDetail: React.FC = () => {
                                     </div>
 
                                     <button 
-                                        disabled={processing || (paymentMethod === 'wallet' && (user?.wallet_balance || 0) < selectedListing.price_total)}
+                                        disabled={processing || (paymentMethod === 'wallet' && (user?.wallet_balance || 0) < selectedListing.price_total) || selectedListing.seller?.id === user?.id}
                                         onClick={handlePurchase}
                                         className="w-full h-14 bg-primary text-primary-foreground rounded-xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
                                     >
@@ -402,6 +406,15 @@ const ProductDetail: React.FC = () => {
                                             <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
                                             <p className="text-[10px] text-destructive">
                                                 Saldo insuficiente. <Link to="/wallet" className="font-bold underline">Recargar billetera</Link>
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {selectedListing.seller?.id === user?.id && (
+                                        <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/30 flex items-start gap-2">
+                                            <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                                            <p className="text-[10px] text-amber-500 font-bold">
+                                                Este es tu propio artículo. Puedes gestionarlo desde Marketplace &gt; Mis Anuncios.
                                             </p>
                                         </div>
                                     )}

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Package, LogOut, Shield, User, ChevronDown, ShoppingCart, Wallet,
+  LogOut, Shield, User, ChevronDown, ShoppingCart, Wallet,
 } from 'lucide-react';
+import { GiLotus } from 'react-icons/gi';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
 import { cn } from '@/lib/utils';
@@ -71,7 +72,7 @@ export function Navbar() {
           <div className="flex items-center gap-12">
             <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0 group">
               <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl group-hover:bg-primary/20 transition-colors">
-                <Package className="h-6 w-6 text-primary" />
+                <GiLotus className="h-6 w-6 text-primary" />
               </div>
               <span className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase">BLACK LOTUS</span>
             </Link>

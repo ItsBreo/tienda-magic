@@ -51,6 +51,9 @@ class AchievementService
 
     public function checkReputationMilestones(User $user): void
     {
+        // Forzamos el refresco para pillar el reputation_score recién incrementado
+        $user->refresh();
+        
         // El accesor reputation calcula el total dinámicamente incluyendo días activos
         $reputation = $user->reputation;
 
@@ -59,5 +62,24 @@ class AchievementService
         if ($reputation >= 1000) {
             $this->unlock($user, 'verified_trader');
         }
+    }
+
+    public function checkTradeMilestones(User $user): void
+    {
+        // Contar TradeSessions completadas donde el usuario sea participante
+        $total = \App\Models\TradeSession::where('status', 'completed')
+            ->where(function ($query) use ($user) {
+                $query->whereHas('exchangeRequest', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })->orWhereHas('exchangeRequest.exchange', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+            })->count();
+
+        Log::debug("🤝 [Logros] Chequeo de intercambios para usuario {$user->id}. Total: {$total}");
+
+        if ($total >= 1)  $this->unlock($user, 'first_trade');
+        if ($total >= 10) $this->unlock($user, 'trades_10');
+        if ($total >= 50) $this->unlock($user, 'trades_50');
     }
 }

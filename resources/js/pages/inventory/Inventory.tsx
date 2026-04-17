@@ -154,6 +154,12 @@ function InventoryCardItem({ item, searchTerm, onSell }: {
                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-black px-2 py-0.5 rounded border border-primary/30 uppercase tracking-tighter shadow-lg">
                     x{item.quantity}
                 </div>
+
+                {item.quantity_locked > 0 && (
+                    <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground p-1.5 rounded-md shadow-lg">
+                        <Lock size={10} strokeWidth={4} />
+                    </div>
+                )}
              </div>
 
              <div className="mt-4 flex flex-col flex-1">
@@ -179,9 +185,10 @@ function InventoryCardItem({ item, searchTerm, onSell }: {
                         size="sm"
                         onClick={() => onSell(item.id, card.name)}
                         className="h-9 px-4 bg-accent/50 text-foreground hover:bg-primary/20 hover:text-primary font-black uppercase tracking-widest text-[9px] rounded-lg transition-all border border-border/60"
+                        disabled={item.quantity <= item.quantity_locked}
                     >
                         <DollarSign size={12} className="mr-1" />
-                        Vender
+                        {item.quantity <= item.quantity_locked ? 'Publicada' : 'Vender'}
                     </Button>
                 </div>
              </div>
@@ -211,6 +218,7 @@ export default function Inventory() {
     const [isSellDialogOpen, setIsSellDialogOpen] = useState(false);
     const [selectedItemForSell, setSelectedItemForSell] = useState<{ id: number, name: string } | null>(null);
     const [amountToSeller, setAmountToSeller] = useState('');
+    const [isSubmittingSell, setIsSubmittingSell] = useState(false);
 
     const fetchInventory = async (page: number) => {
         setLoading(true);
@@ -255,6 +263,42 @@ export default function Inventory() {
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Error al abrir');
         } finally { setLoading(false); }
+    };
+    
+    const handleConfirmSell = async () => {
+        if (!selectedItemForSell || !amountToSeller) return;
+        
+        const price = parseFloat(amountToSeller);
+        if (isNaN(price) || price <= 0) {
+            toast.error('Por favor, ingresa un precio válido mayor a 0');
+            return;
+        }
+
+        try {
+            setIsSubmittingSell(true);
+            const response = await apiService.listOnMarket({
+                inventory_item_id: selectedItemForSell.id,
+                type: 'card', 
+                amount_to_seller: price
+            });
+            
+            toast.success(response.message || 'Carta puesta a la venta con éxito');
+            setIsSellDialogOpen(false);
+            setSelectedItemForSell(null);
+            setAmountToSeller('');
+            
+            // Redirigir al mercado secundario después de un breve delay para que vean el toast
+            setTimeout(() => {
+                navigate('/market');
+            }, 1000);
+            
+            fetchInventory(currentPage);
+        } catch (error: any) {
+            console.error('Error listing on market:', error);
+            toast.error(error.response?.data?.message || 'Error al poner a la venta');
+        } finally {
+            setIsSubmittingSell(false);
+        }
     };
 
     const availableSets = useMemo(() => {
@@ -439,8 +483,14 @@ export default function Inventory() {
                         </div>
                     </div>
                     <DialogFooter className="mt-6 flex gap-2">
-                        <Button variant="ghost" className="flex-1 font-bold text-xs uppercase h-10" onClick={() => setIsSellDialogOpen(false)}>Cancelar</Button>
-                        <Button className="flex-1 bg-primary text-primary-foreground font-black uppercase text-xs h-10 shadow-lg shadow-primary/20">Confirmar</Button>
+                        <Button variant="ghost" className="flex-1 font-bold text-xs uppercase h-10" onClick={() => setIsSellDialogOpen(false)} disabled={isSubmittingSell}>Cancelar</Button>
+                        <Button 
+                            className="flex-1 bg-primary text-primary-foreground font-black uppercase text-xs h-10 shadow-lg shadow-primary/20"
+                            onClick={handleConfirmSell}
+                            disabled={isSubmittingSell}
+                        >
+                            {isSubmittingSell ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : 'Confirmar'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

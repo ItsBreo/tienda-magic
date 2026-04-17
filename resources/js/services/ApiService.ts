@@ -173,6 +173,11 @@ class MagicApi {
         return response.data;
     }
 
+    async getLatestSets(): Promise<any> {
+        const response = await this.api.get('/api/sets/latest');
+        return response.data;
+    }
+
     async processCheckout(billingData: any): Promise<any> {
         const response = await this.api.post('/api/checkout/process', billingData);
         return response.data;

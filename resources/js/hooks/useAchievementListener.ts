@@ -24,6 +24,9 @@ export function useAchievementListener() {
 
         try {
             const appKey = import.meta.env.VITE_REVERB_APP_KEY;
+            const host = import.meta.env.VITE_REVERB_HOST;
+            const port = import.meta.env.VITE_REVERB_PORT ?? 80;
+            const scheme = import.meta.env.VITE_REVERB_SCHEME ?? 'https';
             
             if (!appKey || appKey === 'reverb_key') {
                 console.log('📡 AchievementListener: Reverb key no configurada. Saltando conexión.');
