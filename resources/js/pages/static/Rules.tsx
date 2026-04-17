@@ -18,11 +18,9 @@ export default function Rules() {
                  {/* GRIMOIRE HEADER */}
                 <div className="text-center mb-24 space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
                     <div className="flex justify-center -mb-6">
-                        <div className="p-6 bg-primary/5 rounded-full border border-primary/10 shadow-inner">
-                            <Scroll className="h-12 w-12 text-primary opacity-40 animate-pulse" />
-                        </div>
+                        
                     </div>
-                    <h1 className="text-6xl md:text-9xl font-forum font-black text-foreground uppercase tracking-tighter leading-none">
+                    <h1 className="text-6xl md:text-9xl font-forum font-black text-foreground uppercase tracking-tighter leading-none mt-20">
                         El Grimorio del <span className="text-primary italic">Caminante</span>
                     </h1>
                     <div className="flex items-center justify-center gap-6">
@@ -177,12 +175,6 @@ export default function Rules() {
                         </div>
                     </section>
                 </div>
-
-                <footer className="mt-32 pt-16 border-t border-border/40 text-center opacity-40">
-                     <p className="text-[10px] font-black uppercase tracking-[1em] text-muted-foreground whitespace-nowrap">
-                        Origin &copy; 2026 - ARCHIVO NACIONAL DE REGLAS MÍTICAS
-                     </p>
-                </footer>
             </main>
         </div>
     );

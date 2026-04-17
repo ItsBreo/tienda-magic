@@ -141,7 +141,7 @@ export default function WalletPage() {
 
     return (
         <div className="flex-1 bg-background text-foreground pb-20 font-literata">
-            <Breadcrumbs items={[{ title: 'Mi Billetera', href: '/wallet' }]} />
+            
 
             <main className="max-w-7xl mx-auto px-4 pt-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
@@ -391,12 +391,6 @@ export default function WalletPage() {
                          </section>
                     </div>
                 </div>
-
-                <footer className="mt-24 border-t border-border/40 pt-12 pb-20 text-center space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground opacity-30">
-                        THE GATHERING &copy; 2026 - SISTEMA DE MONETIZACIÓN CERTIFICADO
-                    </p>
-                </footer>
             </main>
         </div>
     );

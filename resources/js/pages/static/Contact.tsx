@@ -17,17 +17,13 @@ export default function Contact() {
 
             <main className="max-w-6xl mx-auto px-4 pt-16">
                  {/* INTRO HERO */}
-                <div className="text-center mb-20 space-y-8 animate-in fade-in slide-in-from-top-6 duration-1000">
-                    <div className="flex justify-center">
-                        <Badge variant="outline" className="px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.4em] bg-primary/5 border-primary/20 text-primary shadow-sm">
-                            Centro de Mensajería Arcano
-                        </Badge>
-                    </div>
+                <div className="text-center mb-20 space-y-8 animate-in fade-in slide-in-from-top-6 duration-1000 mt-20">
+                    
                     <h1 className="text-6xl md:text-8xl font-forum font-black text-foreground uppercase tracking-tighter leading-none">
                         Contacta con el <span className="text-primary italic">Gremio</span>
                     </h1>
                     <p className="max-w-2xl mx-auto text-muted-foreground text-xl leading-relaxed italic opacity-80">
-                        ¿Tienes dudas sobre un pedido, un intercambio legendario o algún torneo? <br />
+                        ¿Tienes dudas sobre un pedido, un intercambio o algún torneo? <br />
                         Nuestros escribas están listos para asistirte en tu viaje por el Multiverso.
                     </p>
                 </div>

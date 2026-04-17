@@ -66,7 +66,7 @@ export function Navbar() {
   };
 
   // Icon Button Style (Matches AnimatedThemeToggler exactly: h-8 w-8)
-  const iconButtonClass = "flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors";
+  const iconButtonClass = "flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors";
 
   return (
     <header className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50 w-full transition-all duration-300">
@@ -149,7 +149,7 @@ export function Navbar() {
                             onClick={() => { setUserMenuOpen(o => !o); setAboutOpen(false); setComunidadOpen(false); }}
                             className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
                         >
-                            <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[11px] font-black text-primary">{(user?.name || 'U').substring(0, 1).toUpperCase()}</span>
                             </div>
                             <span className="text-sm font-bold text-foreground truncate max-w-[100px] hidden md:block">{user.username || user.name}</span>

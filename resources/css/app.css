@@ -15,7 +15,7 @@
   --ring: #6c5ce7;
   --input: #d4d4d4;
   --muted: #c9c4b5;
-  --accent: #8b9467;
+  --accent: #a88ded7c; /*#8b9467*/
   --border: #d4d4d4;
   --radius: 0.5rem;
   --chart-1: #6c5ce7;
@@ -44,7 +44,7 @@
   --shadow-offset-x: 0px;
   --shadow-offset-y: 5px;
   --sidebar-primary: #6c5ce7;
-  --muted-foreground: #6e6e6e;
+  --muted-foreground: #4c4c4c; /*#6e6e6e*/
   --accent-foreground: #ffffff;
   --popover-foreground: #333333;
   --primary-foreground: #ffffff;
@@ -60,7 +60,7 @@
   --ring: #6c5ce7;
   --input: #444444;
   --muted: #444444;
-  --accent: #6495ed;
+  --accent: #6f64ed74; /*#6495ed*/
   --border: #444444;
   --radius: 0.5rem;
   --chart-1: #6c5ce7;
@@ -80,7 +80,7 @@
   --sidebar-border: #444444;
   --card-foreground: #e5e5e5;
   --sidebar-primary: #6c5ce7;
-  --muted-foreground: #a3a3a3;
+  --muted-foreground: #808080; /*#a3a3a3*/
   --accent-foreground: #e5e5e5;
   --popover-foreground: #e5e5e5;
   --primary-foreground: #ffffff;
@@ -225,6 +225,15 @@
 
   .mtg-theme-default {
     @apply bg-background hover:bg-accent text-foreground border border-border;
+  }
+
+  /* Pruebas */
+  .mtg-theme-prueba {
+    @apply bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 border border-amber-500/30;
+  }
+  
+  .dark .mtg-theme-prueba {
+    @apply bg-orange-900 text-orange-100 border-orange-700;
   }
 }
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiService from '@/services/ApiService';
-import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { Loader2, Trophy, ChevronLeft, Lock, Star, Sparkles, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -51,10 +50,7 @@ export default function Achievements() {
 
     return (
         <div className="flex-1 bg-background text-foreground pb-20 font-literata">
-            <Breadcrumbs items={[
-                { title: 'Mi Perfil', href: '/profile' }, 
-                { title: 'Logros', href: '/achievements' }
-            ]} />
+            
             
             {/* ACTION TOOLBAR (Parity with Inventory/Shop) */}
             <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[72px] md:top-[88px] z-40">
