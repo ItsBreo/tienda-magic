@@ -12,6 +12,7 @@ export default function Exchanges() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [loadingInventory, setLoadingInventory] = useState(false);
   
   const [selectedExchange, setSelectedExchange] = useState<any>(null);
   const [selectedInventoryCardId, setSelectedInventoryCardId] = useState<any>('');
@@ -35,7 +36,8 @@ export default function Exchanges() {
     }
   };
 
-  const loadInventory = async () => {
+  const loadInventory = async (showLoading = false) => {
+    if (showLoading) setLoadingInventory(true);
     try {
       const resp = await apiService.getMyInventory();
       let arr = [];
@@ -49,6 +51,8 @@ export default function Exchanges() {
       setInventory(arr); 
     } catch (error) {
       toast.error('Error al cargar tu inventario');
+    } finally {
+      if (showLoading) setLoadingInventory(false);
     }
   };
 
@@ -65,6 +69,7 @@ export default function Exchanges() {
   const handleRequestClick = (exchange: any) => {
     setSelectedExchange(exchange);
     setIsModalOpen(true);
+    loadInventory(true); // Sincronización fresca al abrir modal
   };
 
   const submitRequest = async () => {
@@ -111,7 +116,10 @@ export default function Exchanges() {
         <div className="flex gap-3">
           <button 
             type="button"
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => {
+              setIsCreateModalOpen(true);
+              loadInventory(true);
+            }}
             className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 rounded-lg transition-all active:scale-95"
           >
             Publicar Oferta
@@ -231,12 +239,13 @@ export default function Exchanges() {
             <div className="mb-6 bg-accent border border-border p-4 rounded-xl">
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Carta a ofrecer</label>
               <select 
-                className="w-full bg-background border border-border text-foreground p-3.5 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none transition-all appearance-none"
+                className="w-full bg-background border border-border text-foreground p-3.5 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none transition-all appearance-none disabled:opacity-50"
                 value={selectedInventoryCardId}
                 onChange={(e) => setSelectedInventoryCardId(e.target.value)}
+                disabled={loadingInventory}
               >
-                <option value="">-- Elige una carta de tu colección --</option>
-                {(inventory || []).filter((inv: any) => {
+                <option value="">{loadingInventory ? 'Actualizando inventario...' : '-- Elige una carta de tu colección --'}</option>
+                {!loadingInventory && (inventory || []).filter((inv: any) => {
                   const available = inv.quantity - inv.quantity_locked;
                   if (available <= 0) return false;
                   if (selectedExchange?.requested_card_id) {
@@ -254,10 +263,17 @@ export default function Exchanges() {
               </select>
               
               {selectedExchange?.requested_card_id && (inventory || []).filter(inv => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0 && (
-                <p className="text-xs text-destructive mt-3 flex items-center gap-1.5 font-bold">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  No tienes la carta "{selectedExchange.requested_card?.name}" en tu colección.
-                </p>
+                <div className="text-xs text-destructive mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
+                  <div className="flex items-center gap-1.5 font-bold mb-1 uppercase tracking-tighter">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    Requisito no cumplido
+                  </div>
+                  {inventory.length > 0 ? (
+                    <p className="opacity-80">Tienes cartas en tu colección, pero {selectedExchange?.user?.name} solicita específicamente la carta <span className="underline italic text-destructive font-black">"{selectedExchange.requested_card?.name}"</span>.</p>
+                  ) : (
+                    <p className="opacity-80">Actualmente no tienes cartas disponibles en tu inventario para proponer este intercambio.</p>
+                  )}
+                </div>
               )}
             </div>
 
