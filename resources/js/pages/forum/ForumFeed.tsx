@@ -1,14 +1,10 @@
 import React from 'react';
 import { Loader2, Flame, Sparkles, TrendingUp, Trash2, Scroll } from 'lucide-react';
-import { Loader2, Trash2 } from 'lucide-react';
 import { Post, Category, SortMode } from './types';
 import { CAT_LABELS, SORT_LABELS } from './constants';
 import PostCard from './PostCard';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
-<<<<<<< HEAD
 import { cn } from '@/lib/utils';
-=======
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
 
 interface ForumFeedViewProps {
   posts: Post[];

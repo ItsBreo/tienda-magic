@@ -117,7 +117,7 @@ export function Navbar() {
                   <div className="absolute left-0 top-full mt-4 w-56 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
                     <Link to="/market" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Compra-Venta</Link>
                     <Link to="/exchanges" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Intercambios</Link>
-                    <Link to="/forum" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Foros</Link>
+                    <Link to="/forum" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Foro</Link>
                   </div>
                 )}
               </div>

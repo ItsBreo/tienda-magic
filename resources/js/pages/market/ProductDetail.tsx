@@ -238,9 +238,9 @@ Volver al mercado
                                             </div>
 
                                             {product.data.flavor_text && (
-                                                <div className="pt-2">
-                                                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-2 block font-forum opacity-60">Fragmento de Historia</span>
-                                                    <div className="text-sm text-muted-foreground italic leading-relaxed font-literata pl-4 border-l-2 border-border">
+                                                <div className="pt-4 mt-2">
+                                                    <span className="text-[10px] text-primary/60 uppercase tracking-[0.2em] font-black mb-3 block font-forum">Fragmento de Historia</span>
+                                                    <div className="text-sm text-foreground/80 italic leading-relaxed font-literata pl-4 border-l-2 border-primary/20">
                                                         {product.data.flavor_text}
                                                     </div>
                                                 </div>

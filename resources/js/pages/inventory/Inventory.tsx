@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     Search, Lock, Image as ImageIcon,
     Layers, Package,
-    Loader2, Filter, DollarSign,
+    Loader2, Filter, DollarSign, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import apiService from '@/services/ApiService';
@@ -12,11 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import HighlightedText from '@/components/common/HighlightedText';
-import {
-    Search, Lock, Image as ImageIcon,
-    Layers, Package,
-    Loader2, Filter, DollarSign, X
-} from 'lucide-react';
 import PackOpeningModal from '@/components/inventory/PackOpeningModal';
 import { useTitle } from '@/hooks/useTitle';
 import SetFilterModal from '@/components/common/SetFilterModal';
@@ -213,10 +208,15 @@ function InventoryCardItem({
 
                 {/* Info Directa (Lore/Artist) */}
                 {card.data && (
-                    <div className="space-y-2 mb-4 mt-3">
+                    <div className="space-y-3 mb-4 mt-3">
                         {(card.data.oracle_text || card.oracle_text) && (
                             <p className="text-[10px] text-foreground/70 font-literata line-clamp-2 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
                                 {card.data.oracle_text || card.oracle_text}
+                            </p>
+                        )}
+                        {card.data.flavor_text && (
+                            <p className="text-[9px] text-muted-foreground italic line-clamp-2 leading-relaxed border-l border-border pl-2 opacity-60">
+                                {card.data.flavor_text}
                             </p>
                         )}
                         {card.data.artist && (

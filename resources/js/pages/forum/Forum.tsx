@@ -1,26 +1,11 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ApiService from "../../services/ApiService";
-import { X } from "lucide-react";
+import { X, Search, Loader2, MessageSquare, Flame, Trash2, LayoutDashboard, Bookmark, Newspaper, Swords, Trophy, MessageCircle, UserCircle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Category, SortMode, View, Post, Comment, Tournament } from "./types";
 import { RULES, CAT_LABELS } from "./constants";
 import { Input } from "@/components/ui/input";
-import { 
-    Search, 
-    Loader2, 
-    MessageSquare, 
-    Flame, 
-    Trash2, 
-    LayoutDashboard, 
-    Bookmark, 
-    Newspaper, 
-    Swords, 
-    Trophy,
-    MessageCircle,
-    UserCircle
-} from "lucide-react";
 import { useTitle } from "@/hooks/useTitle";
 import TournamentModal from "./TournamentModal";
 import TournamentDetailModal from "./TournamentDetailModal";
@@ -33,31 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-=======
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
- Search, Loader2, MessageSquare, Flame, Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import ApiService from '../../services/ApiService';
-import { useAuth } from '../../contexts/AuthContext';
-import {
- Category, SortMode, View, Post, Comment, Tournament,
-} from './types';
-import { RULES, CAT_LABELS } from './constants';
-import { Input } from '@/components/ui/input';
-import TournamentModal from './TournamentModal';
-import TournamentDetailModal from './TournamentDetailModal';
-import ForumFeedView from './ForumFeed';
-import ThreadDetailView from './ThreadDetail';
-import CreatePostView from './CreatePost';
-import { useSelection } from '@/hooks/useSelection';
-import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
 
 /** Convierte fecha ISO a formato legible */
 function formatDate(iso: string): string {
@@ -74,9 +34,6 @@ minute: '2-digit',
 }
 
 function NavItem({ active, icon, label, badge, onClick }: { active: boolean; icon: React.ReactNode; label: string; badge?: number; onClick?: () => void }) {
-function NavItem({
- active, icon, label, badge, onClick,
-}: { active: boolean; icon: string; label: string; badge?: number; onClick?: () => void }) {
   return (
     <div
       onClick={onClick}
@@ -515,13 +472,8 @@ export default function MagicForum() {
           <div className="space-y-1">
               <div className="px-6 py-2 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Canales</div>
               <NavItem
-<<<<<<< HEAD
                 active={activeSideNav === "reciente"}
                 icon={<LayoutDashboard className="w-4 h-4" />}
-=======
-                active={activeSideNav === 'reciente'}
-                icon="🔥"
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
                 label="Inicio"
                 onClick={() => {
                   navigate('/forum');
@@ -531,13 +483,8 @@ export default function MagicForum() {
                 }}
               />
               <NavItem
-<<<<<<< HEAD
                 active={activeSideNav === "guardados"}
                 icon={<Bookmark className="w-4 h-4" />}
-=======
-                active={activeSideNav === 'guardados'}
-                icon="🔖"
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
                 label="Marcadores"
                 onClick={() => {
                   navigate('/forum');
@@ -552,16 +499,12 @@ export default function MagicForum() {
                 <NavItem
                   key={cat}
                   active={activeCategory === cat}
-<<<<<<< HEAD
                   icon={
                     cat === "noticias" ? <Newspaper className="w-4 h-4" /> : 
                     cat === "estrategia" ? <Swords className="w-4 h-4" /> : 
                     cat === "torneos" ? <Trophy className="w-4 h-4" /> : 
                     <MessageCircle className="w-4 h-4" />
                   }
-=======
-                  icon={cat === 'noticias' ? '📰' : cat === 'estrategia' ? '⚔️' : cat === 'torneos' ? '🏆' : '💬'}
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
                   label={CAT_LABELS[cat]}
                   badge={cat === 'torneos' ? 2 : undefined}
                   onClick={() => {
@@ -623,16 +566,12 @@ className={cn(
                             'text-[8px] font-black uppercase tracking-widest px-1.5 h-4',
                             t.status === 'live' ? 'bg-primary/5 text-primary border-primary/20' : 'bg-muted text-muted-foreground border-border/50',
                         )}>
-<<<<<<< HEAD
                             {t.status === 'live' ? (
                                 <span className="flex items-center gap-1.5 animate-in fade-in duration-500">
                                     <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                                     Live
                                 </span>
                             ) : "Draft"}
-=======
-                            {t.status === 'live' ? '● Live' : 'Draft'}
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
                         </Badge>
                         <span className="text-[10px] font-black text-muted-foreground/50 font-montserrat tracking-tighter">{formatDate(t.date).split(',')[0]}</span>
                    </div>

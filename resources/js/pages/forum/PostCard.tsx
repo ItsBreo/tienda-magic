@@ -1,23 +1,12 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { Trash2, MessageSquare, Bookmark, Share2, Flame, ChevronUp, ChevronDown } from "lucide-react"; 
 import { Post } from "./types";
 import { CAT_LABELS } from "./constants";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
-import { toast } from "sonner";
-import { Trash2, MessageSquare, Bookmark, Share2, Flame, ChevronUp, ChevronDown } from "lucide-react"; 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import {
- Trash2, MessageSquare, Bookmark, Share2, Flame,
-} from 'lucide-react';
-import { Post } from './types';
-import { CAT_LABELS } from './constants';
-import ApiService from '../../services/ApiService';
-import { useAuth } from '../../contexts/AuthContext';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 const CAT_COLORS: Record<string, string> = {
   noticias: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
@@ -52,15 +41,9 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   };
 
   return (
-<<<<<<< HEAD
     <div className="flex flex-col items-center py-4 px-2 bg-zinc-50 dark:bg-zinc-900/50 gap-1.5 min-w-[50px] border-r border-border/50">
       <button 
         onClick={() => cast(1)} 
-=======
-    <div className="flex flex-col items-center py-4 px-2 bg-accent/30 gap-1.5 min-w-[50px] border-r border-border/50">
-      <button
-        onClick={() => cast(1)}
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
         className={cn(
             'w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90',
             vote === 1 ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
@@ -89,7 +72,7 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
 
 function ActionBtn({
  label, icon: Icon, onClick, active, variant = 'default',
-}: { label: string; icon: any; onClick?: () => void; active?: boolean; variant?: 'default' | 'danger' }) {
+}: { label: string; icon: any; onClick?: (e: React.MouseEvent) => void; active?: boolean; variant?: 'default' | 'danger' }) {
   return (
     <button
         onClick={onClick}
@@ -151,7 +134,6 @@ export default function PostCard({
 
   return (
     <div className={cn(
-<<<<<<< HEAD
         "flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-md min-h-[160px]",
         selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.03]' : 'hover:border-primary/40 hover:shadow-primary/5 hover:-translate-y-0.5'
     )}>
@@ -159,15 +141,6 @@ export default function PostCard({
         <div className="flex items-center px-4 bg-zinc-50/50 dark:bg-zinc-900/40 border-r border-border/50">
           <input 
             type="checkbox" 
-=======
-        'flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-lg shadow-black/5 min-h-[160px]',
-        selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.02]' : 'hover:border-primary/30 hover:shadow-primary/5',
-    )}>
-      {canSelect && (
-        <div className="flex items-center px-4 bg-accent/20 border-r border-border/50">
-          <input
-            type="checkbox"
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
             checked={selection?.isSelected || false}
             onChange={(e) => {
               e.stopPropagation();
@@ -210,7 +183,7 @@ EP
 
             <div className="flex gap-6 items-start">
                 <div className="flex-1 min-w-0">
-                    <h3 onClick={onOpen} className="text-xl font-forum font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-[1.2] mb-3 line-clamp-2">
+                    <h3 onClick={() => onOpen()} className="text-xl font-forum font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-[1.2] mb-3 line-clamp-2">
                         {post.title}
                     </h3>
                     <p className="text-sm text-muted-foreground font-literata italic leading-relaxed line-clamp-2 opacity-80 mb-4">
@@ -218,7 +191,7 @@ EP
                     </p>
                 </div>
                 {post.image_url && (
-                    <div onClick={onOpen} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-border cursor-pointer group-hover:border-primary/50 transition-all shadow-sm">
+                    <div onClick={() => onOpen()} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-border cursor-pointer group-hover:border-primary/50 transition-all shadow-sm">
                         <img src={post.image_url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     </div>
                 )}
@@ -238,18 +211,14 @@ EP
             )}
 
             <div className="flex items-center gap-1 border-t border-border/40 pt-1 -mx-2">
-                <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={onOpen} />
+                <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={() => onOpen()} />
                 <ActionBtn icon={Share2} label="Share" />
-<<<<<<< HEAD
                 <ActionBtn icon={Bookmark} label={isSaved ? "Saved" : "Save"} onClick={toggleSave} active={isSaved} />
-=======
-                <ActionBtn icon={Bookmark} label={isSaved ? 'Saved' : 'Save'} onClick={toggleSave} active={isSaved} />
-                {post.can_delete && (
+                {post.can_delete && !selection && (
                     <div className="ml-auto">
-                        <ActionBtn icon={Trash2} label="" variant="danger" />
+                        <ActionBtn icon={Trash2} label="" onClick={(e) => { e.stopPropagation(); if(window.confirm('¿Seguro?')) ApiService.deleteThread(post.id).then(() => onDeleteSuccess?.()); }} variant="danger" />
                     </div>
                 )}
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
             </div>
         </div>
       </div>

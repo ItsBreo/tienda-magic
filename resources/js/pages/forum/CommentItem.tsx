@@ -6,16 +6,6 @@ import { toast } from "sonner";
 import { Trash2, Edit2, MoreHorizontal, MessageSquare, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import {
- Trash2, Edit2, MoreHorizontal, MessageSquare, AlertCircle,
-} from 'lucide-react';
-import { Comment, Reply } from './types';
-import ApiService from '../../services/ApiService';
-import { useAuth } from '@/contexts/AuthContext';
-import DeleteConfirmDialog from './DeleteConfirmDialog';
-import { Button } from '@/components/ui/button';
 
 interface CommentSelection {
   isSelected: (id: number) => boolean;
@@ -221,7 +211,6 @@ Comentario oculto · puntuación
             )}
 
             <div className="flex gap-4 items-center">
-<<<<<<< HEAD
                 <button 
                     onClick={() => cast(1)} 
                     className={`h-7 px-3 rounded-md transition-all flex items-center gap-1.5 text-[11px] font-black tracking-tight ${vote === 1 ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
@@ -231,20 +220,6 @@ Comentario oculto · puntuación
                 <button 
                     onClick={() => cast(-1)} 
                     className={`h-7 px-2 rounded-md transition-all flex items-center justify-center ${vote === -1 ? 'bg-background text-destructive shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-=======
-              <div className="flex items-center bg-accent/40 rounded-lg p-0.5 border border-border/20">
-                <button
-                    onClick={() => cast(1)}
-                    className={`h-7 px-3 rounded-md transition-all flex items-center gap-1.5 text-[11px] font-black tracking-tight ${vote === 1 ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                    ▲
-{' '}
-{score > 0 ? `+${score}` : score}
-                </button>
-                <button
-                    onClick={() => cast(-1)}
-                    className={`h-7 px-2 rounded-md transition-all ${vote === -1 ? 'bg-background text-destructive shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
->>>>>>> c1e07f97bb49f0d13d93b78d21a94c947765d74b
                 >
                     <ChevronDown size={14} strokeWidth={3} />
                 </button>

@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import {
- Trash2, ArrowLeft, Edit2, Send, Loader2, Bookmark, Share2,
+  Trash2, ArrowLeft, Edit2, Send, Loader2, Bookmark, Share2, Scroll
 } from 'lucide-react';
 import { Post, Comment } from './types';
 import CommentItem from './CommentItem';
 import { useAuth } from '@/contexts/AuthContext';
 import ApiService from '@/services/ApiService';
-import { toast } from 'sonner';
-import { Trash2, ArrowLeft, Edit2, Send, Loader2, Bookmark, Share2, Scroll } from 'lucide-react';
 import { useSelection } from '@/hooks/useSelection';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
