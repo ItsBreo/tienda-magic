@@ -72,23 +72,7 @@ export default function CheckoutSuccess() {
                     </div>
                 </div>
 
-                {/* Session Info */}
-                <div className="mb-8 text-left">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-2 ml-1">Sello de Sesión</p>
-                    <div className="bg-black/20 backdrop-blur-md rounded-xl p-4 border border-white/5 group/code">
-                        <code className="text-xs font-mono text-primary/80 break-all leading-relaxed">
-                            {sessionId || 'Procesando Sello de Seguridad...'}
-                        </code>
-                    </div>
-                </div>
-
-                {/* Status Badge */}
-                <div className="mb-10">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Transacción Asegurada</span>
-                    </div>
-                </div>
+                
 
                 {/* Primary Action */}
                 <button

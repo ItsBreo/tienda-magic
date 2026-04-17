@@ -211,7 +211,7 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                 {/* Imagen de Fondo Premium */}
                 <div 
                     className="animate-slide-right animate-delay-300 absolute inset-0 bg-cover bg-center group" 
-                    style={{ backgroundImage: `url('https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=1600&q=80')` }}
+                    style={{ backgroundImage: 'url("/foto.jpg")' }}
                 >
                     {/* Overlay de Gradiente Suave para Mezclar */}
                     <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent opacity-80" />

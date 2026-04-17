@@ -407,32 +407,32 @@ export default function Inventory() {
                             placeholder="Buscar en inventario..."
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setCardsPage(1); setPacksPage(1); }}
-                            className="pl-9 pr-4 bg-background border-border text-foreground focus-visible:ring-primary h-10 shadow-sm"
+                            className="pl-9 pr-4 bg-background border-border text-foreground focus-visible:ring-primary h-11 shadow-sm text-sm"
                         />
                     </div>
 
                     {/* Category toggle */}
-                    <div className="flex bg-accent p-1 rounded-lg">
+                    <div className="flex bg-accent/50 p-1 rounded-xl h-11">
                         <button
                             onClick={() => { setCategory('all'); setCardsPage(1); setPacksPage(1); }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                                category === 'all' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                                category === 'all' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             Todo
                         </button>
                         <button
                             onClick={() => { setCategory('packs'); setCardsPage(1); setPacksPage(1); }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                                category === 'packs' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                                category === 'packs' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             Sobres
                         </button>
                         <button
                             onClick={() => { setCategory('cards'); setCardsPage(1); setPacksPage(1); }}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                                category === 'cards' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                                category === 'cards' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             Cartas Sueltas
@@ -440,13 +440,13 @@ export default function Inventory() {
                     </div>
 
                     {/* Sort & Filter */}
-                    <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex items-center gap-2">
                         <select
                             value={sortBy}
                             onChange={(e) => { setSortBy(e.target.value as any); setCardsPage(1); setPacksPage(1); }}
-                            className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-xs h-10 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm"
+                            className="bg-background border border-border text-foreground px-4 py-2 rounded-xl text-sm h-11 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm font-medium cursor-pointer"
                         >
-                            <option value="newest">Recientes</option>
+                            <option value="newest">Novedades</option>
                             <option value="price_asc">Menor Valor</option>
                             <option value="price_desc">Mayor Valor</option>
                             <option value="name_asc">A-Z</option>
@@ -457,14 +457,14 @@ export default function Inventory() {
                             variant="outline"
                             onClick={() => setIsFilterModalOpen(true)}
                             className={cn(
-                                'bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4 shadow-sm',
+                                'bg-background border-border text-sm gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-11 px-5 rounded-xl shadow-sm',
                                 selectedSets.length > 0 && 'border-primary/50 text-primary bg-primary/5',
                             )}
                         >
                             <Filter className="h-4 w-4" />
-                            <span className="hidden sm:inline">Set</span>
+                            <span className="hidden sm:inline">Filtrar por Set</span>
                             {selectedSets.length > 0 && (
-                                <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-black">
                                     {selectedSets.length}
                                 </Badge>
                             )}

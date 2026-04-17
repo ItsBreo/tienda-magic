@@ -221,24 +221,24 @@ export default function PacksView() {
                             placeholder={category === 'packs' ? 'Buscar packs...' : 'Buscar cartas...'}
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                            className="pl-9 pr-4 bg-background border-border text-foreground focus-visible:ring-primary"
+                            className="pl-9 pr-4 bg-background border-border text-foreground focus-visible:ring-primary h-11 shadow-sm text-sm"
                         />
                     </div>
 
                     {/* Category toggle */}
-                    <div className="flex bg-accent p-1 rounded-lg">
+                    <div className="flex bg-accent/50 p-1 rounded-xl h-11">
                         <button
                             onClick={() => { setCategory('packs'); setCurrentPage(1); setSelectedSets([]); }}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                category === 'packs' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                                category === 'packs' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             Sobres
                         </button>
                         <button
                             onClick={() => { setCategory('cards'); setCurrentPage(1); setSelectedSets([]); }}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                                category === 'cards' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            className={`px-6 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                                category === 'cards' ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             Cartas Sueltas
@@ -250,7 +250,7 @@ export default function PacksView() {
                         <select
                             value={sortBy}
                             onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                            className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-sm h-10 focus:ring-1 focus:ring-primary outline-none transition-all"
+                            className="bg-background border border-border text-foreground px-4 py-2 rounded-xl text-sm h-11 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm font-medium cursor-pointer"
                         >
                             <option value="newest">Novedades</option>
                             <option value="price_asc">Menor a Mayor</option>
@@ -265,14 +265,14 @@ export default function PacksView() {
                                 size="sm"
                                 onClick={() => setIsFilterModalOpen(true)}
                                 className={cn(
-                                    'bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4',
+                                    'bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-11 px-5 rounded-xl shadow-sm',
                                     selectedSets.length > 0 && 'border-primary/50 text-primary bg-primary/5',
                                 )}
                             >
                                 <Filter className="h-4 w-4" />
                                 <span className="hidden sm:inline">Filtrar por Set</span>
                                 {selectedSets.length > 0 && (
-                                    <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                    <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-black">
                                         {selectedSets.length}
                                     </Badge>
                                 )}
