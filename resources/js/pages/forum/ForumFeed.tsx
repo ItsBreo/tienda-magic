@@ -1,10 +1,10 @@
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Flame, Sparkles, TrendingUp, Trash2, Scroll } from 'lucide-react';
 import { Post, Category, SortMode } from './types';
 import { CAT_LABELS, SORT_LABELS } from './constants';
 import PostCard from './PostCard';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
-import { Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ForumFeedViewProps {
   posts: Post[];
@@ -91,8 +91,11 @@ export default function ForumFeedView({
             <button
               key={mode}
               onClick={() => onSortModeChange(mode)}
-              className={`flex-1 py-1.5 px-3.5 rounded-md text-[13px] transition-all cursor-pointer font-bold ${sortMode === mode ? 'bg-accent text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3.5 rounded-md text-[13px] transition-all cursor-pointer font-bold ${sortMode === mode ? 'bg-accent text-primary' : 'text-muted-foreground hover:text-foreground'}`}
             >
+              {mode === 'hot' && <Flame size={14} className={cn(sortMode === 'hot' ? "text-primary" : "opacity-40")} />}
+              {mode === 'nuevo' && <Sparkles size={14} className={cn(sortMode === 'nuevo' ? "text-primary" : "opacity-40")} />}
+              {mode === 'top' && <TrendingUp size={14} className={cn(sortMode === 'top' ? "text-primary" : "opacity-40")} />}
               {SORT_LABELS[mode]}
             </button>
           ))}
@@ -121,8 +124,9 @@ export default function ForumFeedView({
       ) : (
         <div className="space-y-3">
           {posts.length === 0 ? (
-            <div className="text-center p-20 text-muted-foreground bg-card/10 border border-border border-dashed rounded-xl">
-              No se han encontrado hilos.
+            <div className="p-20 text-center opacity-40 flex flex-col items-center">
+              <Scroll className="w-12 h-12 mb-4 text-muted-foreground/30" />
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] font-montserrat">El silencio reina aquí...</p>
             </div>
           ) : (
             posts.map(post => (

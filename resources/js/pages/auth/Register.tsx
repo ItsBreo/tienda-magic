@@ -7,6 +7,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import apiService from '@/services/ApiService';
 import { cn } from '@/lib/utils';
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import { useTitle } from '@/hooks/useTitle';
 
 // --- SUB-COMPONENTES DE DISEÑO ---
 
@@ -20,6 +21,7 @@ const GlassInputWrapper = ({ children, error }: { children: React.ReactNode, err
 );
 
 export default function Register() {
+    useTitle('Forja tu cuenta');
     const navigate = useNavigate();
     const recaptchaRef = useRef<ReCAPTCHA>(null);
 

@@ -9,9 +9,10 @@ import HighlightedText from '@/components/common/HighlightedText';
 import {
     Search, Lock, Image as ImageIcon,
     Layers, Package,
-    Loader2, Filter, DollarSign
+    Loader2, Filter, DollarSign, X
 } from 'lucide-react';
 import PackOpeningModal from '@/components/inventory/PackOpeningModal';
+import { useTitle } from '@/hooks/useTitle';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import PackDialog from '@/components/packs/PackDialog';
 import CardDetailModal from '@/components/common/CardDetailModal';
@@ -47,6 +48,14 @@ interface CardData {
     set: SetData;
     oracle_text?: string;
     type_line?: string;
+    data?: {
+        oracle_text?: string;
+        flavor_text?: string;
+        artist?: string;
+        power?: string;
+        toughness?: string;
+        mana_cost?: string;
+    };
 }
 
 interface InventoryItem {
@@ -191,6 +200,22 @@ function InventoryCardItem({ item, searchTerm, onSell, onView }: {
                     </span>
                 </div>
 
+                {/* Info Directa (Lore/Artist) */}
+                {card.data && (
+                    <div className="space-y-2 mb-4 mt-3">
+                        {(card.data.oracle_text || card.oracle_text) && (
+                            <p className="text-[10px] text-foreground/70 font-literata line-clamp-2 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
+                                {card.data.oracle_text || card.oracle_text}
+                            </p>
+                        )}
+                        {card.data.artist && (
+                            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40">
+                                Art: {card.data.artist}
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 <div className="flex flex-col w-full mt-auto pt-4 gap-2">
                     <div className="flex items-end justify-between mb-2">
                         <div className="flex flex-col">
@@ -215,6 +240,7 @@ function InventoryCardItem({ item, searchTerm, onSell, onView }: {
 }
 
 export default function Inventory() {
+    useTitle('Inventario');
     const navigate = useNavigate();
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [packs, setPacks] = useState<InventoryPack[]>([]);

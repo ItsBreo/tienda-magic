@@ -3,8 +3,10 @@ import { Users, BookOpen, Layers, Package, Settings, Database } from 'lucide-rea
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { useTitle } from '@/hooks/useTitle';
 
 export default function AdminDashboard() {
+    useTitle('Panel de Administración');
     const { user } = useAuth();
 
     const stats = [

@@ -7,6 +7,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { useLogin } from '@/hooks/useLogin';
 import { cn } from '@/lib/utils';
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import { useTitle } from '@/hooks/useTitle';
 
 // --- SUB-COMPONENTES DE DISEÑO ---
 
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function Login({ _canResetPassword = false, _status }: Props) {
+    useTitle('Acceso');
     const navigate = useNavigate();
     const recaptchaRef = useRef<any>(null);
     const [showPassword, setShowPassword] = useState(false);
@@ -154,9 +156,6 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                                         Mantener portal abierto
                                     </span>
                                 </label>
-                                <Link to="/register" className="text-[11px] font-black uppercase tracking-widest text-primary hover:scale-105 transition-transform no-underline">
-                                    ¿Olvidaste tu hechizo?
-                                </Link>
                             </div>
 
                             {/* ReCAPTCHA */}
@@ -200,15 +199,22 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
 
             {/* COLUMNA DERECHA: HERO IMAGE */}
             <section className="hidden lg:block flex-1 relative overflow-hidden bg-card">
-                {/* Imagen de Fondo Premium */}
-                <div 
-                    className="animate-slide-right animate-delay-300 absolute inset-0 bg-cover bg-center group" 
-                    style={{ backgroundImage: `url('https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=1600&q=80')` }}
+                <a 
+                    href="https://www.freepik.es/imagen-ia-gratis/retrato-personaje-pirata-estilo-arte-digital_186028034.htm" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block h-full group"
                 >
-                    {/* Overlay de Gradiente Suave para Mezclar */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent opacity-80" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-                </div>
+                    {/* Imagen de Fondo Premium */}
+                    <div 
+                        className="animate-slide-right animate-delay-300 absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
+                        style={{ backgroundImage: `url('/digital-art-style-pirate-character-portrait.webp')` }}
+                    >
+                        {/* Overlay de Gradiente Suave para Mezclar */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent opacity-80" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+                    </div>
+                </a>
             </section>
         </div>
     );

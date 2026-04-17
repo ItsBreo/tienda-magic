@@ -7,6 +7,7 @@ import ChatWidget from '@/components/chat/ChatWidget';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import apiService from '@/services/ApiService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTitle } from '@/hooks/useTitle';
 
 interface Trade {
     id: number;
@@ -28,6 +29,7 @@ interface Trade {
 }
 
 export default function Dashboard() {
+    useTitle('Resumen del Portal');
     // Solo llamamos al Hook que trae la información
     const { stats, loading } = useDashboardStats();
     const { user } = useAuth();

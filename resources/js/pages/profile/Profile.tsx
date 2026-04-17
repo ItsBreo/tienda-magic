@@ -25,12 +25,14 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useTitle } from '@/hooks/useTitle';
 
 // Hooks & Sub-components
 import { useCharacterLimit } from "@/hooks/use-character-limit";
 import { ProfileBg, AvatarEditor } from "./components/EditorComponents";
 
 export default function Profile() {
+    useTitle('Mi Perfil');
     const { user: authUser } = useAuth();
     const id = useId();
     const [loading, setLoading] = useState(true);
@@ -302,7 +304,7 @@ export default function Profile() {
                              <Calendar size={20} className="text-primary group-hover:scale-110 transition-transform" />
                              <div className="text-center">
                                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Miembro desde</p>
-                                 <p className="text-lg font-montserrat font-black text-foreground">{new Date(authUser?.created_at || Date.now()).getFullYear()}</p>
+                                 <p className="text-lg font-montserrat font-black text-foreground">{new Date((authUser as any)?.created_at || Date.now()).getFullYear()}</p>
                              </div>
                          </div>
                          <div className="hidden md:flex flex-col items-center gap-2 group cursor-default">

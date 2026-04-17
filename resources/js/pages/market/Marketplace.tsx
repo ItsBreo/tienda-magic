@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Search, Loader2, TrendingUp, ShoppingCart, User, Package, Calendar, XCircle, PlusCircle, ArrowRight, Tag, SlidersHorizontal, X, Filter } from 'lucide-react';
 import SetFilterModal from '@/components/common/SetFilterModal';
+import { useTitle } from '@/hooks/useTitle';
 import apiService from '@/services/ApiService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,14 @@ interface Listing {
         image_uri?: string;
         image_url?: string;
         rarity?: string;
+        data?: {
+            oracle_text?: string;
+            flavor_text?: string;
+            artist?: string;
+            power?: string;
+            toughness?: string;
+            mana_cost?: string;
+        };
         card_set?: { code: string; name: string; id?: number };
         cardSet?: { code: string; name: string; id?: number };
         set?: { code: string; name: string; id?: number };
@@ -40,6 +49,7 @@ interface Listing {
 }
 
 export default function Marketplace() {
+    useTitle('Mercado');
     const { user, checkAuth } = useAuth();
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(true);
@@ -206,12 +216,28 @@ export default function Marketplace() {
                     </h3>
                 </div>
 
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                     <div className="w-5 h-5 rounded bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary flex-shrink-0">
                         {listing.seller?.username?.slice(0, 1).toUpperCase() || '?'}
                     </div>
                     <p className="text-[11px] font-black tracking-wider uppercase text-muted-foreground truncate">{listing.seller?.username || 'Desconocido'}</p>
                 </div>
+
+                {/* Info Directa (Lore/Artist) */}
+                {listing.listable.data && (
+                    <div className="space-y-2 mb-4">
+                        {listing.listable.data.oracle_text && (
+                            <p className="text-[10px] text-foreground/70 font-literata line-clamp-2 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
+                                {listing.listable.data.oracle_text}
+                            </p>
+                        )}
+                        {listing.listable.data.artist && (
+                            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40">
+                                Art: {listing.listable.data.artist}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 <div className="flex items-end justify-between mt-auto pt-4">
                     <div className="flex flex-col">

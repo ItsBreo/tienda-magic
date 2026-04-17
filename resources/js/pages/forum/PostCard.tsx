@@ -4,7 +4,7 @@ import { CAT_LABELS } from "./constants";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "sonner";
-import { Trash2, MessageSquare, Bookmark, Share2, Flame } from "lucide-react"; 
+import { Trash2, MessageSquare, Bookmark, Share2, Flame, ChevronUp, ChevronDown } from "lucide-react"; 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -41,7 +41,7 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   };
 
   return (
-    <div className="flex flex-col items-center py-4 px-2 bg-accent/30 gap-1.5 min-w-[50px] border-r border-border/50">
+    <div className="flex flex-col items-center py-4 px-2 bg-zinc-50 dark:bg-zinc-900/50 gap-1.5 min-w-[50px] border-r border-border/50">
       <button 
         onClick={() => cast(1)} 
         className={cn(
@@ -49,7 +49,7 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
             vote === 1 ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
         )}
       >
-        ▲
+        <ChevronUp size={18} strokeWidth={3} />
       </button>
       <span className={cn(
           "text-[12px] font-black font-forum text-center tabular-nums",
@@ -62,7 +62,7 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
             vote === -1 ? 'bg-destructive/10 text-destructive' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
         )}
       >
-        ▼
+        <ChevronDown size={18} strokeWidth={3} />
       </button>
     </div>
   );
@@ -130,11 +130,11 @@ export default function PostCard({
 
   return (
     <div className={cn(
-        "flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-lg shadow-black/5 min-h-[160px]",
-        selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.02]' : 'hover:border-primary/30 hover:shadow-primary/5'
+        "flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-md min-h-[160px]",
+        selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.03]' : 'hover:border-primary/40 hover:shadow-primary/5 hover:-translate-y-0.5'
     )}>
       {canSelect && (
-        <div className="flex items-center px-4 bg-accent/20 border-r border-border/50">
+        <div className="flex items-center px-4 bg-zinc-50/50 dark:bg-zinc-900/40 border-r border-border/50">
           <input 
             type="checkbox" 
             checked={selection?.isSelected || false}
@@ -201,11 +201,6 @@ export default function PostCard({
                 <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={onOpen} />
                 <ActionBtn icon={Share2} label="Share" />
                 <ActionBtn icon={Bookmark} label={isSaved ? "Saved" : "Save"} onClick={toggleSave} active={isSaved} />
-                {post.can_delete && (
-                    <div className="ml-auto">
-                        <ActionBtn icon={Trash2} label="" variant="danger" />
-                    </div>
-                )}
             </div>
         </div>
       </div>

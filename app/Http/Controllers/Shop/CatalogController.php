@@ -75,6 +75,7 @@ class CatalogController extends Controller
                             'foil'        => $data['foil'] ?? false,
                         ],
                         'set'         => $card->set,
+                        'data'        => $card->data,
                     ];
                 });
         } else {

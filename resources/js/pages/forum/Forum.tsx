@@ -1,11 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ApiService from "../../services/ApiService";
+import { X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Category, SortMode, View, Post, Comment, Tournament } from "./types";
 import { RULES, CAT_LABELS } from "./constants";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, MessageSquare, Flame, Trash2 } from "lucide-react";
+import { 
+    Search, 
+    Loader2, 
+    MessageSquare, 
+    Flame, 
+    Trash2, 
+    LayoutDashboard, 
+    Bookmark, 
+    Newspaper, 
+    Swords, 
+    Trophy,
+    MessageCircle,
+    UserCircle
+} from "lucide-react";
+import { useTitle } from "@/hooks/useTitle";
 import TournamentModal from "./TournamentModal";
 import TournamentDetailModal from "./TournamentDetailModal";
 import ForumFeedView from "./ForumFeed";
@@ -29,17 +44,22 @@ function formatDate(iso: string): string {
   } catch { return iso; }
 }
 
-function NavItem({ active, icon, label, badge, onClick }: { active: boolean; icon: string; label: string; badge?: number; onClick?: () => void }) {
+function NavItem({ active, icon, label, badge, onClick }: { active: boolean; icon: React.ReactNode; label: string; badge?: number; onClick?: () => void }) {
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-2.5 py-2.5 px-4 cursor-pointer transition-all duration-200 border-l-4 font-montserrat
+      className={`flex items-center gap-2.5 py-2.5 px-4 cursor-pointer transition-all duration-200 border-l-4 font-montserrat group
         ${active
           ? 'text-primary font-black bg-primary/5 border-primary shadow-sm shadow-primary/5 scale-[1.02]'
           : 'text-muted-foreground hover:text-foreground hover:bg-accent border-transparent'
         }`}
     >
-      <span className="text-[16px] filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100">{icon}</span>
+      <span className={cn(
+        "transition-colors duration-200",
+        active ? "text-primary opacity-100" : "text-muted-foreground/50 group-hover:text-foreground group-hover:opacity-100"
+      )}>
+        {icon}
+      </span>
       <span className="text-[12.5px] uppercase tracking-widest leading-none font-black">{label}</span>
       {badge && (
         <span className="ml-auto bg-primary text-primary-foreground text-[9px] font-black py-0.5 px-2 rounded-full shadow-sm">
@@ -85,6 +105,7 @@ const mapThreadToPost = (t: any): Post => ({
 });
 
 export default function MagicForum() {
+  useTitle('Comunidad');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -460,7 +481,7 @@ export default function MagicForum() {
               <div className="px-6 py-2 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Canales</div>
               <NavItem
                 active={activeSideNav === "reciente"}
-                icon="🔥"
+                icon={<LayoutDashboard className="w-4 h-4" />}
                 label="Inicio"
                 onClick={() => {
                   navigate('/forum');
@@ -471,7 +492,7 @@ export default function MagicForum() {
               />
               <NavItem
                 active={activeSideNav === "guardados"}
-                icon="🔖"
+                icon={<Bookmark className="w-4 h-4" />}
                 label="Marcadores"
                 onClick={() => {
                   navigate('/forum');
@@ -486,7 +507,12 @@ export default function MagicForum() {
                 <NavItem
                   key={cat}
                   active={activeCategory === cat}
-                  icon={cat === "noticias" ? "📰" : cat === "estrategia" ? "⚔️" : cat === "torneos" ? "🏆" : "💬"}
+                  icon={
+                    cat === "noticias" ? <Newspaper className="w-4 h-4" /> : 
+                    cat === "estrategia" ? <Swords className="w-4 h-4" /> : 
+                    cat === "torneos" ? <Trophy className="w-4 h-4" /> : 
+                    <MessageCircle className="w-4 h-4" />
+                  }
                   label={CAT_LABELS[cat]}
                   badge={cat === "torneos" ? 2 : undefined}
                   onClick={() => {
@@ -546,7 +572,12 @@ export default function MagicForum() {
                             "text-[8px] font-black uppercase tracking-widest px-1.5 h-4",
                             t.status === 'live' ? "bg-primary/5 text-primary border-primary/20" : "bg-muted text-muted-foreground border-border/50"
                         )}>
-                            {t.status === 'live' ? "● Live" : "Draft"}
+                            {t.status === 'live' ? (
+                                <span className="flex items-center gap-1.5 animate-in fade-in duration-500">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                                    Live
+                                </span>
+                            ) : "Draft"}
                         </Badge>
                         <span className="text-[10px] font-black text-muted-foreground/50 font-montserrat tracking-tighter">{formatDate(t.date).split(',')[0]}</span>
                    </div>

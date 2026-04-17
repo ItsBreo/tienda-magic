@@ -15,7 +15,7 @@ export const CAT_LABELS: Record<Category, string> = {
 };
 
 export const SORT_LABELS: Record<SortMode, string> = {
-  hot:"⚡ Hot",
-  nuevo:"🆕 Nuevo",
-  top:"📈 Top"
+  hot:"Hot",
+  nuevo:"Nuevo",
+  top:"Top"
 };

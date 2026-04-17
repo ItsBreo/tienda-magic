@@ -5,10 +5,12 @@ import { ShoppingCart, Package, Loader2, CreditCard, Wallet } from 'lucide-react
 import apiService from '@/services/ApiService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
+import { useTitle } from '@/hooks/useTitle';
 import CartItem from '@/components/cart/CartItem';
 import CartSummary from '@/components/cart/CartSummary';
 
 export default function Cart() {
+    useTitle('Mi Carrito');
     const navigate = useNavigate();
     const { user, updateUser } = useAuth();
     const { items, loading, updateQuantity, removeItem, fetchCart } = useCart();
@@ -204,7 +206,7 @@ export default function Cart() {
                             {[...items].sort((a, b) => a.id - b.id).map((item, index) => (
                                 <CartItem
                                     key={item.id || index}
-                                    item={item}
+                                    item={item as any}
                                     onUpdateQuantity={handleUpdateQuantity}
                                     onRemove={handleRemoveItem}
                                     isUpdating={updatingItems.has(item.id)}

@@ -4,6 +4,7 @@ import apiService from '@/services/ApiService';
 import { Loader2, Trophy, ChevronLeft, Lock, Star, Sparkles, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useTitle } from '@/hooks/useTitle';
 
 interface Achievement {
     slug: string;
@@ -25,6 +26,7 @@ const ALL_ACHIEVEMENTS: Omit<Achievement, 'obtained_at'>[] = [
 ];
 
 export default function Achievements() {
+    useTitle('Hazañas y Logros');
     const [unlocked, setUnlocked] = useState<Achievement[]>([]);
     const [loading, setLoading]   = useState(true);
 

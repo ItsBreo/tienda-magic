@@ -309,7 +309,7 @@ export default function WalletPage() {
                                                                             "px-2 py-0.5 rounded text-[8px] font-black border tracking-tighter",
                                                                             tx.type === 'deposit' ? "bg-primary/5 text-primary border-primary/20" :
                                                                             tx.type === 'purchase' ? "bg-destructive/5 text-destructive border-destructive/20" :
-                                                                            "bg-amber-500/5 text-amber-500 border-amber-500/20"
+                                                                            "bg-primary/5 text-primary border-primary/20"
                                                                         )}>
                                                                             {tx.type.toUpperCase()}
                                                                         </span>

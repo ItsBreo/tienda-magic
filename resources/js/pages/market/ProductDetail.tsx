@@ -18,6 +18,7 @@ import ApiService from '../../services/ApiService';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
 import { useAuth } from '../../contexts/AuthContext';
 import PriceChart from '../../components/market/PriceChart';
+import { useTitle } from '@/hooks/useTitle';
 
 interface MarketListing {
     id: number;
@@ -41,6 +42,7 @@ interface Product {
         name: string;
         code: string;
     };
+    data?: any;
 }
 
 const ProductDetail: React.FC = () => {
@@ -48,6 +50,10 @@ const ProductDetail: React.FC = () => {
     const { user, refreshUser } = useAuth();
     const navigate = useNavigate();
     const api = ApiService;
+    
+    // Título inteligente
+    const [pageTitle, setPageTitle] = useState('Detalle de Producto');
+    useTitle(pageTitle);
 
     const [product, setProduct] = useState<Product | null>(null);
     const [listings, setListings] = useState<MarketListing[]>([]);
@@ -66,6 +72,10 @@ const ProductDetail: React.FC = () => {
             const data = await api.getProductDetail(type as any, parseInt(id!));
             setProduct(data.product);
             setListings(data.listings);
+            
+            if (data.product?.name) {
+                setPageTitle(data.product.name);
+            }
             
             // Seleccionar por defecto el más barato si hay anuncios
             if (data.listings.length > 0) {
@@ -206,6 +216,55 @@ const ProductDetail: React.FC = () => {
                                             Este es un activo digital. Al comprarlo, se transferirá inmediatamente a tu inventario. No se requiere envío físico.
                                         </p>
                                     </div>
+
+                                    {/* Lore & mechanics (Premium detail) */}
+                                    {product.data?.oracle_text && (
+                                        <div className="pt-6 space-y-4 border-t border-border mt-6">
+                                            <div className="space-y-2">
+                                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                                                    <div className="w-1 h-1 rounded-full bg-primary" />
+                                                    Mecánicas y Texto Oráculo
+                                                </h4>
+                                                <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-literata bg-accent/30 p-4 rounded-xl border border-border/50">
+                                                    {product.data.oracle_text}
+                                                </div>
+                                            </div>
+
+                                            {product.data.flavor_text && (
+                                                <div className="pt-2">
+                                                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-2 block font-forum opacity-60">Fragmento de Historia</span>
+                                                    <div className="text-sm text-muted-foreground italic leading-relaxed font-literata pl-4 border-l-2 border-border">
+                                                        {product.data.flavor_text}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex flex-wrap gap-6 pt-2">
+                                                {product.data.artist && (
+                                                    <div className="space-y-1">
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">Ilustrador</p>
+                                                        <p className="text-xs font-bold text-foreground">🎨 {product.data.artist}</p>
+                                                    </div>
+                                                )}
+                                                {product.data.power && (
+                                                    <div className="space-y-1">
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">Poder/Resistencia</p>
+                                                        <p className="text-lg font-black text-primary font-forum">
+                                                            {product.data.power} / {product.data.toughness}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {product.data.mana_cost && (
+                                                    <div className="space-y-1">
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">Coste de Maná</p>
+                                                        <p className="text-sm font-bold text-foreground tracking-tighter">
+                                                            {product.data.mana_cost}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -411,9 +470,9 @@ const ProductDetail: React.FC = () => {
                                     )}
 
                                     {selectedListing.seller?.id === user?.id && (
-                                        <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/30 flex items-start gap-2">
-                                            <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                                            <p className="text-[10px] text-amber-500 font-bold">
+                                        <div className="p-3 bg-primary/10 rounded-xl border border-primary/30 flex items-start gap-2">
+                                            <AlertCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                            <p className="text-[10px] text-primary font-bold">
                                                 Este es tu propio artículo. Puedes gestionarlo desde Marketplace &gt; Mis Anuncios.
                                             </p>
                                         </div>

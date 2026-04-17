@@ -15,6 +15,14 @@ export interface CardDetailData {
   type_line?: string;
   oracle_text?: string;
   market_avg_price?: number;
+  data?: {
+      oracle_text?: string;
+      flavor_text?: string;
+      artist?: string;
+      power?: string;
+      toughness?: string;
+      mana_cost?: string;
+  };
   set?: {
       name?: string;
       code?: string;
@@ -101,12 +109,44 @@ export default function CardDetailModal({ card, onClose, onAction, actionLabel }
                  </div>
 
                  {/* Oracle text si lo hay */}
-                 {card.oracle_text && (
+                 {(card.data?.oracle_text || card.oracle_text) && (
                      <div className="pt-2">
-                         <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-2 block">Texto de reglas</span>
-                         <div className="text-sm text-foreground/80 leading-relaxed font-literata italic border-l-2 border-primary/30 pl-4 bg-accent/20 p-4 rounded-r-xl">
-                            {card.oracle_text}
+                         <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-2 block">Texto Oráculo / Habilidades</span>
+                         <div className="text-sm text-foreground/80 leading-relaxed font-literata whitespace-pre-wrap border-l-2 border-primary/30 pl-4 bg-accent/20 p-4 rounded-r-xl">
+                            {card.data?.oracle_text || card.oracle_text}
                          </div>
+                     </div>
+                 )}
+
+                 {/* Flavor text / Lore */}
+                 {card.data?.flavor_text && (
+                      <div className="pt-2">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-2 block font-forum opacity-60">Fragmento de Historia</span>
+                          <div className="text-sm text-muted-foreground italic leading-relaxed font-literata pl-4 border-l-2 border-border">
+                             {card.data.flavor_text}
+                          </div>
+                      </div>
+                 )}
+
+                 {/* Artist & Stats */}
+                 {(card.data?.artist || (card.data?.power && card.data?.toughness)) && (
+                     <div className="flex flex-wrap gap-6 pt-4 border-t border-border/30">
+                         {card.data?.artist && (
+                             <div className="space-y-1">
+                                 <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">Ilustrador</span>
+                                 <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                     <span className="grayscale opacity-50 text-base">🎨</span> {card.data.artist}
+                                 </p>
+                             </div>
+                         )}
+                         {(card.data?.power && card.data?.toughness) && (
+                             <div className="space-y-1">
+                                 <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">Poder / Resistencia</span>
+                                 <p className="text-xl font-forum font-black text-primary">
+                                     {card.data.power} / {card.data.toughness}
+                                 </p>
+                             </div>
+                         )}
                      </div>
                  )}
              </div>

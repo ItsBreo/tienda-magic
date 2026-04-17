@@ -28,6 +28,14 @@ interface Pack {
     total_cards?: number;
     description?: string;
   };
+  data?: {
+      oracle_text?: string;
+      flavor_text?: string;
+      artist?: string;
+      power?: string;
+      toughness?: string;
+      mana_cost?: string;
+  };
 }
 
 interface PackCardProps {
@@ -105,7 +113,7 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
             )}
         </div>
 
-        <div className="flex items-center gap-2 h-5 mt-1">
+        <div className="flex items-center gap-2 h-5 mt-1 mb-2">
             {showStock && (
                 <span className={cn(
                     "text-[10px] font-black uppercase tracking-tighter",
@@ -115,6 +123,22 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
                 </span>
             )}
         </div>
+
+        {/* Info Directa (Lore/Artist) para Cartas Sueltas */}
+        {pack.data && (
+            <div className="space-y-2 mb-4">
+                {pack.data.oracle_text && (
+                    <p className="text-[10px] text-foreground/70 font-literata line-clamp-2 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
+                        {pack.data.oracle_text}
+                    </p>
+                )}
+                {pack.data.artist && (
+                    <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40">
+                        Art: {pack.data.artist}
+                    </p>
+                )}
+            </div>
+        )}
 
         <div className="flex items-end justify-between mt-auto pt-4">
             <div className="flex flex-col">

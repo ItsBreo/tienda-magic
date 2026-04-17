@@ -108,7 +108,8 @@ class InventoryController extends Controller
                         'image_uris' => $item->card->data['image_uris'] ?? null,
                         'rarity' => $item->card->rarity,
                         'market_avg_price' => $item->card->market_avg_price,
-                        'set' => $item->card->set
+                        'set' => $item->card->set,
+                        'data' => $item->card->data
                     ] : null
                 ];
             });

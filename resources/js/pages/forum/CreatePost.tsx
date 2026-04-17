@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { ImageIcon } from 'lucide-react';
 
 interface CreatePostViewProps {
   forumsList: { id: number; name: string; slug: string }[];
@@ -22,7 +23,7 @@ export default function CreatePostView({ forumsList, isSubmitting, onCancel, onS
       alert("Por favor, rellena el título, el contenido y selecciona una categoría.");
       return;
     }
-    const tagsArray = tags.split(",").map(t => t.trim()).filter(t => t !== "");
+    const tagsArray = tags.split(",").map((t: string) => t.trim()).filter((t: string) => t !== "");
     onSubmit({
       forum_id: Number(forumId),
       title,
@@ -54,53 +55,65 @@ export default function CreatePostView({ forumsList, isSubmitting, onCancel, onS
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5">
+    <div className="bg-card border border-border rounded-lg p-5 shadow-xl">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-bold text-foreground m-0">
-          Crear nuevo post
+        <h2 className="text-xl font-forum font-bold text-foreground m-0">
+          Forjar Nueva Publicación
         </h2>
         <button
           onClick={onCancel}
-          className="text-xs text-muted-foreground cursor-pointer py-1 px-2.5 rounded-md border border-border bg-transparent font-medium hover:bg-accent hover:text-foreground transition-colors"
+          className="text-[10px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer py-2 px-4 rounded-xl border border-border bg-transparent hover:bg-accent hover:text-foreground transition-all"
         >
           Cancelar
         </button>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <select
-          value={forumId} onChange={e => setForumId(e.target.value)}
-          className="p-2.5 rounded-md border border-border bg-accent text-foreground text-sm outline-none focus:border-primary transition-colors"
-        >
-          <option value="">Selecciona una categoría...</option>
-          {forumsList.map(f => (
-            <option key={f.id} value={f.id}>{f.name}</option>
-          ))}
-        </select>
+      <div className="flex flex-col gap-5">
+        <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Categoría</label>
+            <select
+              value={forumId} onChange={e => setForumId(e.target.value)}
+              className="w-full p-3.5 rounded-xl border border-border bg-accent/40 text-foreground text-sm outline-none focus:border-primary/50 transition-colors font-montserrat"
+            >
+              <option value="">Selecciona el destino de tu mensaje...</option>
+              {forumsList.map(f => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+        </div>
 
-        <input
-          type="text" placeholder="Título de tu publicación"
-          value={title} onChange={e => setTitle(e.target.value)}
-          className="p-2.5 rounded-md border border-border bg-accent text-foreground text-sm outline-none focus:border-primary transition-colors"
-        />
+        <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Título</label>
+            <input
+              type="text" placeholder="Título que capture la esencia..."
+              value={title} onChange={e => setTitle(e.target.value)}
+              className="w-full p-3.5 rounded-xl border border-border bg-accent/40 text-foreground text-sm outline-none focus:border-primary/50 transition-colors font-forum font-bold text-lg"
+            />
+        </div>
 
-        <textarea
-          placeholder="Escribe el contenido aquí..." rows={8}
-          value={body} onChange={e => setBody(e.target.value)}
-          className="p-2.5 rounded-md border border-border bg-accent text-foreground text-sm outline-none resize-y focus:border-primary transition-colors"
-        />
+        <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Contenido</label>
+            <textarea
+              placeholder="Escribe el contenido aquí... Deja que tus palabras fluyan como mana." rows={8}
+              value={body} onChange={e => setBody(e.target.value)}
+              className="w-full p-4 rounded-xl border border-border bg-accent/40 text-foreground text-base outline-none resize-y focus:border-primary/50 transition-colors font-literata italic"
+            />
+        </div>
 
-        <input
-          type="text" placeholder="Etiquetas (separadas por coma, ej: magic, torneo, duda)"
-          value={tags} onChange={e => setTags(e.target.value)}
-          className="p-2.5 rounded-md border border-border bg-accent text-foreground text-sm outline-none focus:border-primary transition-colors"
-        />
+        <div className="space-y-1.5">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Etiquetas</label>
+            <input
+              type="text" placeholder="magic, torneo, duda..."
+              value={tags} onChange={e => setTags(e.target.value)}
+              className="w-full p-3.5 rounded-xl border border-border bg-accent/40 text-foreground text-sm outline-none focus:border-primary/50 transition-colors font-montserrat uppercase tracking-tight"
+            />
+        </div>
 
         {/* IMAGE UPLOAD SECTION */}
         <div className="flex flex-col gap-2 mt-1">
           <div className="flex items-center gap-3">
-             <label className="flex items-center gap-2 px-4 py-2 bg-[var(--surface-2)] border border-[var(--border)] rounded-md text-[13px] font-bold text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--border)] hover:text-[var(--text-primary)] transition-all">
-                <span>📷 Añadir imagen</span>
+             <label className="flex items-center gap-2 px-6 py-3 bg-primary/10 border border-primary/20 rounded-xl text-[11px] font-black uppercase tracking-widest text-primary cursor-pointer hover:bg-primary/20 transition-all">
+                <ImageIcon size={16} /> <span>Añadir Arte / Imagen</span>
                 <input 
                   type="file" 
                   className="hidden" 
@@ -108,19 +121,19 @@ export default function CreatePostView({ forumsList, isSubmitting, onCancel, onS
                   onChange={handleImageChange} 
                 />
              </label>
-             {image && <span className="text-[11px] text-[var(--text-muted)] truncate max-w-[200px]">{image.name}</span>}
+             {image && <span className="text-[11px] font-bold text-muted-foreground truncate max-w-[200px]">{image.name}</span>}
           </div>
 
           {imagePreview && (
-            <div className="relative w-max mt-2 group">
+            <div className="relative w-max mt-4 group">
               <img 
                 src={imagePreview} 
                 alt="Vista previa" 
-                className="max-w-full max-h-[300px] rounded-lg border border-[var(--border)] shadow-sm object-cover" 
+                className="max-w-full max-h-[300px] rounded-2xl border border-border shadow-2xl object-cover" 
               />
               <button 
                 onClick={removeImage}
-                className="absolute top-2 right-2 bg-black/60 text-white w-6 h-6 rounded-full flex items-center justify-center text-[18px] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
+                className="absolute top-3 right-3 bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center text-[18px] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none shadow-xl"
                 title="Quitar imagen"
               >
                 ×
@@ -129,12 +142,12 @@ export default function CreatePostView({ forumsList, isSubmitting, onCancel, onS
           )}
         </div>
 
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-4 pt-4 border-t border-border/40">
           <button
             onClick={handleSubmit} disabled={isSubmitting}
-            className={`bg-primary text-primary-foreground border-none py-2.5 px-6 rounded-md text-sm font-bold cursor-pointer transition-colors ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-primary/90'}`}
+            className={`bg-primary text-primary-foreground border-none py-4 px-10 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] cursor-pointer transition-all shadow-xl shadow-primary/20 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
           >
-            {isSubmitting ? "Publicando..." : "Publicar post"}
+            {isSubmitting ? "Canalizando..." : "Publicar Hilo"}
           </button>
         </div>
       </div>
