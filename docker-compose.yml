@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tienda_magic_app
+    volumes:
+      - .:/var/www
+    depends_on:
+      - db
+    networks:
+      - tienda_magic_network
+
+  db:
+    image: mysql:8.0
+    container_name: tienda_magic_db
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - tienda_magic_db_data:/var/lib/mysql
+    networks:
+      - tienda_magic_network
+
+  web:
+    image: nginx:alpine
+    container_name: tienda_magic_web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - .:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - tienda_magic_network
+
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tienda_magic_reverb
+    command: php artisan reverb:start --host="0.0.0.0" --port=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www
+    depends_on:
+      - app
+    networks:
+      - tienda_magic_network
+
+volumes:
+  tienda_magic_db_data:
+
+networks:
+  tienda_magic_network:
+    driver: bridge
