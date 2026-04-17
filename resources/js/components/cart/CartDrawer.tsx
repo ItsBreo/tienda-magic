@@ -82,7 +82,7 @@ export default function CartDrawer() {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {items.map((item) => (
+                            {[...items].sort((a, b) => a.id - b.id).map((item) => (
                                 <CartItem 
                                     key={item.id} 
                                     item={item} 
@@ -116,7 +116,7 @@ export default function CartDrawer() {
                                 onClick={handleCheckout}
                             >
                                 <span className="flex-1 flex items-center justify-center">Finalizar Pedido</span>
-                                <div className="h-full items-center flex px-4 bg-black/10 -mr-4 rounded-r-2xl">
+                                <div className="h-full items-center flex px-4 -mr-4 rounded-r-2xl">
                                     <ArrowRight size={20} />
                                 </div>
                             </Button>

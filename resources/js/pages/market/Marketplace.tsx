@@ -177,168 +177,190 @@ export default function Marketplace() {
     };
 
     const renderCard = (listing: Listing) => (
-        <Card
+        <div
             key={listing.id}
-            className="bg-card border-border hover:border-primary/50 transition-all cursor-pointer group flex flex-col h-full"
+            className={cn(
+                "border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1"
+            )}
             onClick={() => handleNavigateToProduct(listing)}
         >
-            <CardHeader className="p-0 overflow-hidden rounded-t-xl aspect-[3/4] relative">
+            {/* Contenedor de Imagen */}
+            <div className="group/img cursor-pointer flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden">
                 <img
                     src={listing.listable.image_uri || listing.listable.image_url || '/placeholder-card.png'}
                     alt={listing.listable.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="group-hover/img:scale-110 transition-transform duration-500 max-h-full object-contain drop-shadow-md"
                 />
-                <div className="absolute top-3 right-3">
-                    <Badge className="bg-background/80 backdrop-blur-md border-border text-primary font-bold">
-                        {listing.listable_type.includes('Card') ? 'Carta' : 'Sobre'}
-                    </Badge>
+                
+                <div className="absolute top-2 right-2 bg-primary/20 backdrop-blur-sm text-[10px] font-black text-primary px-2 py-0.5 rounded border border-primary/30 uppercase tracking-tighter shadow-sm">
+                    {listing.listable_type.includes('Card') ? 'Carta' : 'Sobre'}
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                    <span className="text-foreground text-xs font-bold flex items-center gap-1">
-                        Ver detalles <ChevronRight className="w-3 h-3" />
-                    </span>
+            </div>
+
+            {/* Información */}
+            <div className="mt-4 flex flex-col flex-1">
+                <div className="flex justify-between items-start gap-2 mb-1">
+                    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 min-h-[2.5rem] flex-1 uppercase tracking-tight">
+                        <HighlightedText text={listing.listable.name} highlight={searchTerm} highlightClassName="bg-primary/20 text-primary rounded-sm" />
+                    </h3>
                 </div>
-            </CardHeader>
-            <CardContent className="p-4 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                    <CardTitle className="text-lg font-bold line-clamp-1">
-                        <HighlightedText text={listing.listable.name} highlight={searchTerm} />
-                    </CardTitle>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-auto">
-                    <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-foreground">
-                        {listing.seller?.username?.slice(0, 2).toUpperCase() || '??'}
+
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded bg-primary/10 border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary flex-shrink-0">
+                        {listing.seller?.username?.slice(0, 1).toUpperCase() || '?'}
                     </div>
-                    <p className="font-bold text-foreground">{listing.seller?.username || 'Desconocido'}</p>
+                    <p className="text-[11px] font-black tracking-wider uppercase text-muted-foreground truncate">{listing.seller?.username || 'Desconocido'}</p>
                 </div>
-                <div className="mt-4 pt-4 border-t border-border flex items-end justify-between">
-                    <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Precio</p>
-                        <p className="text-2xl font-black text-primary tabular-nums">{Number(listing.price_total).toFixed(2)}€</p>
+
+                <div className="flex items-end justify-between mt-auto pt-4">
+                    <div className="flex flex-col">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Precio</p>
+                        <p className="md:text-xl text-lg font-black text-primary">
+                            €{Number(listing.price_total).toFixed(2)}
+                        </p>
                     </div>
-                    {type === 'my' ? (
-                        <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={(e) => handleCancel(e, listing.id)}
-                            className="bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground rounded-lg h-9"
-                        >
-                            <XCircle className="w-3.5 h-3.5 mr-1" />
-                            Cancelar
-                        </Button>
-                    ) : (
-                        <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground transition-all">
-                            <ChevronRight className="w-5 h-5" />
-                        </div>
-                    )}
+
+                    <div className="flex flex-col gap-2 items-end">
+                        {type === 'my' ? (
+                            <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => { e.stopPropagation(); handleCancel(e, listing.id); }}
+                                className="h-8 px-4 bg-destructive/10 text-destructive border-transparent hover:bg-destructive hover:text-destructive-foreground font-black text-[10px] uppercase tracking-widest transition-colors rounded-lg"
+                            >
+                                Cancelar
+                            </Button>
+                        ) : (
+                            <Button 
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-4 bg-primary text-primary-foreground border-none hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 rounded-lg"
+                            >
+                                Comprar
+                            </Button>
+                        )}
+                    </div>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 
     return (
         <div className="flex-1 bg-background text-foreground p-6">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                    <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                {/* Header Elegante sin iconos */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-border pb-6">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[11px] uppercase tracking-widest font-black text-primary">Comercio de Usuarios</span>
+                        <h1 className="text-4xl md:text-5xl font-forum font-bold text-foreground">
                             Mercado Abierto
                         </h1>
-                        <p className="text-muted-foreground mt-2">Explora los activos digitales de la comunidad</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Button
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 px-6 rounded-xl transition-all hover:scale-105"
-                            onClick={() => navigate('/inventory?mode=sell')}
-                        >
-                            <PlusCircle className="w-5 h-5 mr-2" />
-                            Vender un Artículo
-                        </Button>
-                    </div>
+                    <button
+                        className="bg-foreground text-background font-black text-xs uppercase tracking-widest h-11 px-8 rounded-xl hover:bg-primary hover:text-primary-foreground hover:scale-105 transition-all shadow-md group"
+                        onClick={() => navigate('/inventory?mode=sell')}
+                    >
+                        Vender Artículo
+                    </button>
                 </div>
 
-                {/* Type Tabs + Sort */}
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <div className="flex items-center gap-2 bg-accent/50 p-2 rounded-xl border border-border backdrop-blur-sm">
+                {/* ── BARRA DE CONTROLES PRINCIPAL (Diseño Fino) ── */}
+                <div className="flex flex-col lg:flex-row items-center gap-3 mb-8 w-full border-b border-border pb-6">
+                    
+                    {/* 1. Selector de Tipos (Misma altura h-10) */}
+                    <div className="flex bg-accent p-1 rounded-lg w-full lg:w-auto overflow-x-auto flex-shrink-0">
                         {(['all', 'card', 'pack', 'my'] as const).map(t => (
-                            <Button
+                            <button
                                 key={t}
-                                variant={type === t ? 'default' : 'ghost'}
                                 onClick={() => setType(t)}
-                                className={type === t ? (t === 'my' ? 'bg-secondary hover:bg-secondary/90 text-secondary-foreground' : 'bg-primary hover:bg-primary/90 text-primary-foreground') : 'text-muted-foreground hover:text-foreground'}
+                                className={cn(
+                                    "px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap",
+                                    type === t 
+                                        ? "bg-primary text-primary-foreground shadow-sm" 
+                                        : "text-muted-foreground hover:text-foreground hover:bg-background/20"
+                                )}
                             >
                                 {t === 'all' ? 'Todo' : t === 'card' ? 'Cartas' : t === 'pack' ? 'Sobres' : 'Mis Anuncios'}
-                            </Button>
+                            </button>
                         ))}
                     </div>
-                    <select
-                        value={sortBy}
-                        onChange={e => setSortBy(e.target.value)}
-                        className="bg-background border border-border text-foreground px-3 py-2 rounded-xl text-sm"
-                    >
-                        <option value="newest">Más reciente</option>
-                        <option value="price_asc">Precio: Menor a Mayor</option>
-                        <option value="price_desc">Precio: Mayor a Menor</option>
-                        <option value="name_asc">Nombre: A-Z</option>
-                        <option value="name_desc">Nombre: Z-A</option>
-                    </select>
-                </div>
 
-                {/* Search + Set filters */}
-                <div className="flex flex-wrap gap-3 mb-6">
-                    <div className="relative flex-1 min-w-[200px] max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                            type="text"
-                            placeholder="Buscar por nombre..."
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            className="pl-9 bg-background border-border text-foreground focus-visible:ring-primary"
-                        />
-                    </div>
+                    {/* 2. Filtros y Búsqueda */}
+                    <div className="flex flex-1 flex-col sm:flex-row items-center gap-2 w-full">
+                        
+                        {/* Buscador */}
+                        <div className="relative flex-1 min-w-[200px] w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                                type="text"
+                                placeholder="Buscar por nombre..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="pl-9 pr-4 h-10 bg-background border border-border text-sm font-medium rounded-lg focus-visible:ring-1 focus-visible:ring-primary shadow-sm hover:border-primary/50 transition-all w-full"
+                            />
+                        </div>
 
-                    {/* Set filter Modal Button */}
-                    {availableSets.length > 0 && (
-                        <div className="flex items-center gap-3">
+                        {/* Ordenación */}
+                        <div className="relative w-full sm:w-auto">
+                            <select
+                                value={sortBy}
+                                onChange={e => setSortBy(e.target.value)}
+                                className="w-full sm:w-auto h-10 pl-3 pr-8 bg-background border border-border text-foreground text-sm font-medium rounded-lg focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-sm hover:border-primary/50 transition-all"
+                            >
+                                <option value="newest">Novedades</option>
+                                <option value="price_asc">Menor a Mayor</option>
+                                <option value="price_desc">Mayor a Menor</option>
+                                <option value="name_asc">A-Z</option>
+                                <option value="name_desc">Z-A</option>
+                            </select>
+                            <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                        </div>
+
+                        {/* Filtrar por set */}
+                        {availableSets.length > 0 && (
                             <Button
                                 variant="outline"
-                                size="sm"
                                 onClick={() => setIsFilterModalOpen(true)}
                                 className={cn(
-                                    "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-medium",
-                                    selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
+                                    "h-10 rounded-lg border-border bg-background text-sm font-medium px-4 gap-2 transition-all shadow-sm hover:border-primary/50 hover:bg-accent/30 w-full sm:w-auto flex-shrink-0",
+                                    selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5 ring-1 ring-primary/20"
                                 )}
                             >
                                 <Filter className="h-4 w-4" />
-                                Filtrar por Set
+                                <span className="hidden lg:inline">Filtrar por Set</span>
+                                <span className="lg:hidden">Set</span>
                                 {selectedSets.length > 0 && (
-                                    <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                    <Badge className="bg-primary text-primary-foreground h-5 min-w-[20px] px-1.5 flex items-center justify-center text-[10px] font-black rounded-md ml-1">
                                         {selectedSets.length}
                                     </Badge>
                                 )}
                             </Button>
-
-                            {selectedSets.length > 0 && (
-                                <button
-                                    onClick={() => setSelectedSets([])}
-                                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-                                >
-                                    <X className="h-3 w-3" /> Limpiar filtros
-                                </button>
-                            )}
-
-                            <SetFilterModal 
-                                isOpen={isFilterModalOpen}
-                                onClose={() => setIsFilterModalOpen(false)}
-                                availableSets={availableSetsState.map(s => ({ ...s, id: s.code }))}
-                                selectedSets={selectedSets}
-                                onApply={(newSelection) => setSelectedSets(newSelection as string[])}
-                                accentColor="emerald"
-                            />
-                        </div>
-                    )}
+                        )}
+                        
+                    </div>
                 </div>
+
+                {/* Filtros Modal y Tags Auxiliares */}
+                {(selectedSets.length > 0 && availableSets.length > 0) && (
+                    <div className="flex items-center gap-3 mb-6 animate-in fade-in slide-in-from-top-2">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/60">Filtros Activos:</span>
+                        <button
+                            onClick={() => setSelectedSets([])}
+                            className="text-[10px] uppercase font-black tracking-widest text-destructive bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                        >
+                            <X className="h-3 w-3" /> Limpiar Todo
+                        </button>
+                    </div>
+                )}
+
+                <SetFilterModal 
+                    isOpen={isFilterModalOpen}
+                    onClose={() => setIsFilterModalOpen(false)}
+                    availableSets={availableSetsState.map(s => ({ ...s, id: s.code }))}
+                    selectedSets={selectedSets}
+                    onApply={(newSelection) => setSelectedSets(newSelection as string[])}
+                    accentColor="emerald"
+                />
 
                 {/* Results count */}
                 {!loading && (

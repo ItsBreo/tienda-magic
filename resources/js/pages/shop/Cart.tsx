@@ -169,17 +169,23 @@ export default function Cart() {
             <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
             <div className="max-w-6xl mx-auto px-4 pt-24">
-                <h1 className="text-3xl font-bold mb-4 flex items-center gap-3">
-                    <ShoppingCart className="text-emerald-500" />
-                    Tu Carrito de Compras
-                </h1>
+                
+                {/* Header Elegante sin iconos */}
+                <div className="mb-6 border-b border-border pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[11px] uppercase tracking-widest font-black text-primary">Proceso de Compra</span>
+                        <h1 className="text-4xl md:text-5xl font-forum font-bold text-foreground">
+                            Tu Carrito
+                        </h1>
+                    </div>
+                </div>
 
-                <div className="flex items-center justify-between mb-8 text-sm">
-                    <Link to="/shop" className="text-muted-foreground hover:text-foreground transition-colors">
-                        ← Seguir explorando el catálogo
+                <div className="flex items-center justify-between mb-8 text-[11px] font-black uppercase tracking-widest">
+                    <Link to="/shop" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                        ← Catálogo
                     </Link>
-                    <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
-                        Ir a mi Panel (Dashboard) →
+                    <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                        Panel de Usuario →
                     </Link>
                 </div>
 
@@ -195,7 +201,7 @@ export default function Cart() {
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-8 space-y-4">
-                            {items.map((item, index) => (
+                            {[...items].sort((a, b) => a.id - b.id).map((item, index) => (
                                 <CartItem
                                     key={item.id || index}
                                     item={item}
