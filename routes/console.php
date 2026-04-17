@@ -2,18 +2,14 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use App\Console\Commands\ShopGeneratePacks;
-use App\Console\Commands\ShopSetupDemo;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Register custom commands
-Artisan::command('shop:generate-packs', function () {
-    $this->call(ShopGeneratePacks::class);
-})->purpose('Generate booster packs from imported sets');
+// Registro diario de precios del mercado
+Schedule::command('market:track-prices')->dailyAt('04:00');
 
-Artisan::command('shop:setup-demo', function () {
-    $this->call(ShopSetupDemo::class);
-})->purpose('Automatizar la inicialización completa del catálogo para demo');
+// Sincronización maestra con Scryfall (semanal para actualizar precios base)
+Schedule::command('scryfall:sync-master')->weeklyOn(0, '02:00');

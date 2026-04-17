@@ -9,6 +9,7 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
+        channels: __DIR__.'/../routes/channels.php',
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
@@ -16,16 +17,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // Configuración para autenticación stateless con Bearer Tokens
-        // Sanctum emitirá Opaque Tokens utilizados como Bearer Tokens estándar
-        // El middleware auth:sanctum validará exclusivamente la cabecera Authorization
-        // Sin statefulApi() para evitar cookies y forzar token explícito
+        $middleware->statefulApi();
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        // Registrar alias para nuestro AdminMiddleware
+        // Registrar alias de middlewares de roles
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'role'  => \App\Http\Middleware\RoleMiddleware::class,
+            'permission' => \App\Http\Middleware\PermissionMiddleware::class,
+            'active' => \App\Http\Middleware\EnsureUserIsActive::class,
         ]);
 
         $middleware->web(append: [
@@ -35,8 +36,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->api(append: [
-            // \Illuminate\Http\Middleware\TrimStrings::class,
-            // \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+            \App\Http\Middleware\EnsureUserIsActive::class,
+        ]);
+
+        // Excluir rutas de webhook y de WebSockets para evitar error 419
+        $middleware->validateCsrfTokens(except: [
+	    'api/*'
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -11,7 +11,7 @@ export function Footer() {
 {' '}
 {new Date().getFullYear()}
 {' '}
-Tienda Magic. Todos los derechos reservados.
+Black Lotus. Todos los derechos reservados.
 </p>
             <p className="text-zinc-600 text-xs mt-1">
               Tu base de datos especializada en el Multiverso

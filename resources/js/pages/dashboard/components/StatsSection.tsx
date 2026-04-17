@@ -34,27 +34,27 @@ export function StatsSection({ stats, loading }: StatsSectionProps) {
     return (
         <div className="px-6 py-16">
             <div className="mx-auto max-w-7xl">
-                <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                     Estado de la Bóveda
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {items.map((stat, index) => (
-                        <Card key={index} className="bg-zinc-900 border-zinc-800 hover:border-emerald-500/50 transition-all duration-300">
+                        <Card key={index} className="bg-card border-border hover:border-primary transition-all duration-300">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div className="overflow-hidden">
 {' '}
 {/* Previene que nombres largos rompan la tarjeta */}
-                                        <p className="text-sm text-zinc-500 mb-1">{stat.label}</p>
+                                        <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
                                         {loading ? (
-                                            <div className="h-9 w-24 bg-zinc-800 rounded animate-pulse mt-1" />
+                                            <div className="h-9 w-24 bg-accent rounded animate-pulse mt-1" />
                                         ) : (
-                                            <p className="text-xl md:text-2xl font-bold text-zinc-100 truncate pr-2" title={stat.value.toString()}>
+                                            <p className="text-xl md:text-2xl font-bold text-foreground truncate pr-2" title={stat.value.toString()}>
                                                 {stat.value}
                                             </p>
                                         )}
                                     </div>
-                                    <div className="p-3 rounded-lg bg-zinc-800 shrink-0">
+                                    <div className="p-3 rounded-lg bg-accent shrink-0">
                                         <stat.icon className={`h-6 w-6 ${getColorClasses(stat.color).split(' ').pop()}`} />
                                     </div>
                                 </div>

@@ -1,27 +1,50 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Layers, Sparkles } from 'lucide-react';
+import {
+ Eye, EyeOff, Layers, Sparkles, ShieldCheck,
+} from 'lucide-react';
+import { GiLotus } from 'react-icons/gi';
 import { toast } from 'sonner';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useLogin } from '@/hooks/useLogin';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import { useTitle } from '@/hooks/useTitle';
+
+// --- SUB-COMPONENTES DE DISEÑO ---
+
+function GlassInputWrapper({ children, error }: { children: React.ReactNode, error?: any }) {
+  return (
+<div className={cn(
+    'rounded-2xl border bg-foreground/5 backdrop-blur-sm transition-all duration-300',
+    error ? 'border-red-500/50 bg-red-500/5' : 'border-border focus-within:border-primary/70 focus-within:bg-primary/5 shadow-sm',
+  )}>
+    {children}
+  </div>
+);
+}
 
 interface Props {
-    _canResetPassword?: boolean;
-    _status?: string;
+  _canResetPassword?: boolean;
+  _status?: string;
 }
 
 export default function Login({ _canResetPassword = false, _status }: Props) {
+    useTitle('Acceso');
     const navigate = useNavigate();
     const recaptchaRef = useRef<any>(null);
     const [showPassword, setShowPassword] = useState(false);
 
-    // Extraemos todo el estado y lógica del hook centralizado
-    const { formData, errors, loading, handleChange, handleSubmit } = useLogin();
+    // Lógica existente
+    const {
+ isAuthenticated, formData, errors, loading, handleChange, handleSubmit,
+} = useLogin();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,7 +55,7 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
         }
 
         toast.promise(
-            handleSubmit(), // Llamamos a la lógica del hook
+            handleSubmit(),
             {
                 loading: 'Resolviendo hechizo de invocación...',
                 success: () => {
@@ -40,13 +63,8 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                     return '¡Invocación exitosa! Bienvenido de nuevo, Planeswalker.';
                 },
                 error: (err: any) => {
-                    // Limpiar reCAPTCHA en caso de error
                     if (recaptchaRef.current) recaptchaRef.current.reset();
                     handleChange('recaptcha_token', '');
-
-                    if (err.response?.data?.errors) {
-                        return 'Tu hechizo ha sido contrarrestado (revisa tus datos)';
-                    }
                     return err.response?.data?.message || 'Fallo de conexión con el Multiverso';
                 },
             },
@@ -54,120 +72,152 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-black px-4 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-transparent to-transparent" />
+        <div className="h-screen flex flex-col md:flex-row w-full overflow-hidden font-montserrat">
 
-            <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-zinc-100 z-10 shadow-2xl">
-                <CardHeader className="space-y-1">
-                    <div className="flex items-center justify-center mb-4">
-                        <div className="p-3 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-900/40 transform transition-transform hover:scale-105">
-                            <Layers className="h-6 w-6 text-black" />
-                        </div>
-                    </div>
-                    <CardTitle className="text-3xl text-center font-bold bg-gradient-to-r from-zinc-100 via-emerald-400 to-zinc-100 bg-clip-text text-transparent">
-                        Tienda Magic
-                    </CardTitle>
-                    <CardDescription className="text-center text-zinc-400">
-                        Accede a tu bóveda del Multiverso
-                    </CardDescription>
-                </CardHeader>
+            {/* COLUMNA IZQUIERDA: FORMULARIO */}
+            <section className="flex-1 flex items-center justify-center p-6 md:p-12 relative overflow-y-auto custom-scrollbar">
+                {/* Theme Toggler */}
+                <div className="absolute top-8 right-8 z-20">
+                    <AnimatedThemeToggler />
+                </div>
 
-                <CardContent>
-                    <form onSubmit={submit} className="space-y-4">
-                        {errors.general && (
-                            <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm text-center">
-                                {errors.general}
+                {/* Fondo sutil */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,var(--color-primary),transparent)] opacity-[0.03] pointer-events-none" />
+
+                <div className="w-full max-w-md z-10">
+                    <div className="flex flex-col gap-8">
+                        {/* Logo / Header */}
+                        <div className="animate-element animate-delay-100 flex flex-col gap-4">
+                            <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 transform transition-transform hover:scale-110 active:scale-95 cursor-pointer">
+                                <GiLotus className="h-8 w-8 text-primary-foreground" />
                             </div>
-                        )}
-
-                        <div className="space-y-2">
-                            <Label htmlFor="email" className="text-zinc-300">Email de Plainswalker</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => handleChange('email', e.target.value)}
-                                className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50 placeholder:text-zinc-600"
-                                placeholder="tu@email.com"
-                                disabled={loading}
-                                required
-                            />
-                            {errors.email && <p className="text-xs text-red-500">{errors.email[0]}</p>}
+                            <div>
+                                <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter uppercase">
+                                    Bienvenido
+{' '}
+<span className="text-primary italic">Planeswalker</span>
+                                </h1>
+                                <p className="text-muted-foreground text-sm font-bold uppercase tracking-[0.2em] mt-2 opacity-70">
+                                    Accede a tu Bóveda de Black Lotus
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="password" className="text-zinc-300">Grimorio (Contraseña)</Label>
-                            <div className="relative">
-                                <Input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={formData.password}
-                                    onChange={(e) => handleChange('password', e.target.value)}
-                                    className="bg-zinc-800 border-zinc-700 text-white focus:border-emerald-500/50 placeholder:text-zinc-600"
-                                    placeholder="••••••••"
-                                    disabled={loading}
-                                    required
+                        {/* Formulario */}
+                        <form className="space-y-6" onSubmit={submit}>
+                            <div className="animate-element animate-delay-200">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">
+                                    Portal de Identificación (Email)
+                                </label>
+                                <GlassInputWrapper error={errors.email}>
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => handleChange('email', e.target.value)}
+                                        placeholder="tu@email.com"
+                                        className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground font-medium"
+                                        required
+                                    />
+                                </GlassInputWrapper>
+                                {errors.email && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1 uppercase">{errors.email[0]}</p>}
+                            </div>
+
+                            <div className="animate-element animate-delay-300">
+                                <div className="flex justify-between items-center mb-2 ml-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                        Grimorio (Contraseña)
+                                    </label>
+                                </div>
+                                <GlassInputWrapper error={errors.password}>
+                                    <div className="relative">
+                                        <input
+                                            name="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={formData.password}
+                                            onChange={(e) => handleChange('password', e.target.value)}
+                                            placeholder="••••••••"
+                                            className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none text-foreground font-medium"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute inset-y-0 right-4 flex items-center transition-colors hover:text-primary text-muted-foreground"
+                                        >
+                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+                                </GlassInputWrapper>
+                                {errors.password && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1 uppercase">{errors.password[0]}</p>}
+                            </div>
+
+                            <div className="animate-element animate-delay-400 flex items-center justify-between">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.remember}
+                                        onChange={(e) => handleChange('remember', e.target.checked)}
+                                        className="custom-checkbox"
+                                    />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-foreground/70 group-hover:text-foreground transition-colors">
+                                        Mantener portal abierto
+                                    </span>
+                                </label>
+                            </div>
+
+                            {/* ReCAPTCHA */}
+                            <div className="animate-element animate-delay-500 p-4 bg-accent/30 rounded-2xl border border-border flex justify-center">
+                                <ReCAPTCHA
+                                    ref={recaptchaRef}
+                                    theme="dark"
+                                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                                    onChange={(token) => handleChange('recaptcha_token', token || '')}
                                 />
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="absolute right-0 top-0 h-full px-3 py-2 text-zinc-500 hover:bg-transparent hover:text-emerald-400"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    disabled={loading}
-                                >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
                             </div>
-                            {errors.password && <p className="text-xs text-red-500">{errors.password[0]}</p>}
-                        </div>
 
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="remember"
-                                checked={formData.remember}
-                                onCheckedChange={(checked) => handleChange('remember', !!checked)}
-                                className="border-zinc-700 data-[state=checked]:bg-emerald-600"
+                            <button
+                                type="submit"
                                 disabled={loading}
-                            />
-                            <Label htmlFor="remember" className="text-sm text-zinc-400 cursor-pointer">Mantener portal abierto</Label>
-                        </div>
+                                className="animate-element animate-delay-600 w-full rounded-2xl bg-primary py-5 font-black text-primary-foreground uppercase tracking-widest text-xs hover:bg-primary/90 transition-all active:scale-[0.98] shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Sparkles className="w-4 h-4 animate-spin" />
+                                        Invocando...
+                                    </>
+                                ) : (
+                                    <>
+                                        Entrar a la Bóveda
+                                        <ShieldCheck className="w-4 h-4" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
 
-                        <div className="flex flex-col items-center justify-center py-4 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
-                            <ReCAPTCHA
-                                ref={recaptchaRef}
-                                theme="dark"
-                                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                                onChange={(token) => handleChange('recaptcha_token', token || '')}
-                            />
-                            {errors.recaptcha_token && (
-                                <p className="text-xs text-red-500 mt-2">{errors.recaptcha_token[0]}</p>
-                            )}
-                        </div>
-
-                        <Button
-                            type="submit"
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-bold transition-all duration-200"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <span className="flex items-center gap-2">
-                                    <Sparkles className="h-4 w-4 animate-spin" /> Resolviendo stack...
-                                </span>
-                            ) : 'Entrar a la Bóveda'}
-                        </Button>
-                    </form>
-                </CardContent>
-
-                <CardFooter className="flex flex-col space-y-4 border-t border-zinc-800/50 mt-4 pt-6">
-                    <div className="text-center text-sm text-zinc-500">
-                        ¿Aún no tienes tu Chispa?{' '}
-                        <Link to="/register" className="text-emerald-400 hover:text-emerald-300 transition-colors underline-offset-4 hover:underline">
-                            Forja tu mazo aquí
-                        </Link>
+                        <p className="animate-element animate-delay-700 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            ¿Aún no tienes tu Chispa?
+{' '}
+                            <Link to="/register" className="text-primary hover:underline transition-all">
+                                Forja tu mazo aquí
+                            </Link>
+                        </p>
                     </div>
-                </CardFooter>
-            </Card>
+                </div>
+            </section>
+
+            {/* COLUMNA DERECHA: HERO IMAGE */}
+            <section className="hidden lg:block flex-1 relative overflow-hidden bg-card">
+                {/* Imagen de Fondo Premium */}
+                <div 
+                    className="animate-slide-right animate-delay-300 absolute inset-0 bg-cover bg-center group" 
+                    style={{ backgroundImage: 'url("/foto.jpg")' }}
+                >
+                    {/* Overlay de Gradiente Suave para Mezclar */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent opacity-80" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+                </div>
+            </section>
         </div>
     );
 }

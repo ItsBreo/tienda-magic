@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\boosterPack;
+use App\Models\BoosterPack;
 use App\Models\User;
 
 
@@ -14,8 +14,17 @@ class InventoryPack extends Model
     protected $fillable = [
         'user_id',
         'booster_pack_id',
-        'quantity'
+        'quantity',
+        'quantity_locked'
     ];
+
+    /**
+     * Cantidad disponible (Total - Bloqueada).
+     */
+    public function getQuantityAvailableAttribute()
+    {
+        return $this->quantity - $this->quantity_locked;
+    }
 
     public function user()
     {

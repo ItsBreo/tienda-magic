@@ -13,6 +13,11 @@ use App\Models\CartItem;
 use App\Models\BoosterPack;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\WalletTransaction;
+use App\Mail\OrderInvoiceMail;
+use Illuminate\Support\Facades\Mail;
+use App\Services\AuditLogger;
+use OpenApi\Attributes as OA;
 
 class CheckoutController extends Controller
 {
@@ -48,24 +53,37 @@ class CheckoutController extends Controller
         $validItems = [];
 
         foreach ($cart->items as $item) {
-            // Validar que el pack aún existe y obtener precio actual
-            $pack = BoosterPack::find($item->booster_pack_id);
-            if (!$pack) {
-                // Eliminar items huérfanos y continuar
-                $item->delete();
-                continue;
+            $unitPrice = 0;
+            if ($item->booster_pack_id) {
+                // Validar que el pack aún existe
+                $pack = BoosterPack::find($item->booster_pack_id);
+                if (!$pack) {
+                    $item->delete();
+                    continue;
+                }
+                $unitPrice = $pack->price;
+            } elseif ($item->card_id) {
+                // Validar que la carta aún existe
+                $card = \App\Models\Card::find($item->card_id);
+                if (!$card) {
+                    $item->delete();
+                    continue;
+                }
+                $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
             }
 
-            $itemTotal = $pack->price * $item->quantity;
+            $itemTotal = $unitPrice * $item->quantity;
             $subtotal += $itemTotal;
 
             $validItems[] = [
                 'id' => $item->id,
                 'booster_pack_id' => $item->booster_pack_id,
+                'card_id' => $item->card_id,
                 'quantity' => $item->quantity,
-                'unit_price' => $pack->price,
+                'unit_price' => $unitPrice,
                 'total_price' => $itemTotal,
-                'booster_pack' => $item->boosterPack
+                'booster_pack' => $item->boosterPack,
+                'card' => $item->card
             ];
         }
 
@@ -115,7 +133,13 @@ class CheckoutController extends Controller
         try {
             return DB::transaction(function () use ($request) {
                 $user = Auth::user();
-                $paymentMethod = $request->validated()['payment_method'];
+                $validated = $request->validated();
+                $paymentMethod = $validated['payment_method'];
+
+                // Billing info is now optional
+                $billingName = $validated['billing_name'] ?? null;
+                $billingTaxId = $validated['billing_tax_id'] ?? null;
+                $billingAddress = $validated['billing_address'] ?? null;
 
                 // Obtener y validar carrito
                 $cart = Cart::with(['items.boosterPack'])
@@ -134,25 +158,46 @@ class CheckoutController extends Controller
                 $validItems = [];
 
                 foreach ($cart->items as $item) {
-                    $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
-                    if (!$pack) {
-                        // Eliminar items huérfanos
-                        $item->delete();
-                        continue;
+                    $unitPrice = 0;
+                    if ($item->booster_pack_id) {
+                        $pack = BoosterPack::lockForUpdate()->find($item->booster_pack_id);
+                        if (!$pack) {
+                            $item->delete();
+                            continue;
+                        }
+                        if ($pack->stock < $item->quantity) {
+                            throw new \Exception("Stock insuficiente para el sobre: {$pack->name}");
+                        }
+                        $unitPrice = $pack->price;
+                        $pack->stock -= $item->quantity;
+                        $pack->save();
+                    } elseif ($item->card_id) {
+                        $card = \App\Models\Card::lockForUpdate()->find($item->card_id);
+                        if (!$card) {
+                            $item->delete();
+                            continue;
+                        }
+                        if ($card->stock < $item->quantity) {
+                            throw new \Exception("Stock insuficiente para la carta: {$card->name}");
+                        }
+                        $unitPrice = (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50);
+                        $card->stock -= $item->quantity;
+                        $card->save();
                     }
 
                     // Validación adicional de integridad de precios
-                    if ($pack->price <= 0) {
-                        throw new \Exception('Precio inválido detectado para pack ID: ' . $pack->id);
+                    if ($unitPrice <= 0) {
+                        throw new \Exception('Precio inválido detectado para item ID: ' . ($item->booster_pack_id ?? $item->card_id));
                     }
 
-                    $itemTotal = $pack->price * $item->quantity;
+                    $itemTotal = $unitPrice * $item->quantity;
                     $subtotal += $itemTotal;
 
                     $validItems[] = [
                         'booster_pack_id' => $item->booster_pack_id,
+                        'card_id' => $item->card_id,
                         'quantity' => $item->quantity,
-                        'unit_price' => $pack->price,
+                        'unit_price' => $unitPrice,
                         'total_price' => $itemTotal
                     ];
                 }
@@ -191,34 +236,64 @@ class CheckoutController extends Controller
                     // Descontar fondos del wallet
                     $user->wallet_balance -= $total;
                     $user->save();
+
+                    // Registrar la transacción en el historial de la billetera
+                    $itemCount = count($validItems);
+                    WalletTransaction::create([
+                        'user_id'       => $user->id,
+                        'type'          => 'purchase',
+                        'amount'        => -$total,
+                        'balance_after' => $user->wallet_balance,
+                        'description'   => "Compra en la tienda — {$itemCount} " . ($itemCount === 1 ? 'artículo' : 'artículos'),
+                    ]);
                 }
                 // Aqui se integraria Stripe para pago con tarjeta
 
                 // Crear pedido
                 $order = Order::create([
                     'user_id' => $user->id,
-                    'subtotal' => $subtotal,
-                    'tax' => $tax,
-                    'total_price' => $total,
+                    'total_amount' => $total, // Corregido: total_amount en lugar de total_price
                     'payment_method' => $paymentMethod,
                     'status' => 'completed',
-                    'currency' => 'EUR'
+                    'billing_name' => $billingName,
+                    'billing_tax_id' => $billingTaxId,
+                    'billing_address' => $billingAddress
                 ]);
 
                 // Crear items de la orden con precios congelados
                 foreach ($validItems as $item) {
+                    $type = !empty($item['booster_pack_id']) ? \App\Models\BoosterPack::class : \App\Models\Card::class;
+                    $id = !empty($item['booster_pack_id']) ? $item['booster_pack_id'] : $item['card_id'];
+
                     OrderItem::create([
-                        'order_id' => $order->id,
-                        'booster_pack_id' => $item['booster_pack_id'],
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['unit_price'],
-                        'total_price' => $item['total_price']
+                        'order_id'         => $order->id,
+                        'purchasable_type' => $type,
+                        'purchasable_id'   => $id,
+                        'quantity'         => $item['quantity'],
+                        'price_at_purchase' => $item['unit_price']
                     ]);
                 }
 
                 // Vaciar carrito
                 $cart->items()->delete();
                 $cart->delete();
+
+                // Enviar correo electrónico con la factura PDF en segundo plano (si hay colas) o síncrono
+                try {
+                    // Re-obtener los items como objetos con sus relaciones para la vista del correo
+                    $orderItems = OrderItem::with('boosterPack.cardSet')->where('order_id', $order->id)->get();
+                    Mail::to($user->email)->send(new OrderInvoiceMail($order, $user, $orderItems));
+                } catch (\Exception $e) {
+                    Log::error('No se pudo enviar el correo de factura', ['error' => $e->getMessage()]);
+                }
+
+                // Triggers de Logros
+                $hasPacks = collect($validItems)->contains(fn($i) => !empty($i['booster_pack_id']));
+                $hasCards = collect($validItems)->contains(fn($i) => !empty($i['card_id']));
+
+                if ($hasPacks) event(new \App\Events\PackPurchased($user));
+                if ($hasCards) event(new \App\Events\CardPurchased($user));
+                event(new \App\Events\TransactionCompleted($user));
 
                 Log::info('Checkout completado exitosamente', [
                     'user_id' => $user->id,
@@ -228,13 +303,20 @@ class CheckoutController extends Controller
                     'items_count' => count($validItems)
                 ]);
 
+                AuditLogger::log('shop.purchase', $order, [
+                    'total_amount' => $total,
+                    'items_count' => count($validItems),
+                    'payment_method' => $paymentMethod
+                ]);
+
                 return response()->json([
                     'message' => 'Pedido completado con éxito',
                     'data' => [
                         'order_id' => $order->id,
                         'total' => round($total, 2),
                         'payment_method' => $paymentMethod,
-                        'items_count' => count($validItems)
+                        'items_count' => count($validItems),
+                        'invoice_url' => url('/api/orders/' . $order->id . '/invoice')
                     ]
                 ], 201);
 
@@ -247,6 +329,14 @@ class CheckoutController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->validated()
             ]);
+
+            // Devolver mensaje específico al frontend si es por falta de stock
+            if (str_starts_with($e->getMessage(), 'Stock insuficiente')) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'error_code' => 'INSUFFICIENT_STOCK'
+                ], 400);
+            }
 
             // No exponer detalles del error al cliente por seguridad
             return response()->json([
@@ -263,6 +353,15 @@ class CheckoutController extends Controller
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
+    #[OA\Post(
+        path: "/api/checkout",
+        summary: "Checkout falso (Demo)",
+        description: "Procesa el carrito del usuario generando pago automático simulado para propósitos de demostración.",
+        tags: ["Checkout"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Response(response: 200, description: "Pedido completado con éxito (Demo)")]
+    #[OA\Response(response: 400, description: "El carrito está vacio")]
     public function processFakeCheckout(Request $request)
     {
         return DB::transaction(function () use ($request) {
@@ -302,74 +401,49 @@ class CheckoutController extends Controller
 
             // Crear los OrderItems (Líneas del ticket) y actualizar inventario
             foreach ($cartItems as $item) {
+                $price = 0;
+                if ($item->booster_pack_id) {
+                    $price = $item->boosterPack->price;
+                } elseif ($item->card_id) {
+                    $price = (float) ($item->card->market_avg_price > 0 ? $item->card->market_avg_price : 1.00);
+                }
+
                 \App\Models\OrderItem::create([
                     'order_id' => $order->id,
                     'booster_pack_id' => $item->booster_pack_id,
+                    'card_id' => $item->card_id,
                     'quantity' => $item->quantity,
-                    'price_at_purchase' => $item->boosterPack->price ?? 0
+                    'price_at_purchase' => $price
                 ]);
 
                 // Actualizar inventario del usuario
-                $inventoryItem = \App\Models\InventoryPack::firstOrNew([
-                    'user_id' => $user->id,
-                    'booster_pack_id' => $item->booster_pack_id
-                ]);
-
-                $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
-                $inventoryItem->save();
+                if ($item->booster_pack_id) {
+                    $inventoryItem = \App\Models\InventoryPack::firstOrNew([
+                        'user_id' => $user->id,
+                        'booster_pack_id' => $item->booster_pack_id
+                    ]);
+                    $inventoryItem->quantity = ($inventoryItem->quantity ?? 0) + $item->quantity;
+                    $inventoryItem->save();
+                }
             }
 
             // Crítico: Vaciar el carrito
             \App\Models\CartItem::where('cart_id', $cart->id)->delete();
 
+            // Enviar correo electrónico
+            try {
+                Mail::to($user->email)->send(new OrderInvoiceMail($order, $user, $cartItems));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('No se pudo enviar el correo de factura (demo)', ['error' => $e->getMessage()]);
+            }
+
             return response()->json([
                 'message' => '¡Pedido completado con éxito! (Modo Demo)',
                 'order_id' => $order->id,
                 'total' => $total,
-                'items_count' => $cartItems->count()
+                'items_count' => $cartItems->count(),
+                'invoice_url' => url('/api/orders/' . $order->id . '/invoice')
             ], 200);
         });
-    }
-
-    /**
-     * Muestra detalles del pedido para el usuario autenticado.
-     *
-     * @param int $orderId
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
-     */
-    public function show($orderId)
-    {
-        try {
-            $user = Auth::user();
-
-            $order = Order::with(['items.boosterPack.cardSet'])
-                          ->where('id', $orderId)
-                          ->where('user_id', $user->id)
-                          ->first();
-
-            if (!$order) {
-                return response()->json([
-                    'message' => 'Pedido no encontrado'
-                ], 404);
-            }
-
-            return response()->json([
-                'data' => [
-                    'order' => $order
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error al obtener detalles del pedido', [
-                'user_id' => Auth::id(),
-                'order_id' => $orderId,
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'message' => 'Error al obtener los detalles del pedido'
-            ], 500);
-        }
     }
 }

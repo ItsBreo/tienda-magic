@@ -1,0 +1,205 @@
+import {
+ useState, useEffect, useRef, useCallback, useMemo,
+} from 'react';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+import { useAuth } from '@/contexts/AuthContext';
+import apiService from '@/services/ApiService';
+
+// Hacer Pusher disponible globalmente para Echo
+if (typeof window !== 'undefined') {
+  (window as any).Pusher = Pusher;
+}
+
+interface Message {
+  id: number;
+  conversation_id: string;
+  content: string;
+  type: 'text' | 'image' | 'file';
+  is_system_message: boolean;
+  metadata: any;
+  edited_at?: string;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: number;
+    username: string;
+  } | null;
+  can_edit: boolean;
+  can_delete: boolean;
+}
+
+interface UseChatReturn {
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
+  sendMessage: (content: string) => Promise<void>;
+  connectionStatus: 'disconnected' | 'connecting' | 'connected';
+}
+
+export function useChat(conversationId: string | null, authToken: string | null): UseChatReturn {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+
+  const { user } = useAuth();
+  const currentUserId = user?.id;
+  const echoRef = useRef<Echo<any> | null>(null);
+  const channelRef = useRef<any>(null);
+
+  // Crear instancia de Echo con el token pasado como parámetro
+  const echoInstance = useMemo(() => {
+    if (!authToken) return null;
+
+    console.log('🔑 Token JWT recibido como parámetro:', authToken ? 'SÍ' : 'NO');
+
+    const echo = new Echo({
+      broadcaster: 'reverb',
+      key: import.meta.env.VITE_REVERB_APP_KEY,
+      wsHost: import.meta.env.VITE_REVERB_HOST,
+      wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
+      wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+      forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+      enabledTransports: ['ws', 'wss'],
+      authEndpoint: '/api/broadcasting/auth',
+      auth: {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          Accept: 'application/json',
+        },
+      },
+    });
+
+    // Inyectar Socket ID en Axios cuando se conecte
+    echo.connector.pusher.connection.bind('connected', () => {
+      const socketId = echo?.socketId();
+      if (socketId) {
+        apiService.axiosInstance.defaults.headers.common['X-Socket-ID'] = socketId;
+      }
+    });
+
+    return echo;
+  }, [authToken]);
+
+  // Cargar historial inicial
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!conversationId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await apiService.axiosInstance.get(`/api/conversations/${conversationId}/messages`);
+        const messagesData = response.data.data || response.data;
+
+        // Ordenación explícita por fecha (cronológica ascendente)
+        const sortedMessages = Array.isArray(messagesData)
+          ? [...messagesData].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          : [];
+
+        setMessages(sortedMessages);
+      } catch (err) {
+        console.error('Error loading messages:', err);
+        setError('No se pudieron cargar los mensajes');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (conversationId) {
+      loadMessages();
+    } else {
+      setIsLoading(false);
+    }
+  }, [conversationId]);
+
+  // Suscripción a WebSocket
+  useEffect(() => {
+    if (!conversationId || !echoInstance) return;
+
+    let channel: any;
+
+    try {
+      console.log(`📡 Suscribiéndose a conversation.${conversationId}`);
+
+      channel = echoInstance.private(`conversation.${conversationId}`);
+      channelRef.current = channel;
+
+      channel.on('pusher:subscription_succeeded', () => {
+        console.log('✅ Suscripción exitosa al canal');
+        setConnectionStatus('connected');
+      });
+
+      channel.on('pusher:subscription_error', (status: any) => {
+        console.error('❌ Error de auth en el canal:', status);
+        setConnectionStatus('disconnected');
+        setError('Error de conexión al chat');
+      });
+
+      // Escuchar mensajes nuevos - ESTÁNDAR LIMPIO
+      channel.listen('.message.sent', (e: any) => {
+        console.log('� BINGO! EVENTO WS RECIBIDO EN REACT:', e);
+
+        // Dependiendo de cómo serialice Laravel, el mensaje puede venir en e.message o directamente en e
+        const nuevoMensaje = e.message || e;
+
+        setMessages((prev) => {
+          // Evitar duplicados por si acaso
+          if (prev.some((m) => m.id === nuevoMensaje.id)) return prev;
+          return [...prev, nuevoMensaje];
+        });
+      });
+    } catch (e) {
+      console.error('❌ No se puede suscribir al canal WebSocket:', e);
+      setConnectionStatus('disconnected');
+      setError('Error de conexión');
+    }
+
+    return () => {
+      console.log(`🔌 Limpiando suscripción de conversation.${conversationId}`);
+      if (channel && echoInstance) {
+        echoInstance.leave(`conversation.${conversationId}`);
+      }
+      setConnectionStatus('disconnected');
+    };
+  }, [conversationId, echoInstance]);
+
+  // Enviar mensaje
+  const sendMessage = useCallback(async (content: string) => {
+    if (!content.trim() || !conversationId) return;
+
+    try {
+      const response = await apiService.axiosInstance.post(`/api/conversations/${conversationId}/messages`, {
+        content: content.trim(),
+        type: 'text',
+      });
+
+      const newMessage = response.data.data || response.data;
+
+      console.log('📤 Mensaje enviado con éxito:', newMessage);
+
+      // Actualización instantánea (optimista)
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === newMessage.id)) return prev;
+        return [...prev, newMessage];
+      });
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError('No se pudo enviar el mensaje');
+      throw err;
+    }
+  }, [conversationId]);
+
+  return {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    connectionStatus,
+  };
+}

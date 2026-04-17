@@ -6,10 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-// HasApiTokens eliminado (era de Laravel\Sanctum, incompatible con JWT)
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 /**
  * Modelo de Usuario del sistema.
@@ -22,6 +24,12 @@ class User extends Authenticatable implements JWTSubject
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
     // HasApiTokens eliminado: era de Sanctum y genera conflicto con el JWTGuard
+
+    /**
+     * Relaciones cargadas automáticamente para evitar el problema de N+1 queries
+     * al serializar colecciones o listar usuarios.
+     */
+    protected $with = ['roles', 'profile'];
 
     /**
      * The attributes that are mass assignable.
@@ -37,11 +45,60 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     /**
+     * Roles del sistema (en orden jerárquico de mayor a menor).
+     * super_admin > admin > mod_* > user
+     */
+    public const ROLE_SUPER_ADMIN    = 'super_admin';
+    public const ROLE_ADMIN          = 'admin';
+    public const ROLE_MOD_NEWS       = 'mod_news';
+    public const ROLE_MOD_TOURNAMENTS= 'mod_tournaments';
+    public const ROLE_MOD_GENERAL    = 'mod_general';
+    public const ROLE_MOD_STRATEGY   = 'mod_strategy';
+    public const ROLE_USER           = 'user';
+
+    /** Slugs que se consideran moderadores sectoriales */
+    public const MOD_ROLES = [
+        self::ROLE_MOD_NEWS,
+        self::ROLE_MOD_TOURNAMENTS,
+        self::ROLE_MOD_GENERAL,
+        self::ROLE_MOD_STRATEGY,
+    ];
+
+    /** Slugs con privilegios de administración del foro */
+    public const ADMIN_ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_SUPER_ADMIN,
+    ];
+
+    /**
      * Atributos dinámicos que siempre se adjuntarán al array/JSON del modelo
      */
     protected $appends = [
-        'is_admin'
+        'is_admin',
+        'role_name',
+        'reputation',
+        'all_permissions',
+        'avatar_url',
     ];
+
+    /**
+     * Accesor para obtener un array plano con los nombres de todos los permisos del usuario.
+     */
+    public function getAllPermissionsAttribute(): array
+    {
+        // Si es super_admin, técnicamente tiene todos, pero devolvemos los reales + bypass lógico
+        $permissionNames = [];
+        
+        foreach ($this->roles as $role) {
+            $ids = $role->permission_ids ?? [];
+            if (!empty($ids)) {
+                $names = Permission::whereIn('id', $ids)->pluck('name')->toArray();
+                $permissionNames = array_merge($permissionNames, $names);
+            }
+        }
+
+        return array_unique($permissionNames);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -66,7 +123,8 @@ class User extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
-            'wallet_balance' => 'decimal:2',
+            'wallet_balance' => 'float',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -75,6 +133,11 @@ class User extends Authenticatable implements JWTSubject
         parent::boot();
 
         static::deleting(function ($user) {
+            // Si es un Soft Delete (ban/suspensión), NO borramos los datos definitivamente
+            if (!$user->isForceDeleting()) {
+                return;
+            }
+
             // Eliminar relaciones usando DB::table para saltar restricciones de nombres de tabla/columnas
             $id = $user->id;
 
@@ -95,7 +158,7 @@ class User extends Authenticatable implements JWTSubject
                 // Tablas pivot o secundarias
                 $deleteIgnoreError('user_role');
                 $deleteIgnoreError('card_user');
-                $deleteIgnoreError('achievement_user');
+                $deleteIgnoreError('user_achievement');
 
                 // Tablas donde el usuario es autor
                 $deleteIgnoreError('threads');
@@ -135,12 +198,13 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(UserProfile::class);
     }
 
-    // Usuario - roles M:M
+    // Usuario - roles M:M (con forum_id en el pivot para moderadores sectoriales)
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'roles_id');
+        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'roles_id')
+                    ->withPivot('forum_id')
+                    ->withTimestamps();
     }
-
     // Usuario - mazo 1:M
     public function decks()
     {
@@ -167,9 +231,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function itemsForSale()
     {
-        // Esto trae los registros del inventario que pertenecen al usuario
-        // pero solo aquellos donde 'is_for_sale' sea verdadero (true/1)
-        return $this->hasMany(Inventory::class)->where('is_for_sale', true);
+        return $this->hasMany(InventoryCard::class)->where('is_for_sale', true);
     }
 
     // Relación filtrada para lo que vende
@@ -193,33 +255,110 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // Pedidos que ESTE usuario ha COMPRADO
-    public function purchases()
+    public function orders()
     {
-        return $this->hasMany(Order::class, 'buyer_id'); // Clave foránea explícita
+        return $this->hasMany(Order::class, 'user_id');
     }
 
-    // Pedidos que ESTE usuario ha VENDIDO (a otros)
+    // Transacciones que ESTE usuario ha VENDIDO en el mercado
     public function sales()
     {
-        return $this->hasMany(Order::class, 'seller_id'); // Clave foránea explícita
+        return $this->hasMany(MarketTransaction::class, 'seller_id');
     }
 
     // Relación M:M con logros
     public function achievements()
     {
-        return $this->belongsToMany(Achievement::class);
+        return $this->belongsToMany(Achievement::class, 'user_achievement')
+        ->withPivot('obtained_at');
     }
 
+    // =========================================================================
+    // HELPERS DE ROL
+    // =========================================================================
+
+    /**
+     * Comprueba si el usuario tiene un rol concreto (por slug, case-insensitive).
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->roles->contains(
+            fn($r) => strtolower($r->name) === strtolower($role)
+        );
+    }
+
+    /**
+     * Es super_admin (control total de tienda + foro).
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(self::ROLE_SUPER_ADMIN);
+    }
+
+    /**
+     * Es admin o superior (admin + super_admin).
+     * Compatibilidad con el AdminMiddleware y el frontend.
+     */
     public function isAdmin(): bool
     {
-        // Verifica si alguno de sus roles se llama 'admin' (case-insensitive)
-        return $this->roles->contains(function ($role) {
-            return strtolower($role->name) === 'admin';
+        return $this->hasRole(self::ROLE_ADMIN) || $this->isSuperAdmin();
+    }
+
+    /**
+     * Es moderador sectorial (cualquier mod_*, sin ser admin).
+     */
+    public function isModerator(): bool
+    {
+        return $this->roles->contains(
+            fn($r) => in_array(strtolower($r->name), self::MOD_ROLES)
+        );
+    }
+
+    /**
+     * Es moderador con acceso a un foro concreto.
+     * Un admin/super_admin también puede moderar cualquier foro.
+     */
+    public function isModeratorOf(int $forumId): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->roles->contains(function ($role) use ($forumId) {
+            return in_array(strtolower($role->name), self::MOD_ROLES)
+                && (int) $role->pivot->forum_id === $forumId;
         });
     }
 
     /**
-     * Mutator para que el frontend reciba "is_admin" como un boolean
+     * Nivel numérico del rol más alto del usuario (útil para comparaciones).
+     */
+    public function roleLevel(): int
+    {
+        if ($this->isSuperAdmin()) return 4;
+        if ($this->isAdmin())      return 3;
+        if ($this->isModerator())  return 2;
+        return 1;
+    }
+
+    /**
+     * Nombre del rol principal (el de mayor jerarquía) para el frontend.
+     */
+    public function getRoleNameAttribute(): string
+    {
+        if ($this->isSuperAdmin()) return self::ROLE_SUPER_ADMIN;
+        if ($this->isAdmin())      return self::ROLE_ADMIN;
+
+        $modRole = $this->roles->first(function ($r) {
+            return in_array(strtolower($r->name), self::MOD_ROLES);
+        });
+        if ($modRole) return strtolower($modRole->name);
+
+        return self::ROLE_USER;
+    }
+
+    /**
+     * Mutator para que el frontend reciba "is_admin" como un boolean.
      */
     public function getIsAdminAttribute(): bool
     {
@@ -227,10 +366,52 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * FÓRMULA DE REPUTACIÓN SOCIAL (Karma) base 100
+     * Ahora lee la variable `$this->profile->reputation_score` la cual se suma incrementalmente
+     * cada vez que este usuario recibe un voto (evitando calcular todo al vuelo mediante N+1 queries).
+     */
+    public function reputation(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $baseScore = $this->profile?->reputation_score ?? 0;
+
+                // Asegurarse de que created_at no sea nulo al registrar
+                $daysActive = max($this->created_at ? $this->created_at->diffInDays(now()) : 0, 0);
+                $stabilityFactor = sqrt($daysActive);
+
+                $formula = 100 + $baseScore + $stabilityFactor;
+
+                return (int) round($formula);
+            }
+        );
+    }
+
+    /**
+     * Accesor para obtener la URL del avatar desde el perfil.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->profile?->avatar_url;
+    }
+
+    /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
      * @return mixed
      */
+    // Relación M:M con trades enviados
+    public function sentTrades()
+    {
+        return $this->hasMany(Trade::class, 'sender_id');
+    }
+
+    // Relación M:M con trades recibidos
+    public function receivedTrades()
+    {
+        return $this->hasMany(Trade::class, 'receiver_id');
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -244,5 +425,75 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    // Threads creados por el usuario
+public function threads(): HasMany
+{
+    return $this->hasMany(Thread::class);
+}
+
+// Comentarios del usuario
+public function comments(): HasMany
+{
+    return $this->hasMany(Comment::class);
+}
+
+// Votos emitidos por el usuario
+public function votes(): HasMany
+{
+    return $this->hasMany(Vote::class);
+}
+
+// Threads guardados por el usuario
+public function savedThreads(): BelongsToMany
+{
+    return $this->belongsToMany(Thread::class, 'saved_threads')->withTimestamps();
+}
+
+public function createdTournaments()
+{
+    return $this->hasMany(Tournament::class, 'created_by');
+}
+
+public function tournamentRegistrations()
+{
+    return $this->hasMany(TournamentRegistration::class);
+}
+
+public function tournaments()
+{
+    return $this->belongsToMany(Tournament::class, 'tournament_registrations')
+                ->withPivot('status', 'registered_at', 'confirmed_at')
+                ->withTimestamps();
+    }
+
+    /**
+     * Comprueba si el usuario tiene un permiso específico a través de sus roles.
+     * Ahora busca dentro de la columna JSON permission_ids de cada rol.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // Super Admin tiene todos los permisos por defecto
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Buscamos el ID del permiso pedido (podemos cachear esto si fuera necesario)
+        $permissionModel = Permission::where('name', $permission)->first();
+        if (!$permissionModel) {
+            return false;
+        }
+
+        $targetId = $permissionModel->id;
+
+        foreach ($this->roles as $role) {
+            $ids = $role->permission_ids ?? [];
+            if (in_array($targetId, $ids)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

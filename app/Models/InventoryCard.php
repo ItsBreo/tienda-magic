@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Modelo de Carta en Inventario.
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class InventoryCard extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'inventory_card'; // Forzamos nombre de tabla singular
 
     protected $fillable = [
@@ -24,6 +27,14 @@ class InventoryCard extends Model
         'condition',
         'language'
     ];
+
+    /**
+     * Cantidad disponible (Total - Bloqueada).
+     */
+    public function getQuantityAvailableAttribute()
+    {
+        return $this->quantity - $this->quantity_locked;
+    }
 
     // Relación: Pertenece a un Usuario
     public function user()

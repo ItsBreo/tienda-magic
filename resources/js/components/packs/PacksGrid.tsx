@@ -1,13 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Package } from 'lucide-react';
-import apiService from '@/services/ApiService';
+import React from 'react';
+import { motion } from 'framer-motion';
 
 // Importar componentes modulares
 import PackCard from './PackCard';
 import PacksPagination from './PacksPagination';
-import PackDialog from './PackDialog';
 
 interface Pack {
   id: number;
@@ -35,67 +31,48 @@ interface PacksGridProps {
   totalPacks: number;
   onPageChange: (page: number) => void;
   onPackClick: (pack: Pack) => void;
-  onBuyPack: (pack: Pack) => void;
+  onBuyPack: (pack: Pack, quantity: number) => void;
+  category?: 'packs' | 'cards';
+  searchTerm?: string;
 }
 
 function PacksGrid({
-  packs, currentPage, totalPages, totalPacks, onPageChange, onPackClick, onBuyPack,
+  packs, currentPage, totalPages, totalPacks, onPageChange, onPackClick, onBuyPack, category = 'packs', searchTerm = '',
 }: PacksGridProps) {
-  const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  const handlePackClick = (pack: Pack) => {
-    setSelectedPack(pack);
-    setDialogOpen(true);
-    onPackClick(pack);
-  };
-
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
-
-  const handleQuickBuy = async (pack: Pack) => {
-    try {
-      // Petición directa al API para compra rápida
-      await apiService.axiosInstance.post('/api/cart', {
-        booster_pack_id: pack.id,
-        quantity: 1,
-      });
-
-      toast.success(`¡${pack.name} añadido al carrito!`);
-    } catch (error) {
-      console.error('Error en compra rápida:', error);
-      toast.error('Error al añadir al carrito');
-    }
-  };
-
-  if (packs.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <Package className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-zinc-400 mb-2">
-          No hay packs disponibles
-        </h3>
-        <p className="text-zinc-500">
-          Vuelve más tarde para ver nuevos packs
-        </p>
-      </div>
-    );
-  }
-
   return (
     <>
-      {/* Grid de packs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+      {/* Grid de items */}
+      <motion.div 
+        initial="hidden"
+        animate="show"
+        variants={{
+            hidden: { opacity: 0 },
+            show: {
+                opacity: 1,
+                transition: {
+                    staggerChildren: 0.05
+                }
+            }
+        }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8"
+      >
         {packs.map((pack: Pack) => (
-          <PackCard
+          <motion.div
             key={pack.id}
-            pack={pack}
-            onClick={handlePackClick}
-            onBuyPack={handleQuickBuy}
-          />
+            variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 }
+            }}
+          >
+            <PackCard
+              pack={pack}
+              onClick={() => onPackClick(pack)}
+              onBuyPack={(item, quantity) => onBuyPack(item, quantity)}
+              searchTerm={searchTerm}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Paginación */}
       {totalPages > 1 && (
@@ -104,15 +81,9 @@ function PacksGrid({
           totalPages={totalPages}
           totalPacks={totalPacks}
           onPageChange={onPageChange}
+          category={category}
         />
       )}
-
-      {/* Modal de detalle del pack */}
-      <PackDialog
-        pack={selectedPack}
-        isOpen={dialogOpen}
-        onClose={handleDialogClose}
-      />
     </>
   );
 }

@@ -1,0 +1,3745 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Tienda Magic API",
+        "description": "Documentación de la API de Tienda Magic Swagger OpenApi",
+        "contact": {
+            "email": "soporte@tiendamagic.com"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/admin/cards": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de cartas Admin",
+                "description": "Obtiene una lista paginada de cartas (solo admins).",
+                "operationId": "0a70ecc7dda4e1759db9126fef934979",
+                "responses": {
+                    "200": {
+                        "description": "Lista de cartas"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear carta manual",
+                "description": "Añade una carta nueva manualmente (solo admins).",
+                "operationId": "42cdcb4c431a7846921508be0edba3ad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "scryfall_id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "set_code": {
+                                        "type": "string"
+                                    },
+                                    "collector_number": {
+                                        "type": "string"
+                                    },
+                                    "rarity": {
+                                        "type": "string"
+                                    },
+                                    "price_eur": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "price_usd": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "mana_value": {
+                                        "type": "integer"
+                                    },
+                                    "image_uri": {
+                                        "type": "string",
+                                        "format": "url",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Carta creada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/cards/{cardId}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar carta manual",
+                "description": "Elimina una carta manualmente.",
+                "operationId": "e889230ddb3788f275f7c8218539b70b",
+                "parameters": [
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "description": "ID de carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta eliminada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/forums/{forumId}/threads": {
+            "get": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Lista de hilos del foro para moderadores",
+                "description": "Obtiene la lista de los hilos del foro para moderar.",
+                "operationId": "8a90a33c99aacdf4c2bc1aef6e39e923",
+                "parameters": [
+                    {
+                        "name": "forumId",
+                        "in": "path",
+                        "description": "ID del foro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de hilos de moderación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/threads/{thread}": {
+            "delete": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Eliminar hilo (Moderación)",
+                "description": "Elimina un hilo del foro (solo moderadores/admins).",
+                "operationId": "3013f2f3dec739e64dd8fd7240a286ed",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/comments/{comment}": {
+            "delete": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Eliminar comentario (Moderación)",
+                "description": "Elimina un comentario del foro (solo moderadores/admins).",
+                "operationId": "8e90bd835cd909835d66e872eda49f90",
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "description": "ID del comentario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comentario eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/threads/{threadId}/restore": {
+            "post": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Restaurar hilo (Admin)",
+                "description": "Restaura un hilo que fue eliminado (solo admins).",
+                "operationId": "6f32768a0d88dba61f493db6bda69764",
+                "parameters": [
+                    {
+                        "name": "threadId",
+                        "in": "path",
+                        "description": "ID del hilo a restaurar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo restaurado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mod/comments/{commentId}/restore": {
+            "post": {
+                "tags": [
+                    "Moderation"
+                ],
+                "summary": "Restaurar comentario (Admin)",
+                "description": "Restaura un comentario que fue eliminado (solo admins).",
+                "operationId": "4e1bbaa7948a45d30343a667e032f6f8",
+                "parameters": [
+                    {
+                        "name": "commentId",
+                        "in": "path",
+                        "description": "ID del comentario a restaurar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comentario restaurado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/roles": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de roles",
+                "description": "Obtiene una lista de roles de sistema disponibles (solo admins).",
+                "operationId": "2482cf02dd8867d786adf73b0da707a0",
+                "responses": {
+                    "200": {
+                        "description": "Lista de roles"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear rol",
+                "description": "Crea un nuevo rol (solo admins).",
+                "operationId": "2e8bb0f3e18d0c53e25f90759e365aa5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Rol creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/roles/{roleId}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Actualizar rol",
+                "description": "Actualiza un rol (solo admins).",
+                "operationId": "70a762cc6e06db590d8a6e05d3340d3e",
+                "parameters": [
+                    {
+                        "name": "roleId",
+                        "in": "path",
+                        "description": "ID del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar rol",
+                "description": "Elimina un rol si no es crítico de sistema.",
+                "operationId": "c541bd5005d947011f5b246130dbef27",
+                "parameters": [
+                    {
+                        "name": "roleId",
+                        "in": "path",
+                        "description": "ID del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rol eliminado exitosamente"
+                    },
+                    "403": {
+                        "description": "No puedes eliminar un rol protegido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sets": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de sets Admin",
+                "description": "Obtiene una lista paginada de expansiones de cartas (solo admins).",
+                "operationId": "f83107ece64000da0fe6ed0cbc6ef7a4",
+                "responses": {
+                    "200": {
+                        "description": "Lista de sets"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear set",
+                "description": "Crea una expansión de forma manual (solo admins).",
+                "operationId": "03794fff2c85dbe86a08719d4c2a235c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "released_at": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "card_count": {
+                                        "type": "integer"
+                                    },
+                                    "icon_svg_uri": {
+                                        "type": "string",
+                                        "format": "url",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Set creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sets/{code}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar set",
+                "description": "Elimina una expansión (solo admins).",
+                "operationId": "8741806af71084bdd46398406e1cec7d",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Código del set",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Set eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Lista de usuarios",
+                "description": "Obtiene una lista paginada de todos los usuarios registrados (solo admins).",
+                "operationId": "895101ef1a579f1e11fb7d2ffac04d5b",
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuarios"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Crear usuario",
+                "description": "Crea un usuario administrativamente.",
+                "operationId": "561f65ab349d23d53530ee93e2d9cc83",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "role_id": {
+                                        "type": "integer"
+                                    },
+                                    "forum_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario creado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{userId}": {
+            "put": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Actualizar usuario",
+                "description": "Actualiza los datos y configuraciones primarias de un usuario.",
+                "operationId": "49e5aaa01a2804513f8e989fc83b5b1d",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "role_id": {
+                                        "type": "integer"
+                                    },
+                                    "forum_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuario actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Eliminar usuario",
+                "description": "Elimina una cuenta de usuario.",
+                "operationId": "36b315b022462964179dcf1939f2137c",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario eliminado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{userId}/assign-role": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Asignar rol a usuario",
+                "description": "Reglas de jerarquía aplican. Solo super_admin asigna super_admin.",
+                "operationId": "162856567491e2ea87893e5066457f3c",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "role_id": {
+                                        "type": "integer"
+                                    },
+                                    "forum_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol asignado correctamente"
+                    },
+                    "403": {
+                        "description": "Prohibido"
+                    },
+                    "422": {
+                        "description": "Falta asignar ID de foro a moderador"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/checkout/process": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Procesar Checkout",
+                "description": "Procesamiento híbrido de checkout combinando billetera virtual o Stripe con alta seguridad.",
+                "operationId": "44ff9c9c81a7fe7a0e14c275c50f8bfb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "payment_method": {
+                                        "description": "wallet o stripe",
+                                        "type": "string",
+                                        "example": "wallet"
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "purchasable_type": {
+                                                    "type": "string",
+                                                    "example": "App\\Models\\Card"
+                                                },
+                                                "purchasable_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Compra procesada o sesión de pago iniciada"
+                    },
+                    "422": {
+                        "description": "Datos de orden inválidos o stock insuficiente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/store-stats": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Estadísticas del panel",
+                "description": "Devuelve estadísticas globales de la DB de la tienda.",
+                "operationId": "786cc3602960780c878ce95fb591ff9e",
+                "responses": {
+                    "200": {
+                        "description": "Datos estadísticos"
+                    }
+                }
+            }
+        },
+        "/api/sets/latest": {
+            "get": {
+                "tags": [
+                    "Sets"
+                ],
+                "summary": "Obtener el último set (expansión)",
+                "description": "Devuelve la información del set de cartas más reciente.",
+                "operationId": "b530390af3077199a6f1f86748fad44b",
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa"
+                    }
+                }
+            }
+        },
+        "/api/wallet/recharge": {
+            "post": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Recargar billetera",
+                "description": "Inicia el flujo de recarga de saldo en la billetera virtual mediante Stripe.",
+                "operationId": "20054417fdac6404f704c157e18b5ab0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount": {
+                                        "description": "Cantidad a recargar (5, 10, 20 o 50)",
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sesión de Stripe Checkout creada exitosamente"
+                    },
+                    "422": {
+                        "description": "Error de validación del monto"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/cards": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Obtener todas las cartas",
+                "description": "Lista todas las cartas disponibles con información de su set.",
+                "operationId": "0648e5d4257b087d0463a2df7dd0cbca",
+                "responses": {
+                    "200": {
+                        "description": "Catálogo de cartas"
+                    }
+                }
+            }
+        },
+        "/api/cards/{id}": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Detalle de una carta",
+                "description": "Devuelve los detalles de una carta específica (stub).",
+                "operationId": "c00310db6aa5000703e36f6da91706c4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta encontrada"
+                    }
+                }
+            }
+        },
+        "/api/cards/{id}/favorite": {
+            "post": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Añadir a favoritos",
+                "description": "Añade una carta a los favoritos del usuario autenticado (stub).",
+                "operationId": "583c6026f913b85e1fc3a46fc768a1c0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta añadida a favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Quitar de favoritos",
+                "description": "Quita una carta de los favoritos del usuario (stub).",
+                "operationId": "03185e6020c1830b3d672decf2a9cfb9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta quitada de favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/packs": {
+            "get": {
+                "tags": [
+                    "Packs"
+                ],
+                "summary": "Listar Packs",
+                "description": "Obtener todos los sobres/packs disponibles en la tienda.",
+                "operationId": "36ffcdf8f161d68e479b7a1a9655838e",
+                "responses": {
+                    "200": {
+                        "description": "Lista de packs"
+                    }
+                }
+            }
+        },
+        "/api/cards/all": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Obtener todas las cartas (PackController)",
+                "description": "Obtener cartas disponibles orientadas al mercado.",
+                "operationId": "f830bf9fb49d94f55e1e04df1276fc34",
+                "responses": {
+                    "200": {
+                        "description": "Lista de cartas devueltas"
+                    }
+                }
+            }
+        },
+        "/api/cards/set/{setCode}": {
+            "get": {
+                "tags": [
+                    "Cards"
+                ],
+                "summary": "Cartas de un set",
+                "description": "Obtener todas las cartas que pertenecen a un set específico (hasta 50).",
+                "operationId": "abf6812b393c8efbeec7b6af7296a6a5",
+                "parameters": [
+                    {
+                        "name": "setCode",
+                        "in": "path",
+                        "description": "Código del set",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de cartas del set"
+                    },
+                    "404": {
+                        "description": "Set no encontrado"
+                    }
+                }
+            }
+        },
+        "/api/packs/{id}": {
+            "get": {
+                "tags": [
+                    "Packs"
+                ],
+                "summary": "Ver Pack por ID",
+                "description": "Devuelve los detalles de un pack específico por su ID.",
+                "operationId": "8d45b9bda90c702e583a0ed58296af04",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pack",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del pack devueltos"
+                    },
+                    "404": {
+                        "description": "Pack no encontrado"
+                    }
+                }
+            }
+        },
+        "/api/conversations": {
+            "get": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Mis conversaciones",
+                "description": "Lista las conversaciones donde participa el usuario autenticado.",
+                "operationId": "48baaee8c5511d2962e1c494c28b2aa4",
+                "responses": {
+                    "200": {
+                        "description": "Lista de conversaciones paginada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Crear conversación",
+                "description": "Crea una nueva conversación.",
+                "operationId": "6667333bc05e27c2c891e73371ca41cd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "default": "direct"
+                                    },
+                                    "context_type": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "participant_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Conversación creada exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conversations/{conversation}": {
+            "get": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Ver conversación",
+                "description": "Obtiene una conversación por ID junto con los últimos mensajes.",
+                "operationId": "6a36b1c3b24ca5858824a2ddbd88c3f0",
+                "parameters": [
+                    {
+                        "name": "conversation",
+                        "in": "path",
+                        "description": "UUID de la conversación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos de la conversación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trades/{tradeId}/chat": {
+            "post": {
+                "tags": [
+                    "Conversations"
+                ],
+                "summary": "Chat del Trade Base",
+                "description": "Obtiene o crea un chat para un trade base específico.",
+                "operationId": "85d0853f3f4ac90d1e50e1b91bc9aeab",
+                "parameters": [
+                    {
+                        "name": "tradeId",
+                        "in": "path",
+                        "description": "ID del Trade",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos del chat"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchanges": {
+            "get": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Listar intercambios",
+                "description": "Obtiene los intercambios activos en el mercado.",
+                "operationId": "0d0e2fddd1de7add3491f41b3c71144a",
+                "responses": {
+                    "200": {
+                        "description": "Lista de intercambios"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Crear listado de intercambio",
+                "description": "El usuario ofrece una carta de su inventario pidiendo opcionalmente una carta específica a cambio.",
+                "operationId": "e5a92eb4d4fe4d7ee1b58ff2ad54794f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "offered_inventory_card_id": {
+                                        "type": "integer"
+                                    },
+                                    "requested_card_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Listado de intercambio creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchanges/{id}/request": {
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Solicitar un intercambio",
+                "description": "Envía una solicitud proponiendo una carta a un listado de intercambio activo.",
+                "operationId": "64fe871e1c56cc90ea6648206f593478",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del intercambio activo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "offered_inventory_card_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Solicitud de intercambio creada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-requests": {
+            "get": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Mis solicitudes de intercambio",
+                "description": "Obtiene las solicitudes enviadas, recibidas y el historial de completadas.",
+                "operationId": "2ce3805eafe5d0f5fd957db46d691772",
+                "responses": {
+                    "200": {
+                        "description": "Listado de solicitudes"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-requests/{id}/accept": {
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Aceptar solicitud de intercambio",
+                "description": "Acepta una petición a tu listado de intercambio y crea una sala de sesión.",
+                "operationId": "2fef4b4ba7e1beebec5411009e22afb4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitud aceptada y sesión creada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/exchange-requests/{id}/reject": {
+            "post": {
+                "tags": [
+                    "Exchanges"
+                ],
+                "summary": "Rechazar solicitud de intercambio",
+                "description": "Rechaza una solicitud de intercambio que está pendiente.",
+                "operationId": "9306ae5891716680bcdeb48ee729564d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitud rechazada correctamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}": {
+            "get": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Ver sala de intercambio",
+                "description": "Obtiene los detalles y estado de una sesión de intercambio activa.",
+                "operationId": "6228fe52d51eb816994b676e6510304e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos de la sesión de intercambio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}/confirm": {
+            "post": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Confirmar intercambio",
+                "description": "Confirma el envío en la sesión de intercambio de tu lado. Cuando ambos confirman, se ejecuta el trueque.",
+                "operationId": "5fdb0eca042fd5e546a8e3edf5eebe85",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Confirmación guardada y/o transacción ejecutada completa"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}/chat": {
+            "post": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Inicia y obtiene conversación",
+                "description": "Obtiene (o crea si no existe) la conversación asociada a esta sesión de intercambio.",
+                "operationId": "a75714c6b2613e59fbffa670a411f5a6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ID de conversación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade-sessions/{id}/messages": {
+            "get": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Obtener mensajes del chat de intercambio",
+                "description": "Recupera los mensajes del chat vinculados a esta sala de trade.",
+                "operationId": "6b3853a7667f9c131912bb6896066e03",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Listado de mensajes y ID de chat"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Trade Sessions"
+                ],
+                "summary": "Enviar mensaje al chat de intercambio",
+                "description": "Envía un nuevo mensaje al chat de la sala de intercambio.",
+                "operationId": "5f0685f60860bb34f9a7121deaadbc97",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la sesión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Mensaje creado y emitido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/threads/{thread}/comments": {
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Añadir comentario",
+                "description": "Añade un comentario a un hilo o responde a otro comentario.",
+                "operationId": "18c23fd8c2e7678729c1612a8e219d6a",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "body": {
+                                        "type": "string"
+                                    },
+                                    "parent_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Comentario creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/comments/{comment}": {
+            "put": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Editar comentario",
+                "description": "Edita un comentario propio.",
+                "operationId": "34cbe1578f25cc3ef4c99bf6694043a2",
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "description": "ID del comentario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "body": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Comentario editado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Eliminar comentario",
+                "description": "Borra un comentario (soft delete).",
+                "operationId": "042da541ae505e892103f546516d7515",
+                "parameters": [
+                    {
+                        "name": "comment",
+                        "in": "path",
+                        "description": "ID del comentario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comentario eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/forums": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Lista de Foros",
+                "description": "Lista todos los foros disponibles para el sidebar.",
+                "operationId": "92d59bdaa48af06d02d9041316dc3cb6",
+                "responses": {
+                    "200": {
+                        "description": "Lista de foros"
+                    }
+                }
+            }
+        },
+        "/api/forums/{forum}": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Foro y sus threads",
+                "description": "Muestra los threads de un foro concreto, paginados y ordenados por parámetro (hot, new, top).",
+                "operationId": "9e76ecaff092f4714088760bb399e134",
+                "parameters": [
+                    {
+                        "name": "forum",
+                        "in": "path",
+                        "description": "ID del foro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Tipo de ordenamiento (hot, new, top)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "hot"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Threads del foro"
+                    }
+                }
+            }
+        },
+        "/api/saved": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Lista de hilos guardados",
+                "description": "Devuelve los hilos que el usuario ha guardado.",
+                "operationId": "d282c4bd41591796d22beb72071f6101",
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de hilos guardados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/saved/{thread}": {
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Guardar hilo",
+                "description": "Añade un hilo a la lista de guardados del usuario.",
+                "operationId": "b54b9de5fe4c767a3ce4c43343e75cc4",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo guardado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Eliminar hilo guardado",
+                "description": "Saca un hilo de la lista de guardados del usuario.",
+                "operationId": "43e75768a553b2a22ef934bd0b0eb538",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Hilo eliminado exitosamente de guardados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/threads": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Lista global de threads",
+                "description": "Obtiene los últimos hilos del foro ordenados por popularidad, fecha, etc.",
+                "operationId": "3785412e3613d5d46cdfed8d1d9e3935",
+                "parameters": [
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Orden (hot, top, new, commented)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "hot"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de hilos"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Crear hilo de foro",
+                "description": "Crea un nuevo hilo (thread) vinculado al usuario activo.",
+                "operationId": "8ca3cb77a17ec654764eda1282753c9b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "forum_id": {
+                                        "type": "integer"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "body": {
+                                        "type": "string"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Hilo creado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/forum/search": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Buscar en foros",
+                "description": "Busca dentro de los hilos de los foros por título o contenido.",
+                "operationId": "d9eb7a09e4d216338df2a9bdef3e0d48",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Término de búsqueda (min 3 caracteres)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados de búsqueda"
+                    }
+                }
+            }
+        },
+        "/api/threads/{thread}": {
+            "get": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Ver hilo del foro",
+                "description": "Obtiene los detalles del hilo y carga sus comentarios raíz.",
+                "operationId": "084d35a65f16b8b77ce34642c98c4a42",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thread cargado (incrementa views)"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Editar hilo",
+                "description": "Edita el cuerpo o el título de un hilo (solo para el autor).",
+                "operationId": "803e228a1ebd229a9b8ca4234ee30313",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "body": {
+                                        "type": "string"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Hilo editado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Eliminar hilo",
+                "description": "Borra el hilo (soft-delete) si eres el autor.",
+                "operationId": "4786e4059ea81e6d2cb3b7f7fc2592e9",
+                "parameters": [
+                    {
+                        "name": "thread",
+                        "in": "path",
+                        "description": "ID del hilo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mensaje correcto"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/votes": {
+            "post": {
+                "tags": [
+                    "Forums"
+                ],
+                "summary": "Votar hilo o comentario",
+                "description": "Emite un voto (upvote o downvote) para un comentario o hilo.",
+                "operationId": "25087a96b6c39fb5693f73fbd5989266",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "votable_id": {
+                                        "type": "integer"
+                                    },
+                                    "votable_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "thread",
+                                            "comment"
+                                        ]
+                                    },
+                                    "value": {
+                                        "type": "integer",
+                                        "enum": [
+                                            1,
+                                            -1
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Voto registrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/decks": {
+            "get": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Mis mazos",
+                "description": "Lista los mazos del usuario autenticado.",
+                "operationId": "d05f15850eef79716d6ed2e4322131ab",
+                "responses": {
+                    "200": {
+                        "description": "Mazos listados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Crear mazo",
+                "description": "Crea un mazo nuevo.",
+                "operationId": "f46b2d6188181c424a9b1d0b4fcd3c34",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "is_public": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mazo creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/decks/{id}": {
+            "get": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Ver mazo",
+                "description": "Obtiene los detalles de un mazo y las cartas contenidas.",
+                "operationId": "6ba360ec241a29ca842800aca0fbd262",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del mazo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mazo cargado exitosamente"
+                    },
+                    "403": {
+                        "description": "Mazo privado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/decks/{deckId}/cards": {
+            "post": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Añadir carta al mazo",
+                "description": "Añade una cantidad de una carta a un mazo específico.",
+                "operationId": "000bf7258b8396d5486390861763d1d7",
+                "parameters": [
+                    {
+                        "name": "deckId",
+                        "in": "path",
+                        "description": "ID del mazo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "card_id": {
+                                        "type": "integer"
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Carta añadida exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/decks/{deckId}/cards/{cardId}": {
+            "delete": {
+                "tags": [
+                    "Decks"
+                ],
+                "summary": "Quitar carta del mazo",
+                "description": "Elimina una carta de un mazo específico.",
+                "operationId": "48d740fc7f25d9500d30cc488cdc7853",
+                "parameters": [
+                    {
+                        "name": "deckId",
+                        "in": "path",
+                        "description": "ID del mazo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "cardId",
+                        "in": "path",
+                        "description": "ID de la carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Carta eliminada exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/inventory": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Ver mi inventario",
+                "description": "Muestra el inventario del usuario autenticado incluyendo cartas y stats.",
+                "operationId": "7225cbe4efff1219a2acb0fe9f652492",
+                "responses": {
+                    "200": {
+                        "description": "Inventario cargado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/inventory/{user}": {
+            "get": {
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Ver inventario público de usuario",
+                "description": "Muestra el inventario público de otro usuario si tiene preferencias habilitadas.",
+                "operationId": "d405da691b869845b1371a9dcc5bba0b",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inventario cargado exitosamente"
+                    },
+                    "403": {
+                        "description": "El inventario de este planeswalker es privado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market": {
+            "get": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Ver mercado",
+                "description": "Lista las cartas puestas a la venta en el marketplace (stub).",
+                "operationId": "a40bb4545910738dd36a96f494b2ed10",
+                "responses": {
+                    "200": {
+                        "description": "Listado del mercado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/cards": {
+            "post": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Publicar carta en mercado",
+                "description": "Pone a la venta una carta del inventario del usuario (stub).",
+                "operationId": "76fca942405d14dc9b6cd3bb10cbb6f9",
+                "responses": {
+                    "201": {
+                        "description": "Carta publicada en el mercado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/cards/{id}/buy": {
+            "post": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Comprar carta",
+                "description": "Compra una carta que está listada en el mercado (stub).",
+                "operationId": "0bbe0ced18befaefdd167ad34c12f8c4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del listado/carta",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Compra exitosa"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/transactions": {
+            "get": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Historial del mercado",
+                "description": "Devuelve el historial de transacciones en el marketplace (stub).",
+                "operationId": "28dfd213c42ee6d224f7a82b1d37ba09",
+                "responses": {
+                    "200": {
+                        "description": "Historial obtenido exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conversations/{conversation}/messages": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Obtener mensajes",
+                "description": "Obtiene los mensajes de una conversación.",
+                "operationId": "ae78cd81a7cd6ee3b41d64b92130ff0b",
+                "parameters": [
+                    {
+                        "name": "conversation",
+                        "in": "path",
+                        "description": "UUID de la conversación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de mensajes paginada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Enviar mensaje",
+                "description": "Envía un mensaje a una conversación.",
+                "operationId": "ac28067bdd62b48bb05392210fa7fa2a",
+                "parameters": [
+                    {
+                        "name": "conversation",
+                        "in": "path",
+                        "description": "UUID de la conversación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "default": "text"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Mensaje creado y enviado (Broadcast)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/messages/{message}": {
+            "delete": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Eliminar mensaje",
+                "description": "Elimina un mensaje enviado por el usuario.",
+                "operationId": "d7d86b5236d9d8ecd29399f1984ac4fd",
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "description": "ID del mensaje",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Mensaje eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Editar mensaje",
+                "description": "Edita el contenido de un mensaje existente enviado por el usuario.",
+                "operationId": "31e9fd03c237c0283b4fbee5def879ec",
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "description": "ID del mensaje",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mensaje modificado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/search/all": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Búsqueda global",
+                "description": "Búsqueda unificada en toda la tienda y foro (stub).",
+                "operationId": "df647696551cecae60b10acb71f8c2a1",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Término de búsqueda",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultados de búsqueda"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/cart": {
+            "get": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Ver el carrito del usuario",
+                "description": "Devuelve los items del carrito actual calculando los subtotales.",
+                "operationId": "696ee701284616e88b7f3ca704ec235d",
+                "responses": {
+                    "200": {
+                        "description": "Carrito obtenido con éxito"
+                    },
+                    "401": {
+                        "description": "No autorizado (Falta Token JWT)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Añadir producto al carrito",
+                "description": "Añade un Booster Pack o una Carta Suelta al carrito. Si el producto ya existe, suma la cantidad.",
+                "operationId": "d8147034f361939fffc3ecb770d3d7ec",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "booster_pack_id": {
+                                        "type": "integer",
+                                        "example": 5,
+                                        "nullable": true
+                                    },
+                                    "card_id": {
+                                        "type": "integer",
+                                        "example": null,
+                                        "nullable": true
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Producto añadido al carrito con éxito"
+                    },
+                    "400": {
+                        "description": "Producto no especificado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/shop": {
+            "get": {
+                "tags": [
+                    "Shop"
+                ],
+                "summary": "Catálogo de tienda",
+                "description": "Obtiene el catálogo de tienda, soportando filtrado por cartas sueltas o sobres.",
+                "operationId": "04cd14e0e65b5a84dacdba9f59a83e9d",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Búsqueda por nombre",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Tipo de pack o carta",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Ordenamiento",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Categoría principal ('packs' o 'cards')",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "set",
+                        "in": "query",
+                        "description": "Filtrar por set",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Catálogo listado con paginación y filtros"
+                    }
+                }
+            }
+        },
+        "/api/checkout": {
+            "post": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Checkout falso (Demo)",
+                "description": "Procesa el carrito del usuario generando pago automático simulado para propósitos de demostración.",
+                "operationId": "bceae9dbbb9f593d1657920319fde87b",
+                "responses": {
+                    "200": {
+                        "description": "Pedido completado con éxito (Demo)"
+                    },
+                    "400": {
+                        "description": "El carrito está vacio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/wallet/deposit": {
+            "post": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Depósito de dinero",
+                "description": "Realiza un depósito de fondos a la cuenta del usuario.",
+                "operationId": "957431a227b45c856fcf18923a5f184b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount": {
+                                        "description": "Cantidad (mínimo 5)",
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Depósito realizado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/{id}/invoice": {
+            "get": {
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Descargar Factura PDF",
+                "description": "Genera y descarga en formato PDF la factura de una compra pasada.",
+                "operationId": "6b98cac3dd6a5db21ae519d0db2f90aa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pedido u orden",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Archivo PDF generado (application/pdf)"
+                    },
+                    "404": {
+                        "description": "Orden no encontrada o no autorizada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pack/{code}": {
+            "get": {
+                "tags": [
+                    "Shop"
+                ],
+                "summary": "Detalle de Pack por código/ID",
+                "description": "Obtiene los detalles de un pack, relacionados y cartas posibles (chase cards).",
+                "operationId": "acb9a7f280fd20caf30d953660f3131d",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Código o ID del pack",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle completo del pack y contenido posible"
+                    },
+                    "404": {
+                        "description": "Pack no encontrado"
+                    }
+                }
+            }
+        },
+        "/api/tournaments": {
+            "get": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Lista de torneos",
+                "description": "Lista de torneos paginados y filtrados.",
+                "operationId": "ae3e373408530861bb06349b9c7c56e4",
+                "parameters": [
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "Filtrar por formato",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado (upcoming, in_progress, completed)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de torneos"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Crear torneo",
+                "description": "Crea un torneo (solo admin o con permisos).",
+                "operationId": "7f257a74fea696ba2a7ab2f35931d405",
+                "responses": {
+                    "201": {
+                        "description": "Torneo creado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}": {
+            "get": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Detalles del torneo",
+                "description": "Muestra los detalles de un torneo y sus participantes confirmados.",
+                "operationId": "c994724ae1cdb6a77e706ae1c90da355",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del torneo"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Cancelar/Eliminar torneo",
+                "description": "Borra/cancela un torneo y sus inscripciones.",
+                "operationId": "82bd822920c1523e23406f2d3592b5f7",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Torneo cancelado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Editar torneo",
+                "description": "Edita datos de un torneo.",
+                "operationId": "7a45612ab4513bfec7d162cb664f8b50",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Torneo editado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}/register": {
+            "post": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Inscribirse a torneo",
+                "description": "Inscribe al usuario en el torneo.",
+                "operationId": "fe7e5134eb3c9a89cc3b5bd1e8d5fa2a",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inscrito exitosamente"
+                    },
+                    "422": {
+                        "description": "Torneo completo, ya inscrito o no admite inscripciones"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Cancelar inscripción",
+                "description": "Borra la inscripción del usuario al torneo.",
+                "operationId": "34482bb51d7e1b881834fe544579843e",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inscripción cancelada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}/registrations": {
+            "get": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Lista de inscritos",
+                "description": "Devuelve todos los inscritos (solo creador o admin).",
+                "operationId": "0fd3ee673019c0f7895480d014c83a5a",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de inscripciones"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tournaments/{tournament}/registrations/{registration}/confirm": {
+            "patch": {
+                "tags": [
+                    "Tournaments"
+                ],
+                "summary": "Confirmar inscripción",
+                "description": "Confirma un jugador en estado pendiente (solo creador/admin).",
+                "operationId": "0d721fcb9b3f1914af31e2fb94e1f048",
+                "parameters": [
+                    {
+                        "name": "tournament",
+                        "in": "path",
+                        "description": "ID del torneo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "registration",
+                        "in": "path",
+                        "description": "ID de la inscripción",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inscripción confirmada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trades": {
+            "get": {
+                "tags": [
+                    "Trades"
+                ],
+                "summary": "Lista global de trades",
+                "description": "Obtener todos los trades del usuario autenticado a nivel general.",
+                "operationId": "6a4e669532805e47ca432ddf7d1f9974",
+                "responses": {
+                    "200": {
+                        "description": "Lista de trades globales"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trades/test": {
+            "post": {
+                "tags": [
+                    "Trades"
+                ],
+                "summary": "Trade de prueba",
+                "description": "Crea un trade de prueba con el primer usuario disponible (solo desarrollo).",
+                "operationId": "6d513b4b4e38ec596b4395aa6ada72fd",
+                "responses": {
+                    "201": {
+                        "description": "Trade de prueba creado"
+                    },
+                    "404": {
+                        "description": "No hay otros usuarios disponibles para el test"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Iniciar sesión de usuario",
+                "description": "Autentica al usuario con email y contraseña, devoliendo un token JWT para peticiones protegidas.",
+                "operationId": "f8f9e9dde19a816a36ac1ae9d704d6eb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password",
+                                    "recaptcha_token"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "usuario@ejemplo.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreta123"
+                                    },
+                                    "recaptcha_token": {
+                                        "type": "string",
+                                        "example": "token_generado_por_google"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login exitoso, devuelve JWT",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sesión iniciada correctamente."
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGci..."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Saul"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "usuario@ejemplo.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (contraseña incorrecta, falta captcha, etc)"
+                    }
+                }
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Registrar un usuario",
+                "description": "Crea un usuario nuevo, le asigna el rol 'user' y lo autentica automáticamente devolviendo el JWT.",
+                "operationId": "dcbd07d28fe60878864011b9fd551690",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "username",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "recaptcha_token"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Nuevo Usuario"
+                                    },
+                                    "username": {
+                                        "type": "string",
+                                        "example": "nuevoUser99"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "nuevo@ejemplo.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreta123",
+                                        "minLength": 8
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreta123"
+                                    },
+                                    "recaptcha_token": {
+                                        "type": "string",
+                                        "example": "token_generado_por_google"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario registrado con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuario registrado e inicio de sesión exitoso."
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJ..."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Nuevo Usuario"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "nuevoUser99"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "nuevo@ejemplo.com"
+                                                },
+                                                "wallet_balance": {
+                                                    "type": "integer",
+                                                    "example": 0
+                                                },
+                                                "is_admin": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (email en uso, contraseñas no coinciden, etc.)"
+                    }
+                }
+            }
+        },
+        "/api/account": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Ver cuenta del usuario",
+                "description": "Obtiene información de la cuenta base del usuario autenticado.",
+                "operationId": "ab0161110b4a7fa032bd9992dc08b203",
+                "responses": {
+                    "200": {
+                        "description": "Datos de usuario obtenidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Eliminar cuenta",
+                "description": "Elimina permanentemente la cuenta de usuario.",
+                "operationId": "97ef6ca0feb49737ee28e9890a81215b",
+                "responses": {
+                    "200": {
+                        "description": "Cuenta eliminada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/password": {
+            "patch": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Cambiar contraseña",
+                "description": "Actualiza la contraseña del usuario autenticado indicando la actual.",
+                "operationId": "f4ebc872572fb01f9aee817e8b29e7b9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Contraseña cambiada exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/decks": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Mazos del usuario",
+                "description": "Carga la relación de mazos creados por el usuario.",
+                "operationId": "bd6da882d732858dceff03f4676f9bbc",
+                "responses": {
+                    "200": {
+                        "description": "Listado de mazos (puede devolver vista o json)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/favorites": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Cartas favoritas",
+                "description": "Muestra cartas marcadas como preferidas por el usuario.",
+                "operationId": "cb7a91dcd181db286d4966ce003df03d",
+                "responses": {
+                    "200": {
+                        "description": "Listado de favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/balance": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Consultar saldo",
+                "description": "Devuelve el saldo actual de la billetera en la tienda.",
+                "operationId": "70580cdd04ac9c03741a14fd28fdfbfd",
+                "responses": {
+                    "200": {
+                        "description": "Saldo obtenido con éxito"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/account/transactions": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Historial de transacciones de billetera",
+                "description": "Muestra los movimientos (recargas y deducciones) de saldo.",
+                "operationId": "db3f14c721fb4db8efb121d6a2570db8",
+                "responses": {
+                    "200": {
+                        "description": "Lista de transacciones"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Ver perfil propio",
+                "description": "Obtiene el perfil del usuario autenticado.",
+                "operationId": "c1ab46a11a832664e4f9dea5246a8077",
+                "responses": {
+                    "200": {
+                        "description": "Datos del perfil"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Crear perfil",
+                "description": "Crea el perfil para el usuario autenticado.",
+                "operationId": "4632edfbc81bab08c03cfb69691f32f1",
+                "responses": {
+                    "201": {
+                        "description": "Perfil creado"
+                    },
+                    "400": {
+                        "description": "El usuario ya tiene un perfil"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Eliminar perfil",
+                "description": "Elimina el perfil del usuario autenticado.",
+                "operationId": "8cb7b49578f2f1b7e9f6a08637c21389",
+                "responses": {
+                    "200": {
+                        "description": "Perfil eliminado correctamente"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Actualizar perfil",
+                "description": "Actualiza el perfil del usuario autenticado.",
+                "operationId": "c7b4de59bda57684f3125e920d95156e",
+                "responses": {
+                    "200": {
+                        "description": "Perfil actualizado correctamente"
+                    },
+                    "404": {
+                        "description": "Perfil no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/profile/{userId}": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Ver perfil público de usuario",
+                "description": "Obtiene el perfil público de un usuario especificado por ID.",
+                "operationId": "82b58d9f54c97e93a4217a90e36638fb",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Perfil del usuario devuelto"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                }
+            }
+        },
+        "/api/profile/public-info": {
+            "patch": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Actualizar información pública",
+                "description": "Actualiza información pública (stub).",
+                "operationId": "a6ef78923fa739278aff6566cf4ac5f3",
+                "responses": {
+                    "200": {
+                        "description": "Información actualizada (stub)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{userId}/reputation": {
+            "patch": {
+                "tags": [
+                    "Admin",
+                    "Profile"
+                ],
+                "summary": "Actualizar reputación (Admin)",
+                "description": "Actualiza la puntuación de reputación de un usuario.",
+                "operationId": "044ae9ba8973fc969208cf99002c5198",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reputación actualizada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Admin",
+            "description": "Admin"
+        },
+        {
+            "name": "Moderation",
+            "description": "Moderation"
+        },
+        {
+            "name": "Checkout",
+            "description": "Checkout"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard"
+        },
+        {
+            "name": "Sets",
+            "description": "Sets"
+        },
+        {
+            "name": "Wallet",
+            "description": "Wallet"
+        },
+        {
+            "name": "Cards",
+            "description": "Cards"
+        },
+        {
+            "name": "Packs",
+            "description": "Packs"
+        },
+        {
+            "name": "Conversations",
+            "description": "Conversations"
+        },
+        {
+            "name": "Exchanges",
+            "description": "Exchanges"
+        },
+        {
+            "name": "Trade Sessions",
+            "description": "Trade Sessions"
+        },
+        {
+            "name": "Forums",
+            "description": "Forums"
+        },
+        {
+            "name": "Decks",
+            "description": "Decks"
+        },
+        {
+            "name": "Inventory",
+            "description": "Inventory"
+        },
+        {
+            "name": "Market",
+            "description": "Market"
+        },
+        {
+            "name": "Messages",
+            "description": "Messages"
+        },
+        {
+            "name": "Search",
+            "description": "Search"
+        },
+        {
+            "name": "Cart",
+            "description": "Cart"
+        },
+        {
+            "name": "Shop",
+            "description": "Shop"
+        },
+        {
+            "name": "Tournaments",
+            "description": "Tournaments"
+        },
+        {
+            "name": "Trades",
+            "description": "Trades"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Account",
+            "description": "Account"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile"
+        }
+    ]
+}

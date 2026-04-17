@@ -6,10 +6,10 @@ interface TiltWrapperProps {
     intensity?: number;
 }
 
-export default function TiltWrapper({ 
-    children, 
+export default function TiltWrapper({
+    children,
     className = '',
-    intensity = 10 
+    intensity = 10,
 }: TiltWrapperProps) {
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
@@ -20,23 +20,23 @@ export default function TiltWrapper({
         const rect = containerRef.current.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        
+
         const mouseX = e.clientX;
         const mouseY = e.clientY;
-        
+
         // Calculate distance from center
         const deltaX = mouseX - centerX;
         const deltaY = mouseY - centerY;
-        
+
         // Apply smooth rotation formula with intensity control
         const rotateX = -(deltaY / intensity);
         const rotateY = deltaX / intensity;
-        
+
         // Limit max rotation for better UX
         const maxRotation = 15;
         const clampedRotateX = Math.max(-maxRotation, Math.min(maxRotation, rotateX));
         const clampedRotateY = Math.max(-maxRotation, Math.min(maxRotation, rotateY));
-        
+
         setTilt({ x: clampedRotateX, y: clampedRotateY });
     };
 

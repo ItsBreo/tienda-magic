@@ -15,6 +15,10 @@ interface User {
     email: string;
     wallet_balance?: number;
     is_admin?: boolean;
+    role_name?: string;
+    permissions?: string[];
+    two_factor_enabled?: boolean;
+    avatar_url?: string;
 }
 
 interface LoginCredentials {
@@ -31,31 +35,34 @@ interface AuthContextType {
     login: (_credentials: LoginCredentials) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
+    refreshUser: () => Promise<void>;
+    updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    // Empezamos en true SOLO si ya tenemos token guardado, evitando el flash innecesario
     const [isLoading, setIsLoading] = useState(() => apiService.isAuthenticated());
 
     const isAuthenticated = !!user;
 
-    // Al montar: si hay token en localStorage, verificamos que siga siendo válido
     useEffect(() => {
-        if (!apiService.isAuthenticated()) {
-            // Sin token → no hay nada que verificar, cargamos directo
-            setIsLoading(false);
-            return;
-        }
-
         const initializeAuth = async () => {
+            // Si no hay token, no hacemos nada
+            if (!apiService.isAuthenticated()) {
+                setIsLoading(false);
+                return;
+            }
+
             try {
+                // Llamamos al endpoint para verificar y obtener datos del usuario
                 const userData = await apiService.checkAuth();
                 setUser(userData);
-            } catch {
-                // Token inválido o expirado → el interceptor ya limpió el token
+            } catch (error) {
+                console.error('Error al verificar sesión:', error);
+                // Si falla la verificación, limpiamos el token
+                apiService.removeToken();
                 setUser(null);
             } finally {
                 setIsLoading(false);
@@ -77,11 +84,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const login = async (credentials: LoginCredentials) => {
-        setIsLoading(true);
         try {
-            // apiService.login ya guarda el token en localStorage internamente
             const authResponse = await apiService.login(credentials);
+
+            // Manejo seguro de 2FA sin redirección hardcodeada
+            if (authResponse.two_factor_required) {
+                // Lanzar error específico para manejo en UI
+                throw new Error('TWO_FACTOR_REQUIRED');
+            }
+
             setUser(authResponse.data);
+        } catch (error: any) {
+            if (error.message === 'TWO_FACTOR_REQUIRED') {
+                throw error; // Propagar para manejo en componente
+            }
+            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -89,9 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = async () => {
         try {
-            await apiService.logout(); // también elimina el token del localStorage
+            await apiService.logout();
         } catch {
-            // Si falla la petición, limpiamos igualmente en cliente
             apiService.removeToken();
         } finally {
             setUser(null);
@@ -99,8 +115,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const updateUser = (userData: Partial<User>) => {
+        if (user) {
+            setUser({ ...user, ...userData });
+        }
+    };
+
     const contextValue = useMemo(
-        () => ({ user, isLoading, isAuthenticated, login, logout, checkAuth }),
+        () => ({
+ user, isLoading, isAuthenticated, login, logout, checkAuth, refreshUser: checkAuth, updateUser,
+}),
         [user, isLoading, isAuthenticated],
     );
 

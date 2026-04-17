@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { type BreadcrumbItem } from '@/types';
 import { Navbar } from '../components/Navbar'; // Ajusta estas rutas
 import { Footer } from '../components/Footer'; // según donde los guardes
-import { Breadcrumbs } from '../components/Breadcrumps';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 
 interface TiendaMagicLayoutProps {
   children: ReactNode;

@@ -1,112 +1,201 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
- Package, LogOut, Settings, Shield,
+  LogOut, Shield, User, ChevronDown, ShoppingCart, Wallet,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { GiLotus } from 'react-icons/gi';
 import { useAuth } from '@/contexts/AuthContext';
+import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import { cn } from '@/lib/utils';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [comunidadOpen, setComunidadOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const aboutRef = useRef<HTMLDivElement>(null);
+  const comunidadRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const isAdmin = user?.is_admin || user?.role_name?.toLowerCase().includes('admin');
 
   const handleLogout = async () => {
     try {
       await logout();
       navigate('/login');
-    } catch (error) {
-      // Error silenciado en logout
+    } catch {
+      // silenced
     }
   };
 
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (aboutRef.current && !aboutRef.current.contains(e.target as Node)) {
+        setAboutOpen(false);
+      }
+      if (comunidadRef.current && !comunidadRef.current.contains(e.target as Node)) {
+        setComunidadOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const navLink = (to: string, label: string) => {
+    const active = location.pathname === to || location.pathname.startsWith(`${to}/`);
+    return (
+      <Link
+        to={to}
+        className={`text-base font-bold transition-colors duration-200 ${
+          active
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        {label}
+      </Link>
+    );
+  };
+
+  // Icon Button Style (Matches AnimatedThemeToggler exactly: h-8 w-8)
+  const iconButtonClass = 'flex h-10 w-10 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors';
+
   return (
-    <header className="bg-zinc-950 border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
+    <header className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50 w-full transition-all duration-300">
+      <div className="w-full px-6 lg:px-10 py-4 md:py-5">
+        <div className="flex items-center justify-between gap-8">
 
-          {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="p-2 bg-zinc-800 border border-zinc-700 rounded-sm">
-              <Package className="h-5 w-5 text-amber-500" />
-            </div>
-            <h1 className="text-xl font-serif font-bold text-zinc-100 tracking-tight">Tienda Magic</h1>
-          </Link>
-
-          {/* Navegación Principal */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/dashboard" className="text-zinc-400 hover:text-zinc-100 transition-colors duration-200 font-medium">
-              Inicio
-            </Link>
-            <Link to="/shop" className="text-zinc-400 hover:text-zinc-100 transition-colors duration-200 font-medium">
-              Catálogo
-            </Link>
-            <Link to="/cart" className="text-zinc-400 hover:text-zinc-100 transition-colors duration-200 font-medium">
-              Carrito
+          {/* ── LEFT SIDE ── */}
+          <div className="flex items-center gap-12">
+            <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0 group">
+              <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl group-hover:bg-primary/20 transition-colors">
+                <GiLotus className="h-6 w-6 text-primary" />
+              </div>
+              <span className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase">BLACK LOTUS</span>
             </Link>
 
-            {/* 🌟 NUEVO ENLACE: Inventario (Solo visible si hay sesión iniciada) */}
-            {user && (
-              <Link to="/inventory" className="text-zinc-400 hover:text-amber-500 transition-colors duration-200 font-medium">
-                Mi Colección
-              </Link>
-            )}
+            <nav className="hidden lg:flex items-center gap-10">
+              {navLink('/dashboard', 'Inicio')}
+              {navLink('/shop', 'Catálogo')}
+              {user && navLink('/inventory', 'Inventario')}
 
-            {user?.is_admin && (
-              <Link
-                to="/admin"
-                className="flex items-center gap-2 text-amber-500 hover:text-amber-400 transition-colors duration-200 font-bold bg-amber-500/10 px-3 py-1.5 rounded-sm border border-amber-500/30"
-              >
-                <Shield className="h-4 w-4" />
-                Bóveda
-              </Link>
-            )}
-          </nav>
+              <div className="relative" ref={aboutRef}>
+                <button
+                  onClick={() => { setAboutOpen((o) => !o); setComunidadOpen(false); setUserMenuOpen(false); }}
+                  className={`flex items-center gap-2 text-base font-bold transition-colors ${aboutOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Nosotros
+{' '}
+<ChevronDown className={cn('h-4 w-4 transition-transform', aboutOpen && 'rotate-180')} />
+                </button>
+                {aboutOpen && (
+                  <div className="absolute left-0 top-full mt-4 w-56 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <Link to="/rules" onClick={() => setAboutOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Reglas</Link>
+                    <Link to="/contact" onClick={() => setAboutOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Contacto</Link>
+                  </div>
+                )}
+              </div>
 
-          {/* Menú de Usuario */}
-          <div className="flex items-center gap-4">
+              <div className="relative" ref={comunidadRef}>
+                <button
+                  onClick={() => { setComunidadOpen((o) => !o); setAboutOpen(false); setUserMenuOpen(false); }}
+                  className={`flex items-center gap-2 text-base font-bold transition-colors ${comunidadOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Comunidad
+{' '}
+<ChevronDown className={cn('h-4 w-4 transition-transform', comunidadOpen && 'rotate-180')} />
+                </button>
+                {comunidadOpen && (
+                  <div className="absolute left-0 top-full mt-4 w-56 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <Link to="/market" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Compra-Venta</Link>
+                    <Link to="/exchanges" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Intercambios</Link>
+                    <Link to="/forum" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Foro</Link>
+                  </div>
+                )}
+              </div>
+            </nav>
+
+          </div>
+
+          {/* ── RIGHT SIDE ── */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <AnimatedThemeToggler />
+
             {user ? (
               <div className="flex items-center gap-3">
-                <span className="text-sm text-zinc-400 hidden sm:inline">
-                  {user.name}
-                </span>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-sm border border-zinc-800">
-                  <span className="text-sm font-medium text-amber-500">
-                    {Number(user.wallet_balance ?? 0).toFixed(2)}€
-                  </span>
+                {/* Carrito (Icon Only Square) */}
+                <Link to="/cart" className={iconButtonClass} title="Ver Carrito">
+                  <ShoppingCart className="h-4 w-4" />
+                </Link>
+
+                {/* Wallet (Icon Only Square) */}
+                <Link to="/wallet" className={iconButtonClass} title="Mi Wallet">
+                  <Wallet className="h-4 w-4" />
+                </Link>
+
+                {/* Saldo y Usuario */}
+                <div className="flex items-center gap-4 ml-2">
+                    {/* Saldo a la IZQ del nombre */}
+                    <div className="flex flex-col items-end mr-1">
+                        <span className="text-[11px] font-black text-primary uppercase tracking-widest leading-none mb-0.5">Cartera</span>
+                        <span className="text-sm md:text-base font-black text-foreground">
+€
+{user.wallet_balance?.toFixed(2) || '0.00'}
+</span>
+                    </div>
+
+                    <div className="relative" ref={userMenuRef}>
+                        <button
+                            onClick={() => { setUserMenuOpen((o) => !o); setAboutOpen(false); setComunidadOpen(false); }}
+                            className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
+                        >
+                            <UserAvatar
+                                src={user.avatar_url}
+                                name={user.username || user.name}
+                                className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30"
+                                fallbackClassName="text-[11px] text-primary"
+                            />
+                            <span className="text-sm font-bold text-foreground truncate max-w-[100px] hidden md:block">{user.username || user.name}</span>
+                            <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', userMenuOpen && 'rotate-180')} />
+                        </button>
+
+                        {userMenuOpen && (
+                            <div className="absolute right-0 top-full mt-4 w-60 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                                <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors">
+<User className="h-5 w-5 text-primary" />
+{' '}
+Mi Perfil
+</Link>
+                                {isAdmin && (
+<Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors">
+<Shield className="h-5 w-5 text-primary" />
+{' '}
+Admin Panel
+</Link>
+)}
+                                <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-destructive hover:bg-destructive/10 w-full text-left">
+<LogOut className="h-5 w-5" />
+{' '}
+Cerrar Sesión
+</button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-sm h-9 w-9"
-                  onClick={() => navigate('/profile')}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-zinc-400 hover:text-red-400 hover:bg-red-950/30 rounded-sm h-9 w-9"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-sm"
-                  onClick={() => navigate('/login')}
-                >
-                  Identificarse
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 border border-amber-500/30 rounded-sm"
-                  onClick={() => navigate('/register')}
-                >
-                  Registrarse
-                </Button>
+                <button onClick={() => navigate('/login')} className="text-sm font-black uppercase text-muted-foreground hover:text-foreground px-5 py-3">Entrar</button>
+                <button onClick={() => navigate('/register')} className="text-xs font-black uppercase bg-primary text-primary-foreground px-6 py-3.5 rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all">Registrarse</button>
               </div>
             )}
           </div>

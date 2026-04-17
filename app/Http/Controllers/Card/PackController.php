@@ -6,12 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\BoosterPack;
 use App\Models\Card;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class PackController extends Controller
 {
     /**
      * Obtener todos los packs disponibles
      */
+    #[OA\Get(
+        path: "/api/packs",
+        summary: "Listar Packs",
+        description: "Obtener todos los sobres/packs disponibles en la tienda.",
+        tags: ["Packs"]
+    )]
+    #[OA\Response(response: 200, description: "Lista de packs")]
     public function index()
     {
         try {
@@ -23,6 +31,7 @@ class PackController extends Controller
                         'id' => $pack->id,
                         'name' => $pack->name,
                         'price' => (float) $pack->price,
+                        'stock' => $pack->stock ?? 0,
                         'card_set_id' => $pack->card_set_id,
                         'type' => $pack->type,
                         'image_url' => $pack->cover_image ?? $pack->image_uri ?? '/placeholder-pack.png',
@@ -52,8 +61,55 @@ class PackController extends Controller
     }
 
     /**
+     * Obtener todas las cartas disponibles para la tienda
+     */
+    #[OA\Get(
+        path: "/api/cards/all",
+        summary: "Obtener todas las cartas (PackController)",
+        description: "Obtener cartas disponibles orientadas al mercado.",
+        tags: ["Cards"]
+    )]
+    #[OA\Response(response: 200, description: "Lista de cartas devueltas")]
+    public function getCards()
+    {
+        try {
+            $cards = \App\Models\Card::with('cardSet')
+                ->where('market_avg_price', '>', 0)
+                ->orderBy('id', 'desc')
+                ->paginate(40)
+                ->through(function ($card) {
+                    return [
+                        'id' => $card->id,
+                        'name' => $card->name,
+                        'price' => (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.00),
+                        'stock' => $card->stock ?? 0,
+                        'image_url' => $card->image_uri ?? '/placeholder-card.png',
+                        'rarity' => $card->rarity,
+                        'set_name' => $card->cardSet->name ?? 'Unknown Set',
+                        'type_line' => $card->data['type_line'] ?? null,
+                    ];
+                });
+
+            return response()->json($cards);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener cartas: ' . $e->getMessage());
+            return response()->json(['message' => 'Error al cargar las cartas'], 500);
+        }
+    }
+
+    /**
      * Obtener cartas de un set específico
      */
+    #[OA\Get(
+        path: "/api/cards/set/{setCode}",
+        summary: "Cartas de un set",
+        description: "Obtener todas las cartas que pertenecen a un set específico (hasta 50).",
+        tags: ["Cards"]
+    )]
+    #[OA\Parameter(name: "setCode", in: "path", required: true, description: "Código del set", schema: new OA\Schema(type: "string"))]
+    #[OA\Response(response: 200, description: "Lista de cartas del set")]
+    #[OA\Response(response: 404, description: "Set no encontrado")]
     public function getCardsBySet($setCode)
     {
         try {
@@ -64,8 +120,8 @@ class PackController extends Controller
                 return response()->json(['error' => 'Set not found'], 404);
             }
 
-            $cards = Card::where('card_set_id', $cardSet->id)
-                ->limit(50) // Limitar para no sobrecargar
+            $cards = Card::where('set_code', $cardSet->code)
+                ->limit(50)
                 ->get()
                 ->map(function ($card) {
                     return [
@@ -76,6 +132,7 @@ class PackController extends Controller
                         'mana_cost' => $card->data['mana_cost'] ?? null,
                         'type_line' => $card->data['type_line'] ?? null,
                         'oracle_text' => $card->data['oracle_text'] ?? null,
+                        'stock' => $card->stock ?? 0,
                     ];
                 });
 
@@ -96,6 +153,15 @@ class PackController extends Controller
     /**
      * Obtener pack individual por ID
      */
+    #[OA\Get(
+        path: "/api/packs/{id}",
+        summary: "Ver Pack por ID",
+        description: "Devuelve los detalles de un pack específico por su ID.",
+        tags: ["Packs"]
+    )]
+    #[OA\Parameter(name: "id", in: "path", required: true, description: "ID del pack", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Detalles del pack devueltos")]
+    #[OA\Response(response: 404, description: "Pack no encontrado")]
     public function show($id)
     {
         try {
@@ -108,6 +174,7 @@ class PackController extends Controller
                     'id' => $pack->id,
                     'name' => $pack->name,
                     'price' => (float) $pack->price,
+                    'stock' => $pack->stock ?? 0,
                     'card_set_id' => $pack->card_set_id,
                     'type' => $pack->type,
                     'cover_image' => $pack->cover_image,

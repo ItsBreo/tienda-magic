@@ -1,107 +1,108 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-    Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield
+    Users, BookOpen, Layers, LogOut, LayoutDashboard, Shield, Package,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserAvatar } from '@/components/common/UserAvatar';
 
-/**
- * AdminLayout - Layout principal del panel de administración
- *
- * Proporciona:
- * - Sidebar con navegación entre secciones (Dashboard, Usuarios, Cartas, Sets)
- * - Información del usuario autenticado
- * - Botón de logout
- * - Área principal donde se renderiza el contenido según la ruta
- */
+const NAV_HEIGHT = 80; // Altura aproximada del Navbar principal (py-5 + contenido)
+
 export default function AdminLayout() {
-    // Obtener la función de logout y datos del usuario autenticado
     const { logout, user } = useAuth();
-
-    // Hook para obtener la ubicación actual del navegador
     const location = useLocation();
 
-    // Elementos de navegación del panel admin con íconos
+    // Bloquear el scroll del body mientras estamos en admin.
+    // El scroll pasa sólo dentro del <main> de abajo, lo que mantiene
+    // el sidebar completamente inmóvil sin necesitar fixed ni sticky.
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = prev; };
+    }, []);
+
     const navigation = [
         { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
         { name: 'Usuarios', href: '/admin/users', icon: Users },
         { name: 'Roles', href: '/admin/roles', icon: Shield },
         { name: 'Cartas', href: '/admin/cards', icon: BookOpen },
         { name: 'Sets', href: '/admin/sets', icon: Layers },
+        { name: 'Sobres', href: '/admin/booster-packs', icon: Package },
     ];
 
-    // Verificar si una ruta está activa (para resaltar en el sidebar)
     const isActive = (path: string) => {
-        if (path === '/admin') {
-            return location.pathname === '/admin';
-        }
+        if (path === '/admin') return location.pathname === '/admin';
         return location.pathname.startsWith(path);
     };
 
     return (
-        <div className="min-h-screen bg-black text-zinc-100 flex flex-col md:flex-row font-sans selection:bg-emerald-500/30">
-            {/* Sidebar - Barra de navegación lateral con opciones del admin */}
-            <aside className="w-full md:w-64 bg-zinc-950 border-r border-zinc-800/50 flex flex-col">
-                {/* Header del sidebar con logo y nombre */}
-                <div className="h-16 flex items-center px-6 border-b border-zinc-800/50">
-                    <Layers className="h-6 w-6 text-emerald-500 mr-2" />
-                    <span className="font-bold text-lg bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                        Admin Panel
-                    </span>
-                </div>
+        /*
+         * Contenedor de altura fija = viewport - navbar.
+         * Al no haber scroll en el body, el sidebar no se mueve.
+         * Solo el <main> de dentro tiene overflow-y-auto para scrollear contenido.
+         */
+        <div
+            className="flex w-full relative z-10"
+            style={{ height: `calc(100vh - ${NAV_HEIGHT}px)` }}
+        >
+            {/* ── Sidebar ── */}
+            <aside className="w-64 flex-shrink-0 bg-card/60 backdrop-blur-md border-r border-border flex flex-col">
 
-                {/* Menú de navegación - Se itera sobre los elementos definidos arriba */}
-                <div className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+                {/* Navigation — scrollable internamente si hay muchos links */}
+                <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-5 space-y-0.5">
                     {navigation.map((item) => (
                         <Link
                             key={item.name}
                             to={item.href}
-                            // Aplicar estilos diferentes si la ruta está activa o no
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive(item.href)
-                                ? 'bg-emerald-900/20 text-emerald-400 border border-emerald-500/20'
-                                : 'text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-100'
-                                }`}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                                isActive(item.href)
+                                    ? 'bg-primary/10 text-primary border border-primary/20 font-black shadow-sm'
+                                    : 'text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent font-medium'
+                            }`}
                         >
-                            <item.icon className="h-4 w-4" />
+                            <item.icon className="h-4 w-4 flex-shrink-0" />
                             {item.name}
                         </Link>
                     ))}
-                </div>
+                </nav>
 
-                {/* Sección inferior - Información del usuario y botón de logout */}
-                <div className="p-4 border-t border-zinc-800/50">
-                    {/* Tarjeta del usuario actual */}
-                    <div className="flex items-center gap-3 px-3 py-2 mb-2">
-                        <div className="h-8 w-8 rounded-full bg-emerald-900/50 flex items-center justify-center text-emerald-500 font-bold border border-emerald-500/30">
-                            {user?.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex flex-col truncate">
-                            <span className="text-sm font-medium text-zinc-200 truncate">{user?.name}</span>
-                            <span className="text-xs text-zinc-500">Super Admin</span>
+                {/* Bottom — SIEMPRE al fondo, nunca se mueve */}
+                <div className="p-4 border-t border-border flex-shrink-0 space-y-2">
+                    {/* User card */}
+                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-accent/30 border border-border/50">
+                        <UserAvatar 
+                            src={user?.avatar_url}
+                            name={user?.name}
+                            className="h-8 w-8 rounded-lg bg-primary/20 border border-primary/30 flex-shrink-0"
+                            fallbackClassName="text-primary font-black text-sm"
+                        />
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[11px] font-black uppercase tracking-widest text-foreground truncate">{user?.name}</span>
+                            <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest">{user?.role_name ?? 'Admin'}</span>
                         </div>
                     </div>
 
-                    {/* Botón de cerrar sesión */}
+                    {/* Logout */}
                     <button
                         onClick={logout}
-                        className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-950/30 rounded-lg transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-colors border border-transparent hover:border-destructive/10"
                     >
-                        <LogOut className="h-4 w-4" />
+                        <LogOut className="h-4 w-4 flex-shrink-0" />
                         Cerrar Sesión
                     </button>
 
-                    {/* Enlace para volver a la tienda principal */}
-                    <div className="mt-2 text-center w-full">
-                        <Link to="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 underline">
-                            Volver a Tienda
-                        </Link>
-                    </div>
+                    {/* Back to store */}
+                    <Link
+                        to="/dashboard"
+                        className="w-full flex items-center justify-center px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground transition-colors rounded-xl"
+                    >
+                        ← Volver a Tienda
+                    </Link>
                 </div>
             </aside>
 
-            {/* Área principal - Contenido dinámico según la ruta actual */}
-            <main className="flex-1 overflow-y-auto flex flex-col">
-                {/* Los componentes de cada ruta se renderizarán aquí */}
+            {/* ── Main content — SOLO este área hace scroll ── */}
+            <main className="flex-1 overflow-y-auto flex flex-col min-w-0">
                 <Outlet />
             </main>
         </div>

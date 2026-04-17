@@ -1,6 +1,6 @@
 // resources/js/app.tsx
 import '../css/app.css';
-import { StrictMode, useEffect } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
     BrowserRouter, Routes, Route, Navigate,
@@ -8,8 +8,10 @@ import {
 import { Toaster } from 'sonner';
 
 // Hooks y Contextos
-import { initializeTheme } from './hooks/use-appearance';
+import { initializeTheme, useAppearance } from './hooks/use-appearance';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { FlickeringGrid } from './components/ui/flickering-grid';
 
 // Páginas y Componentes de Layout
 import Login from './pages/auth/Login';
@@ -18,6 +20,9 @@ import { ProtectedLayout } from './components/ProtectedRoute';
 import Dashboard from './pages/dashboard/dashboard';
 import PacksView from './pages/shop/PacksView';
 import Cart from './pages/shop/Cart';
+import CheckoutSuccess from './pages/shop/CheckoutSuccess';
+import WalletPage from './pages/shop/Wallet';
+import Forum from './pages/forum/Forum';
 
 // Admin Components & Pages
 import { AdminRoute } from './components/AdminRoute';
@@ -27,61 +32,127 @@ import AdminUsers from './pages/admin/Users';
 import AdminRoles from './pages/admin/Roles';
 import AdminCards from './pages/admin/Cards';
 import AdminSets from './pages/admin/Sets';
+import AdminBoosterPacks from './pages/admin/BoosterPacks';
+import AdminAuditLogs from './pages/admin/Logs';
 import Profile from './pages/profile/Profile';
 import Inventory from './pages/inventory/Inventory';
+import Achievements from './pages/achievement/Achievement';
+import Exchanges from './pages/exchange/Exchanges';
+import ManageExchanges from './pages/exchange/ManageExchanges';
+import TradeRoom from './pages/exchange/TradeRoom';
+import Marketplace from './pages/market/Marketplace';
+import ProductDetail from './pages/market/ProductDetail';
 
-// Asegúrate de importar las otras páginas que uses
+// Páginas de Información
+import Rules from './pages/static/Rules';
+import Privacy from './pages/static/Privacy';
+import Contact from './pages/static/Contact';
+import Support from './pages/static/Support';
+
+const GlobalBackground = () => {
+    const { appearance } = useAppearance();
+    const [isDark, setIsDark] = useState(false);
+
+    useEffect(() => {
+        console.log("FlickeringGrid is active and mounting...");
+        const checkDark = () => {
+            const dark = appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            setIsDark(dark);
+        };
+        checkDark();
+    }, [appearance]);
+
+    return (
+        <FlickeringGrid
+            className="fixed inset-0 z-0 pointer-events-none"
+            squareSize={3}
+            gridGap={6}
+            color={isDark ? '#8b9467' : '#6c5ce7'} // Colores temáticos
+            maxOpacity={isDark ? 0.35 : 0.08}
+            flickerChance={0.3}
+        />
+    );
+};
 
 initializeTheme();
 
 const el = document.getElementById('root') || document.getElementById('app');
 
 if (el) {
+    // FIX 2: Garantizamos que el marco principal ocupe toda la ventana del navegador.
+    el.classList.add('min-h-screen', 'flex', 'flex-col');
+
     const root = createRoot(el);
 
     root.render(
         <StrictMode>
             <AuthProvider>
-                <Toaster
-                    theme="dark"
-                    position="top-right"
-                    richColors
-                    expand
-                    toastOptions={{
-                        className: 'bg-zinc-900 border-zinc-800 text-zinc-100 shadow-2xl',
-                    }}
-                />
+                <CartProvider>
+                    <BrowserRouter>
+                        <GlobalBackground />
+                        <Toaster 
+                            position="top-right" 
+                            expand 
+                            closeButton
+                            theme="dark"
+                            toastOptions={{
+                                className: 'bg-[#1a1d23]/80 backdrop-blur-2xl border border-[#6c5ce7]/30 text-[#6c5ce7] font-forum shadow-[0_0_40px_rgba(108,92,231,0.2)] rounded-2xl py-5 px-6 text-lg border-l-4 border-l-[#6c5ce7]',
+                                descriptionClassName: 'text-[#b0b4b8] font-literata italic text-xs mt-1 leading-relaxed opacity-80',
+                                style: {
+                                    background: 'rgba(26, 29, 35, 0.85)',
+                                    color: '#6c5ce7',
+                                }
+                            }}
+                        />
+                        <Routes>
+                            {/* Públicas */}
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
 
-                <BrowserRouter>
-                    <Routes>
-                        {/* RUTAS PÚBLICAS */}
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
+                            {/* RUTAS PROTEGIDAS (Requieren Login) */}
+                            <Route element={<ProtectedLayout />}>
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/shop" element={<PacksView />} />
+                                <Route path="/cart" element={<Cart />} />
+                                <Route path="/wallet" element={<WalletPage />} />
+                                <Route path="/profile" element={<Profile />} />
+                                <Route path="/inventory" element={<Inventory />} />
+                                <Route path="/achievements" element={<Achievements />} />
+                                <Route path="/exchanges" element={<Exchanges />} />
+                                <Route path="/exchanges/manage" element={<ManageExchanges />} />
+                                <Route path="/trade/:sessionId" element={<TradeRoom />} />
+                                <Route path="/market" element={<Marketplace />} />
+                                <Route path="/market/product/:type/:id" element={<ProductDetail />} />
+                                <Route path="/forum/*" element={<Forum />} />
+                                <Route path="/checkout/success" element={<CheckoutSuccess />} />
 
-                        {/* RUTAS PROTEGIDAS */}
-                        <Route element={<ProtectedLayout />}>
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/shop" element={<PacksView />} />
-                            <Route path="/cart" element={<Cart />} />
-                            <Route path="/profile" element={<Profile />} />
-                            <Route path="/inventory" element={<Inventory />} />
+                                {/* RUTAS ESTÁTICAS */}
+                                <Route path="/rules" element={<Rules />} />
+                                <Route path="/privacy" element={<Privacy />} />
+                                <Route path="/contact" element={<Contact />} />
+                                <Route path="/support" element={<Support />} />
 
-                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                        </Route>
+                                {/* RUTAS DE ADMINISTRADOR */}
+                                <Route element={<AdminRoute />}>
+                                    <Route element={<AdminLayout />}>
+                                        <Route path="/admin" element={<AdminDashboard />} />
+                                        <Route path="/admin/users" element={<AdminUsers />} />
+                                        <Route path="/admin/roles" element={<AdminRoles />} />
+                                        <Route path="/admin/cards" element={<AdminCards />} />
+                                        <Route path="/admin/sets" element={<AdminSets />} />
+                                        <Route path="/admin/booster-packs" element={<AdminBoosterPacks />} />
+                                        <Route path="/admin/logs" element={<AdminAuditLogs />} />
+                                    </Route>
+                                </Route>
 
-                        {/* RUTAS DE ADMINISTRADOR */}
-                        <Route element={<AdminRoute />}>
-                            <Route element={<AdminLayout />}>
-                                <Route path="/admin" element={<AdminDashboard />} />
-                                <Route path="/admin/users" element={<AdminUsers />} />
-                                <Route path="/admin/roles" element={<AdminRoles />} />
-                                <Route path="/admin/cards" element={<AdminCards />} />
-                                <Route path="/admin/sets" element={<AdminSets />} />
-
+                                <Route path="*" element={<Navigate to="/dashboard" replace />} />
                             </Route>
-                        </Route>
-                    </Routes>
-                </BrowserRouter>
+
+                            {/* Fallback */}
+                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        </Routes>
+                    </BrowserRouter>
+                </CartProvider>
             </AuthProvider>
         </StrictMode>,
     );

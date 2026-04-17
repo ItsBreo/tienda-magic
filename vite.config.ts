@@ -23,11 +23,10 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            // Esto asegura que @ apunte siempre a la carpeta del proyecto, sea Windows o Linux
             '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
         },
     },
     esbuild: {
         jsx: 'automatic',
-    },
+    }
 });
