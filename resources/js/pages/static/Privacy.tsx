@@ -11,13 +11,13 @@ export default function Privacy() {
       
       <div className="space-y-6 text-zinc-300 leading-relaxed font-inter">
         <p className="text-lg text-zinc-400 mb-6">
-          En Tienda Magic entendemos la importancia de tu privacidad. A continuación te explicamos de manera transparente cómo manejamos tu información.
+          En Black Lotus entendemos la importancia de tu privacidad. A continuación te explicamos de manera transparente cómo manejamos tu información.
         </p>
 
         <section className="bg-zinc-900/40 p-6 rounded-lg border border-zinc-800">
           <h2 className="text-xl font-bold text-amber-500 mb-3">Recopilación de Datos</h2>
           <p>
-            Al registrarte en Tienda Magic, recopilamos información básica como tu nombre de usuario, dirección de correo electrónico y una contraseña encriptada. No almacenamos datos de pago, ya que estos son procesados por pasarelas externas seguras.
+            Al registrarte en Black Lotus, recopilamos información básica como tu nombre de usuario, dirección de correo electrónico y una contraseña encriptada. No almacenamos datos de pago, ya que estos son procesados por pasarelas externas seguras.
           </p>
         </section>
 

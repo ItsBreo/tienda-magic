@@ -72,10 +72,10 @@ export default function Login({ _canResetPassword = false, _status }: Props) {
                         </div>
                     </div>
                     <CardTitle className="text-3xl text-center font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-                        Tienda Magic
+                        Black Lotus
                     </CardTitle>
                     <CardDescription className="text-center text-muted-foreground">
-                        Accede a tu bóveda del Multiverso
+                        Accede a tu tienda del Multiverso
                     </CardDescription>
                 </CardHeader>
 

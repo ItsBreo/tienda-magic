@@ -73,7 +73,7 @@ export function Navbar() {
               <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl group-hover:bg-primary/20 transition-colors">
                 <Package className="h-6 w-6 text-primary" />
               </div>
-              <span className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase">TIENDA MAGIC</span>
+              <span className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase">BLACK LOTUS</span>
             </Link>
 
             <nav className="hidden lg:flex items-center gap-10">
