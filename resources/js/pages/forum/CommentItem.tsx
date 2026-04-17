@@ -93,7 +93,6 @@ function UniversalComment({
   const handleUpdate = async () => {
     try {
       await ApiService.axiosInstance.put(`/api/comments/${item.id}`, { body: editBody });
-      toast.success('Actualizado');
       setIsEditing(false);
       window.location.reload();
     } catch (err) {
@@ -120,7 +119,6 @@ function UniversalComment({
     setIsDeleting(true);
     try {
       await ApiService.deleteComment(item.id);
-      toast.success('Eliminado');
       setShowDeleteDialog(false);
       onDelete(item.id);
     } catch (err) {

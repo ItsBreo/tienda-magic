@@ -42,8 +42,9 @@ export default function WalletPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
     const [downloading, setDownloading] = useState(false);
+    const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
     const toastShown = useRef(false);
-
+ 
     // Cargar transacciones
     const fetchTransactions = async (page = 1) => {
         if (!user) return;
@@ -59,16 +60,14 @@ export default function WalletPage() {
             setTransactionsLoading(false);
         }
     };
-
+ 
     // Manejar el retorno de Stripe
     useEffect(() => {
         const status = searchParams.get('status');
         if (status && !toastShown.current) {
             toastShown.current = true;
             if (status === 'success') {
-                toast.success('¡Riquezas añadidas a tu cuenta!', {
-                    description: 'Tu saldo de oro ha sido actualizado correctamente.',
-                });
+                setShowSuccessOverlay(true);
                 const refreshUserData = async () => {
                     try {
                         const userData = await apiService.checkAuth();
@@ -77,12 +76,11 @@ export default function WalletPage() {
                     } catch (error) { console.error(error); }
                 };
                 refreshUserData();
-            } else if (status === 'canceled') {
-                toast.info('Recarga cancelada. El oro sigue en el cofre.');
             }
-            navigate('/wallet', { replace: true });
+            // Limpiar la URL sin recargar la página
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
-    }, [searchParams.toString()]);
+    }, [searchParams]);
 
     useEffect(() => {
         if (user) fetchTransactions(currentPage);
@@ -411,6 +409,44 @@ BONUS
                     </div>
                 </div>
             </main>
+
+            {/* Success Overlay */}
+            {showSuccessOverlay && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/60 backdrop-blur-md animate-in fade-in duration-500">
+                    <div className="max-w-md w-full bg-card/80 backdrop-blur-2xl border border-primary/30 rounded-3xl p-10 text-center shadow-[0_0_50px_rgba(108,92,231,0.2)] animate-in zoom-in duration-500">
+                        <div className="mb-8 flex justify-center">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                                <div className="relative bg-primary/10 border border-primary/20 p-5 rounded-full">
+                                    <CheckCircle className="w-16 h-16 text-primary animate-in zoom-in duration-700 ease-out" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 className="text-3xl font-forum font-bold mb-4 text-foreground tracking-tight">
+                            ¡Riquezas Recibidas!
+                        </h2>
+                        
+                        <p className="text-muted-foreground mb-10 text-lg font-literata italic opacity-80 leading-relaxed">
+                            El oro ha sido transferido a tu bóveda con éxito. Tu balance ha sido actualizado por las fuerzas del Multiverso.
+                        </p>
+
+                        <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-10">
+                            <div className="flex items-center justify-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Transferencia Verificada</span>
+                            </div>
+                        </div>
+
+                        <Button 
+                            onClick={() => setShowSuccessOverlay(false)}
+                            className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-95"
+                        >
+                            Continuar Explorando
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
