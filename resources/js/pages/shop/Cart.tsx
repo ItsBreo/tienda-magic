@@ -185,7 +185,7 @@ export default function Cart() {
                         ← Catálogo
                     </Link>
                     <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-                        Panel de Usuario →
+                        Dashboard →
                     </Link>
                 </div>
 
