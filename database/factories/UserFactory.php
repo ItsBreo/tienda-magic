@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Faker\Factory as FakerFactory;
 
 class UserFactory extends Factory
 {
@@ -14,13 +15,16 @@ class UserFactory extends Factory
 
     public function definition(): array
     {
+        // Instancia manual e infalible
+        $faker = FakerFactory::create();
+
         return [
-            'name' => fake()->name(),
-            'username' => fake()->unique()->userName(),
-            'email' => fake()->unique()->safeEmail(),
+            'name' => $faker->name(),
+            'username' => $faker->unique()->userName(),
+            'email' => $faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'wallet_balance' => fake()->randomFloat(2, 0, 5000),
+            'wallet_balance' => $faker->randomFloat(2, 0, 5000),
             'remember_token' => Str::random(10),
         ];
     }
