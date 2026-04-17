@@ -31,6 +31,8 @@ export default function WalletPage() {
     const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [transactionsLoading, setTransactionsLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
     const [downloading, setDownloading] = useState(false);
     const toastShown = useRef(false);
 
@@ -41,6 +43,8 @@ export default function WalletPage() {
         try {
             const response = await apiService.getWalletTransactions(page);
             setTransactions(response.transactions.data || []);
+            setCurrentPage(response.transactions.current_page || 1);
+            setLastPage(response.transactions.last_page || 1);
         } catch (error) {
             console.error('Error al cargar transacciones:', error);
         } finally {
@@ -73,8 +77,8 @@ export default function WalletPage() {
     }, [searchParams.toString()]);
 
     useEffect(() => {
-        if (user) fetchTransactions();
-    }, [user?.id]);
+        if (user) fetchTransactions(currentPage);
+    }, [user?.id, currentPage]);
 
     const handleDownloadPdf = async () => {
         setDownloading(true);
@@ -340,6 +344,50 @@ export default function WalletPage() {
                                      </table>
                                  </div>
                              </div>
+
+                             {/* PAGINACIÓN DE TRANSACCIONES */}
+                             {lastPage > 1 && (
+                                 <div className="flex items-center justify-center gap-4 mt-6">
+                                     <Button 
+                                         variant="outline" 
+                                         size="sm" 
+                                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                                         disabled={currentPage === 1 || transactionsLoading} 
+                                         className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all text-xs h-8"
+                                     >
+                                         Anterior
+                                     </Button>
+                                     <div className="flex items-center gap-1">
+                                         {Array.from({ length: Math.min(5, lastPage) }, (_, i) => {
+                                             const p = i + 1;
+                                             return (
+                                                 <button 
+                                                     key={p} 
+                                                     onClick={() => setCurrentPage(p)}
+                                                     disabled={transactionsLoading}
+                                                     className={cn(
+                                                         "w-8 h-8 rounded-lg text-[10px] font-black transition-all",
+                                                         currentPage === p 
+                                                             ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                                                             : "bg-card/50 text-muted-foreground hover:bg-accent border border-border"
+                                                     )}
+                                                 >
+                                                     {p}
+                                                 </button>
+                                             );
+                                         })}
+                                     </div>
+                                     <Button 
+                                         variant="outline" 
+                                         size="sm" 
+                                         onClick={() => setCurrentPage(p => Math.min(lastPage, p + 1))} 
+                                         disabled={currentPage === lastPage || transactionsLoading} 
+                                         className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all text-xs h-8"
+                                     >
+                                         Siguiente
+                                     </Button>
+                                 </div>
+                             )}
                          </section>
                     </div>
                 </div>

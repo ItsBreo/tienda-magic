@@ -14,6 +14,7 @@ use App\Notifications\TradeAcceptedNotification;
 use App\Events\TradeSessionUpdated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Services\AuditLogger;
 use OpenApi\Attributes as OA;
 
 class TradeController extends Controller
@@ -304,6 +305,17 @@ class TradeController extends Controller
                 $logContent .= "Status: COMPLETED\n";
                 
                 \Illuminate\Support\Facades\Storage::disk('local')->put("trade_logs/{$logFilename}", $logContent);
+
+                // ---------- SYSTEM AUDIT LOG ----------
+                AuditLogger::log('trade.completed', $session, [
+                    'exchange_id' => $exchange->id,
+                    'user1_id' => $exchange->user_id,
+                    'user1_name' => $exchange->user->name,
+                    'user2_id' => $req->user_id,
+                    'user2_name' => $req->user->name,
+                    'card1_name' => $card1->card->name,
+                    'card2_name' => $card2->card->name,
+                ]);
             }
 
             DB::commit();

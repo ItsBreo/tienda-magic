@@ -121,28 +121,58 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                         <div className="h-full flex flex-col p-6 lg:p-10">
                                             
                                             {/* Grid de Cartas del Sobre Actual */}
-                                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 h-full">
+                                            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2 pb-10">
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4 lg:gap-6">
                                                     {pack.cards.map((card, cardIdx) => {
                                                         const isRevealed = revealedPacks.includes(pack.index);
                                                         const imageSrc = card.image_uris?.normal || card.image_uri;
                                                         
+                                                        const isMythic = card.rarity === 'mythic';
+                                                        const isRare = card.rarity === 'rare';
+                                                        
                                                         return (
-                                                            <motion.div
+                                                            <div 
                                                                 key={`${card.id}-${cardIdx}`}
-                                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                                animate={{ opacity: 1, scale: 1 }}
-                                                                transition={{ delay: cardIdx * 0.03 }}
-                                                                className={cn(
-                                                                    "relative aspect-[2.5/3.5] rounded-xl overflow-hidden border transition-all duration-500",
-                                                                    isRevealed 
-                                                                        ? "border-border bg-accent/5 hover:border-primary/50 hover:shadow-lg" 
-                                                                        : "border-primary/30 bg-gradient-to-br from-primary/10 to-transparent cursor-pointer hover:border-primary group/card"
-                                                                )}
+                                                                className="relative aspect-[2.5/3.5] perspective-1000"
                                                                 onClick={() => !isRevealed && handleRevealPack(pack.index)}
                                                             >
-                                                                {isRevealed ? (
-                                                                    <>
+                                                                <motion.div
+                                                                    initial={false}
+                                                                    animate={{ rotateY: isRevealed ? 180 : 0 }}
+                                                                    transition={{ 
+                                                                        type: "spring", 
+                                                                        stiffness: 40, 
+                                                                        damping: 12,
+                                                                        delay: isRevealed ? cardIdx * 0.08 : 0 
+                                                                    }}
+                                                                    style={{ transformStyle: "preserve-3d" }}
+                                                                    className="w-full h-full relative"
+                                                                >
+                                                                    {/* BACK FACE (Hidden initially, visible when flipped) */}
+                                                                    <div 
+                                                                        className={cn(
+                                                                            "absolute inset-0 backface-hidden rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/20 via-primary/5 to-background flex flex-col items-center justify-center gap-3 shadow-xl cursor-not-allowed group/card",
+                                                                            !isRevealed && "cursor-pointer hover:border-primary transition-colors"
+                                                                        )}
+                                                                        style={{ transform: "rotateY(0deg)" }}
+                                                                    >
+                                                                        <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center animate-pulse group-hover/card:bg-primary/40 transition-colors">
+                                                                            <Sparkles className="w-7 h-7 text-primary" />
+                                                                        </div>
+                                                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(var(--primary),0.1)_100%)] opacity-50" />
+                                                                        <span className="text-[10px] font-black text-primary/70 uppercase tracking-widest z-10">Revelar</span>
+                                                                    </div>
+
+                                                                    {/* FRONT FACE (The Card) */}
+                                                                    <div 
+                                                                        className={cn(
+                                                                            "absolute inset-0 backface-hidden rounded-xl overflow-hidden border shadow-2xl bg-card",
+                                                                            isMythic ? "border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.4)]" :
+                                                                            isRare ? "border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.3)]" :
+                                                                            "border-border"
+                                                                        )}
+                                                                        style={{ transform: "rotateY(180deg)" }}
+                                                                    >
                                                                         {imageSrc ? (
                                                                             <img 
                                                                                 src={imageSrc} 
@@ -152,30 +182,39 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                                                         ) : (
                                                                             <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
                                                                                 <span className="text-xs font-black text-foreground uppercase tracking-tight">{card.name}</span>
-                                                                                <span className="text-[10px] text-muted-foreground font-black uppercase mt-1">{card.rarity}</span>
                                                                             </div>
                                                                         )}
                                                                         
                                                                         {/* Raridad Overlay */}
                                                                         <div className={cn(
-                                                                            "absolute bottom-0 inset-x-0 p-1.5 bg-black/70 backdrop-blur-sm text-[8px] font-black text-center uppercase tracking-[0.2em]",
-                                                                            card.rarity === 'mythic' ? 'text-orange-400' :
-                                                                            card.rarity === 'rare' ? 'text-amber-400' :
+                                                                            "absolute bottom-0 inset-x-0 p-1.5 bg-black/80 backdrop-blur-sm text-[9px] font-black text-center uppercase tracking-[0.2em] z-20",
+                                                                            isMythic ? 'text-orange-400 bg-gradient-to-t from-orange-950/90 to-black/80' :
+                                                                            isRare ? 'text-amber-400' :
                                                                             card.rarity === 'uncommon' ? 'text-blue-400' :
                                                                             'text-zinc-400'
                                                                         )}>
                                                                             {card.rarity}
                                                                         </div>
-                                                                    </>
-                                                                ) : (
-                                                                    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                                                                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center animate-pulse group-hover/card:bg-primary/40 transition-colors">
-                                                                            <Sparkles className="w-6 h-6 text-primary" />
-                                                                        </div>
-                                                                        <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">Revelar Sobre</span>
+
+                                                                        {/* Shine effect for high rarity */}
+                                                                        {(isMythic || isRare) && (
+                                                                            <motion.div 
+                                                                                animate={{ 
+                                                                                    x: ['-100%', '200%'],
+                                                                                    opacity: [0, 1, 0]
+                                                                                }}
+                                                                                transition={{ 
+                                                                                    duration: 2, 
+                                                                                    repeat: Infinity, 
+                                                                                    repeatDelay: 1,
+                                                                                    delay: 1
+                                                                                }}
+                                                                                className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 z-10"
+                                                                            />
+                                                                        )}
                                                                     </div>
-                                                                )}
-                                                            </motion.div>
+                                                                </motion.div>
+                                                            </div>
                                                         );
                                                     })}
                                                 </div>
@@ -233,7 +272,7 @@ export default function PackOpeningModal({ isOpen, onClose, cards, packs, packNa
                                     <CarouselPrevious className="hidden lg:flex left-4 bg-card/80 backdrop-blur-md border hover:border-primary disabled:opacity-0" />
                                     <CarouselNext className="hidden lg:flex right-4 bg-card/80 backdrop-blur-md border hover:border-primary disabled:opacity-0" />
                                 </>
-                            )}
+                             )}
                         </Carousel>
                     </div>
                 </motion.div>

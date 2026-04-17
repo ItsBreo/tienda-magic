@@ -46,7 +46,8 @@ class MagicApi {
             (error) => {
                 if (error.response?.status === 401) {
                     this.removeToken();
-                    if (window.location.pathname !== '/login') {
+                    const publicPaths = ['/login', '/register'];
+                    if (!publicPaths.includes(window.location.pathname)) {
                         window.location.href = '/login';
                     }
                 }

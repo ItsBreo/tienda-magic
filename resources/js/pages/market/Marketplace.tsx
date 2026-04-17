@@ -29,8 +29,9 @@ interface Listing {
         image_uri?: string;
         image_url?: string;
         rarity?: string;
-        card_set?: { code: string; name: string };
-        cardSet?: { code: string; name: string };
+        card_set?: { code: string; name: string; id?: number };
+        cardSet?: { code: string; name: string; id?: number };
+        set?: { code: string; name: string; id?: number };
     };
     seller: {
         id: number;
@@ -48,7 +49,7 @@ export default function Marketplace() {
     const [sortBy, setSortBy] = useState<string>('newest');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [availableSetsState, setAvailableSetsState] = useState<{code: string, name: string}[]>([]);
+    const [availableSetsState, setAvailableSetsState] = useState<{code: string, name: string, id?: number | string}[]>([]);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -356,7 +357,7 @@ export default function Marketplace() {
                 <SetFilterModal 
                     isOpen={isFilterModalOpen}
                     onClose={() => setIsFilterModalOpen(false)}
-                    availableSets={availableSetsState.map(s => ({ ...s, id: s.code }))}
+                    availableSets={availableSetsState.map(s => ({ ...s, id: (s as any).id || s.code }))}
                     selectedSets={selectedSets}
                     onApply={(newSelection) => setSelectedSets(newSelection as string[])}
                     accentColor="emerald"
@@ -403,6 +404,56 @@ export default function Marketplace() {
                     // Normal grid view
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredListings.map(renderCard)}
+                    </div>
+                )}
+
+                {/* PAGINACIÓN */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-4 mt-12 pb-10">
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                            disabled={currentPage === 1} 
+                            className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all"
+                        >
+                            Anterior
+                        </Button>
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => {
+                                const p = i + 1;
+                                // Limitar a mostrar solo algunas páginas si hay muchas
+                                if (totalPages > 7) {
+                                    if (p !== 1 && p !== totalPages && (p < currentPage - 1 || p > currentPage + 1)) {
+                                        if (p === currentPage - 2 || p === currentPage + 2) return <span key={p} className="text-muted-foreground px-1">...</span>;
+                                        return null;
+                                    }
+                                }
+                                return (
+                                    <button 
+                                        key={p} 
+                                        onClick={() => setCurrentPage(p)}
+                                        className={cn(
+                                            "w-9 h-9 rounded-lg text-xs font-black transition-all",
+                                            currentPage === p 
+                                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                                                : "bg-card/50 text-muted-foreground hover:bg-accent border border-border"
+                                        )}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                            disabled={currentPage === totalPages} 
+                            className="font-bold border-border bg-card/50 hover:bg-primary/20 hover:text-primary transition-all"
+                        >
+                            Siguiente
+                        </Button>
                     </div>
                 )}
             </div>

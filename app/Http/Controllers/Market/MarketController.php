@@ -298,7 +298,10 @@ class MarketController extends Controller
 
         AuditLogger::log('market.item_sold', $listing, [
             'buyer_id' => $buyer->id,
+            'buyer_name' => $buyer->name,
             'seller_id' => $listing->seller_id,
+            'seller_name' => $listing->seller->name,
+            'item_name' => $listing->listable->name ?? 'Unknown',
             'price' => $listing->price_total
         ]);
 

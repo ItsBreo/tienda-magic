@@ -17,6 +17,7 @@ use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use OpenApi\Attributes as OA;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogger;
 
 class CheckoutController extends Controller
 {
@@ -158,6 +159,14 @@ class CheckoutController extends Controller
                     // Entregar productos y limpiar carrito
                     $order->fulfill();
 
+                    AuditLogger::log('store.purchase', $order, [
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'total_amount' => $totalAmount,
+                        'item_count' => count($orderItems),
+                        'payment_method' => 'wallet'
+                    ]);
+
                     return response()->json([
                         'success' => true,
                         'message' => 'Pago con wallet completado',
@@ -284,6 +293,17 @@ class CheckoutController extends Controller
                             ]);
 
                             $order->update(['payment_status' => 'completed', 'status' => 'completed']);
+
+                            AuditLogger::log('market.item_sold', $listing, [
+                                'buyer_id' => $buyer->id,
+                                'buyer_name' => $buyer->name,
+                                'seller_id' => $listing->seller_id,
+                                'seller_name' => $listing->seller->name,
+                                'item_name' => $listing->listable->name ?? 'Unknown',
+                                'price' => $listing->price_total,
+                                'payment_method' => 'stripe'
+                            ]);
+
                             return response()->json(['success' => true, 'message' => 'Compra de mercado completada.']);
                         }
                     }
@@ -300,6 +320,15 @@ class CheckoutController extends Controller
                                 'payment_method' => 'stripe'
                             ]);
                             $order->fulfill();
+
+                            AuditLogger::log('store.purchase', $order, [
+                                'user_id' => $order->user_id,
+                                'user_name' => $order->user->name,
+                                'total_amount' => $order->total_amount,
+                                'item_count' => $order->items()->count(),
+                                'payment_method' => 'stripe'
+                            ]);
+
                             return response()->json(['success' => true, 'message' => 'Orden completada y entregada.']);
                         }
                     }
