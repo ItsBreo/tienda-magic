@@ -1,37 +1,39 @@
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
-# Install system dependencies
+# Instalar dependencias del sistema y drivers para Postgres y Node.js
 RUN apt-get update && apt-get install -y \
-    unzip \
-    libzip-dev \
+    git \
+    curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    && rm -rf /var/lib/apt/lists/*
+    zip \
+    unzip \
+    libzip-dev \
+    libpq-dev \
+    gnupg
 
-# Install PHP extensions
-RUN docker-php-ext-configure zip --with-libzip \
-    && docker-php-ext-install -j$(nproc) \
-    pdo_mysql \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd \
-    zip
+# Instalar Node.js y NPM (necesario para Vite)
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
 
-# Install Composer
+# Limpiar cache de apt
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Instalar extensiones de PHP (incluyendo Postgres y Zip corregido)
+RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
+
+# Obtener Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Configurar directorio de trabajo
 WORKDIR /var/www
 
-# Copy existing application directory contents
+# Copiar archivos del proyecto
 COPY . /var/www
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www
+# Dar permisos a la carpeta storage y cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Expose port 9000 and start php-fpm server
 EXPOSE 9000
 CMD ["php-fpm"]

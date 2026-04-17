@@ -21,24 +21,12 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
-    server: {
-        host: '127.0.0.1',
-        hmr: {
-            host: '127.0.0.1',
-        },
-    },
     resolve: {
         alias: {
-            // Esto asegura que @ apunte siempre a la carpeta del proyecto, sea Windows o Linux
             '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
         },
     },
     esbuild: {
         jsx: 'automatic',
-    },
-    build: {
-        rollupOptions: {
-            external: ['laravel-echo', 'pusher-js'],
-        },
-    },
+    }
 });
