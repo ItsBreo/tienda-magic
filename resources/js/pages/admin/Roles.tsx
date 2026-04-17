@@ -10,6 +10,7 @@ import { useSelection } from '@/hooks/useSelection';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import AdminPagination from '@/components/admin/AdminPagination';
 
 interface Permission {
     id: number;
@@ -31,6 +32,8 @@ export default function AdminRoles() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
 
     const [form, setForm] = useState({
         name: '',
@@ -49,20 +52,26 @@ export default function AdminRoles() {
         allSelected,
     } = useSelection(roles);
 
-    useEffect(() => {
-        Promise.all([fetchRoles(), fetchPermissions()]);
-    }, []);
-
-    const fetchRoles = async () => {
+    const fetchRoles = async (page = 1) => {
         try {
-            const { data } = await apiService.axiosInstance.get('/api/admin/roles');
+            const { data } = await apiService.axiosInstance.get('/api/admin/roles', {
+                params: { page }
+            });
             setRoles(data.data || data);
+            if (data.current_page) {
+                setCurrentPage(data.current_page);
+                setLastPage(data.last_page);
+            }
         } catch (error) {
             toast.error('Error al cargar roles');
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        Promise.all([fetchRoles(currentPage), fetchPermissions()]);
+    }, [currentPage]);
 
     const fetchPermissions = async () => {
         try {
@@ -78,7 +87,7 @@ export default function AdminRoles() {
         try {
             await apiService.axiosInstance.delete(`/api/admin/roles/${id}`);
             toast.success('Rango eliminado de los archivos');
-            fetchRoles();
+            fetchRoles(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al eliminar');
         }
@@ -90,7 +99,7 @@ export default function AdminRoles() {
             await apiService.axiosInstance.post('/api/admin/roles/bulk-delete', { ids: selectedList });
             toast.success('Rangos disueltos correctamente');
             clear();
-            fetchRoles();
+            fetchRoles(currentPage);
         } catch (error) {
             toast.error('Error al realizar borrado masivo');
         }
@@ -130,7 +139,7 @@ export default function AdminRoles() {
             setShowForm(false);
             setForm({ name: '', description: '', permission_ids: [] });
             setEditingRoleId(null);
-            fetchRoles();
+            fetchRoles(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error guardando rango');
         } finally {
@@ -322,6 +331,12 @@ className={cn(
                     </table>
                 </div>
             </div>
+
+            <AdminPagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={setCurrentPage}
+            />
 
             <BulkActionsToolbar
                 count={selectedCount}

@@ -19,9 +19,7 @@ class AdminBoosterPackController extends Controller
     #[OA\Response(response: 200, description: "Lista de sobres")]
     public function index()
     {
-        // Usamos query bypass para traer todos, ignorando el scope por defecto de activos si fuera global,
-        // pero como es un scopeFilter manual, simplemente no pasamos filtros restrictivos.
-        $packs = BoosterPack::with('cardSet')->latest()->get();
+        $packs = BoosterPack::with('cardSet')->latest()->paginate(20);
         return response()->json($packs);
     }
 

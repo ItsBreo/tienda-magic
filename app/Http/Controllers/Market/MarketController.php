@@ -341,12 +341,36 @@ class MarketController extends Controller
     {
         $modelType = $type === 'card' ? Card::class : BoosterPack::class;
         
-        $history = \App\Models\CardPriceHistory::where('priceable_id', $id)
+        // 1. Obtener historial de precios del mercado (snapshots)
+        $marketHistory = \App\Models\CardPriceHistory::where('priceable_id', $id)
             ->where('priceable_type', $modelType)
             ->orderBy('recorded_at', 'asc')
-            ->get();
+            ->get()
+            ->map(function($h) {
+                return [
+                    'price' => $h->price,
+                    'recorded_at' => $h->recorded_at,
+                    'is_market' => true
+                ];
+            });
 
-        return response()->json($history);
+        // 2. Obtener historial de ventas reales en la tienda
+        $salesHistory = \App\Models\MarketTransaction::where('sellable_id', $id)
+            ->where('sellable_type', $modelType)
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(function($t) {
+                return [
+                    'price' => $t->price_total,
+                    'recorded_at' => $t->created_at,
+                    'is_sale' => true
+                ];
+            });
+
+        // Combinar y ordenar por fecha
+        $combinedHistory = $marketHistory->concat($salesHistory)->sortBy('recorded_at')->values();
+
+        return response()->json($combinedHistory);
     }
 
     /**
@@ -359,7 +383,7 @@ class MarketController extends Controller
             ->where('seller_id', $user->id)
             ->active()
             ->latest()
-            ->get();
+            ->paginate(20);
 
         return response()->json($listings);
     }

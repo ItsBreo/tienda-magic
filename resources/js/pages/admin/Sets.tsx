@@ -10,6 +10,7 @@ import { useSelection } from '@/hooks/useSelection';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import AdminPagination from '@/components/admin/AdminPagination';
 
 interface CardSet {
     code: string;
@@ -26,6 +27,8 @@ export default function AdminSets() {
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [editingCode, setEditingCode] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
 
     const [form, setForm] = useState({
         code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true,
@@ -43,10 +46,16 @@ export default function AdminSets() {
         allSelected,
     } = useSelection(selectableSets);
 
-    const fetchSets = async () => {
+    const fetchSets = async (page = 1) => {
         try {
-            const { data } = await apiService.axiosInstance.get('/api/admin/sets');
+            const { data } = await apiService.axiosInstance.get('/api/admin/sets', {
+                params: { page }
+            });
             setSets(data.data || data);
+            if (data.current_page) {
+                setCurrentPage(data.current_page);
+                setLastPage(data.last_page);
+            }
         } catch (error) {
             toast.error('Error al cargar sets');
         } finally {
@@ -55,15 +64,15 @@ export default function AdminSets() {
     };
 
     useEffect(() => {
-        fetchSets();
-    }, []);
+        fetchSets(currentPage);
+    }, [currentPage]);
 
     const handleDelete = async (code: string) => {
         if (!window.confirm(`¿Seguro que deseas eliminar el set ${code}?`)) return;
         try {
             await apiService.axiosInstance.delete(`/api/admin/sets/${code}`);
             toast.success('Set eliminado');
-            fetchSets();
+            fetchSets(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al eliminar');
         }
@@ -73,7 +82,7 @@ export default function AdminSets() {
         try {
             await apiService.updateAdminSet(set.code, { is_active: !set.is_active });
             toast.success(`Set ${!set.is_active ? 'activado' : 'desactivado'}`);
-            fetchSets();
+            fetchSets(currentPage);
         } catch (error: any) {
             toast.error('Error al cambiar estado');
         }
@@ -85,7 +94,7 @@ export default function AdminSets() {
             await apiService.axiosInstance.post('/api/admin/sets/bulk-delete', { ids: selectedList });
             toast.success('Eliminación masiva completada');
             clear();
-            fetchSets();
+            fetchSets(currentPage);
         } catch (error) {
             toast.error('Error al realizar borrado masivo');
         }
@@ -99,7 +108,7 @@ export default function AdminSets() {
             });
             toast.success(`${selectedCount} sets ${active ? 'activados' : 'desactivados'}`);
             clear();
-            fetchSets();
+            fetchSets(currentPage);
         } catch (error) {
             toast.error('Error al cambiar estado masivo');
         }
@@ -121,7 +130,7 @@ export default function AdminSets() {
             setForm({
  code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true,
 });
-            fetchSets();
+            fetchSets(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error guardando set');
         } finally {
@@ -298,6 +307,12 @@ Lanzado:
                     </table>
                 </div>
             </div>
+
+            <AdminPagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={setCurrentPage}
+            />
 
             <BulkActionsToolbar
                 count={selectedCount}

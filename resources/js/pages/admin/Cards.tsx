@@ -10,6 +10,7 @@ import { useSelection } from '@/hooks/useSelection';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import AdminPagination from '@/components/admin/AdminPagination';
 
 interface Card {
     id: number;
@@ -30,6 +31,8 @@ export default function AdminCards() {
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
 
     const {
         selectedList,
@@ -46,13 +49,20 @@ export default function AdminCards() {
     });
 
     useEffect(() => {
-        fetchCards();
-    }, []);
+        fetchCards(currentPage);
+    }, [currentPage]);
 
-    const fetchCards = async () => {
+    const fetchCards = async (page = 1) => {
         try {
-            const { data } = await apiService.axiosInstance.get('/api/admin/cards');
+            const { data } = await apiService.axiosInstance.get('/api/admin/cards', {
+                params: { page }
+            });
+            // Handle both paginated and non-paginated responses for safety
             setCards(data.data || data);
+            if (data.current_page) {
+                setCurrentPage(data.current_page);
+                setLastPage(data.last_page);
+            }
         } catch (error) {
             toast.error('Error al cargar cartas');
         } finally {
@@ -65,7 +75,7 @@ export default function AdminCards() {
         try {
             await apiService.axiosInstance.delete(`/api/admin/cards/${id}`);
             toast.success('Carta eliminada de los registros');
-            fetchCards();
+            fetchCards(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al eliminar');
         }
@@ -75,7 +85,7 @@ export default function AdminCards() {
         try {
             await apiService.updateAdminCard(card.id, { is_active: !card.is_active });
             toast.success(`Carta ${!card.is_active ? 'activada' : 'desactivada'}`);
-            fetchCards();
+            fetchCards(currentPage);
         } catch (error: any) {
             toast.error('Error al cambiar estado');
         }
@@ -316,6 +326,12 @@ Plano Inaccesible
                     </table>
                 </div>
             </div>
+
+            <AdminPagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={setCurrentPage}
+            />
 
             <BulkActionsToolbar
                 count={selectedCount}

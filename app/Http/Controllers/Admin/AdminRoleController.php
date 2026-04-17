@@ -20,8 +20,8 @@ class AdminRoleController extends Controller
     #[OA\Response(response: 200, description: "Lista de roles")]
     public function index()
     {
-        // Traemos todos los roles (los permisos se cargan vía Appends/Accessor)
-        $roles = Role::orderBy('id')->get();
+        // Traemos todos los roles paginados (los permisos se cargan vía Appends/Accessor)
+        $roles = Role::orderBy('id')->paginate(50);
         return response()->json($roles);
     }
 

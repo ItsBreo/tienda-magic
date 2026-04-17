@@ -10,6 +10,7 @@ import { useSelection } from '@/hooks/useSelection';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import AdminPagination from '@/components/admin/AdminPagination';
 
 interface UserData {
     id: number;
@@ -26,6 +27,8 @@ export default function AdminUsers() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingUserId, setEditingUserId] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
 
     const [form, setForm] = useState({
         name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
@@ -43,9 +46,9 @@ export default function AdminUsers() {
     } = useSelection(users);
 
     useEffect(() => {
-        fetchUsers();
+        fetchUsers(currentPage);
         fetchRoles();
-    }, []);
+    }, [currentPage]);
 
     const fetchRoles = async () => {
         try {
@@ -56,10 +59,16 @@ export default function AdminUsers() {
         }
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 1) => {
         try {
-            const { data } = await apiService.axiosInstance.get('/api/admin/users');
+            const { data } = await apiService.axiosInstance.get('/api/admin/users', {
+                params: { page }
+            });
             setUsers(data.data || data);
+            if (data.current_page) {
+                setCurrentPage(data.current_page);
+                setLastPage(data.last_page);
+            }
         } catch (error) {
             toast.error('Error al cargar usuarios');
         } finally {
@@ -72,7 +81,7 @@ export default function AdminUsers() {
         try {
             await apiService.axiosInstance.delete(`/api/admin/users/${id}`);
             toast.success('Usuario eliminado');
-            fetchUsers();
+            fetchUsers(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al eliminar');
         }
@@ -84,7 +93,7 @@ export default function AdminUsers() {
             await apiService.axiosInstance.post('/api/admin/users/bulk-delete', { ids: selectedList });
             toast.success('Usuarios eliminados correctamente');
             clear();
-            fetchUsers();
+            fetchUsers(currentPage);
         } catch (error) {
             toast.error('Error al realizar borrado masivo');
         }
@@ -98,7 +107,7 @@ export default function AdminUsers() {
             });
             toast.success(`${selectedCount} usuarios ${active ? 'activados' : 'desactivados'}`);
             clear();
-            fetchUsers();
+            fetchUsers(currentPage);
         } catch (error) {
             toast.error('Error al cambiar estado masivo');
         }
@@ -115,7 +124,7 @@ export default function AdminUsers() {
             });
             toast.success(`Rol actualizado para ${selectedCount} usuarios`);
             clear();
-            fetchUsers();
+            fetchUsers(currentPage);
         } catch (error) {
             toast.error('Error al cambiar rol masivo');
         }
@@ -152,7 +161,7 @@ export default function AdminUsers() {
  name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
 });
             setEditingUserId(null);
-            fetchUsers();
+            fetchUsers(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error guardando usuario');
         } finally {
@@ -345,6 +354,12 @@ className={cn(
                     </table>
                 </div>
             </div>
+
+            <AdminPagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={setCurrentPage}
+            />
 
             <BulkActionsToolbar
                 count={selectedCount}

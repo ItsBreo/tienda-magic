@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import AdminPagination from '@/components/admin/AdminPagination';
 
 interface AuditLog {
     id: number;
@@ -214,39 +215,11 @@ className={cn(
                     </table>
                 </div>
 
-                {lastPage > 1 && (
-                    <div className="px-8 py-6 bg-accent/20 border-t border-border flex justify-between items-center">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                            Página
-{' '}
-{currentPage}
-{' '}
-de
-{' '}
-{lastPage}
-                        </p>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={currentPage === 1}
-                                onClick={() => setCurrentPage((p) => p - 1)}
-                                className="h-9 px-4 border-border/50 font-black uppercase tracking-widest text-[9px] rounded-lg"
-                            >
-                                Anterior
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={currentPage === lastPage}
-                                onClick={() => setCurrentPage((p) => p + 1)}
-                                className="h-9 px-4 border-border/50 font-black uppercase tracking-widest text-[9px] rounded-lg"
-                            >
-                                Siguiente
-                            </Button>
-                        </div>
-                    </div>
-                )}
+            <AdminPagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={setCurrentPage}
+            />
             </div>
 
             <div className="mt-8 flex items-center justify-center gap-2 opacity-30">

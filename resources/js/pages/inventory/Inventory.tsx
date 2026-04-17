@@ -260,8 +260,10 @@ export default function Inventory() {
     const [packs, setPacks] = useState<InventoryPack[]>([]);
     const [stats, setStats] = useState({ totalCards: 0, totalPacks: 0 });
     const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [lastPage, setLastPage] = useState(1);
+    const [cardsPage, setCardsPage] = useState(1);
+    const [cardsLastPage, setCardsLastPage] = useState(1);
+    const [packsPage, setPacksPage] = useState(1);
+    const [packsLastPage, setPacksLastPage] = useState(1);
 
     // Filtros
     const [searchTerm, setSearchTerm] = useState('');
@@ -284,19 +286,29 @@ export default function Inventory() {
     const [amountToSeller, setAmountToSeller] = useState('');
     const [isSubmittingSell, setIsSubmittingSell] = useState(false);
 
-    const fetchInventory = async (page: number) => {
+    const fetchInventory = async (pageObj: { cards?: number, packs?: number } = {}) => {
         setLoading(true);
         try {
+            const page = pageObj.cards || cardsPage;
+            const pPage = pageObj.packs || packsPage;
             const setsParam = selectedSets.length > 0 ? selectedSets.join(',') : '';
+            
             const response = await apiService.axiosInstance.get('/api/inventory', {
                 params: {
- page, search: searchTerm, sets: setsParam, sort: sortBy,
-},
+                    page,
+                    packs_page: pPage,
+                    search: searchTerm,
+                    sets: setsParam,
+                    sort: sortBy,
+                },
             });
+            
             setItems(response.data?.inventoryCards?.data || []);
-            setPacks(response.data?.inventoryPacks || []);
-            setCurrentPage(response.data?.inventoryCards?.current_page || 1);
-            setLastPage(response.data?.inventoryCards?.last_page || 1);
+            setPacks(response.data?.inventoryPacks?.data || []);
+            setCardsPage(response.data?.inventoryCards?.current_page || 1);
+            setCardsLastPage(response.data?.inventoryCards?.last_page || 1);
+            setPacksPage(response.data?.inventoryPacks?.current_page || 1);
+            setPacksLastPage(response.data?.inventoryPacks?.last_page || 1);
             setStats(response.data?.stats || { totalCards: 0, totalPacks: 0 });
         } catch (error) {
             console.error('Inventory Fetch Error:', error);
@@ -308,12 +320,16 @@ export default function Inventory() {
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            fetchInventory(1);
+            fetchInventory({ cards: 1, packs: 1 });
         }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm, selectedSets, sortBy]);
 
-    useEffect(() => { fetchInventory(currentPage); }, [currentPage]);
+    useEffect(() => { 
+        // No fetch directly here if we want to distinguish which page changed, 
+        // but since fetchInventory fetches both, it's fine.
+        fetchInventory(); 
+    }, [cardsPage, packsPage]);
 
     const handleOpenPack = async (packId: number, count: number) => {
         try {
@@ -324,7 +340,7 @@ export default function Inventory() {
                 setIsOpeningModalOpen(true);
                 toast.success(response.data.message);
                 setSelectedPackForModal(null);
-                fetchInventory(currentPage);
+                fetchInventory();
             }
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Error al abrir');
@@ -357,7 +373,7 @@ export default function Inventory() {
                 navigate('/market');
             }, 1000);
 
-            fetchInventory(currentPage);
+            fetchInventory();
         } catch (error: any) {
             console.error('Error listing on market:', error);
             toast.error(error.response?.data?.message || 'Error al poner a la venta');
@@ -388,7 +404,7 @@ export default function Inventory() {
                             type="text"
                             placeholder="Buscar en inventario..."
                             value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCardsPage(1); setPacksPage(1); }}
                             className="pl-9 pr-4 bg-background border-border text-foreground focus-visible:ring-primary h-10 shadow-sm"
                         />
                     </div>
@@ -396,7 +412,7 @@ export default function Inventory() {
                     {/* Category toggle */}
                     <div className="flex bg-accent p-1 rounded-lg">
                         <button
-                            onClick={() => { setCategory('all'); setCurrentPage(1); }}
+                            onClick={() => { setCategory('all'); setCardsPage(1); setPacksPage(1); }}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                                 category === 'all' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
                             }`}
@@ -404,7 +420,7 @@ export default function Inventory() {
                             Todo
                         </button>
                         <button
-                            onClick={() => { setCategory('packs'); setCurrentPage(1); }}
+                            onClick={() => { setCategory('packs'); setCardsPage(1); setPacksPage(1); }}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                                 category === 'packs' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
                             }`}
@@ -412,7 +428,7 @@ export default function Inventory() {
                             Sobres
                         </button>
                         <button
-                            onClick={() => { setCategory('cards'); setCurrentPage(1); }}
+                            onClick={() => { setCategory('cards'); setCardsPage(1); setPacksPage(1); }}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                                 category === 'cards' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
                             }`}
@@ -425,7 +441,7 @@ export default function Inventory() {
                     <div className="flex items-center gap-2 ml-auto">
                         <select
                             value={sortBy}
-                            onChange={(e) => { setSortBy(e.target.value as any); setCurrentPage(1); }}
+                            onChange={(e) => { setSortBy(e.target.value as any); setCardsPage(1); setPacksPage(1); }}
                             className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-xs h-10 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm"
                         >
                             <option value="newest">Recientes</option>
@@ -454,7 +470,7 @@ export default function Inventory() {
 
                         {selectedSets.length > 0 && (
                             <button
-                                onClick={() => { setSelectedSets([]); setCurrentPage(1); }}
+                                onClick={() => { setSelectedSets([]); setCardsPage(1); setPacksPage(1); }}
                                 className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors px-2"
                                 title="Limpiar filtros"
                             >
@@ -543,28 +559,59 @@ Resultados
                 )}
             </div>
 
-            {/* PAGINACIÓN */}
-            {lastPage > 1 && (
-                <div className="flex items-center justify-center gap-4 mt-12 bg-card/50 backdrop-blur-md pb-10">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="font-bold border-border">Anterior</Button>
-                    <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(5, lastPage) }, (_, i) => {
-                            const p = i + 1;
-                            return (
-                                <button
-                                    key={p}
-                                    onClick={() => setCurrentPage(p)}
-                                    className={cn(
-                                        'w-8 h-8 rounded-lg text-[10px] font-black transition-all',
-                                        currentPage === p ? 'bg-primary text-primary-foreground' : 'bg-accent/40 text-muted-foreground hover:bg-accent',
-                                    )}
-                                >
-                                    {p}
-                                </button>
-                            );
-                        })}
+            {/* PAGINACIÓN CARTAS */}
+            {category !== 'packs' && cardsLastPage > 1 && (
+                <div className="flex flex-col items-center justify-center gap-2 mt-12 bg-card/50 backdrop-blur-md pb-6 border-t border-border pt-6">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Páginas de Cartas</p>
+                    <div className="flex items-center justify-center gap-4">
+                        <Button variant="outline" size="sm" onClick={() => setCardsPage((p) => Math.max(1, p - 1))} disabled={cardsPage === 1} className="font-bold border-border">Anterior</Button>
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: Math.min(5, cardsLastPage) }, (_, i) => {
+                                const p = i + 1;
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => setCardsPage(p)}
+                                        className={cn(
+                                            'w-8 h-8 rounded-lg text-[10px] font-black transition-all',
+                                            cardsPage === p ? 'bg-primary text-primary-foreground' : 'bg-accent/40 text-muted-foreground hover:bg-accent',
+                                        )}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setCardsPage((p) => Math.min(cardsLastPage, p + 1))} disabled={cardsPage === cardsLastPage} className="font-bold border-border">Siguiente</Button>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((p) => Math.min(lastPage, p + 1))} disabled={currentPage === lastPage} className="font-bold border-border">Siguiente</Button>
+                </div>
+            )}
+
+            {/* PAGINACIÓN SOBRES */}
+            {category !== 'cards' && packsLastPage > 1 && (
+                <div className="flex flex-col items-center justify-center gap-2 mt-8 bg-card/50 backdrop-blur-md pb-10 border-t border-border pt-6">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Páginas de Sobres</p>
+                    <div className="flex items-center justify-center gap-4">
+                        <Button variant="outline" size="sm" onClick={() => setPacksPage((p) => Math.max(1, p - 1))} disabled={packsPage === 1} className="font-bold border-border">Anterior</Button>
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: Math.min(5, packsLastPage) }, (_, i) => {
+                                const p = i + 1;
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPacksPage(p)}
+                                        className={cn(
+                                            'w-8 h-8 rounded-lg text-[10px] font-black transition-all',
+                                            packsPage === p ? 'bg-primary text-primary-foreground' : 'bg-accent/40 text-muted-foreground hover:bg-accent',
+                                        )}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setPacksPage((p) => Math.min(packsLastPage, p + 1))} disabled={packsPage === packsLastPage} className="font-bold border-border">Siguiente</Button>
+                    </div>
                 </div>
             )}
 
@@ -578,7 +625,7 @@ Resultados
                 onOpenPack={(qty) => selectedPackForModal && handleOpenPack(selectedPackForModal.id, qty)}
             />
 
-            <SetFilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} availableSets={availableSets} selectedSets={selectedSets} onApply={(selection) => { setSelectedSets(selection); setCurrentPage(1); }} accentColor="primary" />
+            <SetFilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} availableSets={availableSets} selectedSets={selectedSets} onApply={(selection) => { setSelectedSets(selection); setCardsPage(1); setPacksPage(1); }} accentColor="primary" />
 
             <PackOpeningModal
                 isOpen={isOpeningModalOpen}

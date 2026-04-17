@@ -141,9 +141,9 @@ class InventoryController extends Controller
                 case 'newest': default: $packQuery->orderBy('inventory_pack.id', 'desc'); break;
             }
 
-            $inventoryPacks = $packQuery->get();
+            $inventoryPacksPaginated = $packQuery->paginate(100, ['*'], 'packs_page');
 
-            $formattedPacks = $inventoryPacks->map(function($item) {
+            $formattedPacks = $inventoryPacksPaginated->through(function($item) {
                 return [
                     'id' => $item->id,
                     'quantity' => $item->quantity,

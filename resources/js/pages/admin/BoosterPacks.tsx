@@ -11,6 +11,7 @@ import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import AdminPagination from '@/components/admin/AdminPagination';
 
 interface BoosterPack {
     id: number;
@@ -31,6 +32,8 @@ export default function AdminBoosterPacks() {
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
 
     const [form, setForm] = useState({
         name: '',
@@ -51,10 +54,17 @@ export default function AdminBoosterPacks() {
         allSelected,
     } = useSelection(packs);
 
-    const fetchPacks = async () => {
+    const fetchPacks = async (page = 1) => {
         try {
-            const data = await apiService.getAdminBoosterPacks();
-            setPacks(data);
+            const data = await apiService.axiosInstance.get('/api/admin/booster-packs', {
+                params: { page }
+            }).then(res => res.data);
+            
+            setPacks(data.data || data);
+            if (data.current_page) {
+                setCurrentPage(data.current_page);
+                setLastPage(data.last_page);
+            }
         } catch (error) {
             toast.error('Error al cargar sobres');
         } finally {
@@ -63,15 +73,15 @@ export default function AdminBoosterPacks() {
     };
 
     useEffect(() => {
-        fetchPacks();
-    }, []);
+        fetchPacks(currentPage);
+    }, [currentPage]);
 
     const handleDelete = async (id: number) => {
         if (!window.confirm('¿Seguro que deseas eliminar este sobre del inventario?')) return;
         try {
             await apiService.deleteBoosterPack(id);
             toast.success('Producto eliminado del catálogo');
-            fetchPacks();
+            fetchPacks(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al eliminar');
         }
@@ -81,7 +91,7 @@ export default function AdminBoosterPacks() {
         try {
             await apiService.updateBoosterPack(pack.id, { is_active: !pack.is_active });
             toast.success(`Producto ${!pack.is_active ? 'activado' : 'desactivado'}`);
-            fetchPacks();
+            fetchPacks(currentPage);
         } catch (error: any) {
             toast.error('Error al cambiar estado');
         }
@@ -93,7 +103,7 @@ export default function AdminBoosterPacks() {
             await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-delete', { ids: selectedList });
             toast.success('Eliminación masiva completada');
             clear();
-            fetchPacks();
+            fetchPacks(currentPage);
         } catch (error) {
             toast.error('Error al realizar borrado masivo');
         }
@@ -107,7 +117,7 @@ export default function AdminBoosterPacks() {
             });
             toast.success(`${selectedCount} sobres ${active ? 'activados' : 'desactivados'}`);
             clear();
-            fetchPacks();
+            fetchPacks(currentPage);
         } catch (error) {
             toast.error('Error al cambiar estado masivo');
         }
@@ -129,7 +139,7 @@ export default function AdminBoosterPacks() {
             setForm({
  name: '', price: 0, card_set_id: '', type: 'booster', image_uri: '', is_active: true,
 });
-            fetchPacks();
+            fetchPacks(currentPage);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al guardar');
         } finally {
@@ -326,6 +336,12 @@ Oro
                     </table>
                 </div>
             </div>
+
+            <AdminPagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={setCurrentPage}
+            />
 
             <BulkActionsToolbar
                 count={selectedCount}
