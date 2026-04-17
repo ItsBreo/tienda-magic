@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -448,9 +449,33 @@ artículos
                     </div>
                 ) : (
                     // Normal grid view
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredListings.map(renderCard)}
-                    </div>
+                    <motion.div 
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                        initial="hidden"
+                        animate="show"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            show: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.05
+                                }
+                            }
+                        }}
+                    >
+                        {filteredListings.map((listing) => (
+                            <motion.div
+                                key={listing.id}
+                                variants={{
+                                    hidden: { opacity: 0, y: 20 },
+                                    show: { opacity: 1, y: 0 }
+                                }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                            >
+                                {renderCard(listing)}
+                            </motion.div>
+                        ))}
+                    </motion.div>
                 )}
 
                 {/* PAGINACIÓN */}

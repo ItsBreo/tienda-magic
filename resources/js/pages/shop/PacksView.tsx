@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -203,7 +204,12 @@ export default function PacksView() {
     }, [currentData, selectedSets, availableSets]);
 
     return (
-        <div className="flex-1 text-foreground pb-20">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex-1 text-foreground pb-20"
+        >
             {/* Toolbar */}
             <div className="bg-background/40 backdrop-blur-md border-b border-border sticky top-[60px] z-40">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
@@ -391,6 +397,6 @@ export default function PacksView() {
                     onAction={() => handleAddToCartAction(selectedCard)}
                 />
             )}
-        </div>
+        </motion.div>
     );
 }

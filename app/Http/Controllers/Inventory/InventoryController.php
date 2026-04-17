@@ -91,7 +91,7 @@ class InventoryController extends Controller
                 case 'newest': default: $cardQuery->orderBy('inventory_card.id', 'desc'); break;
             }
 
-            $inventoryCardsPaginated = $cardQuery->paginate(100);
+            $inventoryCardsPaginated = $cardQuery->paginate(15);
 
             // Transfomar para paridad
             $inventoryCardsFormatted = $inventoryCardsPaginated->through(function($item) {
@@ -141,7 +141,7 @@ class InventoryController extends Controller
                 case 'newest': default: $packQuery->orderBy('inventory_pack.id', 'desc'); break;
             }
 
-            $inventoryPacksPaginated = $packQuery->paginate(100, ['*'], 'packs_page');
+            $inventoryPacksPaginated = $packQuery->paginate(15, ['*'], 'packs_page');
 
             $formattedPacks = $inventoryPacksPaginated->through(function($item) {
                 return [

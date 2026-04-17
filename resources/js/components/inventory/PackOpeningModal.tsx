@@ -140,42 +140,43 @@ export default function PackOpeningModal({
                                                                 className="relative aspect-[2.5/3.5] perspective-1000"
                                                                 onClick={() => !isRevealed && handleRevealPack(pack.index)}
                                                             >
-                                                                <motion.div
-                                                                    initial={false}
-                                                                    animate={{ rotateY: isRevealed ? 180 : 0 }}
-                                                                    transition={{
-                                                                        type: 'spring',
-                                                                        stiffness: 40,
-                                                                        damping: 12,
-                                                                        delay: isRevealed ? cardIdx * 0.08 : 0,
-                                                                    }}
-                                                                    style={{ transformStyle: 'preserve-3d' }}
-                                                                    className="w-full h-full relative"
-                                                                >
-                                                                    {/* BACK FACE (Hidden initially, visible when flipped) */}
-                                                                    <div
+                                                                <div className="w-full h-full relative">
+                                                                    <motion.div
+                                                                        initial={{ opacity: 1 }}
+                                                                        animate={{ opacity: isRevealed ? 0 : 1 }}
+                                                                        transition={{ duration: 0.3, delay: isRevealed ? cardIdx * 0.05 : 0 }}
                                                                         className={cn(
-                                                                            'absolute inset-0 backface-hidden rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/20 via-primary/5 to-background flex flex-col items-center justify-center gap-3 shadow-xl cursor-not-allowed group/card',
+                                                                            'absolute inset-0 z-20 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/20 via-primary/5 to-background flex flex-col items-center justify-center gap-3 shadow-xl cursor-not-allowed group/card',
                                                                             !isRevealed && 'cursor-pointer hover:border-primary transition-colors',
                                                                         )}
-                                                                        style={{ transform: 'rotateY(0deg)' }}
                                                                     >
                                                                         <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center animate-pulse group-hover/card:bg-primary/40 transition-colors">
                                                                             <Sparkles className="w-7 h-7 text-primary" />
                                                                         </div>
                                                                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(var(--primary),0.1)_100%)] opacity-50" />
                                                                         <span className="text-[10px] font-black text-primary/70 uppercase tracking-widest z-10">Revelar</span>
-                                                                    </div>
+                                                                    </motion.div>
 
                                                                     {/* FRONT FACE (The Card) */}
-                                                                    <div
+                                                                    <motion.div
+                                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                                        animate={{ 
+                                                                            opacity: isRevealed ? 1 : 0,
+                                                                            scale: isRevealed ? 1 : 0.8
+                                                                        }}
+                                                                        transition={{ 
+                                                                            duration: 0.4, 
+                                                                            delay: isRevealed ? cardIdx * 0.05 : 0,
+                                                                            type: "spring",
+                                                                            damping: 15,
+                                                                            stiffness: 100
+                                                                        }}
                                                                         className={cn(
-                                                                            'absolute inset-0 backface-hidden rounded-xl overflow-hidden border shadow-2xl bg-card',
+                                                                            'absolute inset-0 z-10 rounded-xl overflow-hidden border shadow-2xl bg-card',
                                                                             isMythic ? 'border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.4)]'
                                                                             : isRare ? 'border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.3)]'
                                                                             : 'border-border',
                                                                         )}
-                                                                        style={{ transform: 'rotateY(180deg)' }}
                                                                     >
                                                                         {imageSrc ? (
                                                                             <img
@@ -216,8 +217,8 @@ export default function PackOpeningModal({
                                                                                 className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 z-10"
                                                                             />
                                                                         )}
-                                                                    </div>
-                                                                </motion.div>
+                                                                    </motion.div>
+                                                                </div>
                                                             </div>
                                                         );
                                                     })}

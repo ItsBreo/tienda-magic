@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { UserAvatar } from '@/components/common/UserAvatar';
+import { motion } from 'framer-motion';
 
 interface ThreadDetailViewProps {
   post: Post;
@@ -93,7 +94,12 @@ export default function ThreadDetailView({
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col shadow-2xl shadow-black/10">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="bg-card border border-border rounded-xl overflow-hidden flex flex-col shadow-2xl shadow-black/10"
+    >
       <div className="p-4 bg-accent/40 border-b border-border flex justify-between items-center gap-4">
         <div className="flex items-center gap-4">
           <button onClick={onBack} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all group font-montserrat">
@@ -294,6 +300,6 @@ Comentarios (
           ]}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -131,7 +132,11 @@ export default function WalletPage() {
     if (!user) {
         return (
             <div className="min-h-[80vh] flex items-center justify-center p-6">
-                <div className="text-center max-w-sm animate-in fade-in zoom-in duration-500">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center max-w-sm"
+                >
                     <div className="w-24 h-24 bg-card/40 backdrop-blur-md border border-border rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl">
                         <Wallet className="w-12 h-12 text-muted-foreground/30" strokeWidth={1.5} />
                     </div>
@@ -140,7 +145,7 @@ export default function WalletPage() {
                     <Button onClick={() => navigate('/login')} className="w-full h-12 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
                         Entrar al Sistema
                     </Button>
-                </div>
+                </motion.div>
             </div>
         );
     }
@@ -198,7 +203,11 @@ Entrega Instantánea
                     <div className="lg:col-span-8 space-y-12">
 
                          {/* RECHARGE SECTION AT THE TOP OF THIS COLUMN */}
-                         <section className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                         <motion.section 
+                             initial={{ opacity: 0, y: 20 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             className="space-y-8"
+                         >
                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
                                  <div className="flex items-center gap-4">
                                      <div className="p-3 bg-primary/10 rounded-xl"><Coins className="w-6 h-6 text-primary" /></div>
@@ -207,17 +216,20 @@ Entrega Instantánea
                                          <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-widest opacity-60">Aumenta tus riquezas de Planeswalker</p>
                                      </div>
                                  </div>
-                                 <Badge variant="outline" className="h-10 px-4 py-0 bg-accent/20 border-border text-[9px] font-black uppercase tracking-widest flex items-center gap-2 self-start md:self-center">
+                                 <Badge variant="outline" className="h-10 px-4 py-0 bg-accent/20 border-border text-[9px) font-black uppercase tracking-widest flex items-center gap-2 self-start md:self-center">
                                      <ShieldCheck size={14} className="text-emerald-500" />
-{' '}
-Transacciones Encriptadas
-</Badge>
+                                     {' '}
+                                     Transacciones Encriptadas
+                                 </Badge>
                              </div>
 
                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                 {RECHARGE_AMOUNTS.map((option) => (
-                                     <button
+                                 {RECHARGE_AMOUNTS.map((option, idx) => (
+                                     <motion.button
                                          key={option.amount}
+                                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                         animate={{ opacity: 1, scale: 1, y: 0 }}
+                                         transition={{ delay: idx * 0.1 }}
                                          onClick={() => handleRecharge(option.amount)}
                                          disabled={loading}
                                          className={cn(
@@ -235,19 +247,19 @@ Transacciones Encriptadas
                                                  {option.bonus && (
                                                      <Badge className="bg-primary text-primary-foreground text-[8px] font-black uppercase tracking-tighter px-1.5 h-4 mb-2">
                                                          {option.bonus}
-{' '}
-BONUS
-</Badge>
+                                                         {' '}
+                                                         BONUS
+                                                     </Badge>
                                                  )}
                                                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center opacity-60 group-hover:opacity-100 transition-opacity">
                                                      {option.description}
                                                  </span>
                                              </>
                                          )}
-                                     </button>
+                                     </motion.button>
                                  ))}
                              </div>
-                         </section>
+                         </motion.section>
 
                          {/* HISTORY SECTION BELOW RECHARGE */}
                          <section className="space-y-6 pt-4">
@@ -410,43 +422,57 @@ BONUS
                 </div>
             </main>
 
-            {/* Success Overlay */}
-            {showSuccessOverlay && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/60 backdrop-blur-md animate-in fade-in duration-500">
-                    <div className="max-w-md w-full bg-card/80 backdrop-blur-2xl border border-primary/30 rounded-3xl p-10 text-center shadow-[0_0_50px_rgba(108,92,231,0.2)] animate-in zoom-in duration-500">
-                        <div className="mb-8 flex justify-center">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-                                <div className="relative bg-primary/10 border border-primary/20 p-5 rounded-full">
-                                    <CheckCircle className="w-16 h-16 text-primary animate-in zoom-in duration-700 ease-out" />
+             {/* Success Overlay */}
+             <AnimatePresence>
+                {showSuccessOverlay && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-background/60 backdrop-blur-md"
+                            onClick={() => setShowSuccessOverlay(false)}
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="max-w-md w-full bg-card/80 backdrop-blur-2xl border border-primary/30 rounded-3xl p-10 text-center shadow-[0_0_50px_rgba(var(--primary),0.2)] relative z-10"
+                        >
+                            <div className="mb-8 flex justify-center">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                                    <div className="relative bg-primary/10 border border-primary/20 p-5 rounded-full">
+                                        <CheckCircle className="w-16 h-16 text-primary" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <h2 className="text-3xl font-forum font-bold mb-4 text-foreground tracking-tight">
-                            ¡Riquezas Recibidas!
-                        </h2>
-                        
-                        <p className="text-muted-foreground mb-10 text-lg font-literata italic opacity-80 leading-relaxed">
-                            El oro ha sido transferido a tu bóveda con éxito. Tu balance ha sido actualizado por las fuerzas del Multiverso.
-                        </p>
+                            <h2 className="text-3xl font-forum font-bold mb-4 text-foreground tracking-tight">
+                                ¡Riquezas Recibidas!
+                            </h2>
+                            
+                            <p className="text-muted-foreground mb-10 text-lg font-literata italic opacity-80 leading-relaxed">
+                                El oro ha sido transferido a tu bóveda con éxito. Tu balance ha sido actualizado por las fuerzas del Multiverso.
+                            </p>
 
-                        <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-10">
-                            <div className="flex items-center justify-center gap-2">
-                                <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Transferencia Verificada</span>
+                            <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-10">
+                                <div className="flex items-center justify-center gap-2">
+                                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Transferencia Verificada</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <Button 
-                            onClick={() => setShowSuccessOverlay(false)}
-                            className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-95"
-                        >
-                            Continuar Explorando
-                        </Button>
+                            <Button 
+                                onClick={() => setShowSuccessOverlay(false)}
+                                className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-95"
+                            >
+                                Continuar Explorando
+                            </Button>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+             </AnimatePresence>
         </div>
     );
 }

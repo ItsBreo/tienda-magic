@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 // Importar componentes modulares
 import PackCard from './PackCard';
@@ -41,17 +42,37 @@ function PacksGrid({
   return (
     <>
       {/* Grid de items */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8">
+      <motion.div 
+        initial="hidden"
+        animate="show"
+        variants={{
+            hidden: { opacity: 0 },
+            show: {
+                opacity: 1,
+                transition: {
+                    staggerChildren: 0.05
+                }
+            }
+        }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8"
+      >
         {packs.map((pack: Pack) => (
-          <PackCard
+          <motion.div
             key={pack.id}
-            pack={pack}
-            onClick={() => onPackClick(pack)}
-            onBuyPack={(item, quantity) => onBuyPack(item, quantity)}
-            searchTerm={searchTerm}
-          />
+            variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 }
+            }}
+          >
+            <PackCard
+              pack={pack}
+              onClick={() => onPackClick(pack)}
+              onBuyPack={(item, quantity) => onBuyPack(item, quantity)}
+              searchTerm={searchTerm}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Paginación */}
       {totalPages > 1 && (

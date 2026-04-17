@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { apiService } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -131,9 +132,30 @@ export default function Exchanges() {
         </div>
 
         {/* Grid de ofertas estilo Marketplace */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.05
+              }
+            }
+          }}
+        >
           {(exchanges || []).map((exchange: any) => (
-            <div key={exchange.id} className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card/40 backdrop-blur-md w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1">
+            <motion.div
+              key={exchange.id}
+              variants={{
+                hidden: { opacity: 0, scale: 0.98, y: 10 },
+                show: { opacity: 1, scale: 1, y: 0 }
+              }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card/40 backdrop-blur-md w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1"
+            >
 
               {/* Contenedor de Imagen de lo que OFRECE */}
               <div className="group/img flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden">
@@ -203,177 +225,205 @@ export default function Exchanges() {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
           {(!exchanges || exchanges.length === 0) && (
             <div className="col-span-full flex flex-col items-center justify-center py-20 bg-accent/30 rounded-3xl border border-dashed border-border opacity-60">
               <p className="text-foreground text-lg uppercase tracking-widest font-black">No hay intercambios disponibles</p>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Modal para Hacer una Oferta */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
-          <div className="relative z-[70] bg-card/60 backdrop-blur-md border border-border p-8 rounded-3xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <h2 className="text-2xl font-forum font-bold mb-2 text-foreground uppercase tracking-tight">Proponer Intercambio</h2>
-            <p className="text-muted-foreground text-sm mb-6">
-Ofrece una carta a
-<span className="text-primary font-bold">{selectedExchange?.user?.name}</span>
-.
-</p>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md" 
+              onClick={() => setIsModalOpen(false)} 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative z-[70] bg-card/60 backdrop-blur-md border border-border p-8 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
+            >
+              <h2 className="text-2xl font-forum font-bold mb-2 text-foreground uppercase tracking-tight">Proponer Intercambio</h2>
+              <p className="text-muted-foreground text-sm mb-6">
+  Ofrece una carta a
+  <span className="text-primary font-bold">{selectedExchange?.user?.name}</span>
+  .
+  </p>
 
-            <div className="mb-6 space-y-2">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Carta a ofrecer</label>
-              <select
-                className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none transition-all"
-                value={selectedInventoryCardId}
-                onChange={(e) => setSelectedInventoryCardId(e.target.value)}
-                disabled={loadingInventory}
-              >
-                <option value="">{loadingInventory ? 'Actualizando inventario...' : '-- Elige una carta de tu colección --'}</option>
-                {!loadingInventory && (inventory || []).filter((inv: any) => {
-                  const available = inv.quantity - inv.quantity_locked;
-                  if (available <= 0) return false;
-                  if (selectedExchange?.requested_card_id) {
-                    return inv.card_id === selectedExchange.requested_card_id;
-                  }
-                  return true;
-                }).map((inv: any) => {
-                  const available = inv.quantity - inv.quantity_locked;
-                  return (
-                    <option key={`inv-${inv.id}`} value={inv.id}>
-                      {inv.card?.name}
-{' '}
-(
-{available}
-{' '}
-disp.)
-</option>
-                  );
-                })}
-              </select>
+              <div className="mb-6 space-y-2">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Carta a ofrecer</label>
+                <select
+                  className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  value={selectedInventoryCardId}
+                  onChange={(e) => setSelectedInventoryCardId(e.target.value)}
+                  disabled={loadingInventory}
+                >
+                  <option value="">{loadingInventory ? 'Actualizando inventario...' : '-- Elige una carta de tu colección --'}</option>
+                  {!loadingInventory && (inventory || []).filter((inv: any) => {
+                    const available = inv.quantity - inv.quantity_locked;
+                    if (available <= 0) return false;
+                    if (selectedExchange?.requested_card_id) {
+                      return inv.card_id === selectedExchange.requested_card_id;
+                    }
+                    return true;
+                  }).map((inv: any) => {
+                    const available = inv.quantity - inv.quantity_locked;
+                    return (
+                      <option key={`inv-${inv.id}`} value={inv.id}>
+                        {inv.card?.name}
+  {' '}
+  (
+  {available}
+  {' '}
+  disp.)
+  </option>
+                    );
+                  })}
+                </select>
 
-              {selectedExchange?.requested_card_id && (inventory || []).filter((inv) => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0 && (
-                <p className="text-[10px] text-destructive uppercase font-black tracking-widest mt-2">
-                  No tienes la carta requerida.
-                </p>
-              )}
-            </div>
+                {selectedExchange?.requested_card_id && (inventory || []).filter((inv) => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0 && (
+                  <p className="text-[10px] text-destructive uppercase font-black tracking-widest mt-2">
+                    No tienes la carta requerida.
+                  </p>
+                )}
+              </div>
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 bg-accent border border-border hover:bg-background text-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={submitRequest}
-                disabled={selectedExchange?.requested_card_id && (inventory || []).filter((inv) => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0}
-                className="flex-1 bg-primary border border-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all disabled:opacity-50"
-              >
-                Enviar Oferta
-              </button>
-            </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 bg-accent border border-border hover:bg-background text-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={submitRequest}
+                  disabled={selectedExchange?.requested_card_id && (inventory || []).filter((inv) => inv.card_id === selectedExchange.requested_card_id && (inv.quantity - inv.quantity_locked) > 0).length === 0}
+                  className="flex-1 bg-primary border border-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all disabled:opacity-50"
+                >
+                  Enviar Oferta
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Modal para Crear Publicación */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsCreateModalOpen(false)} />
-          <div className="relative z-[70] bg-card/60 backdrop-blur-md border border-border p-8 rounded-3xl w-full max-w-[500px] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <h2 className="text-2xl font-forum font-bold mb-2 text-foreground uppercase tracking-tight">Publicar Oferta</h2>
-            <p className="text-muted-foreground text-sm mb-6">Ofrece una carta y opcionalmente pide otra.</p>
+      <AnimatePresence>
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md" 
+              onClick={() => setIsCreateModalOpen(false)} 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative z-[70] bg-card/60 backdrop-blur-md border border-border p-8 rounded-3xl w-full max-w-[500px] shadow-2xl overflow-hidden"
+            >
+              <h2 className="text-2xl font-forum font-bold mb-2 text-foreground uppercase tracking-tight">Publicar Oferta</h2>
+              <p className="text-muted-foreground text-sm mb-6">Ofrece una carta y opcionalmente pide otra.</p>
 
-            <div className="space-y-4 mb-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-primary uppercase tracking-widest">¿Qué ofreces?</label>
-                <select
-                  className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none"
-                  value={newOfferCardId}
-                  onChange={(e) => setNewOfferCardId(e.target.value)}
-                >
-                  <option value="">-- Elige qué darás (Requerido) --</option>
-                  {(inventory || []).map((inv: any) => {
-                    const available = inv.quantity - inv.quantity_locked;
-                    if (available <= 0) return null;
-                    return (
-                    <option key={`off-${inv.id}`} value={inv.id}>
-                      {inv.card?.name}
-{' '}
-(
-{available}
-{' '}
-disp.)
-</option>
-                  );
-})}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-primary uppercase tracking-widest">¿Qué quieres a cambio?</label>
-
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        placeholder="Buscar carta..."
-                        className="flex-1 bg-background border border-border text-sm font-medium text-foreground p-2 rounded-lg focus:ring-1 focus:ring-primary outline-none"
-                        value={cardSearch}
-                        onChange={(e) => setCardSearch(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') loadGenericCards(cardSearch); }}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => loadGenericCards(cardSearch)}
-                        className="bg-accent text-foreground hover:bg-primary/20 hover:text-primary border border-border px-4 rounded-lg text-xs font-black uppercase tracking-widest"
-                    >
-                        Buscar
-                    </button>
+              <div className="space-y-4 mb-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest">¿Qué ofreces?</label>
+                  <select
+                    className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none"
+                    value={newOfferCardId}
+                    onChange={(e) => setNewOfferCardId(e.target.value)}
+                  >
+                    <option value="">-- Elige qué darás (Requerido) --</option>
+                    {(inventory || []).map((inv: any) => {
+                      const available = inv.quantity - inv.quantity_locked;
+                      if (available <= 0) return null;
+                      return (
+                      <option key={`off-${inv.id}`} value={inv.id}>
+                        {inv.card?.name}
+  {' '}
+  (
+  {available}
+  {' '}
+  disp.)
+  </option>
+                    );
+  })}
+                  </select>
                 </div>
 
-                <select
-                  className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none"
-                  value={newRequestCardId}
-                  onChange={(e) => setNewRequestCardId(e.target.value)}
-                >
-                  <option value="">Cualquier carta (Abierto a ofertas)</option>
-                  {(genericCards || []).map((c: any) => (
-                    <option key={`req-${c.id}`} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">O déjalo en 'Cualquier carta' para ofertas libres.</p>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest">¿Qué quieres a cambio?</label>
 
-            <div className="flex gap-3 mt-8">
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="flex-1 bg-accent border border-border hover:bg-background text-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={submitCreateListing}
-                className="flex-1 bg-primary border border-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all"
-              >
-                Publicar
-              </button>
-            </div>
+                  <div className="flex gap-2">
+                      <input
+                          type="text"
+                          placeholder="Buscar carta..."
+                          className="flex-1 bg-background border border-border text-sm font-medium text-foreground p-2 rounded-lg focus:ring-1 focus:ring-primary outline-none"
+                          value={cardSearch}
+                          onChange={(e) => setCardSearch(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') loadGenericCards(cardSearch); }}
+                      />
+                      <button
+                          type="button"
+                          onClick={() => loadGenericCards(cardSearch)}
+                          className="bg-accent text-foreground hover:bg-primary/20 hover:text-primary border border-border px-4 rounded-lg text-xs font-black uppercase tracking-widest"
+                      >
+                          Buscar
+                      </button>
+                  </div>
+
+                  <select
+                    className="w-full bg-background border border-border text-sm font-medium text-foreground p-3 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none"
+                    value={newRequestCardId}
+                    onChange={(e) => setNewRequestCardId(e.target.value)}
+                  >
+                    <option value="">Cualquier carta (Abierto a ofertas)</option>
+                    {(genericCards || []).map((c: any) => (
+                      <option key={`req-${c.id}`} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">O déjalo en 'Cualquier carta' para ofertas libres.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="flex-1 bg-accent border border-border hover:bg-background text-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={submitCreateListing}
+                  className="flex-1 bg-primary border border-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all"
+                >
+                  Publicar
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

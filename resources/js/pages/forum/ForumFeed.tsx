@@ -3,6 +3,7 @@ import { Loader2, Flame, Sparkles, TrendingUp, Trash2, Scroll } from 'lucide-rea
 import { Post, Category, SortMode } from './types';
 import { CAT_LABELS, SORT_LABELS } from './constants';
 import PostCard from './PostCard';
+import { motion, AnimatePresence } from 'framer-motion';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { cn } from '@/lib/utils';
 
@@ -124,7 +125,20 @@ Magic Forum
           <p className="font-medium">Cargando hilos del foro...</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <motion.div 
+          className="space-y-3"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.05
+              }
+            }
+          }}
+        >
           {posts.length === 0 ? (
             <div className="p-20 text-center opacity-40 flex flex-col items-center">
               <Scroll className="w-12 h-12 mb-4 text-muted-foreground/30" />
@@ -132,20 +146,28 @@ Magic Forum
             </div>
           ) : (
             posts.map((post) => (
-              <PostCard
+              <motion.div
                 key={post.id}
-                post={post}
-                onOpen={() => onOpenThread(post)}
-                onDeleteSuccess={onDeleteSuccess}
-                selection={{
-                  isSelected: selection?.isSelected(post.id) || false,
-                  toggle: () => selection?.toggle(post.id),
-                  isMod: selection?.isMod || false,
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  show: { opacity: 1, y: 0 }
                 }}
-              />
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                <PostCard
+                  post={post}
+                  onOpen={() => onOpenThread(post)}
+                  onDeleteSuccess={onDeleteSuccess}
+                  selection={{
+                    isSelected: selection?.isSelected(post.id) || false,
+                    toggle: () => selection?.toggle(post.id),
+                    isMod: selection?.isMod || false,
+                  }}
+                />
+              </motion.div>
             ))
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* Pagination Controls */}

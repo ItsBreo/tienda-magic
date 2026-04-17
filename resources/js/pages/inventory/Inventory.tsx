@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     Search, Lock, Image as ImageIcon,
@@ -16,6 +17,7 @@ import PackOpeningModal from '@/components/inventory/PackOpeningModal';
 import { useTitle } from '@/hooks/useTitle';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import PackDialog from '@/components/packs/PackDialog';
+import PacksPagination from '@/components/packs/PacksPagination';
 import CardDetailModal from '@/components/common/CardDetailModal';
 import {
     Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -503,17 +505,37 @@ export default function Inventory() {
 Resultados
 </span>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                                <motion.div 
+                                    initial="hidden"
+                                    animate="show"
+                                    variants={{
+                                        hidden: { opacity: 0 },
+                                        show: {
+                                            opacity: 1,
+                                            transition: {
+                                                staggerChildren: 0.05
+                                            }
+                                        }
+                                    }}
+                                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
+                                >
                                     {packs.map((p) => (
-                                        <InventoryPackCard
+                                        <motion.div
                                             key={p.id}
-                                            pack={p}
-                                            searchTerm={searchTerm}
-                                            onView={() => setSelectedPackForModal(p)}
-                                            onSell={(id, name) => { setSelectedItemForSell({ id, name, type: 'pack' }); setIsSellDialogOpen(true); }}
-                                        />
+                                            variants={{
+                                                hidden: { opacity: 0, y: 20 },
+                                                show: { opacity: 1, y: 0 }
+                                            }}
+                                        >
+                                            <InventoryPackCard
+                                                pack={p}
+                                                searchTerm={searchTerm}
+                                                onView={() => setSelectedPackForModal(p)}
+                                                onSell={(id, name) => { setSelectedItemForSell({ id, name, type: 'pack' }); setIsSellDialogOpen(true); }}
+                                            />
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             </div>
                         )}
 
@@ -530,18 +552,38 @@ Resultados
 {' '}
 Resultados
 </span>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                                    </div>
+                                    <motion.div 
+                                    initial="hidden"
+                                    animate="show"
+                                    variants={{
+                                        hidden: { opacity: 0 },
+                                        show: {
+                                            opacity: 1,
+                                            transition: {
+                                                staggerChildren: 0.03
+                                            }
+                                        }
+                                    }}
+                                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
+                                >
                                     {items.map((i) => (
-                                        <InventoryCardItem
+                                        <motion.div
                                             key={i.id}
-                                            item={i}
-                                            searchTerm={searchTerm}
-                                            onView={(card) => { setSelectedCardForModal(card); }}
-                                            onSell={(id, name) => { setSelectedItemForSell({ id, name, type: 'card' }); setIsSellDialogOpen(true); }}
-                                        />
+                                            variants={{
+                                                hidden: { opacity: 0, y: 20 },
+                                                show: { opacity: 1, y: 0 }
+                                            }}
+                                        >
+                                            <InventoryCardItem
+                                                item={i}
+                                                searchTerm={searchTerm}
+                                                onView={(card) => { setSelectedCardForModal(card); }}
+                                                onSell={(id, name) => { setSelectedItemForSell({ id, name, type: 'card' }); setIsSellDialogOpen(true); }}
+                                            />
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             </div>
                         )}
 
@@ -561,57 +603,27 @@ Resultados
 
             {/* PAGINACIÓN CARTAS */}
             {category !== 'packs' && cardsLastPage > 1 && (
-                <div className="flex flex-col items-center justify-center gap-2 mt-12 bg-card/50 backdrop-blur-md pb-6 border-t border-border pt-6">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Páginas de Cartas</p>
-                    <div className="flex items-center justify-center gap-4">
-                        <Button variant="outline" size="sm" onClick={() => setCardsPage((p) => Math.max(1, p - 1))} disabled={cardsPage === 1} className="font-bold border-border">Anterior</Button>
-                        <div className="flex items-center gap-1">
-                            {Array.from({ length: Math.min(5, cardsLastPage) }, (_, i) => {
-                                const p = i + 1;
-                                return (
-                                    <button
-                                        key={p}
-                                        onClick={() => setCardsPage(p)}
-                                        className={cn(
-                                            'w-8 h-8 rounded-lg text-[10px] font-black transition-all',
-                                            cardsPage === p ? 'bg-primary text-primary-foreground' : 'bg-accent/40 text-muted-foreground hover:bg-accent',
-                                        )}
-                                    >
-                                        {p}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => setCardsPage((p) => Math.min(cardsLastPage, p + 1))} disabled={cardsPage === cardsLastPage} className="font-bold border-border">Siguiente</Button>
-                    </div>
+                <div className="border-t border-border mt-12">
+                    <PacksPagination
+                        currentPage={cardsPage}
+                        totalPages={cardsLastPage}
+                        totalPacks={stats.totalCards}
+                        onPageChange={setCardsPage}
+                        category="cards"
+                    />
                 </div>
             )}
 
             {/* PAGINACIÓN SOBRES */}
             {category !== 'cards' && packsLastPage > 1 && (
-                <div className="flex flex-col items-center justify-center gap-2 mt-8 bg-card/50 backdrop-blur-md pb-10 border-t border-border pt-6">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Páginas de Sobres</p>
-                    <div className="flex items-center justify-center gap-4">
-                        <Button variant="outline" size="sm" onClick={() => setPacksPage((p) => Math.max(1, p - 1))} disabled={packsPage === 1} className="font-bold border-border">Anterior</Button>
-                        <div className="flex items-center gap-1">
-                            {Array.from({ length: Math.min(5, packsLastPage) }, (_, i) => {
-                                const p = i + 1;
-                                return (
-                                    <button
-                                        key={p}
-                                        onClick={() => setPacksPage(p)}
-                                        className={cn(
-                                            'w-8 h-8 rounded-lg text-[10px] font-black transition-all',
-                                            packsPage === p ? 'bg-primary text-primary-foreground' : 'bg-accent/40 text-muted-foreground hover:bg-accent',
-                                        )}
-                                    >
-                                        {p}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => setPacksPage((p) => Math.min(packsLastPage, p + 1))} disabled={packsPage === packsLastPage} className="font-bold border-border">Siguiente</Button>
-                    </div>
+                <div className="border-t border-border mt-8">
+                    <PacksPagination
+                        currentPage={packsPage}
+                        totalPages={packsLastPage}
+                        totalPacks={stats.totalPacks}
+                        onPageChange={setPacksPage}
+                        category="packs"
+                    />
                 </div>
             )}
 

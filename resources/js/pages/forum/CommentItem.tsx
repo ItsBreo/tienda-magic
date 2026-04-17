@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from 'framer-motion';
 import { Comment, Reply } from "./types";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -148,7 +149,12 @@ Comentario oculto · puntuación
   }
 
   return (
-    <div className="relative">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="relative"
+    >
       <div className={`py-4 px-4 border-b border-border/30 transition-all group ${selection?.isSelected(item.id) ? 'bg-primary/5' : ''} ${depth > 0 ? 'ml-6 md:ml-12 border-l border-border/60 bg-accent/5' : ''}`}>
 
         {/* Nivel de anidación superior con línea visual */}
@@ -307,7 +313,7 @@ Eliminar
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
