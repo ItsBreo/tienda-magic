@@ -14,16 +14,11 @@ import {
 import PackOpeningModal from '@/components/inventory/PackOpeningModal';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import PackDialog from '@/components/packs/PackDialog';
+import CardDetailModal from '@/components/common/CardDetailModal';
 import {
     Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-
-/* 
-  VERSION: 3.2 - FULL LOGIC FIX
-  - Fixed search/sort/filter (parity with refined backend)
-  - Integrated Carousel response for pack opening
-*/
 
 interface SetData {
     id: number;
@@ -50,6 +45,8 @@ interface CardData {
     image_uris?: any;
     market_avg_price?: number;
     set: SetData;
+    oracle_text?: string;
+    type_line?: string;
 }
 
 interface InventoryItem {
@@ -69,7 +66,10 @@ interface InventoryPack {
     booster_pack: BoosterPackData;
 }
 
-// --- Componente de Card (Paridad con PackCard de la Tienda) ---
+// Limpiador estricto de DRAFT
+const cleanDraftName = (name: string) => name.replace(/\[DRAFT\]|\(DRAFT\)|DRAFT/gi, '').trim();
+
+// --- Componente de Card Pack ---
 function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
     pack: InventoryPack;
     searchTerm: string;
@@ -78,11 +78,11 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
 }) {
     const data = pack.booster_pack;
     const setIcon = data.set?.icon_svg_uri;
-    const cleanName = data.name.replace(/\(DRAFT\)|DRAFT/gi, '').trim();
+    const cleanName = cleanDraftName(data.name);
 
     return (
-        <div className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1">
-            <div className="group/img cursor-pointer flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden" onClick={() => onView(pack.id)}>
+        <div className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1 h-full">
+            <div className="group/img cursor-pointer flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden shrink-0" onClick={() => onView(pack.id)}>
                 {data.image_uri ? (
                     <img src={data.image_uri} alt={cleanName} className="group-hover/img:scale-110 transition-transform duration-500 max-h-full object-contain drop-shadow-md" />
                 ) : (
@@ -100,9 +100,9 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
                 )}
             </div>
 
-            <div className="mt-4 flex flex-col flex-1">
+            <div className="mt-4 flex flex-col flex-1 h-full">
                 <div className="flex justify-between items-start gap-2 mb-1">
-                    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 min-h-[2.5rem] flex-1 uppercase tracking-tight">
+                    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 h-14 flex-1 uppercase tracking-tight">
                         <HighlightedText text={cleanName} highlight={searchTerm} />
                     </h3>
                     {setIcon && (
@@ -116,12 +116,12 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
                     </span>
                 </div>
 
-                <div className="flex flex-col gap-2 w-full md:w-auto">
+                <div className="flex flex-col gap-2 w-full mt-auto pt-4">
                     <Button 
                         variant="ghost"
                         size="sm"
-                        onClick={() => onSell(pack.id, data.name)}
-                        className="h-9 px-4 bg-accent/50 text-foreground hover:bg-primary/20 hover:text-primary font-black uppercase tracking-widest text-[9px] rounded-lg transition-all border border-border/60"
+                        onClick={() => onSell(pack.id, cleanName)}
+                        className="h-9 w-full bg-accent/50 text-foreground hover:bg-primary/20 hover:text-primary font-black uppercase tracking-widest text-[9px] rounded-lg transition-all border border-border/60"
                         disabled={pack.quantity <= pack.quantity_locked}
                     >
                         <DollarSign size={12} className="mr-1" />
@@ -133,7 +133,7 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
                         onClick={() => onView(pack.id)}
                         disabled={pack.quantity <= pack.quantity_locked}
                         className={cn(
-                            "h-9 px-4 font-black text-[10px] uppercase tracking-widest shadow-lg",
+                            "h-9 w-full font-black text-[10px] uppercase tracking-widest shadow-lg",
                             pack.quantity <= pack.quantity_locked 
                                 ? "bg-accent text-muted-foreground border-border cursor-not-allowed opacity-50" 
                                 : "bg-primary text-primary-foreground border-none hover:bg-primary/90 shadow-primary/20"
@@ -147,19 +147,22 @@ function InventoryPackCard({ pack, searchTerm, onView, onSell }: {
     );
 }
 
-function InventoryCardItem({ item, searchTerm, onSell }: {
+// --- Componente de Card Suelta ---
+function InventoryCardItem({ item, searchTerm, onSell, onView }: {
     item: InventoryItem;
     searchTerm: string;
     onSell: (id: number, name: string) => void;
+    onView: (card: CardData) => void;
 }) {
     const card = item.card;
     const img = card.image_uris?.normal || card.image_uri || card.image_url;
+    const cleanName = cleanDraftName(card.name);
 
     return (
-        <div className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1">
-             <div className="group/img flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden">
+        <div className="border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1 h-full">
+             <div className="group/img flex items-center cursor-pointer justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden shrink-0" onClick={() => onView(card)}>
                 {img ? (
-                    <img src={img} alt={card.name} className="group-hover/img:scale-105 transition-transform duration-500 max-h-full object-contain drop-shadow-md" />
+                    <img src={img} alt={cleanName} className="group-hover/img:scale-105 transition-transform duration-500 max-h-full object-contain drop-shadow-md" />
                 ) : (
                     <ImageIcon className="w-12 h-12 text-muted-foreground/40" />
                 )}
@@ -175,10 +178,10 @@ function InventoryCardItem({ item, searchTerm, onSell }: {
                 )}
              </div>
 
-             <div className="mt-4 flex flex-col flex-1">
+             <div className="mt-4 flex flex-col flex-1 h-full">
                 <div className="flex justify-between items-start gap-2 mb-1">
-                    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 min-h-[2.5rem] flex-1 uppercase tracking-tight">
-                        <HighlightedText text={card.name} highlight={searchTerm} />
+                    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 h-14 flex-1 uppercase tracking-tight">
+                        <HighlightedText text={cleanName} highlight={searchTerm} />
                     </h3>
                 </div>
 
@@ -188,16 +191,18 @@ function InventoryCardItem({ item, searchTerm, onSell }: {
                     </span>
                 </div>
 
-                <div className="flex items-end justify-between mt-auto pt-4">
-                    <div className="flex flex-col">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Mercado</p>
-                        <p className="md:text-lg text-base font-black text-foreground">€{card.market_avg_price?.toFixed(2) || '0.00'}</p>
+                <div className="flex flex-col w-full mt-auto pt-4 gap-2">
+                    <div className="flex items-end justify-between mb-2">
+                        <div className="flex flex-col">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Mercado</p>
+                            <p className="md:text-lg pl-0.5 text-base font-black text-foreground">€{card.market_avg_price?.toFixed(2) || '0.00'}</p>
+                        </div>
                     </div>
                     <Button 
                         variant="ghost"
                         size="sm"
-                        onClick={() => onSell(item.id, card.name)}
-                        className="h-9 px-4 bg-accent/50 text-foreground hover:bg-primary/20 hover:text-primary font-black uppercase tracking-widest text-[9px] rounded-lg transition-all border border-border/60"
+                        onClick={() => onSell(item.id, cleanName)}
+                        className="h-9 w-full bg-accent/50 text-foreground hover:bg-primary/20 hover:text-primary font-black uppercase tracking-widest text-[9px] rounded-lg transition-all border border-border/60"
                         disabled={item.quantity <= item.quantity_locked}
                     >
                         <DollarSign size={12} className="mr-1" />
@@ -217,15 +222,21 @@ export default function Inventory() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+    
+    // Filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSets, setSelectedSets] = useState<any[]>([]);
     const [sortBy, setSortBy] = useState<'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'newest'>('newest');
+    const [category, setCategory] = useState<'all' | 'packs' | 'cards'>('all');
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
     // Opening State
-    const [openedPacks, setOpenedPacks] = useState<any[]>([]); // Soportar estructura de carrusel
+    const [openedPacks, setOpenedPacks] = useState<any[]>([]); 
     const [isOpeningModalOpen, setIsOpeningModalOpen] = useState(false);
     const [selectedPackForModal, setSelectedPackForModal] = useState<InventoryPack | null>(null);
+
+    // Card Info State
+    const [selectedCardForModal, setSelectedCardForModal] = useState<CardData | null>(null);
 
     // Selling State
     const [isSellDialogOpen, setIsSellDialogOpen] = useState(false);
@@ -267,7 +278,7 @@ export default function Inventory() {
             setLoading(true);
             const response = await apiService.axiosInstance.post(`/api/inventory/packs/${packId}/open`, { count });
             if (response.data.success) {
-                setOpenedPacks(response.data.packs); // Nueva estructura de carrusel
+                setOpenedPacks(response.data.packs);
                 setIsOpeningModalOpen(true);
                 toast.success(response.data.message);
                 setSelectedPackForModal(null);
@@ -295,12 +306,11 @@ export default function Inventory() {
                 amount_to_seller: price
             });
             
-            toast.success(response.message || 'Carta puesta a la venta con éxito');
+            toast.success(response.message || 'Puesto a la venta con éxito');
             setIsSellDialogOpen(false);
             setSelectedItemForSell(null);
             setAmountToSeller('');
             
-            // Redirigir al mercado secundario después de un breve delay para que vean el toast
             setTimeout(() => {
                 navigate('/market');
             }, 1000);
@@ -316,39 +326,57 @@ export default function Inventory() {
 
     const availableSets = useMemo(() => {
         const setsMap = new Map();
-        // Recoger sets de los sobres y cartas cargados actualmente para el filtro
         packs.forEach(p => p.booster_pack?.set && setsMap.set(String(p.booster_pack.set.id), p.booster_pack.set));
         items.forEach(i => i.card?.set && setsMap.set(String(i.card.set.id), i.card.set));
         return Array.from(setsMap.values());
     }, [packs, items]);
 
+    const showPacks = category === 'all' || category === 'packs';
+    const showCards = category === 'all' || category === 'cards';
+
     return (
         <div className="flex-1 bg-background text-foreground pb-20">
-            {/* Toolbar (Exact Parity with Shop) */}
+            {/* Toolbar (Parity with Shop) */}
             <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[72px] md:top-[88px] z-40">
-                <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-4">
+                <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
                     {/* Search */}
-                    <div className="relative flex-1 min-w-[200px] sm:max-w-xs">
+                    <div className="relative flex-1 min-w-[180px] sm:max-w-xs">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                             type="text"
-                            placeholder="Buscar en mi inventario..."
+                            placeholder="Buscar en inventario..."
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                             className="pl-9 pr-4 bg-background border-border text-foreground focus-visible:ring-primary h-10 shadow-sm"
                         />
                     </div>
 
-                    {/* Stats Badges */}
-                    <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="h-10 px-4 bg-accent/20 border-border text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                            <Layers size={14} className="text-primary" />
-                            {stats.totalCards} Cartas
-                        </Badge>
-                        <Badge variant="outline" className="h-10 px-4 bg-accent/20 border-border text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                            <Package size={14} className="text-primary" />
-                            {stats.totalPacks} Sobres
-                        </Badge>
+                    {/* Category toggle */}
+                    <div className="flex bg-accent p-1 rounded-lg">
+                        <button
+                            onClick={() => { setCategory('all'); setCurrentPage(1); }}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                category === 'all' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            Todo
+                        </button>
+                        <button
+                            onClick={() => { setCategory('packs'); setCurrentPage(1); }}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                category === 'packs' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            Sobres
+                        </button>
+                        <button
+                            onClick={() => { setCategory('cards'); setCurrentPage(1); }}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                category === 'cards' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            Cartas Sueltas
+                        </button>
                     </div>
 
                     {/* Sort & Filter */}
@@ -356,7 +384,7 @@ export default function Inventory() {
                         <select
                             value={sortBy}
                             onChange={(e) => { setSortBy(e.target.value as any); setCurrentPage(1); }}
-                            className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest h-10 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm"
+                            className="bg-background border border-border text-foreground px-3 py-2 rounded-lg text-xs h-10 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm"
                         >
                             <option value="newest">Recientes</option>
                             <option value="price_asc">Menor Valor</option>
@@ -369,13 +397,28 @@ export default function Inventory() {
                             variant="outline"
                             onClick={() => setIsFilterModalOpen(true)}
                             className={cn(
-                                "bg-background border-border text-xs font-black uppercase tracking-widest gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary h-10 px-4 shadow-sm",
+                                "bg-background border-border text-xs gap-2 hover:bg-primary/10 hover:border-primary/50 hover:text-primary font-bold h-10 px-4 shadow-sm",
                                 selectedSets.length > 0 && "border-primary/50 text-primary bg-primary/5"
                             )}
                         >
                             <Filter className="h-4 w-4" />
-                            Sets
+                            <span className="hidden sm:inline">Set</span>
+                            {selectedSets.length > 0 && (
+                                <Badge className="ml-1 bg-primary text-primary-foreground px-1.5 h-4 min-w-[1.25rem] flex items-center justify-center text-[10px] font-bold">
+                                    {selectedSets.length}
+                                </Badge>
+                            )}
                         </Button>
+                        
+                        {selectedSets.length > 0 && (
+                            <button
+                                onClick={() => { setSelectedSets([]); setCurrentPage(1); }}
+                                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors px-2"
+                                title="Limpiar filtros"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -389,7 +432,7 @@ export default function Inventory() {
                 ) : (
                     <div className="space-y-16">
                         {/* Sección Sobres */}
-                        {packs.length > 0 && (
+                        {showPacks && packs.length > 0 && (
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between border-b border-border pb-2">
                                     <div className="flex items-center gap-3">
@@ -413,7 +456,7 @@ export default function Inventory() {
                         )}
 
                         {/* Sección Cartas */}
-                        {items.length > 0 && (
+                        {showCards && items.length > 0 && (
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between border-b border-border pb-2">
                                     <div className="flex items-center gap-3">
@@ -424,13 +467,19 @@ export default function Inventory() {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                                     {items.map(i => (
-                                        <InventoryCardItem key={i.id} item={i} searchTerm={searchTerm} onSell={(id, name) => { setSelectedItemForSell({id, name, type: 'card'}); setIsSellDialogOpen(true); }} />
+                                        <InventoryCardItem 
+                                            key={i.id} 
+                                            item={i} 
+                                            searchTerm={searchTerm} 
+                                            onView={(card) => { setSelectedCardForModal(card); }}
+                                            onSell={(id, name) => { setSelectedItemForSell({id, name, type: 'card'}); setIsSellDialogOpen(true); }} 
+                                        />
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {packs.length === 0 && items.length === 0 && (
+                        {((showPacks && packs.length === 0) && (showCards && items.length === 0)) && (
                             <div className="flex flex-col items-center justify-center py-40 text-center opacity-30">
                                 <Search size={64} strokeWidth={1} className="mb-4" />
                                 <p className="text-xl font-black uppercase tracking-[0.2em]">No se encontraron resultados</p>
@@ -486,6 +535,12 @@ export default function Inventory() {
                 onClose={() => setIsOpeningModalOpen(false)} 
                 packs={openedPacks} 
                 packName={openedPacks[0]?.cards[0]?.set?.name || 'Sobres Abiertos'} 
+            />
+
+            {/* MODAL UNIVERSAL DETALLE CARTA */}
+            <CardDetailModal 
+                card={selectedCardForModal}
+                onClose={() => setSelectedCardForModal(null)}
             />
         
              {/* DIALOG DE VENTA */}

@@ -5,7 +5,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import CardItem from '@/components/ui/CardItem';
-import CardLightbox from './CardLightbox';
+import CardDetailModal from '@/components/common/CardDetailModal';
 import apiService from '@/services/ApiService';
 import { useCart } from '@/contexts/CartContext';
 import { showErrorToast } from '@/utils/toastUtils';
@@ -335,8 +335,8 @@ export default function PackDialog({
         </div>
       </DialogContent>
 
-      <CardLightbox
-        card={selectedCardFullscreen}
+      <CardDetailModal
+        card={selectedCardFullscreen as any}
         onClose={() => setSelectedCardFullscreen(null)}
       />
     </Dialog>

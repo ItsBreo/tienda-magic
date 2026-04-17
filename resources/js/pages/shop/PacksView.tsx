@@ -13,7 +13,7 @@ import { showAddToCartToast } from '@/utils/toastUtils';
 //import PacksHeader from '@/components/packs/PacksHeader';
 import PacksGrid from '@/components/packs/PacksGrid';
 import PackDialog from '@/components/packs/PackDialog';
-import CardLightbox from '@/components/packs/CardLightbox';
+import CardDetailModal from '@/components/common/CardDetailModal';
 import { useCart } from '@/contexts/CartContext';
 
 interface Pack {
@@ -383,12 +383,14 @@ export default function PacksView() {
             )}
 
             {selectedCard && (
-                <CardLightbox
+                <CardDetailModal
                     card={selectedCard as any}
                     onClose={() => {
                         setIsCardLightboxOpen(false);
                         setSelectedCard(null);
                     }}
+                    actionLabel="Añadir al Carrito"
+                    onAction={() => handleAddToCartAction(selectedCard)}
                 />
             )}
         </div>

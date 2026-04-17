@@ -15,7 +15,10 @@ class DatabaseSeeder extends Seeder
         // 1. Crear la base oficial de roles mediante su propio Seeder
         $this->call([RoleSeeder::class]);
 
-        // 2. Crear los Foros e hilos (esto internamente crerá usuarios random también)
+        // 2. Crear permisos y asignarlos a los roles administrativos
+        $this->call([PermissionSeeder::class]);
+
+        // 3. Crear los Foros e hilos (esto internamente crerá usuarios random también)
         $this->call([ForumSeeder::class]);
 
         // 3. Crear los usuarios estáticos de prueba (Para Frontend Devs)

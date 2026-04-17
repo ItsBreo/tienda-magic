@@ -14,9 +14,11 @@ export function Navbar() {
   const location = useLocation();
 
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [comunidadOpen, setComunidadOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const aboutRef = useRef<HTMLDivElement>(null);
+  const comunidadRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = user?.is_admin || user?.role_name?.toLowerCase().includes('admin');
@@ -35,6 +37,9 @@ export function Navbar() {
     const handler = (e: MouseEvent) => {
       if (aboutRef.current && !aboutRef.current.contains(e.target as Node)) {
         setAboutOpen(false);
+      }
+      if (comunidadRef.current && !comunidadRef.current.contains(e.target as Node)) {
+        setComunidadOpen(false);
       }
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false);
@@ -84,7 +89,7 @@ export function Navbar() {
 
               <div className="relative" ref={aboutRef}>
                 <button
-                  onClick={() => { setAboutOpen(o => !o); setUserMenuOpen(false); }}
+                  onClick={() => { setAboutOpen(o => !o); setComunidadOpen(false); setUserMenuOpen(false); }}
                   className={`flex items-center gap-2 text-base font-bold transition-colors ${aboutOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                 >
                   Nosotros <ChevronDown className={cn("h-4 w-4 transition-transform", aboutOpen && "rotate-180")} />
@@ -96,7 +101,23 @@ export function Navbar() {
                   </div>
                 )}
               </div>
+
+              <div className="relative" ref={comunidadRef}>
+                <button
+                  onClick={() => { setComunidadOpen(o => !o); setAboutOpen(false); setUserMenuOpen(false); }}
+                  className={`flex items-center gap-2 text-base font-bold transition-colors ${comunidadOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Comunidad <ChevronDown className={cn("h-4 w-4 transition-transform", comunidadOpen && "rotate-180")} />
+                </button>
+                {comunidadOpen && (
+                  <div className="absolute left-0 top-full mt-4 w-56 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <Link to="/market" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Compra-Venta</Link>
+                    <Link to="/exchanges" onClick={() => setComunidadOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Intercambios</Link>
+                  </div>
+                )}
+              </div>
             </nav>
+            
           </div>
 
           {/* ── RIGHT SIDE ── */}
@@ -125,7 +146,7 @@ export function Navbar() {
 
                     <div className="relative" ref={userMenuRef}>
                         <button
-                            onClick={() => { setUserMenuOpen(o => !o); setAboutOpen(false); }}
+                            onClick={() => { setUserMenuOpen(o => !o); setAboutOpen(false); setComunidadOpen(false); }}
                             className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
                         >
                             <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
