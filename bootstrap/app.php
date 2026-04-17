@@ -41,10 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Excluir rutas de webhook y de WebSockets para evitar error 419
         $middleware->validateCsrfTokens(except: [
-            'api/webhooks/stripe',
-            'api/login',
-            'api/register',
-            'api/broadcasting/auth',
+	    'api/*'
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

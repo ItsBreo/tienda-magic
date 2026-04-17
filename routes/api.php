@@ -84,7 +84,7 @@ Route::get('/sets/latest', [SetController::class, 'latest']);
 Route::get('/profile/{userId}', [UserProfileController::class, 'show']);
 
 // --- WEBHOOKS DE STRIPE (Sin autenticación) ---
-Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
+Route::post('/webhook/stripe', [StripeWebhookController::class, 'handleWebhook']);
 
 /*
 |--------------------------------------------------------------------------
