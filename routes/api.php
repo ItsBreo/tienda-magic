@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\AdminCardController;
 use App\Http\Controllers\Admin\AdminBoosterPackController;
 use App\Http\Controllers\Admin\AdminForumModController;
 use App\Http\Controllers\Admin\AdminPermissionController;
+use App\Http\Controllers\Admin\AdminAuditLogController;
 
 // Controladores de Torneos
 use App\Http\Controllers\Tournament\TournamentController;
@@ -404,6 +405,10 @@ Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
         // Asignar / cambiar rol a un usuario (incluyendo forum_id para moderadores)
         Route::post('/users/{user}/assign-role', [AdminUserController::class, 'assignRole'])
             ->middleware('permission:assign-roles');
+
+        // Logs del Sistema
+        Route::get('/logs', [AdminAuditLogController::class, 'index'])
+            ->middleware('permission:manage-users'); // Reutilizamos permiso o creamos uno nuevo
     });
 
     // ========== MODERACIÓN DEL FORO ==========

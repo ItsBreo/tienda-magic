@@ -15,6 +15,7 @@ use App\Models\BoosterPack;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AuditLogger;
 
 class MarketController extends Controller
 {
@@ -143,6 +144,12 @@ class MarketController extends Controller
                 'fee_platform' => $fee,
                 'amount_to_seller' => $amountToSeller,
                 'status' => 'active'
+            ]);
+
+            AuditLogger::log('market.listing_created', $listing, [
+                'type' => $request->type,
+                'price' => $priceTotal,
+                'item_id' => $listableId
             ]);
 
             event(new \App\Events\CardListed($user));
@@ -289,6 +296,12 @@ class MarketController extends Controller
             $buyerItem->save();
         }
 
+        AuditLogger::log('market.item_sold', $listing, [
+            'buyer_id' => $buyer->id,
+            'seller_id' => $listing->seller_id,
+            'price' => $listing->price_total
+        ]);
+
         // 3. Cerrar Anuncio
         $listing->update(['status' => 'sold', 'buyer_id' => $buyer->id]);
 
@@ -373,6 +386,8 @@ class MarketController extends Controller
             $item->decrement('quantity_locked');
 
             $listing->update(['status' => 'cancelled']);
+
+            AuditLogger::log('market.listing_cancelled', $listing);
 
             return response()->json(['message' => 'Anuncio cancelado con éxito']);
         });

@@ -16,6 +16,7 @@ use App\Models\OrderItem;
 use App\Models\WalletTransaction;
 use App\Mail\OrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
+use App\Services\AuditLogger;
 use OpenApi\Attributes as OA;
 
 class CheckoutController extends Controller
@@ -300,6 +301,12 @@ class CheckoutController extends Controller
                     'total' => $total,
                     'payment_method' => $paymentMethod,
                     'items_count' => count($validItems)
+                ]);
+
+                AuditLogger::log('shop.purchase', $order, [
+                    'total_amount' => $total,
+                    'items_count' => count($validItems),
+                    'payment_method' => $paymentMethod
                 ]);
 
                 return response()->json([

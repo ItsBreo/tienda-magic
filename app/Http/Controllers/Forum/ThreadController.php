@@ -7,6 +7,7 @@ use App\Http\Resources\ThreadResource;
 use App\Models\Thread;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AuditLogger;
 use OpenApi\Attributes as OA;
 
 class ThreadController extends Controller
@@ -123,6 +124,11 @@ class ThreadController extends Controller
 
         $thread = $request->user()->threads()->create($validated);
         $thread->load(['user', 'forum']);
+
+        AuditLogger::log('forum.thread_created', $thread, [
+            'title' => $thread->title,
+            'forum_id' => $thread->forum_id
+        ]);
 
         return new ThreadResource($thread);
     }

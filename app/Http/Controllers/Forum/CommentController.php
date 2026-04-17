@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Forum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
+use App\Services\AuditLogger;
 use App\Models\Thread;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,11 @@ class CommentController extends Controller
         $comment = $thread->comments()->create([
             ...$validated,
             'user_id' => Auth::id(),
+        ]);
+
+        AuditLogger::log('forum.comment_created', $comment, [
+            'thread_id' => $thread->id,
+            'content_snippet' => mb_substr($comment->body, 0, 50) . '...'
         ]);
 
         $comment->load('user');

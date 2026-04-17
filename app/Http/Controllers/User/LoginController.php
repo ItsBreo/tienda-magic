@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
+use App\Services\AuditLogger;
 
 class LoginController extends Controller
 {
@@ -84,6 +85,7 @@ class LoginController extends Controller
         $token = Auth::guard('api')->attempt($credentials);
 
         if (!$token) {
+            AuditLogger::log('auth.failed', null, ['email' => $request->email]);
             Log::warning('Failed login attempt', ['email' => $request->email]);
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales proporcionadas no coinciden con nuestros registros.'],
@@ -102,6 +104,7 @@ class LoginController extends Controller
         }
 
         Log::info('Successful login', ['user_id' => $user->id]);
+        AuditLogger::log('auth.login', $user);
 
         return response()->json([
             'message' => 'Sesión iniciada correctamente.',
@@ -121,9 +124,13 @@ class LoginController extends Controller
     {
         // invalidate() añade el token a la blacklist de Redis/cache
         // Esta es la forma correcta para arquitectura JWT
+        $user = Auth::guard('api')->user();
         Auth::guard('api')->logout();
 
-        Log::info('User logged out', ['user_id' => $request->user()?->id]);
+        Log::info('User logged out', ['user_id' => $user?->id]);
+        if ($user) {
+            AuditLogger::log('auth.logout', $user);
+        }
 
         return response()->json([
             'message' => 'Sesión cerrada correctamente.',
