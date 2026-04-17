@@ -4,14 +4,15 @@ import { CAT_LABELS } from "./constants";
 import ApiService from "../../services/ApiService";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react"; 
-// import DeleteConfirmDialog from "./DeleteConfirmDialog"; // Eliminado
+import { Trash2, MessageSquare, Bookmark, Share2, Flame } from "lucide-react"; 
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
-const CAT_CLASS: Record<string, string> = {
-  noticias:   "cat-noticias",
-  estrategia: "cat-estrategia",
-  torneos:    "cat-torneos",
-  general:    "cat-general",
+const CAT_COLORS: Record<string, string> = {
+  noticias:   "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  estrategia: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+  torneos:    "bg-primary/10 text-primary border-primary/20",
+  general:    "bg-muted text-muted-foreground border-border",
 };
 
 function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number; initialScore: number; initialVote?: number; }) {
@@ -40,23 +41,47 @@ function VoteCol({ threadId, initialScore, initialVote = 0 }: { threadId: number
   };
 
   return (
-    <div className="flex flex-col items-center py-2.5 px-2 bg-accent gap-1 min-w-[42px] border-r border-border/50">
-      <button onClick={() => cast(1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm font-black transition-colors ${vote === 1 ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>▲</button>
-      <span className={`text-[11px] font-black min-w-[20px] text-center ${score > 50 ? 'text-primary' : 'text-muted-foreground'}`}>{score}</span>
-      <button onClick={() => cast(-1)} className={`w-6 h-6 border-none bg-transparent cursor-pointer rounded-sm text-sm font-black transition-colors ${vote === -1 ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'}`}>▼</button>
+    <div className="flex flex-col items-center py-4 px-2 bg-accent/30 gap-1.5 min-w-[50px] border-r border-border/50">
+      <button 
+        onClick={() => cast(1)} 
+        className={cn(
+            "w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90",
+            vote === 1 ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+        )}
+      >
+        ▲
+      </button>
+      <span className={cn(
+          "text-[12px] font-black font-forum text-center tabular-nums",
+          score > 50 ? 'text-primary' : 'text-muted-foreground'
+      )}>{score}</span>
+      <button 
+        onClick={() => cast(-1)} 
+        className={cn(
+            "w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90",
+            vote === -1 ? 'bg-destructive/10 text-destructive' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+        )}
+      >
+        ▼
+      </button>
     </div>
   );
 }
 
-function ActionBtn({ label, onClick, active, variant = "default" }: { label: string | React.ReactNode; onClick?: () => void; active?: boolean; variant?: "default" | "danger" }) {
-  const baseClasses = "flex items-center gap-1.5 py-1.5 px-3 rounded-md border-none bg-transparent text-xs cursor-pointer transition-all duration-150 font-bold uppercase tracking-tight";
-  const variants = {
-    default: `hover:bg-primary/10 ${active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`,
-    danger: "hover:bg-destructive/10 text-destructive",
-  };
-
+function ActionBtn({ label, icon: Icon, onClick, active, variant = "default" }: { label: string; icon: any; onClick?: () => void; active?: boolean; variant?: "default" | "danger" }) {
   return (
-    <button onClick={onClick} className={`${baseClasses} ${variants[variant]}`}>
+    <button 
+        onClick={onClick} 
+        className={cn(
+            "flex items-center gap-2 py-2 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-200 group font-montserrat",
+            variant === "danger" 
+                ? "text-destructive hover:bg-destructive/10" 
+                : active 
+                    ? "text-primary bg-primary/5" 
+                    : "text-muted-foreground/60 hover:text-foreground hover:bg-accent"
+        )}
+    >
+      <Icon size={14} className={cn("transition-transform group-hover:scale-110", active && "fill-current")} />
       {label}
     </button>
   );
@@ -101,24 +126,15 @@ export default function PostCard({
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm("¿Seguro que deseas eliminar esta publicación?")) return;
-    try {
-      await ApiService.deleteThread(post.id);
-      toast.success("Publicación eliminada correctamente");
-      onDeleteSuccess?.();
-    } catch (err) {
-      console.error("Error al eliminar hilo:", err);
-      toast.error("No se pudo eliminar la publicación");
-    }
-  };
-
   const canSelect = selection?.isMod || post.can_delete;
 
   return (
-    <div className={`flex bg-card border border-border rounded-xl mb-3 overflow-hidden transition-all duration-200 hover:border-primary/50 group shadow-md ${selection?.isSelected ? 'border-primary bg-primary/5' : ''}`}>
+    <div className={cn(
+        "flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-lg shadow-black/5 min-h-[160px]",
+        selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.02]' : 'hover:border-primary/30 hover:shadow-primary/5'
+    )}>
       {canSelect && (
-        <div className="flex items-center px-3 bg-accent/40 border-r border-border">
+        <div className="flex items-center px-4 bg-accent/20 border-r border-border/50">
           <input 
             type="checkbox" 
             checked={selection?.isSelected || false}
@@ -126,63 +142,71 @@ export default function PostCard({
               e.stopPropagation();
               selection?.toggle();
             }}
-            className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-primary cursor-pointer"
+            className="w-5 h-5 rounded-lg border-border bg-background text-primary focus:ring-primary cursor-pointer transition-all"
           />
         </div>
       )}
+      
       <VoteCol threadId={post.id} initialScore={post.score} initialVote={post.userVote} />
 
-      <div className="py-3 px-4 flex-1 min-w-0 flex flex-col">
-        <div className="flex items-center gap-2 mb-2 flex-wrap min-w-0">
-          <span className={`text-[10px] font-black py-0.5 px-2.5 rounded uppercase tracking-widest border shrink-0 ${
-            post.category === 'noticias' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-            post.category === 'estrategia' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-            post.category === 'torneos' ? 'bg-primary/10 text-primary border-primary/20' :
-            'bg-muted text-muted-foreground border-border'
-          }`}>
-            {CAT_LABELS[post.category]}
-          </span>
-          <div className="flex items-center gap-1.5 min-w-0 truncate">
-            <span className="text-[11px] text-muted-foreground shrink-0 uppercase font-bold tracking-tight">por</span>
-            <b className="text-[11px] text-foreground font-black truncate leading-none">@{post.author}</b>
-            <span className="shrink-0 text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase tracking-tighter" title="Reputación">{post.reputation || 100}✨</span>
-            {post.isMod && <span className="text-[9px] font-black ml-1 bg-primary text-primary-foreground px-1 py-0.5 rounded">MOD</span>}
-          </div>
-          <span className="text-xs text-muted-foreground opacity-60">· {post.timeAgo}</span>
+      <div className="py-5 px-6 flex-1 min-w-0 flex flex-col justify-between">
+        <div className="space-y-4">
+            <div className="flex items-center gap-3 flex-wrap font-montserrat overflow-hidden">
+                <span className={cn(
+                    "text-[8px] font-black py-1 px-3 rounded-lg uppercase tracking-widest border shrink-0",
+                    CAT_COLORS[post.category] || "bg-muted text-muted-foreground border-border"
+                )}>
+                    {CAT_LABELS[post.category]}
+                </span>
+                <div className="flex items-center gap-2 min-w-0 truncate">
+                    <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-tight">por</span>
+                    <b className="text-[11px] text-foreground font-black truncate leading-none hover:text-primary transition-colors cursor-pointer">@{post.author}</b>
+                    <Badge variant="outline" className="text-[9px] font-black text-primary bg-primary/5 border-primary/10 px-2 py-0 h-5" title="Reputación">
+                        {post.reputation || 100} EP
+                    </Badge>
+                    {post.isMod && <Badge className="bg-primary text-primary-foreground text-[8px] font-black h-4 px-1">MOD</Badge>}
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest font-montserrat">· {post.timeAgo}</span>
+            </div>
+
+            <div className="flex gap-6 items-start">
+                <div className="flex-1 min-w-0">
+                    <h3 onClick={onOpen} className="text-xl font-forum font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-[1.2] mb-3 line-clamp-2">
+                        {post.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground font-literata italic leading-relaxed line-clamp-2 opacity-80 mb-4">
+                        {post.preview}
+                    </p>
+                </div>
+                {post.image_url && (
+                    <div onClick={onOpen} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-border cursor-pointer group-hover:border-primary/50 transition-all shadow-sm">
+                        <img src={post.image_url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    </div>
+                )}
+            </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1 min-w-0">
-            <div onClick={onOpen} className="text-[17px] font-serif font-black text-foreground hover:text-primary mb-2 leading-tight cursor-pointer transition-colors duration-150 decoration-primary/20 hover:underline underline-offset-4">
-              {post.title}
+        <div className="flex flex-col gap-4">
+            {post.tags.length > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                    {post.tags.map(t => (
+                        <span key={t} className="text-[8px] py-1 px-2.5 rounded-lg bg-accent/50 text-muted-foreground/60 border border-border/50 font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-colors cursor-pointer font-montserrat">
+                            #{t}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            <div className="flex items-center gap-1 border-t border-border/40 pt-1 -mx-2">
+                <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={onOpen} />
+                <ActionBtn icon={Share2} label="Share" />
+                <ActionBtn icon={Bookmark} label={isSaved ? "Saved" : "Save"} onClick={toggleSave} active={isSaved} />
+                {post.can_delete && (
+                    <div className="ml-auto">
+                        <ActionBtn icon={Trash2} label="" variant="danger" />
+                    </div>
+                )}
             </div>
-
-            <div className="text-sm text-muted-foreground mb-3 leading-relaxed line-clamp-2 font-medium opacity-80">
-              {post.preview}
-            </div>
-          </div>
-
-          {post.image_url && (
-            <div onClick={onOpen} className="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-border cursor-pointer hover:border-primary/50 transition-colors">
-              <img src={post.image_url} alt={post.title} className="w-full h-full object-cover" />
-            </div>
-          )}
-        </div>
-
-        {post.tags.length > 0 && (
-          <div className="flex gap-1.5 mb-4 flex-wrap">
-            {post.tags.map(t => (
-              <span key={t} className="text-[9px] py-0.5 px-2 rounded-md bg-accent text-muted-foreground border border-border font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-colors cursor-pointer">
-                #{t}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="flex gap-1 mt-auto border-t border-border pt-2 mx-[-4px]">
-          <ActionBtn label={`💬 ${post.comments} comentarios`} onClick={onOpen} />
-          <ActionBtn label="🔗 Compartir" />
-          <ActionBtn label={isSaved ? "🔖 Guardado" : "🔖 Guardar"} onClick={toggleSave} active={isSaved} />
         </div>
       </div>
     </div>

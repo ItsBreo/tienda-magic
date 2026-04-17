@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiService from '@/services/ApiService';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { Loader2, Trophy, ChevronLeft, Lock } from 'lucide-react';
+import { Loader2, Trophy, ChevronLeft, Lock, Star, Sparkles, Target } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface Achievement {
     slug: string;
@@ -13,7 +15,6 @@ interface Achievement {
     obtained_at: string | null;
 }
 
-// Todos los logros posibles actualizados según el último seeder
 const ALL_ACHIEVEMENTS: Omit<Achievement, 'obtained_at'>[] = [
     { slug: 'first_register',    name: 'Bienvenido Planeswalker', description: 'Creaste tu cuenta en la Tienda Magic.',           badge_icon: '🧙', xp_points: 10  },
     { slug: 'first_pack_purchase',name: 'Primer Sobre',           description: 'Abriste tu primer sobre.',                       badge_icon: '📦', xp_points: 30  },
@@ -40,119 +41,143 @@ export default function Achievements() {
 
     const unlockedSlugs = new Set(unlocked.map(a => a.slug));
     const locked = ALL_ACHIEVEMENTS.filter(a => !unlockedSlugs.has(a.slug));
+    
+    // Stats
     const totalXp = unlocked.reduce((sum, a) => sum + a.xp_points, 0);
     const maxXp   = ALL_ACHIEVEMENTS.reduce((sum, a) => sum + a.xp_points, 0);
+    const progress = maxXp > 0 ? (totalXp / maxXp) * 100 : 0;
 
-    if (loading) return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-            <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
-        </div>
-    );
+    if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
 
     return (
-        <div className="bg-[var(--bg)] min-h-screen text-[var(--text-primary)]">
-            <Breadcrumbs items={[{ title: 'Mi Perfil', href: '/profile' }, { title: 'Logros', href: '/achievements' }]} />
-            <div className="max-w-4xl mx-auto px-6 md:px-8 py-10">
-
-                {/* Header */}
-                <div className="flex items-center gap-3 mb-2">
-                    <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
-                        <ChevronLeft className="h-5 w-5" />
-                    </Link>
-                    <Trophy className="h-6 w-6 text-amber-500" />
-                    <h1 className="text-2xl font-serif font-bold text-foreground">Logros</h1>
-                    <span className="ml-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-                        {unlocked.length} / {ALL_ACHIEVEMENTS.length}
-                    </span>
-                </div>
-                <p className="text-muted-foreground text-sm mb-8 ml-14">Emblemas desbloqueados en tu aventura</p>
-
-                {/* Barra XP */}
-                <div className="bg-card border border-border rounded-lg p-5 mb-8">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Experiencia total</span>
-                        <span className="text-sm font-semibold text-amber-400">{totalXp} / {maxXp} XP</span>
+        <div className="flex-1 bg-background text-foreground pb-20 font-literata">
+            <Breadcrumbs items={[
+                { title: 'Mi Perfil', href: '/profile' }, 
+                { title: 'Logros', href: '/achievements' }
+            ]} />
+            
+            {/* ACTION TOOLBAR (Parity with Inventory/Shop) */}
+            <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-[72px] md:top-[88px] z-40">
+                <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-3">
+                         <Link to="/profile" className="p-2 rounded-lg bg-accent/20 border border-border hover:bg-primary/10 hover:border-primary/50 transition-all">
+                             <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+                         </Link>
+                         <h1 className="text-xl font-montserrat font-black text-foreground uppercase tracking-tight">Salón de Logros</h1>
                     </div>
-                    <div className="w-full bg-accent rounded-full h-1.5">
-                        <div
-                            className="bg-gradient-to-r from-amber-700 to-amber-400 h-1.5 rounded-full transition-all duration-700"
-                            style={{ width: maxXp > 0 ? `${(totalXp / maxXp) * 100}%` : '0%' }}
+
+                    <div className="flex items-center gap-3 ml-auto">
+                        <Badge variant="outline" className="h-10 px-4 bg-accent/20 border-border text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                             <Trophy size={14} className="text-amber-500" /> {unlocked.length}/{ALL_ACHIEVEMENTS.length}
+                        </Badge>
+                        <Badge variant="outline" className="h-10 px-4 bg-accent/20 border-border text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                             <Star size={14} className="text-primary" /> {totalXp} XP
+                        </Badge>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 pt-12">
+                
+                {/* VAULT PROGRESS (Simplified to match style) */}
+                <div className="mb-16 space-y-4">
+                    <div className="flex items-center justify-between font-montserrat">
+                        <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-primary" />
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Sincronización de Hazañas</span>
+                        </div>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">{Math.round(progress)}% Completado</span>
+                    </div>
+                    <div className="h-2 w-full bg-accent/30 rounded-full overflow-hidden border border-border/50">
+                        <div 
+                            className="h-full bg-primary rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(108,92,231,0.2)]"
+                            style={{ width: `${progress}%` }}
                         />
                     </div>
                 </div>
 
-                {/* Desbloqueados */}
-                {unlocked.length > 0 && (
-                    <>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
-                            Desbloqueados
-                            <span className="flex-1 h-px bg-border" />
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
-                            {unlocked.map(a => (
-                                <AchievementCard key={a.slug} achievement={a} unlocked />
-                            ))}
+                <div className="space-y-16">
+                    {/* Desbloqueados Section */}
+                    {unlocked.length > 0 && (
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between border-b border-border pb-2">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="w-5 h-5 text-amber-500" />
+                                    <h2 className="text-xl font-montserrat font-black text-foreground uppercase tracking-tight">Emblemas de Poder</h2>
+                                </div>
+                                <span className="text-[10px] font-black text-muted-foreground bg-accent/30 px-3 py-1 rounded-full uppercase">Obtenidos</span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {unlocked.map(a => (
+                                    <AchievementCard key={a.slug} achievement={a} unlocked />
+                                ))}
+                            </div>
                         </div>
-                    </>
-                )}
+                    )}
 
-                {/* Bloqueados */}
-                {locked.length > 0 && (
-                    <>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-3">
-                            Bloqueados
-                            <span className="flex-1 h-px bg-border" />
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 opacity-50">
-                            {locked.map(a => (
-                                <AchievementCard key={a.slug} achievement={{ ...a, obtained_at: null }} unlocked={false} />
-                            ))}
+                    {/* Bloqueados Section */}
+                    {locked.length > 0 && (
+                        <div className="space-y-6">
+                             <div className="flex items-center justify-between border-b border-border pb-2 opacity-50">
+                                <div className="flex items-center gap-3">
+                                    <Lock className="w-5 h-5 text-muted-foreground" />
+                                    <h2 className="text-xl font-montserrat font-black text-muted-foreground uppercase tracking-tight">Hazañas Ocultas</h2>
+                                </div>
+                                <span className="text-[10px] font-black text-muted-foreground bg-accent/10 px-3 py-1 rounded-full uppercase">Cerradas</span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 opacity-40 grayscale">
+                                {locked.map(a => (
+                                    <AchievementCard key={a.slug} achievement={{ ...a, obtained_at: null }} unlocked={false} />
+                                ))}
+                            </div>
                         </div>
-                    </>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );
 }
 
 function AchievementCard({ achievement: a, unlocked }: { achievement: Achievement; unlocked: boolean }) {
-    const isVerified = a.slug === 'verified_trader';
-
     return (
-        <div className={`flex items-start gap-3 p-4 rounded-lg border transition-colors
-            ${unlocked
-                ? 'bg-card border-border hover:border-primary/50'
-                : 'bg-card opacity-80 border-border opacity-50'
-            }`}
-        >
-            <div className={`text-2xl w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0
-                ${unlocked ? 'bg-accent' : 'bg-background grayscale'}`}
-            >
-                {unlocked ? a.badge_icon : <Lock className="h-4 w-4 text-muted-foreground" />}
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-sm font-semibold text-foreground font-sans">{a.name}</span>
-                    {isVerified && unlocked && (
-                        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 flex-shrink-0">
-                            <svg className="w-2.5 h-2.5" viewBox="0 0 10 10" fill="none">
-                                <polyline points="2,5 4,7.5 8,3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </span>
-                    )}
+        <div className={cn(
+            "border border-border p-5 bg-card w-full flex flex-col group transition-all duration-300 rounded-xl",
+            unlocked ? "hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1" : ""
+        )}>
+            <div className="flex items-center gap-4 mb-4">
+                <div className={cn(
+                    "w-14 h-14 rounded-lg flex items-center justify-center text-3xl transition-transform duration-500",
+                    unlocked ? "bg-accent/30 border border-primary/20 shadow-inner" : "bg-accent/10 border border-border/50"
+                )}>
+                    {unlocked ? a.badge_icon : <Lock className="h-6 w-6 text-muted-foreground/30" />}
                 </div>
-                <p className="text-xs text-muted-foreground font-sans leading-relaxed mb-2">{a.description}</p>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-amber-500 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
-                        +{a.xp_points} XP
-                    </span>
-                    {a.obtained_at && (
-                        <span className="text-xs text-muted-foreground font-sans">
-                            {new Date(a.obtained_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <div className="flex-1 min-w-0">
+                     <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight truncate uppercase tracking-tight">
+                        {a.name}
+                     </h3>
+                     <div className="flex items-center gap-2 mt-1">
+                        <span className={cn(
+                            "text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-widest",
+                            unlocked ? "bg-primary/10 text-primary border-primary/20" : "bg-accent text-muted-foreground border-border"
+                        )}>
+                            +{a.xp_points} XP
                         </span>
-                    )}
+                     </div>
                 </div>
             </div>
+            
+            <p className="text-xs text-muted-foreground font-medium leading-relaxed mb-4 line-clamp-2 h-10 italic">
+                {a.description}
+            </p>
+
+            {unlocked && a.obtained_at && (
+                <div className="mt-auto pt-4 border-t border-border/40 flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
+                    <span>Sincronizado</span>
+                    <span>{new Date(a.obtained_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                </div>
+            )}
         </div>
     );
 }

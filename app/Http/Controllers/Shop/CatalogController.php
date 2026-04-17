@@ -36,31 +36,45 @@ class CatalogController extends Controller
 
         $items = [];
         if ($category === 'cards') {
-            // Query individual cards
+            // Exclude 'set' from scopeFilter — applied separately below via whereIn
+            $cardFilters = array_diff_key($filters, ['set' => true]);
+
+            $setArray = [];
+            if (!empty($filters['set'])) {
+                $setArray = is_string($filters['set']) ? explode(',', $filters['set']) : (array)$filters['set'];
+                // Trim any whitespace from set codes
+                $setArray = array_map('trim', array_filter($setArray));
+            }
+
             $items = \App\Models\Card::with('set')
-                ->filter($filters)
-                ->when($filters['set'] ?? false, function($query, $set) {
-                    $setArray = is_string($set) ? explode(',', $set) : (array)$set;
-                    $query->whereIn('card_set_id', $setArray);
+                ->filter($cardFilters)
+                ->when(!empty($setArray), function ($query) use ($setArray) {
+                    // cards table uses set_code as the FK — card_set_id may also be populated
+                    $query->where(function ($q) use ($setArray) {
+                        $q->whereIn('set_code', $setArray)
+                          ->orWhereIn('card_set_id', $setArray);
+                    });
                 })
                 ->paginate(48)
                 ->withQueryString()
                 ->through(function ($card) {
+                    // data may be null even though it's cast to array — guard against it
+                    $data = is_array($card->data) ? $card->data : [];
                     return [
-                        'id' => $card->id,
-                        'card_id' => $card->id,
-                        'name' => $card->name,
-                        'price' => (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50),
-                        'image_url' => $card->image_uri ?? '/placeholder-card.png',
-                        'type' => 'Singles',
-                        'rarity' => $card->rarity,
-                        'card_set_id' => $card->set->code ?? null,
-                        'stock' => $card->stock ?? 0,
-                        'config' => [
-                            'description' => ($card->data['type_line'] ?? null) ?? 'Magic Card',
-                            'foil' => ($card->data['foil'] ?? null) ?? false,
+                        'id'          => $card->id,
+                        'card_id'     => $card->id,
+                        'name'        => $card->name,
+                        'price'       => (float) ($card->market_avg_price > 0 ? $card->market_avg_price : 1.50),
+                        'image_url'   => $card->image_uri ?? '/placeholder-card.png',
+                        'type'        => 'Singles',
+                        'rarity'      => $card->rarity,
+                        'card_set_id' => $card->set?->code ?? $card->card_set_id ?? $card->set_code ?? null,
+                        'stock'       => $card->stock ?? 0,
+                        'config'      => [
+                            'description' => $data['type_line'] ?? 'Magic Card',
+                            'foil'        => $data['foil'] ?? false,
                         ],
-                        'set' => $card->set
+                        'set'         => $card->set,
                     ];
                 });
         } else {

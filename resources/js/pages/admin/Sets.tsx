@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSelection } from '@/hooks/useSelection';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface CardSet {
     code: string;
@@ -27,7 +29,6 @@ export default function AdminSets() {
         code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true
     });
 
-    // Adaptamos el tipo para useSelection que espera 'id'
     const selectableSets = sets.map(s => ({ ...s, id: s.code }));
     
     const {
@@ -57,7 +58,6 @@ export default function AdminSets() {
 
     const handleDelete = async (code: string) => {
         if (!window.confirm(`¿Seguro que deseas eliminar el set ${code}?`)) return;
-
         try {
             await apiService.axiosInstance.delete(`/api/admin/sets/${code}`);
             toast.success('Set eliminado');
@@ -80,8 +80,8 @@ export default function AdminSets() {
     const handleBulkDelete = async () => {
         if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} sets?`)) return;
         try {
-            const { data } = await apiService.axiosInstance.post('/api/admin/sets/bulk-delete', { ids: selectedList });
-            toast.success(data.message);
+            await apiService.axiosInstance.post('/api/admin/sets/bulk-delete', { ids: selectedList });
+            toast.success('Eliminación masiva completada');
             clear();
             fetchSets();
         } catch (error) {
@@ -95,7 +95,7 @@ export default function AdminSets() {
                 ids: selectedList,
                 is_active: active
             });
-            toast.success(`${selectedCount} sets ${active ? 'activados' : 'desactivadas'}`);
+            toast.success(`${selectedCount} sets ${active ? 'activados' : 'desactivados'}`);
             clear();
             fetchSets();
         } catch (error) {
@@ -116,9 +116,7 @@ export default function AdminSets() {
             }
             setShowForm(false);
             setEditingCode(null);
-            setForm({
-                code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true
-            });
+            setForm({ code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true });
             fetchSets();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error guardando set');
@@ -138,58 +136,60 @@ export default function AdminSets() {
             is_active: set.is_active
         });
         setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+    if (loading) return <div className="p-20 flex flex-col items-center justify-center gap-4"><Loader2 className="animate-spin text-primary w-10 h-10" /><p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Crónicas...</p></div>;
 
     return (
-        <div className="p-8 max-w-6xl mx-auto w-full">
-            <div className="flex justify-between items-center mb-6">
+        <div className="p-8 max-w-7xl mx-auto w-full font-literata">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Gestión de Sets (Expansiones)</h1>
-                    <p className="text-sm text-muted-foreground">Si desactivas un Set, todas sus cartas se ocultarán automáticamente de la tienda.</p>
+                    <h1 className="text-4xl font-forum font-black text-foreground mb-2">Biblioteca de Planos</h1>
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Gestión de expansiones y cronologías. Al cerrar un plano, sus cartas se desvanecen de la tienda.</p>
                 </div>
-                <Button onClick={() => { setShowForm(!showForm); if (showForm) setEditingCode(null); }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+                <Button onClick={() => { setShowForm(!showForm); if (showForm) setEditingCode(null); }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
                     <Plus className="w-4 h-4 mr-2" />
-                    {editingCode ? 'Editando...' : 'Nuevo Set'}
+                    {showForm ? 'Cerrar' : 'Nuevas Crónicas'}
                 </Button>
             </div>
 
             {showForm && (
-                <div className="bg-card border border-border p-6 rounded-xl mb-8 shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
-                    <h2 className="text-lg font-bold text-foreground mb-4">{editingCode ? 'Editar Set' : 'Crear Nuevo Set'}</h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="code" className="text-xs text-muted-foreground">Código (ej. ktk)</label>
-                            <Input id="code" value={form.code} disabled={!!editingCode} onChange={(e) => setForm({ ...form, code: e.target.value.toLowerCase() })} className="bg-accent border-border mt-1 uppercase" required maxLength={10} />
+                <div className="bg-card border border-border p-8 rounded-xl mb-12 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-16 translate-x-16" />
+                    <h2 className="text-2xl font-forum font-black text-foreground mb-8">{editingCode ? 'Alterar Crónica de Expansión' : 'Registrar Nueva Expansión'}</h2>
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                            <label htmlFor="code" className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Código del Plano (ej. ktk)</label>
+                            <Input id="code" value={form.code} disabled={!!editingCode} onChange={(e) => setForm({ ...form, code: e.target.value.toLowerCase() })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium uppercase" required maxLength={10} />
                         </div>
-                        <div>
-                            <label htmlFor="name" className="text-xs text-muted-foreground">Nombre del Set</label>
-                            <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent border-border mt-1" required />
+                        <div className="space-y-2">
+                            <label htmlFor="name" className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Nombre del Plano</label>
+                            <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
                         </div>
-                        <div>
-                            <label htmlFor="released_at" className="text-xs text-muted-foreground">Fecha Lanzamiento</label>
-                            <Input id="released_at" type="date" value={form.released_at} onChange={(e) => setForm({ ...form, released_at: e.target.value })} className="bg-accent border-border mt-1 block w-full" />
+                        <div className="space-y-2">
+                            <label htmlFor="released_at" className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Fecha de Manifestación</label>
+                            <Input id="released_at" type="date" value={form.released_at} onChange={(e) => setForm({ ...form, released_at: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium block w-full" />
                         </div>
-                        <div>
-                            <label htmlFor="card_count" className="text-xs text-muted-foreground">Total Cartas</label>
-                            <Input id="card_count" type="number" min="0" value={form.card_count} onChange={(e) => setForm({ ...form, card_count: parseInt(e.target.value, 10) })} className="bg-accent border-border mt-1" required />
+                        <div className="space-y-2">
+                            <label htmlFor="card_count" className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Cantidad de Hechizos</label>
+                            <Input id="card_count" type="number" min="0" value={form.card_count} onChange={(e) => setForm({ ...form, card_count: parseInt(e.target.value, 10) })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
                         </div>
-                        <div className="flex items-center space-x-2 py-2">
+                        <div className="flex items-center space-x-3 pt-6 ml-1 col-span-2">
                              <input 
                                 type="checkbox" 
                                 id="is_active" 
                                 checked={form.is_active} 
                                 onChange={(e) => setForm({...form, is_active: e.target.checked})}
-                                className="w-4 h-4 rounded border-border bg-accent text-primary focus:ring-primary"
+                                className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer transition-all"
                              />
-                             <label htmlFor="is_active" className="text-sm font-medium text-foreground cursor-pointer">Set Activo (Visibilidad en cascada)</label>
+                             <label htmlFor="is_active" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">Plano Conectado (Visibilidad en cascada)</label>
                         </div>
-                        <div className="md:col-span-2 flex gap-3 mt-2">
-                            <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
-                                {submitting ? 'Guardando...' : editingCode ? 'Actualizar Set' : 'Guardar Set'}
+                        <div className="md:col-span-2 flex gap-4 pt-4">
+                            <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest h-14 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
+                                {submitting ? 'Guardando...' : editingCode ? 'Actualizar Registros' : 'Guardar en Biblioteca'}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingCode(null); }} className="flex-1 border-border text-muted-foreground hover:bg-accent">
+                            <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingCode(null); }} className="flex-1 border-border/50 text-muted-foreground hover:bg-accent h-14 rounded-xl font-black uppercase tracking-widest font-montserrat">
                                 Cancelar
                             </Button>
                         </div>
@@ -197,70 +197,87 @@ export default function AdminSets() {
                 </div>
             )}
 
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-2xl">
-                <table className="w-full text-left text-sm text-muted-foreground">
-                    <thead className="bg-accent/40 border-b border-border text-xs uppercase tracking-widest font-bold">
-                        <tr>
-                            <th className="px-6 py-4 font-medium w-10">
-                                <input
-                                    type="checkbox"
-                                    checked={allSelected}
-                                    onChange={selectAll}
-                                    className="w-4 h-4 rounded border-border bg-accent text-primary focus:ring-primary"
-                                />
-                            </th>
-                            <th className="px-6 py-4 font-medium w-16 text-center">Icono</th>
-                            <th className="px-6 py-4 font-medium">Cód.</th>
-                            <th className="px-6 py-4 font-medium">Nombre</th>
-                            <th className="px-6 py-4 font-medium text-center">Estado</th>
-                            <th className="px-6 py-4 font-medium">Cartas</th>
-                            <th className="px-6 py-4 font-medium text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                        {sets.map((s) => (
-                            <tr key={s.code} className={`group hover:bg-accent/30 transition-all duration-300 ${isSelected(s.code) ? 'bg-primary/5' : ''}`}>
-                                <td className="px-6 py-4 text-center">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-2xl shadow-black/5">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-muted-foreground font-literata">
+                        <thead className="bg-accent/40 border-b border-border text-[9px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/60">
+                            <tr>
+                                <th className="px-8 py-6 w-10">
                                     <input
                                         type="checkbox"
-                                        checked={isSelected(s.code)}
-                                        onChange={() => toggle(s.code)}
-                                        className="w-4 h-4 rounded border-border bg-accent text-primary focus:ring-primary"
+                                        checked={allSelected}
+                                        onChange={selectAll}
+                                        className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
                                     />
-                                </td>
-                                <td className="px-6 py-4 flex justify-center">
-                                    {s.icon_svg_uri && <img src={s.icon_svg_uri} alt={s.code} className="w-6 h-6 invert dark:invert-0 opacity-80" />}
-                                </td>
-                                <td className="px-6 py-4 font-mono text-foreground uppercase">{s.code}</td>
-                                <td className="px-6 py-4 font-medium text-primary">{s.name}</td>
-                                <td className="px-6 py-4 text-center">
-                                    <button 
-                                        onClick={() => handleToggleActive(s)}
-                                        className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase transition-all ${
-                                            s.is_active 
-                                            ? 'bg-primary/10 text-primary border border-primary/20' 
-                                            : 'bg-muted text-muted-foreground border border-border'
-                                        }`}
-                                    >
-                                        {s.is_active ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
-                                        {s.is_active ? 'Activo' : 'Inactivo'}
-                                    </button>
-                                </td>
-                                <td className="px-6 py-4 font-mono">{s.card_count}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
-                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(s)} className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(s.code)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </td>
+                                </th>
+                                <th className="px-6 py-6 font-black w-24 text-center">Sigilo</th>
+                                <th className="px-6 py-6 font-black">Cód.</th>
+                                <th className="px-6 py-6 font-black">Expansión</th>
+                                <th className="px-6 py-6 font-black text-center">Conexión</th>
+                                <th className="px-6 py-6 font-black text-center">Hechizos</th>
+                                <th className="px-8 py-6 font-black text-right">Manejo</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-border/30">
+                            {sets.map((s) => (
+                                <tr key={s.code} className={cn(
+                                    "group hover:bg-accent/20 transition-all duration-300",
+                                    isSelected(s.code) ? 'bg-primary/[0.03]' : ''
+                                )}>
+                                    <td className="px-8 py-6 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected(s.code)}
+                                            onChange={() => toggle(s.code)}
+                                            className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
+                                        />
+                                    </td>
+                                    <td className="px-6 py-6 flex justify-center">
+                                        {s.icon_svg_uri ? (
+                                            <div className="h-10 w-10 rounded-xl bg-accent border border-border/50 flex items-center justify-center shadow-inner group-hover:border-primary/30 transition-colors">
+                                                <img src={s.icon_svg_uri} alt={s.code} className="w-6 h-6 invert dark:invert-0 opacity-80 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                        ) : (
+                                            <div className="h-10 w-10 border border-dashed border-border/30 rounded-xl" />
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-6 font-black text-[12px] text-muted-foreground/40 font-montserrat uppercase">#{s.code}</td>
+                                    <td className="px-6 py-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-foreground font-black text-[16px] group-hover:text-primary transition-colors font-forum">{s.name}</span>
+                                            <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-widest font-montserrat opacity-60">Lanzado: {s.released_at || 'Desconocida'}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-6 text-center">
+                                        <button 
+                                            onClick={() => handleToggleActive(s)}
+                                            className={cn(
+                                                "inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                                                s.is_active 
+                                                ? 'bg-primary/10 text-primary border border-primary/20' 
+                                                : 'bg-muted/10 text-muted-foreground/40 border border-border/50'
+                                            )}
+                                        >
+                                            {s.is_active ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
+                                            {s.is_active ? 'Conectado' : 'Cerrado'}
+                                        </button>
+                                    </td>
+                                    <td className="px-6 py-6 text-center font-black text-[11px] text-muted-foreground/30 font-montserrat">{s.card_count}</td>
+                                    <td className="px-8 py-6 text-right">
+                                        <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
+                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(s)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
+                                                <Edit2 size={15} />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(s.code)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10">
+                                                <Trash2 size={15} />
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <BulkActionsToolbar
@@ -268,32 +285,32 @@ export default function AdminSets() {
                 onClear={clear}
                 actions={[
                     ...(selectedCount === 1 ? [{
-                        label: 'Editar',
+                        label: 'Alterar Crónica',
                         icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
                             const setToEdit = sets.find(s => s.code === selectedList[0]);
                             if (setToEdit) handleEdit(setToEdit);
                         },
-                        className: 'text-primary hover:text-primary/80'
+                        className: 'text-primary hover:text-primary'
                     }] : []),
                     {
-                        label: 'Activar',
+                        label: 'Abrir Planos',
                         icon: <CheckCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary/80'
+                        className: 'text-primary hover:text-primary'
                     },
                     {
-                        label: 'Desactivar',
+                        label: 'Cerrar Planos',
                         icon: <XCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground hover:text-foreground'
+                        className: 'text-muted-foreground/60 hover:text-foreground'
                     },
                     {
-                        label: 'Eliminar',
+                        label: 'Borrar Crónicas',
                         icon: <Trash2 className="w-4 h-4" />,
                         onClick: handleBulkDelete,
                         variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground border border-destructive/20'
+                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl'
                     }
                 ]}
             />

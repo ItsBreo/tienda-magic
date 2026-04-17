@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Package, LogOut, Shield, User, ChevronDown,
+  Package, LogOut, Shield, User, ChevronDown, ShoppingCart, Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import { cn } from '@/lib/utils';
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -47,7 +48,7 @@ export function Navbar() {
     return (
       <Link
         to={to}
-        className={`text-[15px] font-medium transition-colors duration-200 ${
+        className={`text-base font-bold transition-colors duration-200 ${
           active
             ? 'text-primary'
             : 'text-muted-foreground hover:text-foreground'
@@ -58,163 +59,95 @@ export function Navbar() {
     );
   };
 
-  // Avatar: initials or profile picture
-  const avatarContent = user?.avatar ? (
-    <img
-      src={user.avatar}
-      alt={user.name}
-      className="w-8 h-8 rounded-full object-cover ring-2 ring-border"
-    />
-  ) : (
-    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center ring-2 ring-border flex-shrink-0">
-      <span className="text-[11px] font-bold text-primary-foreground">
-        {(user?.name || user?.username || 'U').substring(0, 2).toUpperCase()}
-      </span>
-    </div>
-  );
-
-  // Default avatar for guests
-  const defaultAvatar = (
-    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center ring-2 ring-border flex-shrink-0">
-      <User className="w-4 h-4 text-muted-foreground" />
-    </div>
-  );
+  // Icon Button Style (Matches AnimatedThemeToggler exactly: h-8 w-8)
+  const iconButtonClass = "flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground transition-colors";
 
   return (
-    <header className="bg-background border-b border-border sticky top-0 z-40 w-full transition-colors duration-300">
-      <div className="w-full px-10 py-4">
-        <div className="flex items-center justify-between gap-6">
+    <header className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-50 w-full transition-all duration-300">
+      <div className="w-full px-6 lg:px-10 py-4 md:py-5">
+        <div className="flex items-center justify-between gap-8">
 
-          {/* ── LEFT SIDE: Logo + Nav links ── */}
-          <div className="flex items-center gap-10">
-
-            {/* Logo */}
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity flex-shrink-0"
-            >
-              <div className="p-1.5 bg-card border border-border rounded-sm">
-                <Package className="h-5 w-5 text-primary" />
+          {/* ── LEFT SIDE ── */}
+          <div className="flex items-center gap-12">
+            <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0 group">
+              <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl group-hover:bg-primary/20 transition-colors">
+                <Package className="h-6 w-6 text-primary" />
               </div>
-              <span className="text-xl font-serif font-bold text-foreground tracking-tight whitespace-nowrap">
-                Tienda Magic
-              </span>
+              <span className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase">TIENDA MAGIC</span>
             </Link>
 
-            {/* Primary nav */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden lg:flex items-center gap-10">
               {navLink('/dashboard', 'Inicio')}
               {navLink('/shop', 'Catálogo')}
               {user && navLink('/inventory', 'Inventario')}
 
-              {/* About dropdown */}
               <div className="relative" ref={aboutRef}>
                 <button
                   onClick={() => { setAboutOpen(o => !o); setUserMenuOpen(false); }}
-                  className={`flex items-center gap-1 text-sm font-medium transition-colors duration-200 ${
-                    aboutOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className={`flex items-center gap-2 text-base font-bold transition-colors ${aboutOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                 >
-                  About
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${aboutOpen ? 'rotate-180' : ''}`} />
+                  Nosotros <ChevronDown className={cn("h-4 w-4 transition-transform", aboutOpen && "rotate-180")} />
                 </button>
-
                 {aboutOpen && (
-                  <div className="absolute left-0 top-full mt-2 w-48 bg-popover border border-border rounded-md shadow-lg z-50 flex flex-col overflow-hidden">
-                    <Link
-                      to="/rules"
-                      onClick={() => setAboutOpen(false)}
-                      className="px-4 py-2.5 text-sm text-popover-foreground hover:text-primary hover:bg-accent border-b border-border transition-colors"
-                    >
-                      Reglas de Juego
-                    </Link>
-                    <Link
-                      to="/contact"
-                      onClick={() => setAboutOpen(false)}
-                      className="px-4 py-2.5 text-sm text-popover-foreground hover:text-primary hover:bg-accent transition-colors"
-                    >
-                      Contacto
-                    </Link>
+                  <div className="absolute left-0 top-full mt-4 w-56 bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <Link to="/rules" onClick={() => setAboutOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Reglas</Link>
+                    <Link to="/contact" onClick={() => setAboutOpen(false)} className="px-5 py-4 text-base font-medium block hover:bg-accent">Contacto</Link>
                   </div>
                 )}
               </div>
             </nav>
           </div>
 
-          {/* ── RIGHT SIDE: Theme toggler + User ── */}
+          {/* ── RIGHT SIDE ── */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <AnimatedThemeToggler />
 
             {user ? (
-              /* User dropdown */
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => { setUserMenuOpen(o => !o); setAboutOpen(false); }}
-                  className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-accent transition-colors duration-200 group"
-                >
-                  {avatarContent}
-                  <span className="hidden sm:inline text-sm font-medium text-foreground group-hover:text-primary transition-colors max-w-[120px] truncate">
-                    {user.username || user.name}
-                  </span>
-                  <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
+              <div className="flex items-center gap-3">
+                {/* Carrito (Icon Only Square) */}
+                <Link to="/cart" className={iconButtonClass} title="Ver Carrito">
+                  <ShoppingCart className="h-4 w-4" />
+                </Link>
 
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-popover border border-border rounded-md shadow-lg z-50 flex flex-col overflow-hidden">
-                    {/* User info header */}
-                    <div className="px-4 py-3 border-b border-border">
-                      <p className="text-xs text-muted-foreground">Conectado como</p>
-                      <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
+                {/* Wallet (Icon Only Square) */}
+                <Link to="/wallet" className={iconButtonClass} title="Mi Wallet">
+                  <Wallet className="h-4 w-4" />
+                </Link>
+
+                {/* Saldo y Usuario */}
+                <div className="flex items-center gap-4 ml-2">
+                    {/* Saldo a la IZQ del nombre */}
+                    <div className="flex flex-col items-end mr-1">
+                        <span className="text-[11px] font-black text-primary uppercase tracking-widest leading-none mb-0.5">Cartera</span>
+                        <span className="text-sm md:text-base font-black text-foreground">€{user.wallet_balance?.toFixed(2) || '0.00'}</span>
                     </div>
 
-                    <Link
-                      to="/profile"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-popover-foreground hover:text-primary hover:bg-accent border-b border-border transition-colors"
-                    >
-                      <User className="h-4 w-4" />
-                      Perfil
-                    </Link>
+                    <div className="relative" ref={userMenuRef}>
+                        <button
+                            onClick={() => { setUserMenuOpen(o => !o); setAboutOpen(false); }}
+                            className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
+                        >
+                            <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[11px] font-black text-primary">{(user?.name || 'U').substring(0, 1).toUpperCase()}</span>
+                            </div>
+                            <span className="text-sm font-bold text-foreground truncate max-w-[100px] hidden md:block">{user.username || user.name}</span>
+                            <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", userMenuOpen && "rotate-180")} />
+                        </button>
 
-                    {isAdmin && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-popover-foreground hover:text-primary hover:bg-accent border-b border-border transition-colors"
-                      >
-                        <Shield className="h-4 w-4" />
-                        Panel Admin
-                      </Link>
-                    )}
-
-                    <button
-                      onClick={() => { setUserMenuOpen(false); handleLogout(); }}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left w-full"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
+                        {userMenuOpen && (
+                            <div className="absolute right-0 top-full mt-4 w-60 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                                <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors"><User className="h-5 w-5 text-primary" /> Mi Perfil</Link>
+                                {isAdmin && <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-4 px-6 py-4 text-sm font-bold hover:bg-accent border-b border-border transition-colors"><Shield className="h-5 w-5 text-primary" /> Admin Panel</Link>}
+                                <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-destructive hover:bg-destructive/10 w-full text-left"><LogOut className="h-5 w-5" /> Cerrar Sesión</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
               </div>
             ) : (
-              /* Guest buttons */
-              <div className="flex items-center gap-2">
-                {defaultAvatar}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground border border-border px-3 py-1.5 rounded-md hover:bg-accent transition-colors"
-                  >
-                    Entrar
-                  </button>
-                  <button
-                    onClick={() => navigate('/register')}
-                    className="text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md transition-colors"
-                  >
-                    Registrarse
-                  </button>
-                </div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => navigate('/login')} className="text-sm font-black uppercase text-muted-foreground hover:text-foreground px-5 py-3">Entrar</button>
+                <button onClick={() => navigate('/register')} className="text-xs font-black uppercase bg-primary text-primary-foreground px-6 py-3.5 rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all">Registrarse</button>
               </div>
             )}
           </div>

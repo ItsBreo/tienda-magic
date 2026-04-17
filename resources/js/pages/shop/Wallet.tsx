@@ -1,17 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Wallet, ArrowLeft, CreditCard, Loader2, CheckCircle, Download, Calendar, History } from 'lucide-react';
+import { 
+    Wallet, CreditCard, 
+    Loader2, CheckCircle, Download, 
+    Calendar, History, ShieldCheck,
+    Coins, Zap, RefreshCw
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import apiService from '@/services/ApiService';
 import { formatEuro } from '@/utils/formatMoney';
 import { formatDate } from '@/utils/formatDate';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const RECHARGE_AMOUNTS = [
-    { amount: 5, label: '5€', bonus: '', description: 'Recarga básica' },
-    { amount: 10, label: '10€', bonus: '', description: 'Recarga estándar' },
-    { amount: 20, label: '20€', bonus: '+1€', description: 'Recarga con bonificación' },
-    { amount: 50, label: '50€', bonus: '+5€', description: 'Super recarga con bonus' },
+    { amount: 5, label: '5€', bonus: '', description: 'Ofrenda Menor' },
+    { amount: 10, label: '10€', bonus: '', description: 'Tesorillo Estándar' },
+    { amount: 20, label: '20€', bonus: '+1€', description: 'Bolsa del Viajero' },
+    { amount: 50, label: '50€', bonus: '+5€', description: 'Cofre del Planeswalker' },
 ];
 
 export default function WalletPage() {
@@ -42,34 +51,29 @@ export default function WalletPage() {
     // Manejar el retorno de Stripe
     useEffect(() => {
         const status = searchParams.get('status');
-
         if (status && !toastShown.current) {
             toastShown.current = true;
-
             if (status === 'success') {
-                toast.success('¡Recarga completada exitosamente!');
+                toast.success('¡Riquezas añadidas a tu cuenta!', {
+                    description: 'Tu saldo de oro ha sido actualizado correctamente.'
+                });
                 const refreshUserData = async () => {
                     try {
                         const userData = await apiService.checkAuth();
                         updateUser(userData);
                         fetchTransactions(); 
-                    } catch (error) {
-                        console.error('Error al refrescar datos del usuario:', error);
-                    }
+                    } catch (error) { console.error(error); }
                 };
                 refreshUserData();
             } else if (status === 'canceled') {
-                toast.info('Recarga cancelada. Puedes intentarlo cuando quieras.');
+                toast.info('Recarga cancelada. El oro sigue en el cofre.');
             }
-
             navigate('/wallet', { replace: true });
         }
-    }, [searchParams.toString(), updateUser, navigate]);
+    }, [searchParams.toString()]);
 
     useEffect(() => {
-        if (user) {
-            fetchTransactions();
-        }
+        if (user) fetchTransactions();
     }, [user?.id]);
 
     const handleDownloadPdf = async () => {
@@ -79,14 +83,13 @@ export default function WalletPage() {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `historial_billetera_${user?.username}.pdf`);
+            link.setAttribute('download', `registro_oro_${user?.username}.pdf`);
             document.body.appendChild(link);
             link.click();
             link.parentNode?.removeChild(link);
-            toast.success('Descargando historial...');
+            toast.success('Registro de transacciones descargado');
         } catch (error) {
-            console.error('Error al descargar PDF:', error);
-            toast.error('No se pudo generar el PDF. Inténtalo de nuevo.');
+            toast.error('No se pudo generar el pergamino de transacciones');
         } finally {
             setDownloading(false);
         }
@@ -94,29 +97,21 @@ export default function WalletPage() {
 
     const handleRecharge = async (amount: number) => {
         if (!user) {
-            toast.error('Debes iniciar sesión para recargar tu saldo');
+            toast.error('Debes identificarte para gestionar tu oro');
             navigate('/login');
             return;
         }
-
         setSelectedAmount(amount);
         setLoading(true);
-
         try {
             const response = await apiService.rechargeWallet(amount);
-
             if (response.success && response.session_url) {
                 window.location.href = response.session_url;
             } else {
-                toast.error('Error al generar la sesión de pago');
+                toast.error('Error al conectar con la bóveda de Stripe');
             }
         } catch (error: any) {
-            console.error('Error en recarga:', error);
-            if (error.response?.data?.message) {
-                toast.error(error.response.data.message);
-            } else {
-                toast.error('Error al procesar la recarga. Inténtalo nuevamente.');
-            }
+            toast.error('Error al procesar la transferencia de oro');
         } finally {
             setLoading(false);
             setSelectedAmount(null);
@@ -125,220 +120,236 @@ export default function WalletPage() {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-6 text-foreground bg-background">
-                <div className="text-center max-w-sm">
-                    <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Wallet className="w-10 h-10 text-muted-foreground" />
+            <div className="min-h-[80vh] flex items-center justify-center p-6 bg-background">
+                <div className="text-center max-w-sm animate-in fade-in zoom-in duration-500">
+                    <div className="w-24 h-24 bg-card border border-border rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl">
+                        <Wallet className="w-12 h-12 text-muted-foreground/30" strokeWidth={1.5} />
                     </div>
-                    <h2 className="text-2xl font-serif font-black mb-2 uppercase tracking-tight">Acceso Requerido</h2>
-                    <p className="text-muted-foreground text-sm mb-8 font-medium">Debes iniciar sesión para gestionar tu billetera virtual y recargar oro.</p>
-                    <button
-                        onClick={() => navigate('/login')}
-                        className="w-full py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-primary/20"
-                    >
-                        Iniciar Sesión
-                    </button>
+                    <h2 className="text-3xl font-montserrat font-black mb-4 uppercase tracking-tighter">Bóveda Privada</h2>
+                    <p className="text-muted-foreground text-sm mb-10 font-literata italic">Identifícate con tu chispa de Planeswalker para gestionar tu fortuna.</p>
+                    <Button onClick={() => navigate('/login')} className="w-full h-12 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
+                        Entrar al Sistema
+                    </Button>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="px-6 py-12 text-foreground bg-background">
-            <div className="mx-auto max-w-4xl">
-                    <div className="mb-10">
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="mb-6 flex items-center text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Volver al Dashboard
-                        </button>
+        <div className="flex-1 bg-background text-foreground pb-20 font-literata">
+            <Breadcrumbs items={[{ title: 'Mi Billetera', href: '/wallet' }]} />
 
-                        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                            <div>
-                                <h1 className="text-4xl font-serif font-black mb-2 uppercase tracking-tighter decoration-primary/20 underline underline-offset-8">
-                                    Mi Billetera
-                                </h1>
-                                <p className="text-muted-foreground font-medium text-sm">
-                                    Gestiona tu saldo de oro y descarga tus facturas de recarga.
-                                </p>
-                            </div>
-                            
-                            <button
-                                onClick={handleDownloadPdf}
-                                disabled={downloading || transactions.length === 0}
-                                className="flex items-center justify-center px-6 py-3 bg-accent hover:bg-border disabled:opacity-30 disabled:cursor-not-allowed text-foreground rounded-xl border border-border transition-all font-black text-xs uppercase tracking-widest"
-                            >
-                                {downloading ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Download className="w-4 h-4 mr-2" />
-                                )}
-                                Descargar Historial (PDF)
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="bg-card border border-border rounded-2xl p-8 mb-8 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-transform group-hover:scale-110"></div>
-                        <div className="flex items-center justify-between relative z-10">
-                            <div>
-                                <p className="text-muted-foreground text-xs font-black uppercase tracking-widest mb-2 opacity-60">Saldo Disponible</p>
-                                <p className="text-5xl font-serif font-black text-primary drop-shadow-sm">
-                                    {formatEuro(user.wallet_balance)}
-                                </p>
-                            </div>
-                            <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center shadow-inner">
-                                <Wallet className="w-10 h-10 text-primary" strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-card border border-border rounded-2xl p-8 shadow-2xl">
-                        <h2 className="text-xl font-serif font-black text-foreground mb-8 flex items-center uppercase tracking-wider">
-                            <CreditCard className="h-5 w-5 mr-3 text-primary" />
-                            Recargar Oro
-                        </h2>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-                            {RECHARGE_AMOUNTS.map((option) => (
-                                <button
-                                    key={option.amount}
-                                    onClick={() => handleRecharge(option.amount)}
-                                    disabled={loading}
-                                    className={`
-                                        relative p-6 rounded-2xl border-2 transition-all duration-300 group/btn
-                                        ${selectedAmount === option.amount && loading
-                                            ? 'border-primary bg-primary/5 grayscale opacity-50'
-                                            : 'border-border bg-accent/30 hover:border-primary hover:translate-y-[-4px] hover:shadow-xl hover:shadow-primary/10'
-                                        }
-                                        ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}
-                                    `}
-                                >
-                                    {loading && selectedAmount === option.amount ? (
-                                        <div className="flex flex-col items-center">
-                                            <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
-                                            <span className="text-[10px] font-black uppercase text-muted-foreground">Procesando</span>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="text-3xl font-serif font-black text-foreground mb-1 group-hover/btn:text-primary transition-colors">
-                                                {option.label}
-                                            </div>
-                                            {option.bonus && (
-                                                <div className="inline-block text-[9px] font-black uppercase px-1.5 py-0.5 bg-primary text-primary-foreground rounded-sm mb-3 tracking-tighter">
-                                                    {option.bonus} BONUS
-                                                </div>
-                                            )}
-                                            <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight opacity-60">
-                                                {option.description}
-                                            </div>
-                                        </>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="border-t border-border pt-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="flex items-start space-x-4 p-4 bg-accent/20 rounded-xl border border-border/50">
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                        <CheckCircle className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-black uppercase text-foreground mb-1">Pago Encriptado</p>
-                                        <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">Procesado de forma segura mediante Stripe con encriptación AES-256.</p>
+            <main className="max-w-7xl mx-auto px-4 pt-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                     
+                    {/* LEFT COLUMN: BALANCE */}
+                    <div className="lg:col-span-4 space-y-8">
+                        {/* PREMIUM BALANCE CARD */}
+                        <div className="relative bg-card border border-border rounded-xl p-8 shadow-2xl overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-transform group-hover:scale-110" />
+                            <div className="relative z-10 flex flex-col gap-6">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60">Tesoro Disponible</h2>
+                                    <div className="p-3 bg-primary/10 rounded-xl shadow-inner border border-primary/5">
+                                        <Wallet className="h-6 w-6 text-primary" strokeWidth={2.5} />
                                     </div>
                                 </div>
-                                <div className="flex items-start space-x-4 p-4 bg-accent/20 rounded-xl border border-border/50">
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                        <CheckCircle className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-black uppercase text-foreground mb-1">Entrega Instantánea</p>
-                                        <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">El oro se añadirá a tu cuenta inmediatamente después de la confirmación.</p>
+                                <div>
+                                    <span className="text-6xl md:text-7xl font-forum font-bold text-foreground tracking-tighter block mb-1">
+                                        {formatEuro(user.wallet_balance)}
+                                    </span>
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                         <Badge variant="outline" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/10 text-[8px] font-black uppercase tracking-widest gap-1 py-1 px-3">
+                                             <ShieldCheck size={10} /> Transacciones seguras
+                                         </Badge>
+                                         <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 text-[8px] font-black uppercase tracking-widest gap-1 py-1 px-3">
+                                             <Zap size={10} className="fill-current" /> Entrega Instantánea
+                                         </Badge>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="mt-12 bg-card border border-border rounded-2xl overflow-hidden shadow-2xl">
-                        <div className="p-8 border-b border-border bg-accent/10 flex items-center justify-between">
-                            <h3 className="text-xl font-serif font-black text-foreground flex items-center uppercase tracking-widest">
-                                <History className="w-5 h-5 mr-3 text-muted-foreground" />
-                                Historial de Movimientos
-                            </h3>
-                            <button onClick={() => fetchTransactions()} className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline">Refrescar</button>
-                        </div>
-                        
-                        <div className="overflow-x-auto">
-                            {transactionsLoading ? (
-                                <div className="flex flex-col items-center justify-center py-20 bg-accent/5">
-                                    <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-                                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Sincronizando con el banco central...</p>
-                                </div>
-                            ) : transactions.length > 0 ? (
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="bg-accent/30 text-muted-foreground text-[10px] uppercase font-black tracking-widest">
-                                            <th className="px-8 py-5">Fecha de Operación</th>
-                                            <th className="px-6 py-5">Descripción</th>
-                                            <th className="px-6 py-5">Monto</th>
-                                            <th className="px-8 py-5 text-right">Saldo Resultante</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border/50">
-                                        {transactions.map((tx) => {
-                                            const isPositive = Number(tx.amount) > 0;
-                                            const badgeConfig: Record<string, { label: string; cls: string }> = {
-                                                deposit:   { label: 'RECIBO', cls: 'bg-primary/10 text-primary border-primary/20' },
-                                                purchase:  { label: 'COMPRA', cls: 'bg-destructive/10 text-destructive border-destructive/20' },
-                                                withdrawal:{ label: 'RETIRO', cls: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-                                            };
-                                            const badge = badgeConfig[tx.type] ?? { label: tx.type, cls: 'bg-muted text-muted-foreground border-border' };
-
-                                            return (
-                                            <tr key={tx.id} className="hover:bg-accent/20 transition-all group">
-                                                <td className="px-8 py-4 text-[12px] font-bold text-muted-foreground">
-                                                    <div className="flex items-center">
-                                                        <Calendar className="w-3 h-3 mr-2 opacity-50" />
-                                                        {formatDate(tx.created_at)}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-[13px] font-black text-foreground uppercase tracking-tight">{tx.description || 'Transacción del Sistema'}</span>
-                                                        <span className={`px-2 py-0.5 rounded text-[9px] font-black border tracking-tighter ${badge.cls}`}>
-                                                            {badge.label}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className={`px-6 py-4 text-sm font-black italic ${isPositive ? 'text-primary' : 'text-destructive'}`}>
-                                                    {isPositive ? '+' : '-'} {formatEuro(Math.abs(Number(tx.amount)))}
-                                                </td>
-                                                <td className="px-8 py-4 text-[13px] font-black text-foreground text-right tabular-nums">
-                                                    {formatEuro(tx.balance_after)}
-                                                </td>
-                                            </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <div className="text-center py-20 bg-accent/5 flex flex-col items-center gap-3">
-                                    <History className="w-10 h-10 text-muted-foreground opacity-20" />
-                                    <p className="text-sm font-black uppercase tracking-widest text-muted-foreground opacity-40 italic">Aún no has realizado movimientos.</p>
-                                </div>
-                            )}
+                        <div className="p-6 bg-accent/10 border border-border/40 rounded-xl space-y-4">
+                             <div className="flex items-center gap-3">
+                                 <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center"><CheckCircle className="h-4 w-4 text-primary" /></div>
+                                 <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Sello de Bóveda</p>
+                             </div>
+                             <p className="text-[11px] text-muted-foreground font-medium leading-relaxed italic">
+                                 Todas las transmisiones de oro son registradas permanentemente en el Archivo del Multiverso. Tu seguridad es nuestra prioridad mágica.
+                             </p>
                         </div>
                     </div>
 
-                    <p className="mt-8 text-center text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-40">
-                        theGathering &copy; 2026 - Sistema de Billetera Virtual Certificado
-                    </p>
+                    {/* RIGHT COLUMN: RECHARGE & HISTORY */}
+                    <div className="lg:col-span-8 space-y-12">
+                         
+                         {/* RECHARGE SECTION AT THE TOP OF THIS COLUMN */}
+                         <section className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
+                                 <div className="flex items-center gap-4">
+                                     <div className="p-3 bg-primary/10 rounded-xl"><Coins className="w-6 h-6 text-primary" /></div>
+                                     <div>
+                                         <h2 className="text-2xl font-montserrat font-black text-foreground uppercase tracking-tight">Infusión de Oro</h2>
+                                         <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-widest opacity-60">Aumenta tus riquezas de Planeswalker</p>
+                                     </div>
+                                 </div>
+                                 <Badge variant="outline" className="h-10 px-4 py-0 bg-accent/20 border-border text-[9px] font-black uppercase tracking-widest flex items-center gap-2 self-start md:self-center">
+                                     <ShieldCheck size={14} className="text-emerald-500" /> Transacciones Encriptadas
+                                 </Badge>
+                             </div>
+                             
+                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                 {RECHARGE_AMOUNTS.map((option) => (
+                                     <button
+                                         key={option.amount}
+                                         onClick={() => handleRecharge(option.amount)}
+                                         disabled={loading}
+                                         className={cn(
+                                             "relative flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card/40 transition-all duration-300 group overflow-hidden shadow-sm",
+                                             loading ? "opacity-30 cursor-not-allowed" : "hover:border-primary hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1"
+                                         )}
+                                     >
+                                         {loading && selectedAmount === option.amount ? (
+                                             <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                                         ) : (
+                                             <>
+                                                 <span className="text-4xl font-forum font-bold text-foreground group-hover:text-primary transition-colors text-center block mb-1">
+                                                     {option.label}
+                                                 </span>
+                                                 {option.bonus && (
+                                                     <Badge className="bg-primary text-primary-foreground text-[8px] font-black uppercase tracking-tighter px-1.5 h-4 mb-2">
+                                                         {option.bonus} BONUS
+                                                     </Badge>
+                                                 )}
+                                                 <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center opacity-60 group-hover:opacity-100 transition-opacity">
+                                                     {option.description}
+                                                 </span>
+                                             </>
+                                         )}
+                                     </button>
+                                 ))}
+                             </div>
+                         </section>
+
+                         {/* HISTORY SECTION BELOW RECHARGE */}
+                         <section className="space-y-6 pt-4">
+                             <div className="flex items-center justify-between border-b border-border pb-4">
+                                 <div className="flex items-center gap-3">
+                                     <History className="w-6 h-6 text-primary" />
+                                     <h2 className="text-2xl font-montserrat font-black text-foreground uppercase tracking-tight">Registro de Movimientos</h2>
+                                 </div>
+                                 <div className="flex items-center gap-2">
+                                     <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        onClick={handleDownloadPdf}
+                                        disabled={downloading || transactions.length === 0}
+                                        className="h-9 px-4 text-[9px] font-black uppercase tracking-widest gap-2 bg-background border-border shadow-sm"
+                                     >
+                                        {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                                        Exportar Registro
+                                     </Button>
+                                     <Button 
+                                        variant="secondary" 
+                                        size="icon"
+                                        onClick={() => fetchTransactions()}
+                                        disabled={transactionsLoading}
+                                        className="h-9 w-9 shadow-sm"
+                                     >
+                                        <RefreshCw className={cn("h-4 w-4", transactionsLoading && "animate-spin")} />
+                                     </Button>
+                                 </div>
+                             </div>
+
+                             <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl shadow-black/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                 <div className="overflow-x-auto">
+                                     <table className="w-full text-left">
+                                         <thead>
+                                             <tr className="bg-muted/30 text-muted-foreground text-[10px] uppercase font-black tracking-widest border-b border-border">
+                                                 <th className="px-6 py-4">Fecha de Inscripción</th>
+                                                 <th className="px-6 py-4">Concepto</th>
+                                                 <th className="px-6 py-4 text-right">Variación / Saldo</th>
+                                             </tr>
+                                         </thead>
+                                         <tbody className="divide-y divide-border/30">
+                                             {transactionsLoading ? (
+                                                 <tr>
+                                                     <td colSpan={3} className="py-20 text-center">
+                                                         <div className="flex flex-col items-center gap-4">
+                                                             <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                                                             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">Abriendo el Gran Libro...</p>
+                                                         </div>
+                                                     </td>
+                                                 </tr>
+                                             ) : transactions.length > 0 ? (
+                                                 transactions.map((tx) => {
+                                                     const isPositive = Number(tx.amount) > 0;
+                                                     return (
+                                                         <tr key={tx.id} className="hover:bg-primary/[0.02] transition-colors group">
+                                                             <td className="px-6 py-5">
+                                                                 <div className="flex flex-col">
+                                                                     <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1.5 font-literata">
+                                                                         <Calendar size={10} className="text-primary/40" />
+                                                                         {formatDate(tx.created_at)}
+                                                                     </span>
+                                                                 </div>
+                                                             </td>
+                                                             <td className="px-6 py-5">
+                                                                 <div className="flex flex-col gap-1">
+                                                                     <span className="text-xs font-black uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">
+                                                                         {tx.description || 'Intervención de Sistema'}
+                                                                     </span>
+                                                                     <div className="flex gap-2">
+                                                                        <span className={cn(
+                                                                            "px-2 py-0.5 rounded text-[8px] font-black border tracking-tighter",
+                                                                            tx.type === 'deposit' ? "bg-primary/5 text-primary border-primary/20" :
+                                                                            tx.type === 'purchase' ? "bg-destructive/5 text-destructive border-destructive/20" :
+                                                                            "bg-amber-500/5 text-amber-500 border-amber-500/20"
+                                                                        )}>
+                                                                            {tx.type.toUpperCase()}
+                                                                        </span>
+                                                                     </div>
+                                                                 </div>
+                                                             </td>
+                                                             <td className="px-6 py-5 text-right space-y-1">
+                                                                 <span className={cn(
+                                                                     "text-sm font-black italic block",
+                                                                     isPositive ? "text-primary" : "text-destructive"
+                                                                 )}>
+                                                                     {isPositive ? '+' : '-'} {formatEuro(Math.abs(Number(tx.amount)))}
+                                                                 </span>
+                                                                 <span className="text-[10px] font-medium text-muted-foreground font-forum italic opacity-60">
+                                                                     Saldo: {formatEuro(tx.balance_after)}
+                                                                 </span>
+                                                             </td>
+                                                         </tr>
+                                                     );
+                                                 })
+                                             ) : (
+                                                 <tr>
+                                                     <td colSpan={3} className="py-24 text-center">
+                                                         <div className="flex flex-col items-center gap-3 opacity-20">
+                                                             <History className="h-12 w-12 text-muted-foreground" />
+                                                             <p className="text-[10px] font-black uppercase tracking-widest italic">El libro de cuentas está en blanco.</p>
+                                                         </div>
+                                                     </td>
+                                                 </tr>
+                                             )}
+                                         </tbody>
+                                     </table>
+                                 </div>
+                             </div>
+                         </section>
+                    </div>
                 </div>
-            </div>
+
+                <footer className="mt-24 border-t border-border/40 pt-12 pb-20 text-center space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground opacity-30">
+                        THE GATHERING &copy; 2026 - SISTEMA DE MONETIZACIÓN CERTIFICADO
+                    </p>
+                </footer>
+            </main>
+        </div>
     );
 }

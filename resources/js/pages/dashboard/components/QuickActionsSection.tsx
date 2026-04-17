@@ -4,41 +4,62 @@ import {
   Card, CardTitle, CardContent,
 } from '@/components/ui/card';
 import { QUICK_ACTIONS } from '../constants';
+import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 export function QuickActionsSection() {
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    // Filtramos las acciones según el rol del usuario (Role logic parity)
+    const filteredActions = QUICK_ACTIONS.filter(action => {
+        if (action.adminOnly) {
+            // Asumiendo que el usuario tiene un campo 'role' o similar
+             return user?.role === 'admin' || user?.is_admin;
+        }
+        return true;
+    });
 
     return (
-        <div className="px-6 py-12 bg-background">
+        <div className="px-6 py-12 bg-background/50">
             <div className="mx-auto max-w-7xl">
-                <h2 className="text-2xl font-serif font-bold text-foreground mb-6 border-b border-border pb-2">
-                    Accesos Rápidos
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {QUICK_ACTIONS.map((action, index) => (
+                <div className="flex items-center justify-between mb-8 border-b border-border pb-4">
+                    <h2 className="text-3xl font-montserrat font-black text-foreground uppercase tracking-tight">
+                        Accesos Rápidos
+                    </h2>
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest hidden md:block">
+                        Panel de Control Directo
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {filteredActions.map((action, index) => (
                         <Card
                             key={index}
-                            className={`bg-card transition-colors duration-200 rounded-sm cursor-pointer group ${
-                                action.disabled ? 'opacity-60 cursor-not-allowed border-border' : 'hover:border-primary border-border'
-                            }`}
+                            className={cn(
+                                "bg-card border-border hover:border-primary/50 transition-all duration-300 rounded-2xl cursor-pointer group shadow-sm hover:shadow-xl hover:-translate-y-1",
+                                action.disabled && "opacity-60 cursor-not-allowed grayscale"
+                            )}
                             onClick={() => !action.disabled && navigate(action.href)}
                         >
-                            <CardContent className="p-5">
-                                <div className="flex items-center gap-4 mb-3">
-                                    {/* AQUI APLICAMOS LA CLASE DEL CSS DIRECTAMENTE */}
-                                    <div className={`p-2 rounded-sm ${action.theme}`}>
-                                        <action.icon className="h-5 w-5" />
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className={cn(
+                                        "w-12 h-12 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 shadow-md",
+                                        action.theme
+                                    )}>
+                                        <action.icon className="h-6 w-6" />
                                     </div>
-                                    <CardTitle className="text-card-foreground font-medium text-lg">
+                                    <CardTitle className="text-foreground font-literata font-bold text-lg tracking-tight">
                                         {action.title}
                                     </CardTitle>
                                 </div>
-                                <p className="text-muted-foreground text-sm mb-4 leading-relaxed">
+                                <p className="text-muted-foreground text-sm mb-6 leading-relaxed font-medium">
                                     {action.description}
                                 </p>
-                                <div className="flex items-center text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                                    {action.disabled ? 'No disponible' : 'Entrar'}
-                                    {!action.disabled && <ArrowRight className="h-4 w-4 ml-1" />}
+                                <div className="flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-primary transition-colors">
+                                    {action.disabled ? 'PROXIMAMENTE' : 'ENTRAR AHORA'}
+                                    {!action.disabled && <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-2" />}
                                 </div>
                             </CardContent>
                         </Card>

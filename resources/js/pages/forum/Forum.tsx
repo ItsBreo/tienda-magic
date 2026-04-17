@@ -13,6 +13,9 @@ import ThreadDetailView from "./ThreadDetail";
 import CreatePostView from "./CreatePost";
 import { useSelection } from "@/hooks/useSelection";
 import BulkActionsToolbar from "@/components/admin/BulkActionsToolbar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 /** Convierte fecha ISO a formato legible */
@@ -30,16 +33,16 @@ function NavItem({ active, icon, label, badge, onClick }: { active: boolean; ico
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-2.5 py-2 px-4.5 cursor-pointer transition-all duration-150 border-l-3
+      className={`flex items-center gap-2.5 py-2.5 px-4 cursor-pointer transition-all duration-200 border-l-4 font-montserrat
         ${active
-          ? 'text-primary font-bold bg-accent border-primary'
+          ? 'text-primary font-black bg-primary/5 border-primary shadow-sm shadow-primary/5 scale-[1.02]'
           : 'text-muted-foreground hover:text-foreground hover:bg-accent border-transparent'
         }`}
     >
-      <span className="text-[15px]">{icon}</span>
-      <span className="text-[13px]">{label}</span>
+      <span className="text-[16px] filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100">{icon}</span>
+      <span className="text-[12.5px] uppercase tracking-widest leading-none font-black">{label}</span>
       {badge && (
-        <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold py-0.5 px-1.5 rounded-full">
+        <span className="ml-auto bg-primary text-primary-foreground text-[9px] font-black py-0.5 px-2 rounded-full shadow-sm">
           {badge}
         </span>
       )}
@@ -49,8 +52,8 @@ function NavItem({ active, icon, label, badge, onClick }: { active: boolean; ico
 
 function Widget({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      <div className="py-2.5 px-3.5 bg-accent border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-2xl shadow-black/5">
+      <div className="py-2.5 px-4 bg-accent/40 border-b border-border text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest font-montserrat">
         {title}
       </div>
       {children}
@@ -142,12 +145,10 @@ export default function MagicForum() {
       .catch(err => console.error("Error al cargar la lista de foros:", err));
   }, []);
 
-  // Reiniciar a página 1 cuando cambia el contexto (categoría, orden, navegación, búsqueda) o cantidad por página
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCategory, sortMode, activeSideNav, searchParams, perPage]);
 
-  // Efecto para la búsqueda dinámica (con debounce en el popover)
   useEffect(() => {
     const handler = setTimeout(() => {
       const trimmedSearch = searchTerm.trim();
@@ -204,7 +205,6 @@ export default function MagicForum() {
 
     fetcher
       .then(res => {
-        // En Laravel Resources con paginación, la data está en res.data y el meta en res.meta
         const threads = res.data || [];
         const mappedPosts = threads.map(mapThreadToPost);
         setPosts(mappedPosts);
@@ -309,12 +309,9 @@ export default function MagicForum() {
 
     try {
       if (isModOrAdmin) {
-        // Modo Moderador: Borrado masivo por API
         const { data } = await ApiService.axiosInstance.post('/api/mod/threads/bulk-delete', { ids: selectedList });
         toast.success(data.message);
       } else {
-        // Modo Usuario: Borrado individual en bucle (solo sus propios hilos)
-        // Aunque el checkbox ya solo sale si pueden borrar, filtramos por seguridad
         const ownIds = selectedList.filter(id => {
           const p = posts.find(post => post.id === Number(id));
           return p && p.can_delete;
@@ -396,23 +393,25 @@ export default function MagicForum() {
   };
 
   return (
-    <>
-      <div className="grid grid-cols-[224px_1fr_272px] h-full text-foreground bg-background leading-normal">
+    <div className="flex bg-background min-h-screen font-literata">
+      <div className="flex-1 max-w-[1440px] mx-auto grid grid-cols-[240px_1fr_280px] h-full shadow-2xl">
 
-        <aside className="bg-card border-r border-border flex flex-col">
-          <div className="p-4 flex items-center gap-2 border-b border-border mb-1.5">
-            <div className="w-[30px] h-[30px] bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">M</div>
-            <div className="text-[13px] font-bold tracking-tight text-foreground">
-              the<span className="text-primary">Gathering</span>
-            </div>
+        <aside className="bg-card border-r border-border flex flex-col sticky top-0 h-screen">
+          <div className="p-6 flex items-center gap-3 border-b border-border/50 mb-4">
+             <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                <span className="text-primary font-black font-forum text-xl">M</span>
+             </div>
+             <div className="text-sm font-black uppercase tracking-[0.2em] font-montserrat text-foreground">
+                the<span className="text-primary">Gathering</span>
+             </div>
           </div>
 
-          <div className="p-4 border-b border-border relative z-20" ref={searchRef}>
+          <div className="px-4 mb-8 relative z-20" ref={searchRef}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
               <Input
-                placeholder="Buscar en el foro..."
-                className="pl-9 bg-accent border-border focus-visible:ring-primary"
+                placeholder="Buscar hilos..."
+                className="pl-9 h-11 bg-accent border-border/50 focus-visible:ring-primary rounded-xl text-xs font-montserrat uppercase tracking-wider"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => { if (searchTerm.trim().length >= 3) setIsSearchOpen(true); }}
@@ -426,16 +425,15 @@ export default function MagicForum() {
             </div>
 
             {isSearchOpen && (
-              <div className="absolute top-[calc(100%-4px)] left-4 right-4 z-50 bg-card border border-border rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[350px]">
-                <div className="px-3 py-2 bg-accent border-b border-border text-[9px] font-bold text-muted-foreground uppercase tracking-wider flex justify-between items-center">
+              <div className="absolute top-[calc(100%+8px)] left-4 right-4 z-50 bg-card border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[400px]">
+                <div className="px-4 py-3 bg-accent/40 border-b border-border text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest flex justify-between items-center">
                   <span>Resultados Rápidos</span>
                   {isSearching && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
                 </div>
                 
-                <div className="overflow-y-auto flex-1 overscroll-contain">
+                <div className="flex-1 overflow-y-auto">
                   {!isSearching && searchResults.length === 0 && (
-                    <div className="px-4 py-6 text-xs text-center text-muted-foreground flex flex-col items-center gap-2">
-                       <Search className="h-6 w-6 text-muted-foreground/20" />
+                    <div className="px-4 py-10 text-[10px] text-center text-muted-foreground font-black uppercase tracking-widest opacity-30">
                        No se encontraron hilos
                     </div>
                   )}
@@ -446,76 +444,78 @@ export default function MagicForum() {
                         setIsSearchOpen(false);
                         openThread(post);
                       }}
-                      className={`flex flex-col p-3 cursor-pointer hover:bg-accent transition-all ${idx < searchResults.length - 1 ? 'border-b border-border' : ''}`}
+                      className="p-4 cursor-pointer hover:bg-primary/5 transition-colors border-b border-border last:border-0 group"
                     >
-                      <div className="text-xs font-bold text-foreground line-clamp-2 leading-tight mb-1 group-hover:text-primary transition-colors">{post.title}</div>
-                      <div className="flex items-center gap-2.5 text-[10px] text-muted-foreground">
-                        <span className="flex-1 truncate font-medium">@{post.author}</span>
-                        <div className="flex items-center gap-1 shrink-0 text-orange-400">
-                          <Flame className="w-3 h-3" />
-                          <span className="font-bold">{post.score}</span>
+                      <div className="text-xs font-black font-forum text-foreground line-clamp-2 leading-tight mb-2 group-hover:text-primary">{post.title}</div>
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground/60 font-montserrat uppercase font-black tracking-widest">
+                        <span className="truncate">@{post.author}</span>
+                        <div className="flex items-center gap-1 shrink-0 text-amber-500">
+                          <Flame className="w-3 h-3 fill-current" />
+                          <span>{post.score}</span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <MessageSquare className="w-3 h-3" />
-                          <span className="font-bold">{post.comments}</span>
+                          <span>{post.comments}</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                {searchResults.length > 0 && (
-                  <div
-                     onClick={() => {
-                        setIsSearchOpen(false);
-                        navigate(`/forum?q=${encodeURIComponent(searchTerm.trim())}`);
-                     }}
-                     className="px-3 py-2 bg-accent border-t border-border text-[11px] text-center font-bold text-primary hover:text-primary-foreground hover:bg-primary transition-all"
-                  >
-                    Ver todos los resultados &rarr;
-                  </div>
-                )}
               </div>
             )}
           </div>
 
-          <div className="py-2.5 px-4.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Mi Actividad</div>
-          <NavItem
-            active={activeSideNav === "guardados"}
-            icon="🔖"
-            label="Guardados"
-            onClick={() => {
-              navigate('/forum');
-              setActiveCategory(null);
-              handleSetView("feed");
-              setActiveSideNav("guardados");
-            }}
-          />
+          <div className="space-y-1">
+              <div className="px-6 py-2 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Canales</div>
+              <NavItem
+                active={activeSideNav === "reciente"}
+                icon="🔥"
+                label="Inicio"
+                onClick={() => {
+                  navigate('/forum');
+                  setActiveCategory(null);
+                  handleSetView("feed");
+                  setActiveSideNav("reciente");
+                }}
+              />
+              <NavItem
+                active={activeSideNav === "guardados"}
+                icon="🔖"
+                label="Marcadores"
+                onClick={() => {
+                  navigate('/forum');
+                  setActiveCategory(null);
+                  handleSetView("feed");
+                  setActiveSideNav("guardados");
+                }}
+              />
 
-          <div className="py-2.5 px-4.5 mt-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Categorías</div>
-          {(["noticias", "estrategia", "general", "torneos"] as Category[]).map(cat => (
-            <NavItem
-              key={cat}
-              active={activeCategory === cat}
-              icon={cat === "noticias" ? "📰" : cat === "estrategia" ? "⚔️" : cat === "torneos" ? "🏆" : "💬"}
-              label={CAT_LABELS[cat]}
-              badge={cat === "torneos" ? 2 : undefined}
-              onClick={() => {
-                navigate('/forum');
-                setActiveCategory(cat);
-                handleSetView("feed");
-                setActiveSideNav(cat);
-              }}
-            />
-          ))}
+              <div className="px-6 py-2 pt-6 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Categorías</div>
+              {(["noticias", "estrategia", "general", "torneos"] as Category[]).map(cat => (
+                <NavItem
+                  key={cat}
+                  active={activeCategory === cat}
+                  icon={cat === "noticias" ? "📰" : cat === "estrategia" ? "⚔️" : cat === "torneos" ? "🏆" : "💬"}
+                  label={CAT_LABELS[cat]}
+                  badge={cat === "torneos" ? 2 : undefined}
+                  onClick={() => {
+                    navigate('/forum');
+                    setActiveCategory(cat);
+                    handleSetView("feed");
+                    setActiveSideNav(cat);
+                  }}
+                />
+              ))}
+          </div>
 
-          <div className="mt-auto p-4 border-t border-border">
-            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-accent cursor-pointer hover:bg-border transition-colors">
-              <div className="w-7.5 h-7.5 rounded-full bg-primary flex items-center justify-center text-[11px] font-bold text-primary-foreground shrink-0">
+          <div className="mt-auto p-6 border-t border-border/50">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/40 border border-border/30 cursor-pointer hover:border-primary/30 transition-all group">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-[12px] font-black text-primary shadow-sm">
                 {user?.name?.substring(0, 2).toUpperCase() || "US"}
               </div>
               <div className="min-w-0">
-                <div className="text-[13px] font-bold truncate text-foreground leading-none">{user?.username || user?.name || "Usuario"}</div>
-                <div className="text-[10px] text-primary font-bold mt-1 uppercase tracking-tighter">
+                <div className="text-[11px] font-black uppercase tracking-widest text-foreground truncate">{user?.username || user?.name || "Usuario"}</div>
+                <div className="text-[9px] text-primary font-black uppercase tracking-[0.2em] mt-0.5 opacity-80">
                   {user?.wallet_balance ? `${user.wallet_balance} oro` : "0 oro"}
                 </div>
               </div>
@@ -523,7 +523,7 @@ export default function MagicForum() {
           </div>
         </aside>
 
-        <main className="p-4 overflow-y-auto relative">
+        <main className="p-6 overflow-y-auto relative bg-background">
           <div className={`transition-opacity duration-200 ${isHiding ? 'opacity-0' : 'opacity-100'}`}>
             {renderContent()}
           </div>
@@ -543,44 +543,57 @@ export default function MagicForum() {
           />
         </main>
 
-        <aside className="p-4 flex flex-col gap-3">
-          <Widget title="Torneos activos">
-            <div className="px-3.5 py-1.5">
+        <aside className="p-6 flex flex-col gap-6 sticky top-0 h-screen border-l border-border/50 bg-background/50 backdrop-blur-sm">
+          <Widget title="Grandes Torneos">
+            <div className="px-4 py-2 space-y-1">
               {tournaments.length === 0 ? (
-                 <div className="py-2.5 text-xs text-muted-foreground italic text-center">No hay torneos activos.</div>
+                 <div className="py-6 text-[10px] text-muted-foreground font-black uppercase tracking-widest text-center opacity-30 italic">No hay torneos activos.</div>
               ) : tournaments.map((t, i) => (
-                <div key={t.id} className={`flex items-center gap-2 py-2 ${i < tournaments.length - 1 ? 'border-b border-border' : ''}`}>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase shrink-0 ${t.status === 'live' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-muted text-muted-foreground border border-border'}`}>
-                    {t.status === 'live' ? "● En vivo" : "Próximo"}
-                  </span>
-                  <span onClick={() => setSelectedTournamentId(t.id)} className="text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer truncate flex-1">{t.name}</span>
-                  <span className="text-[10px] font-bold text-muted-foreground shrink-0">{formatDate(t.date).split(',')[0]}</span>
+                <div key={t.id} className="py-3 border-b border-border/30 last:border-0 group">
+                   <div className="flex items-center justify-between mb-2">
+                        <Badge variant="outline" className={cn(
+                            "text-[8px] font-black uppercase tracking-widest px-1.5 h-4",
+                            t.status === 'live' ? "bg-primary/5 text-primary border-primary/20" : "bg-muted text-muted-foreground border-border/50"
+                        )}>
+                            {t.status === 'live' ? "● Live" : "Draft"}
+                        </Badge>
+                        <span className="text-[10px] font-black text-muted-foreground/50 font-montserrat tracking-tighter">{formatDate(t.date).split(',')[0]}</span>
+                   </div>
+                  <div onClick={() => setSelectedTournamentId(t.id)} className="text-sm font-black font-forum text-foreground hover:text-primary transition-colors cursor-pointer truncate leading-tight group-hover:translate-x-1 transition-transform">
+                    {t.name}
+                  </div>
                 </div>
               ))}
             </div>
             
             {user && (
-              <button onClick={() => setShowTournamentModal(true)} className="mx-3.5 my-2 w-[calc(100%-28px)] bg-primary text-primary-foreground py-2 rounded-md text-[11px] font-bold cursor-pointer hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20">
-                + CREAR TORNEO
-              </button>
+              <div className="p-4 pt-0">
+                  <Button onClick={() => setShowTournamentModal(true)} className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border-primary/20 text-[10px] font-black uppercase tracking-[0.2em] shadow-none">
+                    + FORJAR TORNEO
+                  </Button>
+              </div>
             )}
           </Widget>
 
-          <Widget title="Reglas del foro">
-            <div className="px-3.5 py-1">
+          <Widget title="Leyes de la Mesa">
+            <div className="px-4 py-2">
               {RULES.map((rule, i) => (
-                <div key={rule} className={`text-[12px] text-muted-foreground py-2.5 flex gap-2.5 leading-relaxed ${i < RULES.length - 1 ? 'border-b border-border' : ''}`}>
-                  <span className="text-primary font-black">{i + 1}</span>
-                  <span className="font-medium">{rule}</span>
+                <div key={rule} className="py-4 flex gap-4 border-b border-border/30 last:border-0">
+                  <span className="text-xl font-forum font-black text-primary/20 flex-shrink-0">0{i + 1}</span>
+                  <p className="text-[11.5px] text-muted-foreground font-literata leading-relaxed italic line-clamp-3">{rule}</p>
                 </div>
               ))}
             </div>
           </Widget>
+
+          <div className="mt-auto opacity-10 flex justify-center pb-4">
+             <div className="text-[8px] font-black uppercase tracking-[1em] text-muted-foreground whitespace-nowrap">Origin v2.0</div>
+          </div>
         </aside>
       </div>
 
       {showTournamentModal && <TournamentModal onClose={() => setShowTournamentModal(false)} onSuccess={() => { setShowTournamentModal(false); setRefreshKey(k => k + 1); }} />}
       {selectedTournamentId && <TournamentDetailModal tournamentId={selectedTournamentId} onClose={() => setSelectedTournamentId(null)} />}
-    </>
+    </div>
   );
 }

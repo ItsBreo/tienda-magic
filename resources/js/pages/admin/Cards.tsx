@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '@/services/ApiService';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle, CheckCircle, XCircle as XIcon } from 'lucide-react';
+import { Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle, CheckCircle, XCircle as XIcon, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSelection } from '@/hooks/useSelection';
 import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface Card {
     id: number;
@@ -57,11 +59,10 @@ export default function AdminCards() {
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Seguro que deseas eliminar esta carta?')) return;
-
+        if (!window.confirm('¿Seguro que deseas eliminar esta carta de la colección?')) return;
         try {
             await apiService.axiosInstance.delete(`/api/admin/cards/${id}`);
-            toast.success('Carta eliminada');
+            toast.success('Carta eliminada de los registros');
             fetchCards();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error al eliminar');
@@ -78,13 +79,11 @@ export default function AdminCards() {
         }
     };
 
-    // --- ACCIONES MASIVAS ---
-
     const handleBulkDelete = async () => {
         if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} cartas?`)) return;
         try {
-            const { data } = await apiService.axiosInstance.post('/api/admin/cards/bulk-delete', { ids: selectedList });
-            toast.success(data.message);
+            await apiService.axiosInstance.post('/api/admin/cards/bulk-delete', { ids: selectedList });
+            toast.success('Eliminación masiva completada');
             clear();
             fetchCards();
         } catch (error) {
@@ -112,16 +111,14 @@ export default function AdminCards() {
         try {
             if (editingId) {
                 await apiService.updateAdminCard(editingId, form);
-                toast.success('Carta actualizada');
+                toast.success('Atributos de la carta actualizados');
             } else {
                 await apiService.axiosInstance.post('/api/admin/cards', form);
-                toast.success('Carta creada');
+                toast.success('Nueva carta registrada');
             }
             setShowForm(false);
             setEditingId(null);
-            setForm({
-                scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true
-            });
+            setForm({ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true });
             fetchCards();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Error guardando carta');
@@ -143,58 +140,63 @@ export default function AdminCards() {
             is_active: card.is_active
         });
         setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    if (loading) return <div className="p-8 flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+    if (loading) return <div className="p-20 flex flex-col items-center justify-center gap-4"><Loader2 className="animate-spin text-primary w-10 h-10" /><p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Invocando el Grimorio...</p></div>;
 
     return (
-        <div className="p-8 max-w-6xl mx-auto w-full">
-            <div className="flex justify-between items-center mb-6 text-foreground">
+        <div className="p-8 max-w-7xl mx-auto w-full font-literata">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Gestión de Cartas</h1>
-                    <p className="text-sm text-muted-foreground">Control individual de visibilidad. Si el Set está inactivo, la carta se ocultará igualmente.</p>
+                    <h1 className="text-4xl font-forum font-black text-foreground mb-2">Grimorio Arcano</h1>
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Base de datos maestra de hechizos y criaturas disponibles en la tienda.</p>
                 </div>
-                <Button 
-                    onClick={() => { setShowForm(!showForm); if (showForm) setEditingId(null); }} 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    {editingId ? 'Editando...' : 'Nueva Carta'}
-                </Button>
+                <div className="flex gap-4">
+                    <Button onClick={() => {
+                        setEditingId(null);
+                        setForm({ scryfall_id: '', name: '', set_code: '', collector_number: '', rarity: 'common', mana_value: 0, price_usd: 0, is_active: true });
+                        setShowForm(!showForm);
+                    }} className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
+                        <Plus className="w-4 h-4 mr-2" />
+                        {showForm ? 'Cerrar' : 'Nueva Carta'}
+                    </Button>
+                </div>
             </div>
 
             {showForm && (
-                <div className="bg-card border border-border p-6 rounded-xl mb-8 shadow-xl">
-                    <h2 className="text-lg font-bold text-foreground mb-4">{editingId ? 'Editar Carta' : 'Añadir Carta Manual'}</h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="text-xs text-muted-foreground">Nombre Carta</label>
-                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent border-border mt-1" required />
+                <div className="bg-card border border-border p-8 rounded-xl mb-12 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-transparent" />
+                    <h2 className="text-2xl font-forum font-black text-foreground mb-8">{editingId ? 'Alterar Pergamino de Carta' : 'Inscribir Nueva Carta'}</h2>
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Nombre del Hechizo</label>
+                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
                         </div>
-                        <div>
-                            <label className="text-xs text-muted-foreground">Rareza</label>
-                            <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: e.target.value })} className="w-full bg-accent border border-border rounded-md p-2 mt-1 text-sm text-foreground">
+                        <div className="space-y-2">
+                             <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Rareza del Cristal</label>
+                            <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: e.target.value })} className="w-full bg-accent/40 border border-border/50 rounded-xl px-4 h-12 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all font-medium appearance-none">
                                 <option value="common">Común</option>
                                 <option value="uncommon">Infrecuente</option>
                                 <option value="rare">Rara</option>
                                 <option value="mythic">Mítica</option>
                             </select>
                         </div>
-                        <div className="flex items-center space-x-2 py-2">
+                        <div className="flex items-center space-x-3 pt-6 ml-1">
                              <input 
                                 type="checkbox" 
                                 id="card_active" 
                                 checked={form.is_active} 
                                 onChange={(e) => setForm({...form, is_active: e.target.checked})}
-                                className="w-4 h-4 rounded border-border bg-accent text-primary focus:ring-primary"
+                                className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer transition-all"
                              />
-                             <label htmlFor="card_active" className="text-sm font-medium text-foreground cursor-pointer">Carta Activa</label>
+                             <label htmlFor="card_active" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">Manifestación Activa</label>
                         </div>
-                        <div className="md:col-span-3 flex gap-2">
-                            <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground mt-2">
-                                {submitting ? 'Guardando...' : editingId ? 'Actualizar Carta' : 'Guardar Carta'}
+                        <div className="md:col-span-3 flex gap-4 pt-4">
+                            <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest h-14 rounded-xl shadow-xl shadow-primary/20 font-montserrat">
+                                {submitting ? 'Inscribiendo...' : editingId ? 'Confirmar Alteración' : 'Inscribir en Grimorio'}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1 border-border text-foreground mt-2">
+                            <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1 border-border/50 text-muted-foreground hover:bg-accent h-14 rounded-xl font-black uppercase tracking-widest font-montserrat">
                                 Cancelar
                             </Button>
                         </div>
@@ -202,83 +204,98 @@ export default function AdminCards() {
                 </div>
             )}
 
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-                <table className="w-full text-left text-sm text-muted-foreground">
-                    <thead className="bg-background border-b border-border text-xs uppercase">
-                        <tr>
-                            <th className="px-6 py-4 font-medium w-10">
-                                <input
-                                    type="checkbox"
-                                    checked={allSelected}
-                                    onChange={selectAll}
-                                    className="w-4 h-4 rounded border-border bg-accent text-primary focus:ring-primary"
-                                />
-                            </th>
-                            <th className="px-6 py-4 font-medium">Nombre</th>
-                            <th className="px-6 py-4 font-medium">Set</th>
-                            <th className="px-6 py-4 font-medium text-center">Estado</th>
-                            <th className="px-6 py-4 font-medium">Rareza</th>
-                            <th className="px-6 py-4 font-medium text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                        {cards.map((c) => {
-                            const isSetInactive = c.card_set && !c.card_set.is_active;
-                            return (
-                                <tr key={c.id} className={`hover:bg-accent/50 transition-colors ${isSelected(c.id) ? 'bg-primary/5' : ''}`}>
-                                    <td className="px-6 py-4 text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={isSelected(c.id)}
-                                            onChange={() => toggle(c.id)}
-                                            className="w-4 h-4 rounded border-border bg-accent text-primary focus:ring-primary"
-                                        />
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium text-foreground">{c.name}</span>
-                                            {isSetInactive && (
-                                                <span className="text-[10px] text-destructive flex items-center gap-1">
-                                                    <AlertTriangle className="w-3 h-3" /> Set Desactivado (Oculta en tienda)
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 font-mono uppercase text-muted-foreground">{c.set_code}</td>
-                                    <td className="px-6 py-4 text-center">
-                                        <button 
-                                            onClick={() => handleToggleActive(c)}
-                                            className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase transition-all ${
-                                                c.is_active 
-                                                ? 'bg-primary/10 text-primary border border-primary/20' 
-                                                : 'bg-muted/10 text-muted-foreground border border-border'
-                                            }`}
-                                        >
-                                            {c.is_active ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
-                                            {c.is_active ? 'Activa' : 'Inactiva'}
-                                        </button>
-                                    </td>
-                                    <td className={`px-6 py-4 capitalize ${c.rarity === 'mythic' ? 'text-orange-400'
-                                        : c.rarity === 'rare' ? 'text-yellow-400'
-                                            : c.rarity === 'uncommon' ? 'text-slate-300' : 'text-muted-foreground'
-                                        }`}>
-                                        {c.rarity}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="sm" onClick={() => handleEdit(c)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
-                                                <Edit2 className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDelete(c.id)} className="text-destructive hover:bg-destructive/10 transition-colors">
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-2xl shadow-black/5">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-muted-foreground font-literata">
+                        <thead className="bg-accent/40 border-b border-border text-[9px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/60">
+                            <tr>
+                                <th className="px-8 py-6 w-10">
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        onChange={selectAll}
+                                        className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
+                                    />
+                                </th>
+                                <th className="px-6 py-6 font-black">Hechizo / Identidad</th>
+                                <th className="px-6 py-6 font-black text-center">Expansión</th>
+                                <th className="px-6 py-6 font-black text-center">Manifestación</th>
+                                <th className="px-6 py-6 font-black text-center">Rareza</th>
+                                <th className="px-8 py-6 font-black text-right">Manejo</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/30">
+                            {cards.map((c) => {
+                                const isSetInactive = c.card_set && !c.card_set.is_active;
+                                return (
+                                    <tr key={c.id} className={cn(
+                                        "group hover:bg-accent/20 transition-all duration-300",
+                                        isSelected(c.id) ? 'bg-primary/[0.03]' : ''
+                                    )}>
+                                        <td className="px-8 py-6">
+                                            <input
+                                                type="checkbox"
+                                                checked={isSelected(c.id)}
+                                                onChange={() => toggle(c.id)}
+                                                className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
+                                            />
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            <div className="flex flex-col">
+                                                <span className="text-foreground font-black text-[16px] group-hover:text-primary transition-colors font-forum">{c.name}</span>
+                                                {isSetInactive && (
+                                                    <span className="text-[9px] text-destructive font-black uppercase tracking-widest flex items-center gap-1 mt-1 opacity-70">
+                                                        <AlertTriangle className="w-3 h-3" /> Plano Inaccesible
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6 text-center">
+                                            <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg bg-accent/40 text-muted-foreground/60 border-border/30 font-montserrat">
+                                                {c.set_code}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-6 py-6 text-center">
+                                            <button 
+                                                onClick={() => handleToggleActive(c)}
+                                                className={cn(
+                                                    "inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                                                    c.is_active 
+                                                    ? 'bg-primary/10 text-primary border border-primary/20' 
+                                                    : 'bg-muted/10 text-muted-foreground/40 border border-border/50'
+                                                )}
+                                            >
+                                                {c.is_active ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
+                                                {c.is_active ? 'Visible' : 'Oculta'}
+                                            </button>
+                                        </td>
+                                        <td className="px-6 py-6 text-center">
+                                            <span className={cn(
+                                                "text-[10px] font-black uppercase tracking-[0.2em] font-montserrat",
+                                                c.rarity === 'mythic' ? 'text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.3)]'
+                                                : c.rarity === 'rare' ? 'text-amber-400'
+                                                : c.rarity === 'uncommon' ? 'text-slate-300 opacity-60' 
+                                                : 'text-muted-foreground/40'
+                                            )}>
+                                                {c.rarity}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(c)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
+                                                    <Edit2 size={15} />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10">
+                                                    <Trash2 size={15} />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <BulkActionsToolbar
@@ -286,32 +303,32 @@ export default function AdminCards() {
                 onClear={clear}
                 actions={[
                     ...(selectedCount === 1 ? [{
-                        label: 'Editar',
-                        icon: <Edit2 className="w-4 h-4" />,
+                        label: 'Alterar Hechizo',
+                        icon: <Search className="w-4 h-4" />,
                         onClick: () => {
                             const cardToEdit = cards.find(c => c.id === selectedList[0]);
                             if (cardToEdit) handleEdit(cardToEdit);
                         },
-                        className: 'text-primary hover:text-primary/80'
+                        className: 'text-primary hover:text-primary'
                     }] : []),
                     {
-                        label: 'Activar',
+                        label: 'Manifestar',
                         icon: <CheckCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary/80'
+                        className: 'text-primary hover:text-primary'
                     },
                     {
-                        label: 'Desactivar',
+                        label: 'Ocultar',
                         icon: <XIcon className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground hover:text-foreground'
+                        className: 'text-muted-foreground/60 hover:text-foreground'
                     },
                     {
-                        label: 'Eliminar',
+                        label: 'Eliminar del Libro',
                         icon: <Trash2 className="w-4 h-4" />,
                         onClick: handleBulkDelete,
                         variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground border border-destructive/20'
+                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl'
                     }
                 ]}
             />

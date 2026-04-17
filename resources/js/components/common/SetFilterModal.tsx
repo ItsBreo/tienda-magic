@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Tag, Check, Filter } from "lucide-react";
+import { Search, Tag, Check, Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ interface SetFilterModalProps {
     availableSets: CardSet[];
     selectedSets: (string | number)[];
     onApply: (selected: (string | number)[]) => void;
-    accentColor?: "amber" | "emerald";
+    accentColor?: "amber" | "emerald" | "primary";
 }
 
 export default function SetFilterModal({
@@ -35,12 +35,11 @@ export default function SetFilterModal({
     availableSets,
     selectedSets,
     onApply,
-    accentColor = "amber"
+    accentColor = "primary"
 }: SetFilterModalProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [tempSelected, setTempSelected] = useState<(string | number)[]>([]);
 
-    // Sync temp selection when modal opens
     useEffect(() => {
         if (isOpen) {
             setTempSelected([...selectedSets]);
@@ -67,66 +66,67 @@ export default function SetFilterModal({
         onClose();
     };
 
-    const colors = {
-        amber: {
-            bg: "bg-amber-500",
-            text: "text-amber-500",
-            border: "border-amber-500",
-            hover: "hover:bg-amber-500/10",
-            ring: "focus:ring-amber-500",
-            button: "bg-amber-500 hover:bg-amber-600 text-black",
-            icon: "text-amber-400"
-        },
-        emerald: {
-            bg: "bg-emerald-500",
-            text: "text-emerald-500",
-            border: "border-emerald-500",
-            hover: "hover:bg-emerald-500/10",
-            ring: "focus:ring-emerald-500",
-            button: "bg-emerald-500 hover:bg-emerald-600 text-white",
-            icon: "text-emerald-400"
-        }
-    }[accentColor];
-
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[600px] bg-card border-border text-foreground p-0 overflow-hidden shadow-2xl">
-                <DialogHeader className="p-6 pb-2">
-                    <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-                        <Filter className={cn("h-5 w-5", colors.icon)} />
-                        Filtrar por Set
-                    </DialogTitle>
-                    <DialogDescription className="text-sm text-muted-foreground mt-1">
-                        Selecciona uno o más de los sets disponibles para filtrar los artículos.
+            <DialogContent className="sm:max-w-[620px] bg-card border border-border text-foreground p-0 overflow-hidden shadow-2xl shadow-black/20 rounded-2xl">
+                {/* Header */}
+                <DialogHeader className="p-8 pb-0">
+                    <div className="flex items-center justify-between mb-1">
+                        <DialogTitle className="flex items-center gap-3 text-2xl font-forum font-black text-foreground">
+                            <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
+                                <Filter className="h-5 w-5 text-primary" />
+                            </div>
+                            Filtrar por Expansión
+                        </DialogTitle>
+                    </div>
+                    <DialogDescription className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mt-2 font-montserrat">
+                        Selecciona uno o varios planos para filtrar el catálogo.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="px-6 py-2">
+                {/* Search Input */}
+                <div className="px-8 py-5">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
                         <Input
-                            placeholder="Buscar set por nombre o código..."
-                            className={cn(
-                                "pl-10 bg-accent border-border text-sm focus-visible:ring-1", 
-                                accentColor === "amber" ? "focus-visible:ring-primary" : "focus-visible:ring-primary"
-                            )}
+                            placeholder="Buscar por nombre o código de set..."
+                            className="pl-11 h-12 bg-accent/40 border-border/50 text-sm rounded-xl focus-visible:ring-1 focus-visible:ring-primary transition-all font-medium placeholder:text-muted-foreground/30"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm("")}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
+                    {tempSelected.length > 0 && (
+                        <div className="flex items-center gap-2 mt-3">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 font-montserrat">Seleccionados:</span>
+                            <Badge
+                                variant="outline"
+                                className="text-[10px] font-black uppercase tracking-widest px-2.5 h-6 bg-primary/5 text-primary border-primary/20 cursor-pointer hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-colors"
+                                onClick={() => setTempSelected([])}
+                            >
+                                {tempSelected.length} — Limpiar
+                            </Badge>
+                        </div>
+                    )}
                 </div>
 
-                <div className="px-6 py-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+                {/* Sets Grid */}
+                <div className="px-8 pb-2 max-h-[380px] overflow-y-auto">
                     {filteredSets.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-40 text-muted-foreground space-y-2">
-                            <Tag className="h-8 w-8 opacity-20" />
-                            <p>No se encontraron sets</p>
+                        <div className="flex flex-col items-center justify-center h-32 text-muted-foreground space-y-3">
+                            <Tag className="h-8 w-8 opacity-10" />
+                            <p className="text-[11px] font-black uppercase tracking-widest opacity-30 font-montserrat">No se encontraron expansiones</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {filteredSets.map((set) => {
-                                // Prefer code for selection as it's the most common API parameter, 
-                                // but fallback to ID if no code exists.
                                 const selectionKey = set.code || set.id;
                                 const isSelected = tempSelected.includes(selectionKey);
                                 
@@ -135,32 +135,58 @@ export default function SetFilterModal({
                                         key={set.id}
                                         onClick={() => toggleSet(selectionKey)}
                                         className={cn(
-                                            "flex items-center justify-between p-3 rounded-lg border text-left transition-all group",
+                                            "flex items-center justify-between p-3.5 rounded-xl border text-left transition-all duration-200 group",
                                             isSelected 
-                                                ? cn(colors.bg, "border-transparent text-white shadow-lg shadow-black/20")
-                                                : "bg-accent/30 border-border text-muted-foreground hover:border-primary/50 hover:bg-accent/50"
+                                                ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 hover:bg-primary/90"
+                                                : "bg-accent/20 border-border/50 text-muted-foreground hover:border-primary/30 hover:bg-accent/40"
                                         )}
                                     >
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             {set.icon_svg_uri ? (
-                                                <img 
-                                                    src={set.icon_svg_uri} 
-                                                    alt="" 
-                                                    className={cn("h-5 w-5", isSelected ? "filter brightness-0 invert" : "opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100")} 
-                                                />
+                                                <div className={cn(
+                                                    "h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                                                    isSelected ? "bg-primary-foreground/10" : "bg-accent/60"
+                                                )}>
+                                                    <img 
+                                                        src={set.icon_svg_uri} 
+                                                        alt="" 
+                                                        className={cn(
+                                                            "h-5 w-5",
+                                                            isSelected ? "filter brightness-0 invert" : "opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all"
+                                                        )}
+                                                    />
+                                                </div>
                                             ) : (
-                                                <Tag className={cn("h-4 w-4", isSelected ? "text-white" : "text-zinc-600")} />
+                                                <div className={cn(
+                                                    "h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                                                    isSelected ? "bg-primary-foreground/10" : "bg-accent/60"
+                                                )}>
+                                                    <Tag className={cn("h-4 w-4", isSelected ? "text-primary-foreground" : "text-muted-foreground/40")} />
+                                                </div>
                                             )}
                                             <div className="flex flex-col min-w-0">
-                                                <span className={cn("text-sm font-medium truncate", isSelected ? "text-white" : "text-foreground")}>
+                                                <span className={cn(
+                                                    "text-[13px] font-black truncate leading-tight font-montserrat",
+                                                    isSelected ? "text-primary-foreground" : "text-foreground"
+                                                )}>
                                                     {set.name}
                                                 </span>
-                                                <span className={cn("text-[10px] uppercase font-bold tracking-wider", isSelected ? "text-white/70" : "text-muted-foreground")}>
+                                                <span className={cn(
+                                                    "text-[9px] uppercase font-black tracking-[0.3em] mt-0.5",
+                                                    isSelected ? "text-primary-foreground/60" : "text-muted-foreground/30"
+                                                )}>
                                                     {set.code}
                                                 </span>
                                             </div>
                                         </div>
-                                        {isSelected && <Check className="h-4 w-4 text-white shrink-0" />}
+                                        <div className={cn(
+                                            "h-5 w-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200",
+                                            isSelected 
+                                                ? "bg-primary-foreground/20 text-primary-foreground" 
+                                                : "bg-border/40 text-transparent group-hover:text-muted-foreground/20"
+                                        )}>
+                                            <Check className="h-3 w-3" />
+                                        </div>
                                     </button>
                                 );
                             })}
@@ -168,27 +194,26 @@ export default function SetFilterModal({
                     )}
                 </div>
 
-                <DialogFooter className="p-6 bg-accent/30 border-t border-border flex flex-col sm:flex-row gap-3">
-                    <div className="flex items-center gap-2 mr-auto">
-                         {tempSelected.length > 0 && (
-                            <Badge variant="secondary" className="bg-accent text-muted-foreground hover:bg-accent/80 cursor-pointer" onClick={() => setTempSelected([])}>
-                                {tempSelected.length} seleccionados (Limpiar)
-                            </Badge>
-                         )}
-                    </div>
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                {/* Footer */}
+                <DialogFooter className="p-8 pt-5 bg-accent/10 border-t border-border/50">
+                    <div className="flex items-center gap-3 w-full">
                         <Button 
-                            variant="ghost" 
+                            variant="outline" 
                             onClick={onClose}
-                            className="text-muted-foreground hover:text-foreground hover:bg-accent flex-1 sm:flex-none"
+                            className="text-[10px] font-black uppercase tracking-widest h-12 rounded-xl border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent flex-1 font-montserrat"
                         >
                             Cancelar
                         </Button>
                         <Button 
                             onClick={handleApply}
-                            className={cn(colors.button, "font-bold flex-1 sm:flex-none")}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] h-12 rounded-xl shadow-xl shadow-primary/20 flex-1 font-montserrat transition-all"
                         >
-                            Aplicar filtro
+                            Aplicar Filtro
+                            {tempSelected.length > 0 && (
+                                <span className="ml-2 h-5 w-5 rounded-full bg-primary-foreground/20 text-primary-foreground text-[10px] font-black flex items-center justify-center">
+                                    {tempSelected.length}
+                                </span>
+                            )}
                         </Button>
                     </div>
                 </DialogFooter>

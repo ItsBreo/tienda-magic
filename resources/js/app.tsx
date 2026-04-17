@@ -11,7 +11,6 @@ import { Toaster } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
-import CartDrawer from './components/cart/CartDrawer';
 
 // Páginas y Componentes de Layout
 import Login from './pages/auth/Login';
@@ -111,7 +110,6 @@ if (el) {
                             {/* Fallback */}
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                         </Routes>
-                        <CartDrawer />
                     </BrowserRouter>
                 </CartProvider>
             </AuthProvider>

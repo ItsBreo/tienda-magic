@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Package, ShoppingCart } from 'lucide-react';
+import { Package, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import PackQuantitySelector from './PackQuantitySelector';
 import HighlightedText from '@/components/common/HighlightedText';
+import { cn } from '@/lib/utils';
 
 interface Pack {
   id: number;
@@ -40,15 +40,13 @@ interface PackCardProps {
 export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: PackCardProps) {
   const [quantity, setQuantity] = useState(1);
 
-  const shouldShowImage = (imageSrc?: string) => !!imageSrc;
+  // SANITIZACIÓN: Eliminar DRAFT del nombre
+  const cleanName = pack.name.replace(/\(DRAFT\)|DRAFT/gi, '').trim();
 
   const getImageSrc = () => {
-    // Logica para Cartas Sueltas
     if (pack.type === 'Singles' || pack.card_id !== undefined) {
       return pack.image_uri || pack.image_url;
     }
-
-    // Logica para Sobres / Packs
     return pack.image_url || pack.cover_image || pack.image_uri || pack.card_set?.icon_svg_uri;
   };
 
@@ -56,100 +54,109 @@ export default function PackCard({ pack, onClick, onBuyPack, searchTerm = '' }: 
     onBuyPack(pack, quantity);
   };
 
+  const showStock = pack.type === 'Singles' && pack.stock !== undefined;
+  const isOutOfStock = pack.type === 'Singles' && pack.stock === 0;
+
   return (
     <div
       key={pack.id}
-      className="bg-card border border-border rounded-xl p-6 hover:bg-accent/80 transition-all group relative overflow-hidden transform hover:scale-105 duration-300"
-      style={{ perspective: '1000px' }}
+      className={cn(
+        "border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1",
+        isOutOfStock && "opacity-80 grayscale-[0.5]"
+      )}
     >
-      {/* Efecto de fondo hover */}
-      <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-12 -translate-y-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-300 bg-primary/10" />
-
-      {/* Imagen del pack - CLICKEABLE */}
-      <div
-        className="w-full h-48 bg-accent/20 rounded-lg mb-4 overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 p-4"
+      {/* Contenedor de Imagen */}
+      <div 
+        className="group/img cursor-pointer flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden"
         onClick={() => onClick(pack)}
       >
-        {shouldShowImage(getImageSrc()) ? (
-          <img
-            src={getImageSrc()}
-            alt={pack.name}
-            className="w-full h-full object-contain"
+        {getImageSrc() ? (
+          <img 
+            className="group-hover/img:scale-110 transition-transform duration-500 max-h-full object-contain drop-shadow-md" 
+            src={getImageSrc()} 
+            alt={cleanName} 
             onError={(e) => {
-              // Bug 4 Fix: Fallback si la imagen falla
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
+              (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent to-background">
-            <Package className="w-12 h-12 text-muted-foreground" />
+          <Package className="w-12 h-12 text-muted-foreground/40" />
+        )}
+
+        {pack.config.foil && (
+          <div className="absolute top-2 right-2 bg-primary/20 backdrop-blur-sm text-[10px] font-black text-primary px-2 py-0.5 rounded border border-primary/30 uppercase tracking-tighter">
+            Foil
           </div>
         )}
       </div>
 
-      {/* Información del pack */}
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold text-foreground line-clamp-2">
-          <HighlightedText text={pack.name} highlight={searchTerm} highlightClassName="bg-primary/30 text-primary rounded-sm px-0.5" />
-        </h3>
-        {pack.card_set?.icon_svg_uri && (
-          <img 
-            src={pack.card_set.icon_svg_uri} 
-            alt="" 
-            className="w-5 h-5 opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all ml-2 shrink-0 filter dark:invert" 
-          />
-        )}
-      </div>
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        {pack.type === 'Singles' && (
-          <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary font-medium">
-            {pack.type}
-          </span>
-        )}
-        {pack.config.foil && (
-          <span className="text-xs px-2 py-1 rounded-full bg-accent text-muted-foreground">
-            Foil
-          </span>
-        )}
-        {/* Stock indicator for cards */}
-        {pack.type === 'Singles' && pack.stock !== undefined && (
-          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-            pack.stock > 0
-              ? 'bg-green-600/20 text-green-400'
-              : 'bg-red-600/20 text-red-400'
-          }`}>
-            Stock: {pack.stock}
-          </span>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="text-xl font-bold text-primary">
-          €{pack.price.toFixed(2)}
+      {/* Información */}
+      <div className="mt-4 flex flex-col flex-1">
+        <div className="flex justify-between items-start gap-2 mb-1">
+            <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 min-h-[2.5rem] flex-1 uppercase tracking-tight">
+                <HighlightedText text={cleanName} highlight={searchTerm} highlightClassName="bg-primary/20 text-primary rounded-sm" />
+            </h3>
+            {pack.card_set?.icon_svg_uri && (
+                <img 
+                    src={pack.card_set.icon_svg_uri} 
+                    alt="" 
+                    className="w-5 h-5 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all filter dark:invert shrink-0 mt-0.5" 
+                />
+            )}
         </div>
-        <div className="flex flex-col gap-3">
-          {/* Quantity Selector - Only for Cards */}
-          <PackQuantitySelector
-            pack={pack}
-            quantity={quantity}
-            onQuantityChange={setQuantity}
-            className="w-full"
-          />
 
-          {/* Buy Button */}
-          <Button
-            onClick={handleBuyPack}
-            disabled={pack.type === 'Singles' && pack.stock === 0}
-            className={`w-full px-4 py-2 rounded-lg transition-colors ${
-              pack.type === 'Singles' && pack.stock === 0
-                ? 'bg-accent text-muted-foreground cursor-not-allowed'
-                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
-            }`}
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            {pack.type === 'Singles' && pack.stock === 0 ? 'Agotado' : 'Comprar'}
-          </Button>
+        <div className="flex items-center gap-2 h-5 mt-1">
+            {showStock && (
+                <span className={cn(
+                    "text-[10px] font-black uppercase tracking-tighter",
+                    pack.stock && pack.stock > 0 ? "text-green-500" : "text-destructive"
+                )}>
+                    {pack.stock && pack.stock > 0 ? `Stock: ${pack.stock}` : 'Agotado'}
+                </span>
+            )}
+        </div>
+
+        <div className="flex items-end justify-between mt-auto pt-4">
+            <div className="flex flex-col">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Precio</p>
+                <p className="md:text-xl text-lg font-black text-primary">
+                    €{pack.price.toFixed(2)}
+                </p>
+            </div>
+
+            <div className="flex flex-col gap-2 items-end">
+                <div className="flex items-center bg-accent/30 rounded-lg border border-border overflow-hidden h-8 w-24">
+                    <button 
+                        onClick={() => setQuantity(prev => Math.max(prev - 1, 1))}
+                        className="flex-1 flex items-center justify-center hover:bg-accent text-muted-foreground transition-colors h-full"
+                    >
+                        <Minus size={12} strokeWidth={3} />
+                    </button>
+                    <span className="w-8 text-center text-xs font-black text-foreground tabular-nums">
+                        {quantity}
+                    </span>
+                    <button 
+                        onClick={() => setQuantity(prev => Math.min(prev + 1, pack.stock || 99))}
+                        className="flex-1 flex items-center justify-center hover:bg-accent text-muted-foreground transition-colors h-full"
+                    >
+                        <Plus size={12} strokeWidth={3} />
+                    </button>
+                </div>
+
+                <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBuyPack}
+                    disabled={isOutOfStock}
+                    className={cn(
+                        "h-9 px-4 bg-primary text-primary-foreground border-none hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20",
+                        isOutOfStock && "bg-muted text-muted-foreground shadow-none"
+                    )}
+                >
+                    <ShoppingCart className="w-3.5 h-3.5 mr-2" />
+                    Comprar
+                </Button>
+            </div>
         </div>
       </div>
     </div>

@@ -23,10 +23,12 @@ export function useAchievementListener() {
         let echo: Echo<any> | null = null;
 
         try {
-            // Usamos window.location.hostname para ser dinámicos (funciona en localhost y en red local)
-            const host = window.location.hostname;
-            const port = import.meta.env.VITE_REVERB_PORT ?? 8080;
-            const scheme = import.meta.env.VITE_REVERB_SCHEME ?? 'http';
+            const appKey = import.meta.env.VITE_REVERB_APP_KEY;
+            
+            if (!appKey || appKey === 'reverb_key') {
+                console.log('📡 AchievementListener: Reverb key no configurada. Saltando conexión.');
+                return;
+            }
 
             console.log(`📡 Conectando a Reverb en ${scheme}://${host}:${port}...`);
 
