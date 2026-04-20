@@ -8,11 +8,6 @@
 .env.production
 
 # Cache and logs
-/storage/*.key
-/storage/framework/cache/data/*
-/storage/framework/views/*.php
-/storage/framework/sessions/*
-/storage/logs/*.log
 .phpunit.result.cache
 
 # Docker

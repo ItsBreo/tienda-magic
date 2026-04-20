@@ -29,14 +29,14 @@ class PackOpeningController extends Controller
         
         $inventoryPack = InventoryPack::where('user_id', $user->id)
             ->where('id', $id)
-            ->with('boosterPack')
+            ->with('BoosterPack')
             ->first();
 
-        if (!$inventoryPack || $inventoryPack->quantity_available < $count) {
+        if (!$inventoryPack || ($inventoryPack->quantity - $inventoryPack->quantity_locked) < $count) {
             return response()->json(['error' => 'No tienes suficientes sobres disponibles (algunos pueden estar en venta o intercambio)'], 422);
         }
 
-        $booster = $inventoryPack->boosterPack;
+        $booster = $inventoryPack->BoosterPack;
         
         // Composición estándar
         $compositionBase = [

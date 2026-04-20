@@ -14,24 +14,15 @@ class InventoryPack extends Model
     protected $fillable = [
         'user_id',
         'booster_pack_id',
-        'quantity',
-        'quantity_locked'
+        'quantity'
     ];
-
-    /**
-     * Cantidad disponible (Total - Bloqueada).
-     */
-    public function getQuantityAvailableAttribute()
-    {
-        return $this->quantity - $this->quantity_locked;
-    }
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function boosterPack()
+    public function BoosterPack()
     {
         return $this->belongsTo(BoosterPack::class, 'booster_pack_id');
     }

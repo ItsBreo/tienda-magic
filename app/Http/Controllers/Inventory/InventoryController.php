@@ -119,7 +119,7 @@ class InventoryController extends Controller
                 ->where('inventory_pack.quantity', '>', 0)
                 ->leftJoin('booster_pack', 'inventory_pack.booster_pack_id', '=', 'booster_pack.id')
                 ->select('inventory_pack.*')
-                ->with('boosterPack.set');
+                ->with('BoosterPack.set');
 
             if (!empty($searchTerm)) {
                 $packQuery->where('booster_pack.name', 'ILIKE', '%' . $searchTerm . '%');
@@ -127,7 +127,7 @@ class InventoryController extends Controller
 
             if (!empty($finalSetCodes)) {
                 $lowerPackSets = array_map('strtolower', $finalSetCodes);
-                $packQuery->whereHas('boosterPack', function($q) use ($lowerPackSets) {
+                $packQuery->whereHas('BoosterPack', function($q) use ($lowerPackSets) {
                     $q->whereIn(DB::raw('LOWER(booster_pack.card_set_id)'), $lowerPackSets);
                 });
             }
@@ -148,13 +148,13 @@ class InventoryController extends Controller
                     'id' => $item->id,
                     'quantity' => $item->quantity,
                     'quantity_locked' => $item->quantity_locked,
-                    'booster_pack' => $item->boosterPack ? [
-                        'id' => $item->boosterPack->id,
-                        'name' => $item->boosterPack->name,
-                        'price' => $item->boosterPack->price,
-                        'image_uri' => $item->boosterPack->image_uri,
-                        'type' => $item->boosterPack->type,
-                        'set' => $item->boosterPack->set
+                    'booster_pack' => $item->BoosterPack ? [
+                        'id' => $item->BoosterPack->id,
+                        'name' => $item->BoosterPack->name,
+                        'price' => $item->BoosterPack->price,
+                        'image_uri' => $item->BoosterPack->image_uri,
+                        'type' => $item->BoosterPack->type,
+                        'set' => $item->BoosterPack->set
                     ] : null
                 ];
             });

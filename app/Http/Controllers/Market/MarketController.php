@@ -128,7 +128,7 @@ class MarketController extends Controller
             }
 
             // Validar disponibilidad en inventario
-            if ($item->quantity_available < 1) {
+            if (($item->quantity - $item->quantity_locked) < 1) {
                 return response()->json(['message' => 'No tienes unidades disponibles de este item.'], 422);
             }
 
