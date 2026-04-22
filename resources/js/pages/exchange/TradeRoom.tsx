@@ -78,10 +78,7 @@ export default function TradeRoom() {
 
   // Configuración de WebSockets (Echo)
   useEffect(() => {
-    if (!sessionId) return;
-
-    const token = localStorage.getItem('auth_token');
-    if (!token || echoRef.current) return;
+    if (!sessionId || echoRef.current) return;
 
     const echo = new Echo({
       broadcaster: 'reverb',
@@ -91,19 +88,24 @@ export default function TradeRoom() {
       wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
       forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
       enabledTransports: ['ws', 'wss'],
-      authEndpoint: '/api/broadcasting/auth',
-      auth: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
+      // Axios como autorizador → envía XSRF-TOKEN automáticamente (evita 419)
+      authorizer: (channel: any) => ({
+        authorize: (socketId: string, callback: any) => {
+          apiService.axiosInstance
+            .post('/api/broadcasting/auth', {
+              socket_id: socketId,
+              channel_name: channel.name,
+            })
+            .then((res) => callback(null, res.data))
+            .catch((err) => callback(err, null));
         },
-      },
+      }),
     });
 
     echoRef.current = echo;
 
     echo.private(`trade.${sessionId}`)
-        .listen('.trade.updated', (e: any) => {
+        .listen('.trade.updated', () => {
           loadRoom();
         });
 

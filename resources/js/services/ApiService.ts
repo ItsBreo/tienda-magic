@@ -17,6 +17,10 @@ interface RegisterData {
     remember?: boolean;
 }
 
+class MagicApi {
+    private api: AxiosInstance;
+
+    constructor() {
         this.api = axios.create({
             // Configuración segura: variable de entorno con fallback
             baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000',
@@ -27,10 +31,15 @@ interface RegisterData {
         });
 
         // Interceptor de RESPONSE: manejo seguro de 401
+        // NOTA: Las peticiones marcadas con `_isAuthCheck: true` en su config
+        // NO deben redirigir al login — el AuthContext las gestiona internamente.
+        // Sin esto, al volver de Stripe el checkAuth inicial causaría un redirect
+        // antes de que AuthContext pueda determinar que la sesión es válida.
         this.api.interceptors.response.use(
             (response) => response,
             (error) => {
-                if (error.response?.status === 401) {
+                const isAuthCheck = (error.config as any)?._isAuthCheck === true;
+                if (error.response?.status === 401 && !isAuthCheck) {
                     const publicPaths = ['/login', '/register', '/'];
                     if (!publicPaths.includes(window.location.pathname)) {
                         window.location.href = '/login';
@@ -66,7 +75,12 @@ interface RegisterData {
     }
 
     async checkAuth(): Promise<any> {
-        const response = await this.api.get('/api/user');
+        // Marcamos la petición para que el interceptor de 401
+        // no redirija al login automáticamente (AuthContext lo gestiona).
+        const response = await this.api.get('/api/user', {
+            // @ts-ignore – campo personalizado fuera del tipo AxiosRequestConfig oficial
+            _isAuthCheck: true,
+        });
         return response.data;
     }
 

@@ -37,21 +37,20 @@ interface UseChatReturn {
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
 }
 
-export function useChat(conversationId: string | null, authToken: string | null): UseChatReturn {
+// El parámetro authToken se mantiene en la firma por compatibilidad con ChatWidget,
+// pero ya no se usa — la autenticación se gestiona vía cookie Sanctum.
+export function useChat(conversationId: string | null, _authToken?: string | null): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
 
   const { user } = useAuth();
-  const currentUserId = user?.id;
   const echoRef = useRef<Echo<any> | null>(null);
   const channelRef = useRef<any>(null);
 
-  // Crear instancia de Echo con el token pasado como parámetro
-  const echoInstance = useMemo(() => {
-    if (!authToken) return null;
-
+    const echoInstance = useMemo(() => {
+    if (!user) return null;
 
     const echo = new Echo({
       broadcaster: 'reverb',
@@ -61,13 +60,18 @@ export function useChat(conversationId: string | null, authToken: string | null)
       wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
       forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
       enabledTransports: ['ws', 'wss'],
-      authEndpoint: '/api/broadcasting/auth',
-      auth: {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          Accept: 'application/json',
+      // Axios como autorizador → envía XSRF-TOKEN automáticamente (evita 419)
+      authorizer: (channel: any) => ({
+        authorize: (socketId: string, callback: any) => {
+          apiService.axiosInstance
+            .post('/api/broadcasting/auth', {
+              socket_id: socketId,
+              channel_name: channel.name,
+            })
+            .then((res) => callback(null, res.data))
+            .catch((err) => callback(err, null));
         },
-      },
+      }),
     });
 
     // Inyectar Socket ID en Axios cuando se conecte
@@ -79,7 +83,7 @@ export function useChat(conversationId: string | null, authToken: string | null)
     });
 
     return echo;
-  }, [authToken]);
+  }, [user]);
 
   // Cargar historial inicial
   useEffect(() => {
@@ -138,14 +142,11 @@ export function useChat(conversationId: string | null, authToken: string | null)
         setError('Error de conexión al chat');
       });
 
-      // Escuchar mensajes nuevos - ESTÁNDAR LIMPIO
+      // Escuchar mensajes nuevos
       channel.listen('.message.sent', (e: any) => {
-
-        // Dependiendo de cómo serialice Laravel, el mensaje puede venir en e.message o directamente en e
         const nuevoMensaje = e.message || e;
 
         setMessages((prev) => {
-          // Evitar duplicados por si acaso
           if (prev.some((m) => m.id === nuevoMensaje.id)) return prev;
           return [...prev, nuevoMensaje];
         });
@@ -175,7 +176,6 @@ export function useChat(conversationId: string | null, authToken: string | null)
       });
 
       const newMessage = response.data.data || response.data;
-
 
       // Actualización instantánea (optimista)
       setMessages((prev) => {

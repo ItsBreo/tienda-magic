@@ -12,49 +12,44 @@ if (typeof window !== 'undefined' && !(window as any).Pusher) {
 
 export function useAchievementListener() {
     const { user } = useAuth();
-    const token = apiService.getToken();
 
     useEffect(() => {
-        if (!user || !token) {
-            return;
-        }
+        if (!user) return;
+
+        const appKey = import.meta.env.VITE_REVERB_APP_KEY;
+        const host = import.meta.env.VITE_REVERB_HOST;
+        const port = import.meta.env.VITE_REVERB_PORT ?? 80;
+        const scheme = import.meta.env.VITE_REVERB_SCHEME ?? 'https';
+
+        if (!appKey || appKey === 'reverb_key') return;
 
         let echo: Echo<any> | null = null;
 
         try {
-            const appKey = import.meta.env.VITE_REVERB_APP_KEY;
-            const host = import.meta.env.VITE_REVERB_HOST;
-            const port = import.meta.env.VITE_REVERB_PORT ?? 80;
-            const scheme = import.meta.env.VITE_REVERB_SCHEME ?? 'https';
-
-            if (!appKey || appKey === 'reverb_key') {
-                return;
-            }
-
-
             echo = new Echo({
                 broadcaster: 'reverb',
-                key: import.meta.env.VITE_REVERB_APP_KEY,
+                key: appKey,
                 wsHost: host,
                 wsPort: port,
                 wssPort: port,
                 forceTLS: scheme === 'https',
                 enabledTransports: ['ws', 'wss'],
-                authEndpoint: '/api/broadcasting/auth',
-                auth: {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        Accept: 'application/json',
+                // Axios como autorizador → envía XSRF-TOKEN automáticamente (evita 419)
+                authorizer: (channel: any) => ({
+                    authorize: (socketId: string, callback: any) => {
+                        apiService.axiosInstance
+                            .post('/api/broadcasting/auth', {
+                                socket_id: socketId,
+                                channel_name: channel.name,
+                            })
+                            .then((res) => callback(null, res.data))
+                            .catch((err) => callback(err, null));
                     },
-                },
+                }),
             });
 
             const channelName = `App.Models.User.${user.id}`;
             const channel = echo.private(channelName);
-
-
-            channel.on('pusher:subscription_succeeded', () => {
-            });
 
             channel.on('pusher:subscription_error', (status: any) => {
                 console.error('❌ Error de suscripción al canal de logros:', status);
@@ -69,11 +64,10 @@ export function useAchievementListener() {
                     duration: 6000,
                     action: {
                         label: 'Ver Logros',
-                        onClick: () => window.location.href = '/achievements',
+                        onClick: () => { window.location.href = '/achievements'; },
                     },
                 });
 
-                // Intento de sonido
                 try {
                     const audio = new Audio('/sounds/achievement.mp3');
                     audio.play().catch(() => {});
@@ -88,5 +82,5 @@ export function useAchievementListener() {
                 echo.leave(`App.Models.User.${user.id}`);
             }
         };
-    }, [user, token]);
+    }, [user]);
 }
