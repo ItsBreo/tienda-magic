@@ -17,27 +17,13 @@ interface RegisterData {
     remember?: boolean;
 }
 
-const TOKEN_KEY = 'auth_token';
-
-class MagicApi {
-    private api: AxiosInstance;
-
-    constructor() {
         this.api = axios.create({
             // Configuración segura: variable de entorno con fallback
             baseURL: import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000',
+            withCredentials: true,
             headers: {
                 Accept: 'application/json',
             },
-        });
-
-        // Interceptor de REQUEST: inyecta JWT automáticamente
-        this.api.interceptors.request.use((config) => {
-            const token = this.getToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
         });
 
         // Interceptor de RESPONSE: manejo seguro de 401
@@ -45,8 +31,7 @@ class MagicApi {
             (response) => response,
             (error) => {
                 if (error.response?.status === 401) {
-                    this.removeToken();
-                    const publicPaths = ['/login', '/register'];
+                    const publicPaths = ['/login', '/register', '/'];
                     if (!publicPaths.includes(window.location.pathname)) {
                         window.location.href = '/login';
                     }
@@ -56,50 +41,28 @@ class MagicApi {
         );
     }
 
-    // ─── Gestión del token ────────────────────────────────────────────────────
+    // ─── CSRF Handshake ───────────────────────────────────────────────────────
 
-    getToken(): string | null {
-        return localStorage.getItem(TOKEN_KEY);
-    }
-
-    setToken(token: string): void {
-        localStorage.setItem(TOKEN_KEY, token);
-    }
-
-    removeToken(): void {
-        localStorage.removeItem(TOKEN_KEY);
-    }
-
-    isAuthenticated(): boolean {
-        return !!this.getToken();
+    async initializeCsrf(): Promise<void> {
+        await this.api.get('/sanctum/csrf-cookie');
     }
 
     // ─── Auth ─────────────────────────────────────────────────────────────────
 
     async login(credentials: LoginCredentials): Promise<any> {
+        await this.initializeCsrf();
         const response = await this.api.post('/api/login', credentials);
-        const { token } = response.data;
-
-        if (token) {
-            this.setToken(token);
-        }
-
         return response.data;
     }
 
     async register(data: RegisterData): Promise<any> {
+        await this.initializeCsrf();
         const response = await this.api.post('/api/register', data);
-        const { token } = response.data;
-        if (token) this.setToken(token);
         return response.data;
     }
 
     async logout(): Promise<void> {
-        try {
-            await this.api.post('/api/logout');
-        } finally {
-            this.removeToken();
-        }
+        await this.api.post('/api/logout');
     }
 
     async checkAuth(): Promise<any> {
@@ -210,13 +173,11 @@ class MagicApi {
 
     async getForumThreads(forumSlug: string, sort: string = 'hot', page: number = 1, perPage: number = 20): Promise<any> {
         const response = await this.api.get(`/api/forums/${forumSlug}`, { params: { sort, page, per_page: perPage } });
-        console.log(`[ApiService] getForumThreads (${forumSlug}) recibidos:`, response.data);
         return response.data;
     }
 
     async getThreads(sort: string = 'hot', page: number = 1, perPage: number = 20): Promise<any> {
         const response = await this.api.get('/api/threads', { params: { sort, page, per_page: perPage } });
-        console.log('[ApiService] getThreads recibidos:', response.data);
         return response.data;
     }
 

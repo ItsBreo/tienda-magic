@@ -17,7 +17,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
     securityScheme: "bearerAuth",
     type: "http",
     scheme: "bearer",
-    bearerFormat: "JWT"
+    bearerFormat: "Sanctum"
 )]
 abstract class Controller
 {

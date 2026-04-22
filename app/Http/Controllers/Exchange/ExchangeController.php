@@ -22,7 +22,7 @@ class ExchangeController extends Controller
     #[OA\Response(response: 200, description: "Lista de intercambios")]
     public function index(Request $request)
     {
-        $userId = auth('api')->id() ?? auth()->id();
+        $userId = auth()->id();
 
         $exchanges = Exchange::with(['user', 'offeredCard.card', 'requestedCard'])
             ->where('status', 'active')

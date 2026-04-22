@@ -15,7 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-
+	
+	$middleware->trustProxies(at: '*');
         // Configuración para autenticación stateless con Bearer Tokens
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
@@ -33,8 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->api(append: [
-            // \Illuminate\Http\Middleware\TrimStrings::class,
-            // \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

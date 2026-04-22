@@ -52,7 +52,6 @@ export function useChat(conversationId: string | null, authToken: string | null)
   const echoInstance = useMemo(() => {
     if (!authToken) return null;
 
-    console.log('🔑 Token JWT recibido como parámetro:', authToken ? 'SÍ' : 'NO');
 
     const echo = new Echo({
       broadcaster: 'reverb',
@@ -125,13 +124,11 @@ export function useChat(conversationId: string | null, authToken: string | null)
     let channel: any;
 
     try {
-      console.log(`📡 Suscribiéndose a conversation.${conversationId}`);
 
       channel = echoInstance.private(`conversation.${conversationId}`);
       channelRef.current = channel;
 
       channel.on('pusher:subscription_succeeded', () => {
-        console.log('✅ Suscripción exitosa al canal');
         setConnectionStatus('connected');
       });
 
@@ -143,7 +140,6 @@ export function useChat(conversationId: string | null, authToken: string | null)
 
       // Escuchar mensajes nuevos - ESTÁNDAR LIMPIO
       channel.listen('.message.sent', (e: any) => {
-        console.log('� BINGO! EVENTO WS RECIBIDO EN REACT:', e);
 
         // Dependiendo de cómo serialice Laravel, el mensaje puede venir en e.message o directamente en e
         const nuevoMensaje = e.message || e;
@@ -161,7 +157,6 @@ export function useChat(conversationId: string | null, authToken: string | null)
     }
 
     return () => {
-      console.log(`🔌 Limpiando suscripción de conversation.${conversationId}`);
       if (channel && echoInstance) {
         echoInstance.leave(`conversation.${conversationId}`);
       }
@@ -181,7 +176,6 @@ export function useChat(conversationId: string | null, authToken: string | null)
 
       const newMessage = response.data.data || response.data;
 
-      console.log('📤 Mensaje enviado con éxito:', newMessage);
 
       // Actualización instantánea (optimista)
       setMessages((prev) => {

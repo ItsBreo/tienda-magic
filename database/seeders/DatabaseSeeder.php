@@ -21,7 +21,10 @@ class DatabaseSeeder extends Seeder
         // 3. Crear los Foros e hilos (esto internamente crerá usuarios random también)
         $this->call([ForumSeeder::class]);
 
-        // 3. Crear los usuarios estáticos de prueba (Para Frontend Devs)
+        // 4. Crear los Logros
+        $this->call([AchievementSeeder::class]);
+
+        // 5. Crear los usuarios estáticos de prueba (Para Frontend Devs)
         $this->seedTestAccounts();
     }
 

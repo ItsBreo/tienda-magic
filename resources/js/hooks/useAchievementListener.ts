@@ -16,7 +16,6 @@ export function useAchievementListener() {
 
     useEffect(() => {
         if (!user || !token) {
-            if (user) console.log('📡 AchievementListener: Faltan datos (user o token). No se puede conectar.');
             return;
         }
 
@@ -29,11 +28,9 @@ export function useAchievementListener() {
             const scheme = import.meta.env.VITE_REVERB_SCHEME ?? 'https';
 
             if (!appKey || appKey === 'reverb_key') {
-                console.log('📡 AchievementListener: Reverb key no configurada. Saltando conexión.');
                 return;
             }
 
-            console.log(`📡 Conectando a Reverb en ${scheme}://${host}:${port}...`);
 
             echo = new Echo({
                 broadcaster: 'reverb',
@@ -55,10 +52,8 @@ export function useAchievementListener() {
             const channelName = `App.Models.User.${user.id}`;
             const channel = echo.private(channelName);
 
-            console.log(`🔓 Escuchando logros en canal privado: ${channelName}`);
 
             channel.on('pusher:subscription_succeeded', () => {
-                console.log('✅ Conectado con éxito al canal de logros');
             });
 
             channel.on('pusher:subscription_error', (status: any) => {
@@ -66,7 +61,6 @@ export function useAchievementListener() {
             });
 
             channel.listen('.achievement.unlocked', (data: any) => {
-                console.log('🎉 EVENTO DE LOGRO RECIBIDO!', data);
                 const { achievement } = data;
 
                 toast.success('¡Logro desbloqueado!', {
@@ -91,7 +85,6 @@ export function useAchievementListener() {
 
         return () => {
             if (echo) {
-                console.log(`🔌 Desconectando del canal de logros: App.Models.User.${user.id}`);
                 echo.leave(`App.Models.User.${user.id}`);
             }
         };

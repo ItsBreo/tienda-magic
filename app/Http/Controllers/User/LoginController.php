@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Rules\RecaptchaCheck;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -15,8 +17,8 @@ use App\Services\AuditLogger;
 class LoginController extends Controller
 {
     /**
-     * Autentica al usuario y devuelve un JWT.
-     * Usa tymon/jwt-auth bajo el capó con el guard 'api'.
+     * Autentica al usuario y devuelve un token Sanctum.
+     * Usa Laravel Sanctum para autenticación basada en tokens.
      *
      * @param  Request $request
      * @return JsonResponse
@@ -25,7 +27,7 @@ class LoginController extends Controller
     #[OA\Post(
         path: "/api/login",
         summary: "Iniciar sesión de usuario",
-        description: "Autentica al usuario con email y contraseña, devoliendo un token JWT para peticiones protegidas.",
+        description: "Autentica al usuario con email y contraseña, devolviendo un token Sanctum para peticiones protegidas.",
         tags: ["Auth"]
     )]
     #[OA\RequestBody(
@@ -41,11 +43,11 @@ class LoginController extends Controller
     )]
     #[OA\Response(
         response: 200,
-        description: "Login exitoso, devuelve JWT",
+        description: "Login exitoso, devuelve token Sanctum",
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "message", type: "string", example: "Sesión iniciada correctamente."),
-                new OA\Property(property: "token", type: "string", example: "eyJ0eXAiOiJKV1QiLCJhbGci..."),
+                new OA\Property(property: "token", type: "string", example: "1|abcdef123456..."),
                 new OA\Property(
                     property: "data",
                     type: "object",
@@ -80,11 +82,11 @@ class LoginController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        // Rate limiting implícito mediante throttle middleware
-        // Auth::guard('api') usa JWTGuard (tymon/jwt-auth)
-        $token = Auth::guard('api')->attempt($credentials);
+        // Buscar el usuario por email
+        $user = User::where('email', $credentials['email'])->first();
 
-        if (!$token) {
+        // Validar si el usuario existe y la contraseña es correcta
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
             AuditLogger::log('auth.failed', null, ['email' => $request->email]);
             Log::warning('Failed login attempt', ['email' => $request->email]);
             throw ValidationException::withMessages([
@@ -92,16 +94,17 @@ class LoginController extends Controller
             ]);
         }
 
-        $user = Auth::guard('api')->user();
-
         // Validar si el usuario está activo
         if (!$user->is_active) {
-            Auth::guard('api')->logout();
             Log::warning('Login blocked for inactive user', ['user_id' => $user->id]);
             throw ValidationException::withMessages([
                 'email' => ['Tu cuenta ha sido desactivada. Ponte en contacto con soporte.'],
             ]);
         }
+
+        // Iniciar sesión basada en cookies (SPA Stateful)
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
         Log::info('Successful login', ['user_id' => $user->id]);
         $user->load('profile');
@@ -109,28 +112,35 @@ class LoginController extends Controller
 
         return response()->json([
             'message' => 'Sesión iniciada correctamente.',
-            'token'   => $token,
             'data'    => $user,
         ]);
     }
 
     /**
-     * Invalida el JWT actual en el servidor (lo añade a la blacklist).
-     * Requiere que JWT_BLACKLIST_ENABLED=true en .env
+     * Invalida el token Sanctum actual del usuario.
      *
      * @param  Request $request
      * @return JsonResponse
      */
     public function destroy(Request $request): JsonResponse
     {
-        // invalidate() añade el token a la blacklist de Redis/cache
-        // Esta es la forma correcta para arquitectura JWT
-        $user = Auth::guard('api')->user();
-        Auth::guard('api')->logout();
+        $user = Auth::guard('web')->user();
+        
+        // Revocar token de api si existiera (sólo por precaución)
+        if ($user && $request->user()?->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
 
         Log::info('User logged out', ['user_id' => $user?->id]);
         if ($user) {
             AuditLogger::log('auth.logout', $user);
+        }
+
+        // Destruir sesión stateful de Sanctum SPA
+        Auth::guard('web')->logout();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
         return response()->json([

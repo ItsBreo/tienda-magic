@@ -84,7 +84,6 @@ export default function Cart() {
 
     const hasStockIssues = () => items.some((item) => {
             const stock = item.stock || item.booster_pack?.stock || item.card?.stock || 0;
-            console.log('Verificando stock para item:', item, 'Stock disponible:', stock);
             return item.quantity > stock;
         });
 

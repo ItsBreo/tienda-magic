@@ -84,7 +84,7 @@ export default function AdminLayout() {
 
                     {/* Logout */}
                     <button
-                        onClick={logout}
+                        onClick={(e) => { e.preventDefault(); logout(); }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-colors border border-transparent hover:border-destructive/10"
                     >
                         <LogOut className="h-4 w-4 flex-shrink-0" />

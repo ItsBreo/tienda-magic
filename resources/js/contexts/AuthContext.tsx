@@ -43,26 +43,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(() => apiService.isAuthenticated());
+    const [isLoading, setIsLoading] = useState(true);
 
     const isAuthenticated = !!user;
 
     useEffect(() => {
         const initializeAuth = async () => {
-            // Si no hay token, no hacemos nada
-            if (!apiService.isAuthenticated()) {
-                setIsLoading(false);
-                return;
-            }
-
             try {
-                // Llamamos al endpoint para verificar y obtener datos del usuario
+                // Llamamos al endpoint para verificar y obtener datos de la sesión web
                 const userData = await apiService.checkAuth();
                 setUser(userData);
             } catch (error) {
-                console.error('Error al verificar sesión:', error);
-                // Si falla la verificación, limpiamos el token
-                apiService.removeToken();
+                // Falla 401: no hay sesión
                 setUser(null);
             } finally {
                 setIsLoading(false);
@@ -108,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             await apiService.logout();
         } catch {
-            apiService.removeToken();
+            // Ignorar
         } finally {
             setUser(null);
             window.location.href = '/login';

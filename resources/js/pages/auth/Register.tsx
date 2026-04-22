@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
- Eye, EyeOff, Layers, Sparkles, UserPlus, Lock,
+ Eye, EyeOff, Layers, Sparkles, UserPlus, Lock, CheckCircle2, XCircle
 } from 'lucide-react';
 import { GiLotus } from 'react-icons/gi';
 import { toast } from 'sonner';
@@ -47,6 +47,26 @@ export default function Register() {
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) setErrors((prev: any) => ({ ...prev, [field]: null }));
+    };
+
+    const calculateStrength = (pass: string) => {
+        if (!pass) return 0;
+        const reqs = [
+            /.{8,}/.test(pass),
+            /[A-Z]/.test(pass),
+            /[0-9]/.test(pass),
+            /[^A-Za-z0-9]/.test(pass)
+        ];
+        return reqs.filter(Boolean).length;
+    };
+    
+    const strength = calculateStrength(formData.password);
+    
+    const getStrengthColor = (s: number) => {
+        if (s === 0) return 'bg-border';
+        if (s <= 2) return 'bg-red-500';
+        if (s === 3) return 'bg-yellow-500';
+        return 'bg-green-500';
     };
 
     const submit = async (e: React.FormEvent) => {
@@ -163,7 +183,7 @@ export default function Register() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="animate-element animate-delay-400">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Grimorio</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">Grimorio (Contraseña)</label>
                                     <GlassInputWrapper error={errors.password}>
                                         <div className="relative">
                                             <input
@@ -179,6 +199,25 @@ export default function Register() {
                                             </button>
                                         </div>
                                     </GlassInputWrapper>
+                                    <div className="mt-2 space-y-2 px-1">
+                                        <div className="h-1 w-full bg-border rounded-full overflow-hidden">
+                                            <div className={`h-full transition-all duration-300 ${getStrengthColor(strength)}`} style={{ width: `${(strength / 4) * 100}%` }} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-1 text-[9px] uppercase font-bold tracking-widest">
+                                            <div className={`flex items-center gap-1 ${/.{8,}/.test(formData.password) ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                                {/.{8,}/.test(formData.password) ? <CheckCircle2 size={10} /> : <XCircle size={10} />} Min 8 chars
+                                            </div>
+                                            <div className={`flex items-center gap-1 ${/[A-Z]/.test(formData.password) ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                                {/[A-Z]/.test(formData.password) ? <CheckCircle2 size={10} /> : <XCircle size={10} />} Mayúscula
+                                            </div>
+                                            <div className={`flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                                {/[0-9]/.test(formData.password) ? <CheckCircle2 size={10} /> : <XCircle size={10} />} Número
+                                            </div>
+                                            <div className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(formData.password) ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                                {/[^A-Za-z0-9]/.test(formData.password) ? <CheckCircle2 size={10} /> : <XCircle size={10} />} Especial
+                                            </div>
+                                        </div>
+                                    </div>
                                     {errors.password && <p className="text-[9px] text-red-500 font-bold mt-1 uppercase ml-1">{errors.password[0]}</p>}
                                 </div>
                                 <div className="animate-element animate-delay-400">

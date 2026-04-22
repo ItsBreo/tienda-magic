@@ -16,12 +16,12 @@ class CommentResource extends JsonResource
             'is_hidden'  => $this->is_hidden,
             'can_delete' => (function () {
                 /** @var \App\Models\User|null $user */
-                $user = auth('api')->user();
+                $user = auth()->user();
                 return $user && $user->can('delete', $this->resource);
             })(),
             'can_edit' => (function () {
                 /** @var \App\Models\User|null $user */
-                $user = auth('api')->user();
+                $user = auth()->user();
                 return $user && $user->can('update', $this->resource);
             })(),
             'created_at' => $this->created_at->diffForHumans(),
@@ -34,7 +34,7 @@ class CommentResource extends JsonResource
             'replies' => CommentResource::collection($this->whenLoaded('replies')),
             // Solo se incluye si se cargó la relación votes con with()
             'user_vote' => $this->whenLoaded('votes', function () {
-                $vote = $this->votes->where('user_id', auth('api')->id())->first();
+                $vote = $this->votes->where('user_id', auth()->id())->first();
                 return $vote?->value; // 1, -1 o null
             }),
         ];

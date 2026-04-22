@@ -20,8 +20,10 @@ class EnsureUserIsActive
         $user = $request->user();
 
         if ($user && !$user->is_active) {
-            // Cerramos sesión en el guard actual (JWT)
-            Auth::guard('api')->logout();
+            // Revocamos el token Sanctum actual
+            if ($request->user()->currentAccessToken()) {
+                $request->user()->currentAccessToken()->delete();
+            }
 
             return response()->json([
                 'message' => 'Tu cuenta ha sido desactivada. Ponte en contacto con el administrador.',

@@ -38,8 +38,8 @@ class Thread extends Model
 
     public function getUserVoteAttribute()
     {
-        // Forzamos a Laravel a revisar el token JWT, incluso si la ruta no tiene middleware auth
-        $userId = auth('api')->id() ?? auth()->id();
+        // Obtenemos el ID del usuario autenticado (Sanctum)
+        $userId = auth()->id() ?? auth('sanctum')->id();
 
         if (!$userId) {
             return 0;
@@ -50,7 +50,7 @@ class Thread extends Model
 
     public function getIsSavedAttribute()
     {
-        $userId = auth('api')->id() ?? auth()->id();
+        $userId = auth()->id();
 
         if (!$userId) {
             return false;

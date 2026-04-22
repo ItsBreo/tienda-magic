@@ -25,6 +25,7 @@ use App\Models\Tournament;
 use App\Policies\TournamentPolicy;
 use App\Policies\ThreadPolicy;
 use App\Policies\CommentPolicy;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+	if (config('app.env') !== 'local') {
+		URL::forceScheme('https');
+	}
         \Illuminate\Support\Facades\Log::info('AppServiceProvider booting: Registrando listeners de logros...');
         Event::listen(UserRegistered::class,       [AchievementListener::class, 'handleUserRegistered']);
         Event::listen(PackPurchased::class,        [AchievementListener::class, 'handlePackPurchased']);

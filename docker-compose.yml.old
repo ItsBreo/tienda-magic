@@ -1,0 +1,80 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tienda_magic_app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    depends_on:
+      - db
+    networks:
+      - tienda_magic_network
+
+  db:
+    image: postgres:15-alpine
+    container_name: tienda_magic_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - tienda_magic_network
+
+  web:
+    image: nginx:alpine
+    container_name: tienda_magic_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - tienda_magic_network
+
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tienda_magic_reverb
+    command: php artisan reverb:start --host="0.0.0.0" --port=8080
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www
+    depends_on:
+      - app
+    networks:
+      - tienda_magic_network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tienda_magic_worker
+    command: php artisan queue:work --sleep=3 --tries=3
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    depends_on:
+      - app
+    networks:
+      - tienda_magic_network
+
+volumes:
+  tienda_magic_db_data:
+  db-data:
+
+networks:
+  tienda_magic_network:
+    driver: bridge

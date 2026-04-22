@@ -24,10 +24,12 @@ export function Navbar() {
 
   const isAdmin = user?.is_admin || user?.role_name?.toLowerCase().includes('admin');
 
-  const handleLogout = async () => {
+  const handleLogout = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     try {
       await logout();
-      navigate('/login');
+      // AuthContext.tsx ya hace window.location.href = '/login' en un finally,
+      // no debemos usar navigate aquí porque cancela la redirección hard.
     } catch {
       // silenced
     }
@@ -182,7 +184,7 @@ Mi Perfil
 Admin Panel
 </Link>
 )}
-                                <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-destructive hover:bg-destructive/10 w-full text-left">
+                                <button onClick={(e) => { setUserMenuOpen(false); handleLogout(e); }} className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-destructive hover:bg-destructive/10 w-full text-left">
 <LogOut className="h-5 w-5" />
 {' '}
 Cerrar Sesión

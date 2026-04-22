@@ -82,7 +82,6 @@ class AchievementSeeder extends Seeder
                 'xp_points'   => 100,
             ],
             [
-                'slug'        => 'trades_100', // Changed to trades_50 in plan but user requested 50, let's stick to what I planned or what user said. User said 10 and 50.
                 'slug'        => 'trades_50',
                 'name'        => 'Maestro del Trueque',
                 'description' => 'Eres un experto comerciante con 50 intercambios completados.',

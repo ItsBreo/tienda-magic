@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -19,11 +19,10 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
  * Representa a los usuarios con autenticación Sanctum, wallet y relaciones
  * con inventario, pedidos, decks y perfil extendido.
  */
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
-    // HasApiTokens eliminado: era de Sanctum y genera conflicto con el JWTGuard
+    use HasFactory, HasApiTokens, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
 
     /**
      * Relaciones cargadas automáticamente para evitar el problema de N+1 queries
@@ -395,11 +394,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->profile?->avatar_url;
     }
 
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
     // Relación M:M con trades enviados
     public function sentTrades()
     {
@@ -410,21 +404,6 @@ class User extends Authenticatable implements JWTSubject
     public function receivedTrades()
     {
         return $this->hasMany(Trade::class, 'receiver_id');
-    }
-
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
     }
 
     // Threads creados por el usuario

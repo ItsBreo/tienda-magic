@@ -534,20 +534,20 @@ GET /api/profile/{userId}  # Perfil público
 
 ## 🔐 Autenticación & Flujo de Tokens
 
-Tienda Magic usa **Laravel Sanctum** para autenticación:
+Tienda Magic usa **Laravel Sanctum** para autenticación basada en tokens:
 
 ```
 1. Usuario hace POST /api/login con email + password
-   └─ Si correcto: Backend genera TOKEN
+   └─ Si correcto: Backend genera TOKEN (formato: 1|hash...)
    
-2. Frontend guarda token en localStorage/sessionStorage
+2. Frontend guarda token en localStorage
    └─ Token se envía en header: Authorization: Bearer TOKEN
    
 3. Cada solicitud autenticada valida el token
    └─ Si es válido: Procesa la solicitud
    └─ Si es inválido: Retorna 401 Unauthorized
    
-4. Logout: Frontend elimina el token del almacenamiento
+4. Logout: Frontend elimina el token y backend revoca el acceso
 ```
 
 ---

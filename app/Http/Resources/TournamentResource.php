@@ -43,13 +43,13 @@ class TournamentResource extends JsonResource
 
             'can_edit'   => (function () {
                 /** @var \App\Models\User|null $user */
-                $user = auth('api')->user();
+                $user = auth()->user();
                 return $user && $user->can('update', $this->resource);
             })(),
 
             'can_delete' => (function () {
                 /** @var \App\Models\User|null $user */
-                $user = auth('api')->user();
+                $user = auth()->user();
                 return $user && $user->can('delete', $this->resource);
             })(),
         ];

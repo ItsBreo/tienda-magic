@@ -3,6 +3,7 @@ import React, {
 } from 'react';
 import { toast } from 'sonner';
 import apiService from '@/services/ApiService';
+import { useAuth } from './AuthContext';
 
 interface CartItem {
     id: number;
@@ -34,6 +35,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+    const { isAuthenticated } = useAuth();
     const [items, setItems] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -99,8 +101,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
-        fetchCart();
-    }, [fetchCart]);
+        if (isAuthenticated) {
+            fetchCart();
+        } else {
+            setItems([]);
+            setLoading(false);
+        }
+    }, [isAuthenticated, fetchCart]);
 
     const totalAmount = items.reduce((sum, item) => sum + item.total_price, 0);
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);

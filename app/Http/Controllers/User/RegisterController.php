@@ -17,7 +17,7 @@ use OpenApi\Attributes as OA;
 class RegisterController extends Controller
 {
     /**
-     * Registra un nuevo usuario y devuelve un JWT listo para usar.
+     * Registra un nuevo usuario y devuelve un token Sanctum listo para usar.
      *
      * @param  Request $request
      * @return JsonResponse
@@ -26,7 +26,7 @@ class RegisterController extends Controller
         #[OA\Post(
         path: "/api/register",
         summary: "Registrar un usuario",
-        description: "Crea un usuario nuevo, le asigna el rol 'user' y lo autentica automáticamente devolviendo el JWT.",
+        description: "Crea un usuario nuevo, le asigna el rol 'user' y lo autentica automáticamente devolviendo un token Sanctum.",
         tags: ["Auth"]
     )]
     #[OA\RequestBody(
@@ -49,7 +49,7 @@ class RegisterController extends Controller
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "message", type: "string", example: "Usuario registrado e inicio de sesión exitoso."),
-                new OA\Property(property: "token", type: "string", example: "eyJ0eXAiOiJKV1QiLCJ..."),
+                new OA\Property(property: "token", type: "string", example: "1|abcdef123456..."),
                 new OA\Property(
                     property: "data",
                     type: "object",
@@ -77,7 +77,7 @@ class RegisterController extends Controller
             'name'            => ['required', 'string', 'max:255'],
             'username'        => ['required', 'string', 'max:255', 'unique:users'],
             'email'           => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-            'password'        => ['required', 'confirmed', Password::defaults()],
+            'password'        => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()],
             'recaptcha_token' => ['required', new RecaptchaCheck],
         ]);
 
@@ -104,16 +104,14 @@ class RegisterController extends Controller
         event(new Registered($user));
         event(new \App\Events\UserRegistered($user));
 
-        // Generamos el token JWT directamente para el usuario recién creado
-        // así el frontend puede autenticarse sin tener que hacer un segundo request de login
-        $token = Auth::guard('api')->login($user);
+        // Iniciar sesión Web automáticamente
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
-        $user = Auth::guard('api')->user();
         $user->load('profile');
 
         return response()->json([
             'message' => 'Usuario registrado e inicio de sesión exitoso.',
-            'token'   => $token,          // 👈 Igual que en login, el frontend lo guarda
             'data'    => [
                 'id'             => $user->id,
                 'name'           => $user->name,

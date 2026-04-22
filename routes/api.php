@@ -89,10 +89,10 @@ Route::post('/webhook/stripe', [StripeWebhookController::class, 'handleWebhook']
 
 /*
 |--------------------------------------------------------------------------
-| Rutas Protegidas (Requieren Token JWT)
+| Rutas Protegidas (Requieren Token Sanctum)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     // ========== TRADE TEST (desarrollo) ==========
     Route::get('/users/list', function (\Illuminate\Http\Request $request) {
@@ -355,7 +355,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/search/all', [SearchController::class, 'searchAll']);
 
     // ========== CONVERSATIONS & CHAT ==========
-    Route::prefix('conversations')->middleware('auth:api')->group(function () {
+    Route::prefix('conversations')->middleware('auth:sanctum')->group(function () {
         Route::get('/', [ConversationController::class, 'index']);
         Route::post('/', [ConversationController::class, 'store']);
         Route::get('/{conversation}', [ConversationController::class, 'show']);
@@ -367,13 +367,13 @@ Route::middleware('auth:api')->group(function () {
     });
 
     // ========== TRADES ==========
-    Route::get('/trades', [\App\Http\Controllers\TradeController::class, 'index'])->middleware('auth:api');
-    Route::post('/trades/test', [\App\Http\Controllers\TradeController::class, 'storeTest'])->middleware('auth:api');
+    Route::get('/trades', [\App\Http\Controllers\TradeController::class, 'index'])->middleware('auth:sanctum');
+    Route::post('/trades/test', [\App\Http\Controllers\TradeController::class, 'storeTest'])->middleware('auth:sanctum');
 
     // ========== TRADES CHAT ==========
-    Route::post('/trades/{tradeId}/chat', [ConversationController::class, 'getOrCreateForTrade'])->middleware('auth:api');
+    Route::post('/trades/{tradeId}/chat', [ConversationController::class, 'getOrCreateForTrade'])->middleware('auth:sanctum');
 
-    Route::prefix('messages')->middleware('auth:api')->group(function () {
+    Route::prefix('messages')->middleware('auth:sanctum')->group(function () {
         Route::patch('/{message}', [MessageController::class, 'update']);
         Route::delete('/{message}', [MessageController::class, 'destroy']);
     });

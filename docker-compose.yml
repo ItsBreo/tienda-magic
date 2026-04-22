@@ -27,12 +27,26 @@ services:
     networks:
       - tienda_magic_network
 
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: tienda_magic_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    volumes:
+      - ./proxy/data:/data
+      - ./proxy/letsencrypt:/etc/letsencrypt
+    networks:
+      - tienda_magic_network
+
   web:
     image: nginx:alpine
     container_name: tienda_magic_web
     restart: unless-stopped
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     volumes:
       - .:/var/www
       - ./nginx/conf.d:/etc/nginx/conf.d

@@ -104,7 +104,6 @@ export default function TradeRoom() {
 
     echo.private(`trade.${sessionId}`)
         .listen('.trade.updated', (e: any) => {
-          console.log('RT: Trade Updated received', e);
           loadRoom();
         });
 
@@ -167,7 +166,6 @@ export default function TradeRoom() {
     const channel = echoRef.current.private(channelName);
 
     channel.listen('.message.sent', (e: any) => {
-      console.log('RT: Chat message received', e);
       setMessages((prev) => {
         // Prevenir duplicados
         if (prev.some((m) => m.id === e.id)) return prev;

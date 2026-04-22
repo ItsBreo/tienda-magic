@@ -228,17 +228,7 @@ composer install
 
 Esto descarga todas las librerías de PHP que necesita Laravel. **Puede tardar un par de minutos.**
 
-### 3.2 Generar clave JWT
-
-Como el proyecto usa JWT para autenticación (en lugar de Inertia), necesitamos generar la clave secreta:
-
-```bash
-php artisan jwt:secret
-```
-
-Esto añadirá `JWT_SECRET` a tu archivo `.env`.
-
-### 3.3 Copiar el archivo `.env`
+### 3.2 Copiar el archivo `.env`
 
 ```bash
 cp .env.example .env

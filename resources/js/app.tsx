@@ -54,7 +54,6 @@ const GlobalBackground = () => {
     const [isDark, setIsDark] = useState(false);
 
     useEffect(() => {
-        console.log("FlickeringGrid is active and mounting...");
         const checkDark = () => {
             const dark = appearance === 'dark' || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
             setIsDark(dark);

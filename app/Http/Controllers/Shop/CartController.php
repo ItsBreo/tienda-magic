@@ -28,7 +28,7 @@ class CartController extends Controller
         summary: "Ver el carrito del usuario",
         description: "Devuelve los items del carrito actual calculando los subtotales.",
         tags: ["Cart"],
-        security: [["bearerAuth" => []]] // 👈 Exige enviar el Token JWT
+        security: [["bearerAuth" => []]] // 👈 Exige enviar el Token Sanctum
     )]
     #[OA\Response(
         response: 200,
@@ -36,7 +36,7 @@ class CartController extends Controller
     )]
     #[OA\Response(
         response: 401,
-        description: "No autorizado (Falta Token JWT)"
+        description: "No autorizado (Falta Token Sanctum)"
     )]
 
     
@@ -119,7 +119,7 @@ class CartController extends Controller
         summary: "Añadir producto al carrito",
         description: "Añade un Booster Pack o una Carta Suelta al carrito. Si el producto ya existe, suma la cantidad.",
         tags: ["Cart"],
-        security: [["bearerAuth" => []]] // 👈 Exige enviar el Token JWT
+        security: [["bearerAuth" => []]] // 👈 Exige enviar el Token Sanctum
     )]
     #[OA\RequestBody(
         required: true,
