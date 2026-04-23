@@ -11,7 +11,7 @@ import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
-
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 interface CardSet {
     code: string;
     name: string;
@@ -29,6 +29,16 @@ export default function AdminSets() {
     const [editingCode, setEditingCode] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+
+    const [confirmModalConfig, setConfirmModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        onConfirm: () => {}
+    });
 
     const [form, setForm] = useState({
         code: '', name: '', released_at: '', card_count: 0, icon_svg_uri: '', is_active: true,
@@ -67,15 +77,20 @@ export default function AdminSets() {
         fetchSets(currentPage);
     }, [currentPage]);
 
-    const handleDelete = async (code: string) => {
-        if (!window.confirm(`¿Seguro que deseas eliminar el set ${code}?`)) return;
-        try {
-            await apiService.axiosInstance.delete(`/api/admin/sets/${code}`);
-            toast.success('Set eliminado');
-            fetchSets(currentPage);
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Error al eliminar');
-        }
+    const handleDelete = (code: string) => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Seguro que deseas eliminar el set ${code}?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.delete(`/api/admin/sets/${code}`);
+                    toast.success('Set eliminado');
+                    fetchSets(currentPage);
+                } catch (error: any) {
+                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                }
+            }
+        });
     };
 
     const handleToggleActive = async (set: CardSet) => {
@@ -88,16 +103,21 @@ export default function AdminSets() {
         }
     };
 
-    const handleBulkDelete = async () => {
-        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} sets?`)) return;
-        try {
-            await apiService.axiosInstance.post('/api/admin/sets/bulk-delete', { ids: selectedList });
-            toast.success('Eliminación masiva completada');
-            clear();
-            fetchSets(currentPage);
-        } catch (error) {
-            toast.error('Error al realizar borrado masivo');
-        }
+    const handleBulkDelete = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Seguro que deseas eliminar ${selectedCount} sets?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/sets/bulk-delete', { ids: selectedList });
+                    toast.success('Eliminación masiva completada');
+                    clear();
+                    fetchSets(currentPage);
+                } catch (error) {
+                    toast.error('Error al realizar borrado masivo');
+                }
+            }
+        });
     };
 
     const handleBulkToggleActive = async (active: boolean) => {
@@ -347,6 +367,13 @@ Lanzado:
                         className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
                     },
                 ]}
+            />
+
+            <ConfirmModal
+                isOpen={confirmModalConfig.isOpen}
+                onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModalConfig.onConfirm}
+                title={confirmModalConfig.title}
             />
         </div>
     );

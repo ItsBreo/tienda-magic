@@ -180,6 +180,7 @@ export default function TournamentDetailModal({ tournamentId, onClose }: { tourn
         isLoading={isDeleting}
         title="¿Eliminar torneo?"
         description="Esta acción eliminará el torneo permanentemente. Se notificará a los jugadores inscritos (simulado)."
+        dialogContentClassName="z-[400]"
       />
     </>
   );

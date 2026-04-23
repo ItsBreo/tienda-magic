@@ -28,7 +28,9 @@ class CommentResource extends JsonResource
             'author' => [
                 'id'         => $this->user->id,
                 'name'       => $this->user->name,
+                'username'   => $this->user->username,
                 'avatar_url' => $this->user->avatar_url,
+                'reputation' => $this->user->reputation,
             ],
             // Respuestas anidadas — solo si se cargaron con with()
             'replies' => CommentResource::collection($this->whenLoaded('replies')),

@@ -50,6 +50,7 @@ use App\Http\Controllers\Tournament\TournamentRegistrationController;
 Route::middleware('web')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
     Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
 
 // Tienda y Catálogo
@@ -164,7 +165,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ========== PERFIL DE USUARIO JWT ==========
     Route::get('/user-profile', [UserController::class, 'show']);
-    Route::post('/logout', [LoginController::class, 'destroy']);
 
     // ========== LOGROS ==========
     Route::get('/achievements', function () {

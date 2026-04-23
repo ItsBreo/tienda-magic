@@ -11,7 +11,7 @@ import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
-
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 interface UserData {
     id: number;
     name: string;
@@ -29,6 +29,19 @@ export default function AdminUsers() {
     const [editingUserId, setEditingUserId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+
+    const [confirmModalConfig, setConfirmModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        onConfirm: () => {}
+    });
+
+    const [rolePromptOpen, setRolePromptOpen] = useState(false);
+    const [selectedRoleForBulk, setSelectedRoleForBulk] = useState('1');
 
     const [form, setForm] = useState({
         name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
@@ -76,27 +89,37 @@ export default function AdminUsers() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Seguro que deseas eliminar este usuario? Esa acción no se puede deshacer.')) return;
-        try {
-            await apiService.axiosInstance.delete(`/api/admin/users/${id}`);
-            toast.success('Usuario eliminado');
-            fetchUsers(currentPage);
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Error al eliminar');
-        }
+    const handleDelete = (id: number) => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: '¿Seguro que deseas eliminar este usuario? Esa acción no se puede deshacer.',
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.delete(`/api/admin/users/${id}`);
+                    toast.success('Usuario eliminado');
+                    fetchUsers(currentPage);
+                } catch (error: any) {
+                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                }
+            }
+        });
     };
 
-    const handleBulkDelete = async () => {
-        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} usuarios?`)) return;
-        try {
-            await apiService.axiosInstance.post('/api/admin/users/bulk-delete', { ids: selectedList });
-            toast.success('Usuarios eliminados correctamente');
-            clear();
-            fetchUsers(currentPage);
-        } catch (error) {
-            toast.error('Error al realizar borrado masivo');
-        }
+    const handleBulkDelete = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Seguro que deseas eliminar ${selectedCount} usuarios?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/users/bulk-delete', { ids: selectedList });
+                    toast.success('Usuarios eliminados correctamente');
+                    clear();
+                    fetchUsers(currentPage);
+                } catch (error) {
+                    toast.error('Error al realizar borrado masivo');
+                }
+            }
+        });
     };
 
     const handleBulkToggleActive = async (active: boolean) => {
@@ -113,21 +136,9 @@ export default function AdminUsers() {
         }
     };
 
-    const handleBulkChangeRole = async () => {
-        const roleId = prompt(`Introduce el ID del nuevo rol para los usuarios seleccionados:\n${
-            availableRoles.map((r) => `${r.id}: ${r.name}`).join('\n')}`);
-        if (!roleId) return;
-        try {
-            await apiService.axiosInstance.post('/api/admin/users/bulk-change-role', {
-                ids: selectedList,
-                role_id: parseInt(roleId),
-            });
-            toast.success(`Rol actualizado para ${selectedCount} usuarios`);
-            clear();
-            fetchUsers(currentPage);
-        } catch (error) {
-            toast.error('Error al cambiar rol masivo');
-        }
+    const handleBulkChangeRole = () => {
+        if (availableRoles.length > 0) setSelectedRoleForBulk(availableRoles[0].id.toString());
+        setRolePromptOpen(true);
     };
 
     const handleEdit = (u: UserData) => {
@@ -401,6 +412,41 @@ className={cn(
                     },
                 ]}
             />
+            
+            <ConfirmModal
+                isOpen={confirmModalConfig.isOpen}
+                onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModalConfig.onConfirm}
+                title={confirmModalConfig.title}
+            />
+
+            <ConfirmModal
+                isOpen={rolePromptOpen}
+                onClose={() => setRolePromptOpen(false)}
+                title="Cambiar Rol Masivo"
+                description={`Selecciona el nuevo rol para los ${selectedCount} usuarios seleccionados.`}
+                confirmText="Aplicar Cambios"
+                variant="default"
+                onConfirm={async () => {
+                    try {
+                        await apiService.axiosInstance.post('/api/admin/users/bulk-change-role', {
+                            ids: selectedList,
+                            role_id: parseInt(selectedRoleForBulk),
+                        });
+                        toast.success(`Rol actualizado para ${selectedCount} usuarios`);
+                        clear();
+                        fetchUsers(currentPage);
+                    } catch (error) {
+                        toast.error('Error al cambiar rol masivo');
+                    }
+                }}
+            >
+                <select value={selectedRoleForBulk} onChange={e => setSelectedRoleForBulk(e.target.value)} className="w-full bg-accent/40 border border-border/50 rounded-xl px-4 h-12 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all font-medium appearance-none">
+                    {availableRoles.map(r => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                </select>
+            </ConfirmModal>
         </div>
     );
 }

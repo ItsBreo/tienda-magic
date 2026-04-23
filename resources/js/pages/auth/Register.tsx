@@ -64,9 +64,9 @@ export default function Register() {
     
     const getStrengthColor = (s: number) => {
         if (s === 0) return 'bg-border';
-        if (s <= 2) return 'bg-red-500';
-        if (s === 3) return 'bg-yellow-500';
-        return 'bg-green-500';
+        if (s <= 2) return 'bg-purple-500';
+        if (s === 3) return 'bg-purple-500';
+        return 'bg-purple-500';
     };
 
     const submit = async (e: React.FormEvent) => {

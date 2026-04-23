@@ -42,6 +42,7 @@ class ThreadResource extends JsonResource
                 'id'         => $this->user->id,
                 'name'       => $this->user->name,
                 'avatar_url' => $this->user->avatar_url,
+                'reputation' => $this->user->reputation,
             ],
             // Solo se incluye si se cargó la relación votes con with()
             'user_vote' => $this->whenLoaded('votes', function () {

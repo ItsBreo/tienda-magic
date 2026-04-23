@@ -83,7 +83,15 @@ class ThreadController extends Controller
             'forum',
             'votes',
             'comments' => fn($q) => $q->whereNull('parent_id')
-                ->with(['user.profile', 'replies.user.profile', 'replies.replies.user.profile']),
+                ->with([
+                    'votes',
+                    'user.profile',
+                    'replies' => fn($r) => $r->with([
+                        'votes',
+                        'user.profile',
+                        'replies' => fn($r2) => $r2->with(['votes', 'user.profile']),
+                    ]),
+                ]),
         ]);
 
         return new ThreadResource($thread);

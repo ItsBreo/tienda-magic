@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
-
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 interface BoosterPack {
     id: number;
     name: string;
@@ -34,6 +34,16 @@ export default function AdminBoosterPacks() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+
+    const [confirmModalConfig, setConfirmModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        onConfirm: () => {}
+    });
 
     const [form, setForm] = useState({
         name: '',
@@ -76,15 +86,20 @@ export default function AdminBoosterPacks() {
         fetchPacks(currentPage);
     }, [currentPage]);
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Seguro que deseas eliminar este sobre del inventario?')) return;
-        try {
-            await apiService.deleteBoosterPack(id);
-            toast.success('Producto eliminado del catálogo');
-            fetchPacks(currentPage);
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Error al eliminar');
-        }
+    const handleDelete = (id: number) => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: '¿Seguro que deseas eliminar este sobre del inventario?',
+            onConfirm: async () => {
+                try {
+                    await apiService.deleteBoosterPack(id);
+                    toast.success('Producto eliminado del catálogo');
+                    fetchPacks(currentPage);
+                } catch (error: any) {
+                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                }
+            }
+        });
     };
 
     const handleToggleActive = async (pack: BoosterPack) => {
@@ -97,16 +112,21 @@ export default function AdminBoosterPacks() {
         }
     };
 
-    const handleBulkDelete = async () => {
-        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} sobres?`)) return;
-        try {
-            await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-delete', { ids: selectedList });
-            toast.success('Eliminación masiva completada');
-            clear();
-            fetchPacks(currentPage);
-        } catch (error) {
-            toast.error('Error al realizar borrado masivo');
-        }
+    const handleBulkDelete = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Seguro que deseas eliminar ${selectedCount} sobres?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-delete', { ids: selectedList });
+                    toast.success('Eliminación masiva completada');
+                    clear();
+                    fetchPacks(currentPage);
+                } catch (error) {
+                    toast.error('Error al realizar borrado masivo');
+                }
+            }
+        });
     };
 
     const handleBulkToggleActive = async (active: boolean) => {
@@ -376,6 +396,13 @@ Oro
                         className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
                     },
                 ]}
+            />
+            
+            <ConfirmModal
+                isOpen={confirmModalConfig.isOpen}
+                onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModalConfig.onConfirm}
+                title={confirmModalConfig.title}
             />
         </div>
     );

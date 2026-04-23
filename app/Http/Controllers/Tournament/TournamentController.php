@@ -152,13 +152,17 @@ public function register(Request $request, Tournament $tournament): Registration
             return response()->json(['message' => 'Ya estás inscrito en este torneo.'], 422);
         }
 
- $registration = TournamentRegistration::create([
-        'tournament_id' => $tournament->id,
-        'user_id'       => $request->user()->id,
-        'status'        => 'confirmed',
-        'confirmed_at'  => now(),
-        'registered_at' => now(),
-    ]);
+ $registration = TournamentRegistration::updateOrCreate(
+        [
+            'tournament_id' => $tournament->id,
+            'user_id'       => $request->user()->id,
+        ],
+        [
+            'status'        => 'confirmed',
+            'confirmed_at'  => now(),
+            'registered_at' => now(),
+        ]
+    );
 
     return new RegistrationResource($registration);
     }

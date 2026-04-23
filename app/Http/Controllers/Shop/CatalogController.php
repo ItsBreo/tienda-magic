@@ -49,11 +49,8 @@ class CatalogController extends Controller
             $items = \App\Models\Card::with('set')
                 ->filter($cardFilters)
                 ->when(!empty($setArray), function ($query) use ($setArray) {
-                    // cards table uses set_code as the FK — card_set_id may also be populated
-                    $query->where(function ($q) use ($setArray) {
-                        $q->whereIn('set_code', $setArray)
-                          ->orWhereIn('card_set_id', $setArray);
-                    });
+                    // cards table uses set_code as the FK — we use this for string codes
+                    $query->whereIn('set_code', $setArray);
                 })
                 ->paginate(48)
                 ->withQueryString()

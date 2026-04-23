@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface DeleteConfirmDialogProps {
   title?: string;
   description?: string;
   isLoading?: boolean;
+  dialogContentClassName?: string;
 }
 
 export default function DeleteConfirmDialog({
@@ -26,10 +28,11 @@ export default function DeleteConfirmDialog({
   title = '¿Estás seguro?',
   description = 'Esta acción no se puede deshacer. Esto eliminará permanentemente el contenido de nuestra base de datos.',
   isLoading = false,
+  dialogContentClassName,
 }: DeleteConfirmDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] bg-zinc-900 border-zinc-800 text-zinc-100">
+      <DialogContent className={cn("sm:max-w-[425px] bg-zinc-900 border-zinc-800 text-zinc-100", dialogContentClassName)}>
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-red-500/10 rounded-full text-red-500">

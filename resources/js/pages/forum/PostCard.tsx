@@ -131,6 +131,18 @@ export default function PostCard({
     }
   };
 
+  const handleShare = () => {
+    const shareUrl = `${window.location.origin}/forum/threads/${post.id}`;
+    
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        toast.success('¡Enlace copiado al portapapeles!', {
+            description: 'Ya puedes compartir este hilo con otros magos.',
+        });
+    }).catch(() => {
+        toast.error('No se pudo copiar el enlace.');
+    });
+  };
+
   const canSelect = selection?.isMod || post.can_delete;
 
   return (
@@ -213,7 +225,7 @@ export default function PostCard({
 
             <div className="flex items-center gap-1 border-t border-border/40 pt-1 -mx-2">
                 <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={() => onOpen()} />
-                <ActionBtn icon={Share2} label="Share" />
+                <ActionBtn icon={Share2} label="Share" onClick={handleShare} />
                 <ActionBtn icon={Bookmark} label={isSaved ? "Saved" : "Save"} onClick={toggleSave} active={isSaved} />
                 {post.can_delete && !selection && (
                     <div className="ml-auto">

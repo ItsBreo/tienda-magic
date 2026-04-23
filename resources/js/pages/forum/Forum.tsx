@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
 import ApiService from "../../services/ApiService";
 import { X, Search, Loader2, MessageSquare, Flame, Trash2, LayoutDashboard, Bookmark, Newspaper, Swords, Trophy, MessageCircle, UserCircle } from "lucide-react";
@@ -27,10 +27,10 @@ function formatDate(iso: string): string {
   try {
     return new Intl.DateTimeFormat('es-ES', {
       day: 'numeric',
-month: 'short',
-year: 'numeric',
+      month: 'short',
+      year: 'numeric',
       hour: '2-digit',
-minute: '2-digit',
+      minute: '2-digit',
     }).format(new Date(iso));
   } catch { return iso; }
 }
@@ -97,10 +97,11 @@ const mapThreadToPost = (t: any): Post => ({
 });
 
 export default function MagicForum() {
-  useTitle('Comunidad');
+  useTitle('Lotus Forum');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [view, setView] = useState<View>('feed');
   const [activePost, setActivePost] = useState<Post | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
@@ -142,6 +143,63 @@ export default function MagicForum() {
   } = useSelection(posts);
 
   const isModOrAdmin = user?.is_admin || (user as any)?.all_permissions?.includes('moderate-forum');
+
+  // --- NUEVA LÓGICA DE URL Y MAPEO --- //
+  const mapComment = (c: any): any => ({
+    id: c.id,
+    author: c.author?.name || c.author?.username || c.user?.username || c.user?.name || 'Desconocido',
+    author_id: c.author?.id || c.user?.id || 0,
+    reputation: c.author?.reputation || c.user?.reputation || 100,
+    avatar_url: c.author?.avatar_url || c.user?.avatar_url,
+    avatarColor: c.parent_id ? 'hsl(var(--secondary))' : 'hsl(var(--primary))',
+    initials: (c.author?.name || c.author?.username || c.user?.username || c.user?.name || 'US').substring(0, 2).toUpperCase(),
+    timeAgo: c.created_at || formatDate(c.created_at),
+    score: c.score || 0,
+    userVote: c.user_vote || 0,
+    body: c.body,
+    can_delete: c.can_delete,
+    can_edit: c.can_edit,
+    replies: (c.replies || []).map(mapComment),
+  });
+
+  const loadThreadById = async (id: number) => {
+    try {
+      setIsLoading(true);
+      const res = await ApiService.getThread(id);
+      const threadData = res.data || res;
+      if (!threadData) throw new Error("No data");
+
+      const postObj = mapThreadToPost(threadData);
+      setActivePost(postObj);
+      handleSetView('thread');
+
+      const rawComments = threadData.comments?.data || threadData.comments || [];
+      const mappedComments = Array.isArray(rawComments) ? rawComments.map(mapComment) : [];
+      setComments(mappedComments);
+    } catch (err) {
+      console.error("Error cargando hilo directo:", err);
+      toast.error("El hilo no existe o fue eliminado.");
+      navigate('/forum', { replace: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const match = location.pathname.match(/\/forum\/threads\/(\d+)/);
+    if (match) {
+      const threadId = parseInt(match[1], 10);
+      if (activePost?.id !== threadId) {
+        loadThreadById(threadId);
+      }
+    } else if (location.pathname === '/forum' || location.pathname === '/forum/') {
+      if (view === 'thread') {
+        handleSetView('feed');
+        setActivePost(null);
+      }
+    }
+  }, [location.pathname]);
+  // --- FIN NUEVA LÓGICA --- //
 
   // Bloquear el scroll del body mientras estamos en el foro (estilo Admin)
   useEffect(() => {
@@ -242,33 +300,38 @@ export default function MagicForum() {
       .catch((err) => console.error('Error al cargar los torneos:', err));
   }, [activeCategory, sortMode, refreshKey, activeSideNav, searchParams, currentPage, perPage]);
 
+  // Se mantiene esto por seguridad para legacy links (tus antiguos query params)
+  useEffect(() => {
+    const threadId = searchParams.get('thread');
+    if (threadId && !activePost) {
+      ApiService.getThread(parseInt(threadId))
+        .then((res) => {
+          const thread = res.data || res;
+          openThread(mapThreadToPost(thread));
+        })
+        .catch((err) => console.error('Error loading deep-linked thread:', err));
+    }
+  }, [searchParams]);
+
   const openThread = (post: Post) => {
+    navigate(`/forum/threads/${post.id}`); // ACUALIZADO: Cambia la URL
     setActivePost(post);
     handleSetView('thread');
     setComments([]);
 
-    const mapComment = (c: any): any => ({
-      id: c.id,
-      author: c.author?.name || c.user?.username || c.user?.name || 'Desconocido',
-      author_id: c.author?.id || c.user?.id || 0,
-      reputation: c.author?.reputation || c.user?.reputation || 100,
-      avatar_url: c.author?.avatar_url || c.user?.avatar_url,
-      avatarColor: c.parent_id ? 'hsl(var(--secondary))' : 'hsl(var(--primary))',
-      initials: (c.author?.name || c.user?.username || c.user?.name || 'US').substring(0, 2).toUpperCase(),
-      timeAgo: c.created_at || formatDate(c.created_at),
-      score: c.score || 0,
-      userVote: c.user_vote || 0,
-      body: c.body,
-      can_delete: c.can_delete,
-      can_edit: c.can_edit,
-      replies: (c.replies || []).map(mapComment),
-    });
-
     ApiService.getThread(post.id).then((res) => {
-      const mapped = (res.data?.comments || []).map(mapComment);
+      // res es response.data de Axios. 
+      // ThreadResource envuelve en 'data'.
+      const threadData = res.data || res; 
+      // Si CommentResource::collection envuelve en 'data', lo manejamos
+      const rawComments = threadData.comments?.data || threadData.comments || [];
+      const mapped = Array.isArray(rawComments) ? rawComments.map(mapComment) : [];
       setComments(mapped);
     })
-    .catch((err) => console.error(`Error al cargar el hilo ${post.id}:`, err));
+    .catch((err) => {
+      console.error(`Error al cargar el hilo ${post.id}:`, err);
+      setComments([]);
+    });
   };
 
   const handleCreatePost = (data: { forum_id: number; title: string; body: string; tags?: string[]; image?: File }) => {
@@ -305,7 +368,8 @@ export default function MagicForum() {
     setIsSubmittingComment(true);
     ApiService.createComment(activePost.id, { body, parent_id: parentId })
     .then(() => {
-        openThread(activePost);
+        // En vez de openThread (que recargaría), volvemos a obtener el hilo
+        loadThreadById(activePost.id);
     })
     .catch((err) => {
         console.error('Error creando el comentario:', err.response?.data || err.message);
@@ -360,6 +424,8 @@ export default function MagicForum() {
           comments={comments}
           isSubmitting={isSubmittingComment}
           onBack={() => {
+            navigate('/forum'); // ACUALIZADO: Limpia la URL
+            setActivePost(null); // Limpiamos para evitar parpadeos extraños
             handleSetView('feed');
             setRefreshKey((k) => k + 1);
           }}
@@ -410,11 +476,11 @@ export default function MagicForum() {
         <aside className="bg-card/40 backdrop-blur-md border-r border-border flex flex-col h-full">
           <div className="p-6 flex items-center gap-3 border-b border-border/50 mb-4">
              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-                <span className="text-primary font-black font-forum text-xl">M</span>
+                <span className="text-primary font-black font-forum text-xl">⬟</span>
              </div>
              <div className="text-sm font-black uppercase tracking-[0.2em] font-montserrat text-foreground">
-                the
-<span className="text-primary">Gathering</span>
+                Lotus
+                <span className="text-primary"> Forum</span>
              </div>
           </div>
 
@@ -517,7 +583,6 @@ export default function MagicForum() {
                     <MessageCircle className="w-4 h-4" />
                   }
                   label={CAT_LABELS[cat]}
-                  badge={cat === 'torneos' ? 2 : undefined}
                   onClick={() => {
                     navigate('/forum');
                     setActiveCategory(cat);

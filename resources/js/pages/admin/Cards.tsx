@@ -11,7 +11,7 @@ import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
-
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 interface Card {
     id: number;
     name: string;
@@ -33,6 +33,16 @@ export default function AdminCards() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+
+    const [confirmModalConfig, setConfirmModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        onConfirm: () => {}
+    });
 
     const {
         selectedList,
@@ -70,15 +80,20 @@ export default function AdminCards() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Seguro que deseas eliminar esta carta de la colección?')) return;
-        try {
-            await apiService.axiosInstance.delete(`/api/admin/cards/${id}`);
-            toast.success('Carta eliminada de los registros');
-            fetchCards(currentPage);
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Error al eliminar');
-        }
+    const handleDelete = (id: number) => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: '¿Seguro que deseas eliminar esta carta de la colección?',
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.delete(`/api/admin/cards/${id}`);
+                    toast.success('Carta eliminada de los registros');
+                    fetchCards(currentPage);
+                } catch (error: any) {
+                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                }
+            }
+        });
     };
 
     const handleToggleActive = async (card: Card) => {
@@ -91,16 +106,21 @@ export default function AdminCards() {
         }
     };
 
-    const handleBulkDelete = async () => {
-        if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} cartas?`)) return;
-        try {
-            await apiService.axiosInstance.post('/api/admin/cards/bulk-delete', { ids: selectedList });
-            toast.success('Eliminación masiva completada');
-            clear();
-            fetchCards();
-        } catch (error) {
-            toast.error('Error al realizar borrado masivo');
-        }
+    const handleBulkDelete = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Seguro que deseas eliminar ${selectedCount} cartas?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/cards/bulk-delete', { ids: selectedList });
+                    toast.success('Eliminación masiva completada');
+                    clear();
+                    fetchCards();
+                } catch (error) {
+                    toast.error('Error al realizar borrado masivo');
+                }
+            }
+        });
     };
 
     const handleBulkToggleActive = async (active: boolean) => {
@@ -366,6 +386,12 @@ Plano Inaccesible
                         className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
                     },
                 ]}
+            />
+            <ConfirmModal
+                isOpen={confirmModalConfig.isOpen}
+                onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModalConfig.onConfirm}
+                title={confirmModalConfig.title}
             />
         </div>
     );

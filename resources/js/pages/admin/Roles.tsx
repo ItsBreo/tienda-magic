@@ -11,7 +11,7 @@ import BulkActionsToolbar from '@/components/admin/BulkActionsToolbar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
-
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 interface Permission {
     id: number;
     name: string;
@@ -34,6 +34,16 @@ export default function AdminRoles() {
     const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+
+    const [confirmModalConfig, setConfirmModalConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        onConfirm: () => {}
+    });
 
     const [form, setForm] = useState({
         name: '',
@@ -82,27 +92,37 @@ export default function AdminRoles() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Seguro que deseas eliminar este rango? Los efectos en los usuarios serán inmediatos.')) return;
-        try {
-            await apiService.axiosInstance.delete(`/api/admin/roles/${id}`);
-            toast.success('Rango eliminado de los archivos');
-            fetchRoles(currentPage);
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Error al eliminar');
-        }
+    const handleDelete = (id: number) => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: '¿Seguro que deseas eliminar este rango? Los efectos en los usuarios serán inmediatos.',
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.delete(`/api/admin/roles/${id}`);
+                    toast.success('Rango eliminado de los archivos');
+                    fetchRoles(currentPage);
+                } catch (error: any) {
+                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                }
+            }
+        });
     };
 
-    const handleBulkDelete = async () => {
-        if (!window.confirm(`¿Seguro que deseas disolver ${selectedCount} rangos?`)) return;
-        try {
-            await apiService.axiosInstance.post('/api/admin/roles/bulk-delete', { ids: selectedList });
-            toast.success('Rangos disueltos correctamente');
-            clear();
-            fetchRoles(currentPage);
-        } catch (error) {
-            toast.error('Error al realizar borrado masivo');
-        }
+    const handleBulkDelete = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Seguro que deseas disolver ${selectedCount} rangos?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/roles/bulk-delete', { ids: selectedList });
+                    toast.success('Rangos disueltos correctamente');
+                    clear();
+                    fetchRoles(currentPage);
+                } catch (error) {
+                    toast.error('Error al realizar borrado masivo');
+                }
+            }
+        });
     };
 
     const togglePermission = (id: number) => {
@@ -359,6 +379,13 @@ className={cn(
                         className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
                     },
                 ]}
+            />
+
+            <ConfirmModal
+                isOpen={confirmModalConfig.isOpen}
+                onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModalConfig.onConfirm}
+                title={confirmModalConfig.title}
             />
         </div>
     );

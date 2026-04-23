@@ -11,6 +11,14 @@ class Comment extends Model
     use HasFactory;
 
     protected $guarded = [];
+    
+    /**
+     * Relación: Un comentario tiene muchos votos (polimórfico).
+     */
+    public function votes()
+    {
+        return $this->morphMany(Vote::class, 'votable');
+    }
 
     /**
      * Los atributos que deben ser añadidos a las serializaciones del modelo.

@@ -341,8 +341,8 @@ export default function Marketplace() {
                                 className="w-full sm:w-auto h-10 pl-3 pr-8 bg-background border border-border text-foreground text-sm font-medium rounded-lg focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-sm hover:border-primary/50 transition-all"
                             >
                                 <option value="newest">Novedades</option>
-                                <option value="price_asc">Menor a Mayor</option>
-                                <option value="price_desc">Mayor a Menor</option>
+                                <option value="price_asc">Menor Valor</option>
+                                <option value="price_desc">Mayor Valor</option>
                                 <option value="name_asc">A-Z</option>
                                 <option value="name_desc">Z-A</option>
                             </select>

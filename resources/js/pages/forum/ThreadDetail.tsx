@@ -35,6 +35,24 @@ export default function ThreadDetailView({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(post.title || '');
   const [editBody, setEditBody] = useState(post.body || '');
+  const [isSaved, setIsSaved] = useState(post.isSaved || false);
+
+  const toggleSave = async () => {
+    const newVal = !isSaved;
+    setIsSaved(newVal);
+    try {
+      if (newVal) {
+        await ApiService.saveThread(post.id);
+        toast.success('Hilo guardado en favoritos');
+      } else {
+        await ApiService.unsaveThread(post.id);
+        toast.success('Hilo quitado de favoritos');
+      }
+    } catch (err) {
+      console.error('Error al guardar/quitar hilo:', err);
+      setIsSaved(!newVal);
+    }
+  };
 
   const allCommentsFlat = comments.flatMap((c) => [c, ...(c.replies || [])]);
 
@@ -91,6 +109,18 @@ export default function ThreadDetailView({
     } catch (error) {
       toast.error('Error al realizar borrado masivo de comentarios');
     }
+  };
+
+  const handleShare = () => {
+    const shareUrl = `${window.location.origin}/forum/threads/${post.id}`;
+    
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        toast.success('¡Enlace copiado al portapapeles!', {
+            description: 'Ya puedes compartir este hilo con otros magos.',
+        });
+    }).catch(() => {
+        toast.error('No se pudo copiar el enlace.');
+    });
   };
 
   return (
@@ -156,11 +186,24 @@ EP
                 <div className="text-[10px] text-muted-foreground/50 font-black uppercase tracking-[0.1em] font-montserrat">{post.timeAgo}</div>
             </div>
             <div className="ml-auto flex gap-2">
-                <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl bg-accent/30 border-border/50 text-muted-foreground hover:text-primary">
-                    <Bookmark size={16} />
+                 <Button 
+                    variant="outline" 
+                    onClick={(e) => { e.stopPropagation(); toggleSave(); }}
+                    className={cn(
+                        "h-9 px-4 rounded-xl border-border/50 transition-all font-black text-[10px] uppercase tracking-widest gap-2",
+                        isSaved ? "text-primary border-primary/30 bg-primary/5" : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    )}
+                 >
+                    <Bookmark size={14} className={isSaved ? "fill-current" : ""} />
+                    {isSaved ? "Guardado" : "Guardar"}
                 </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl bg-accent/30 border-border/50 text-muted-foreground hover:text-primary">
-                    <Share2 size={16} />
+                <Button 
+                    variant="outline" 
+                    onClick={(e) => { e.stopPropagation(); handleShare(); }}
+                    className="h-9 px-4 rounded-xl border-border/50 text-muted-foreground hover:text-foreground hover:bg-accent transition-all font-black text-[10px] uppercase tracking-widest gap-2"
+                >
+                    <Share2 size={14} />
+                    Compartir
                 </Button>
             </div>
         </div>
