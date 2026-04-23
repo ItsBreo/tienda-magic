@@ -1,10 +1,10 @@
-# 🃏 Tienda Magic - TCG Marketplace & Social Platform
+# 🃏 Lotus Black - TCG Marketplace & Social Platform
 
 Una plataforma moderna para coleccionar, comerciar y disfrutar de cartas coleccionables. Conecta con otros coleccionistas, abre sobres virtuales, construye tu colección y participa en un mercado seguro y dinámico.
 
-## ✨ ¿Qué es Tienda Magic?
+## ✨ ¿Qué es Lotus Black?
 
-Tienda Magic es más que una tienda de cartas en línea. Es un **ecosistema completo** donde puedes:
+Lotus Black es más que una tienda de cartas en línea. Es un **ecosistema completo** donde puedes:
 
 - 🎁 **Abrir sobres virtuales** de diferentes ediciones y tipos de colecciones
 - 📚 **Gestionar tu inventario** de cartas y sobres sin abrir
@@ -27,7 +27,7 @@ Tienda Magic es más que una tienda de cartas en línea. Es un **ecosistema comp
 | **Logros y Reputación** | Desbloquea logros especiales y construye tu reputación en la comunidad |
 | **Foros y Comunidad** | Participa en discusiones, comparte consejos y conecta con otros coleccionistas |
 
-## 💡 ¿Por qué elegir Tienda Magic?
+## 💡 ¿Por qué elegir Lotus Black?
 
 ✅ **Seguridad garantizada** - Todas las transacciones están protegidas y auditorias  
 ✅ **Sin comisiones ocultas** - Transparencia total en la plataforma  
