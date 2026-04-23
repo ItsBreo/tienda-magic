@@ -99,7 +99,14 @@ class StripeWebhookController extends Controller
             $order = Order::lockForUpdate()->find($orderId);
 
             if (!$order) {
+                Log::error('Order not found in webhook', ['order_id' => $orderId]);
                 throw new \Exception("Order {$orderId} not found");
+            }
+
+            // Verificar si ya fue procesado para evitar duplicados
+            if ($order->payment_status === 'completed') {
+                Log::info('Order already completed', ['order_id' => $orderId]);
+                return response()->json(['status' => 'already_processed']);
             }
 
             // Marcar como completado
@@ -112,10 +119,11 @@ class StripeWebhookController extends Controller
             // Entregar productos y limpiar carrito
             $order->fulfill();
 
-            Log::info('Order payment completed', [
+            Log::info('Order payment completed successfully', [
                 'order_id' => $orderId,
                 'stripe_session_id' => $stripeSessionId,
-                'total_amount' => $order->total_amount
+                'total_amount' => $order->total_amount,
+                'user_id' => $order->user_id
             ]);
 
             return response()->json(['status' => 'success']);

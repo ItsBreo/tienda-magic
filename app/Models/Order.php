@@ -23,7 +23,6 @@ class Order extends Model
         'billing_tax_id',
         'billing_address'
     ];
-    
     protected $casts = [
         'total_amount' => 'float',
     ];
@@ -39,7 +38,25 @@ class Order extends Model
     }
 
     /**
+     * Rollback de stock en caso de fallo en el pago
+     */
+    public function rollbackStock()
+    {
+        $orderItems = $this->items()->with('purchasable')->get();
+
+        foreach ($orderItems as $item) {
+            $product = $item->purchasable;
+
+            // Devolver stock solo si no es infinito
+            if (!($product->is_infinite_stock ?? false)) {
+                $product->increment('stock', $item->quantity);
+            }
+        }
+    }
+
+    /**
      * Entrega los productos del pedido al usuario y vacía su carrito.
+     * El stock ya fue decrementado durante el checkout para prevenir sobreventa.
      */
     public function fulfill()
     {
@@ -47,14 +64,6 @@ class Order extends Model
 
         foreach ($orderItems as $item) {
             $product = $item->purchasable;
-
-            // ... (stock updates) ...
-            if (isset($product->stock)) {
-                $deductAmount = min($product->stock, $item->quantity);
-                if ($deductAmount > 0) {
-                    $product->decrement('stock', $deductAmount);
-                }
-            }
 
             if ($product instanceof Card) {
                 // Add to inventory

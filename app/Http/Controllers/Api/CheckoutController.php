@@ -61,12 +61,17 @@ class CheckoutController extends Controller
                 $totalAmount = 0;
                 $orderItems = [];
 
-                // Validación de stock general
+                // Validacion de stock con bloqueo pesimista para prevenir sobreventa
                 foreach ($validated['items'] as $item) {
-                    $model = $item['purchasable_type']::find($item['purchasable_id']);
+                    $model = $item['purchasable_type']::lockForUpdate()->find($item['purchasable_id']);
 
                     if (!$model) {
                         throw new \Exception("Producto no encontrado: {$item['purchasable_type']} ID {$item['purchasable_id']}");
+                    }
+
+                    // Stock infinito para booster packs
+                    if ($model->is_infinite_stock ?? false) {
+                        continue;
                     }
 
                     if (($model->stock ?? 0) < $item['quantity']) {
@@ -100,7 +105,8 @@ class CheckoutController extends Controller
                         'purchasable_id' => $item['purchasable_id'],
                         'quantity' => $item['quantity'],
                         'unit_price' => $unitPrice,
-                        'total_price' => $itemTotal
+                        'total_price' => $itemTotal,
+                        'stock_locked' => $item['quantity']
                     ];
                 }
 
@@ -118,7 +124,7 @@ class CheckoutController extends Controller
                     'status' => 'pending'
                 ]);
 
-                // Crear items con precios congelados
+                // Crear items con precios congelados y bloqueo de stock
                 foreach ($orderItems as $item) {
                     OrderItem::create([
                         'order_id' => $order->id,
@@ -127,9 +133,15 @@ class CheckoutController extends Controller
                         'quantity' => $item['quantity'],
                         'price_at_purchase' => $item['unit_price']
                     ]);
+
+                    // Reservar stock inmediatamente para prevenir sobreventa
+                    $product = $item['purchasable_type']::find($item['purchasable_id']);
+                    if (!($product->is_infinite_stock ?? false)) {
+                        $product->decrement('stock', $item['quantity']);
+                    }
                 }
 
-                // Bifurcación de pago
+                // Bifurcacion de pago
                 if ($validated['payment_method'] === 'wallet') {
                     // Si no hay pasta, abortamos misión
                     if ($user->wallet_balance < $totalAmount) {
@@ -211,6 +223,23 @@ class CheckoutController extends Controller
                 }
             }, 3); // 3 reintentos en deadlock
         } catch (\Exception $e) {
+            // Logging especifico para casos de concurrencia
+            if (str_contains($e->getMessage(), 'Stock insuficiente')) {
+                Log::warning('Stock depletion during checkout', [
+                    'user_id' => $request->user()->id,
+                    'items' => $validated['items'] ?? [],
+                    'error' => $e->getMessage(),
+                    'payment_method' => $validated['payment_method'] ?? 'unknown'
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Otro usuario compró estos productos justo ahora. Por favor, intenta recargar la página y verificar el stock disponible.',
+                    'error_type' => 'stock_depleted',
+                    'retry_suggested' => true
+                ], 422);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
@@ -233,7 +262,6 @@ class CheckoutController extends Controller
 
             if ($session->payment_status === 'paid') {
                 $type = $session->metadata->type ?? 'order';
-                
                 if ($type === 'market') {
                     $marketListingId = $session->metadata->market_listing_id ?? null;
                     if ($marketListingId) {
