@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     Search, Lock, Image as ImageIcon,
     Layers, Package,
-    Loader2, Filter, DollarSign, X
+    Loader2, Filter, DollarSign, X, ChevronDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import apiService from '@/services/ApiService';
@@ -441,17 +441,20 @@ export default function Inventory() {
 
                     {/* Sort & Filter */}
                     <div className="flex items-center gap-2">
-                        <select
-                            value={sortBy}
-                            onChange={(e) => { setSortBy(e.target.value as any); setCardsPage(1); setPacksPage(1); }}
-                            className="bg-background border border-border text-foreground px-4 py-2 rounded-xl text-sm h-11 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm font-medium cursor-pointer"
-                        >
-                            <option value="newest">Novedades</option>
-                            <option value="price_asc">Menor Valor</option>
-                            <option value="price_desc">Mayor Valor</option>
-                            <option value="name_asc">A-Z</option>
-                            <option value="name_desc">Z-A</option>
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={sortBy}
+                                onChange={(e) => { setSortBy(e.target.value as any); setCardsPage(1); setPacksPage(1); }}
+                                className="appearance-none bg-background border border-border text-foreground px-4 py-2 rounded-xl text-sm h-11 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm font-medium cursor-pointer pr-10"
+                            >
+                                <option value="newest">Novedades</option>
+                                <option value="price_asc">Menor Valor</option>
+                                <option value="price_desc">Mayor Valor</option>
+                                <option value="name_asc">A-Z</option>
+                                <option value="name_desc">Z-A</option>
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                        </div>
 
                         <Button
                             variant="outline"

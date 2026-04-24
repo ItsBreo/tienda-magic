@@ -106,7 +106,7 @@ export default function MagicForum() {
   const [activePost, setActivePost] = useState<Post | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('hot');
-  const [activeSideNav, setActiveSideNav] = useState('inicio');
+  const [activeSideNav, setActiveSideNav] = useState('reciente');
   const [posts, setPosts] = useState<Post[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);

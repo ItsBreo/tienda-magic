@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
- Plus, Loader2, Shield, UserMinus, ShieldCheck, Info, Edit2, UserCheck,
+    Plus, Loader2, Shield, UserMinus, ShieldCheck, Info, Edit2, UserCheck,
+    ChevronUp, ChevronDown, ArrowUpDown,
 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
+
 interface Permission {
     id: number;
     name: string;
@@ -24,17 +26,8 @@ interface Role {
     name: string;
     description: string | null;
     permissions?: Permission[];
-}
-
-interface RoleData {
-    id: number;
-    name: string;
-    description: string;
-    permission_ids: number[];
-    permissions: { id: number; display_name: string }[];
     created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
+    deleted_at?: string | null;
 }
 
 export default function AdminRoles() {
@@ -45,6 +38,8 @@ export default function AdminRoles() {
     const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+    const [sortBy, setSortBy] = useState('id');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
     const [confirmModalConfig, setConfirmModalConfig] = useState<{
         isOpen: boolean;
@@ -76,7 +71,11 @@ export default function AdminRoles() {
     const fetchRoles = async (page = 1) => {
         try {
             const { data } = await apiService.axiosInstance.get('/api/admin/roles', {
-                params: { page }
+                params: { 
+                    page,
+                    sort_by: sortBy,
+                    sort_dir: sortDir
+                }
             });
             setRoles(data.data || data);
             if (data.current_page) {
@@ -90,15 +89,23 @@ export default function AdminRoles() {
         }
     };
 
+    const handleSort = (column: string) => {
+        if (sortBy === column) {
+            setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(column);
+            setSortDir('asc');
+        }
+        setCurrentPage(1);
+    };
+
     useEffect(() => {
         Promise.all([fetchRoles(currentPage), fetchPermissions()]);
-    }, [currentPage]);
+    }, [currentPage, sortBy, sortDir]);
 
     const fetchPermissions = async () => {
         try {
             const data = await apiService.getAdminPermissions();
-
-            // Mapeo manual de permisos que pertenecen a mod_todos
             const modTodosPermissions = [
                 'view-admin-dashboard',
                 'manage-users',
@@ -110,11 +117,9 @@ export default function AdminRoles() {
                 'view-reports',
                 'manage-settings'
             ];
-
             const filteredPermissions = data.filter(perm =>
                 modTodosPermissions.includes(perm.name)
             );
-
             setPermissionsList(filteredPermissions);
         } catch (error) {
             toast.error('Error al cargar lista de permisos');
@@ -137,29 +142,52 @@ export default function AdminRoles() {
         });
     };
 
-    const handleRestore = async (id: number) => {
-        try {
-            await apiService.axiosInstance.post(`/api/admin/roles/${id}/restore`);
-            toast.success('Rol restaurado exitosamente');
-            fetchRoles(currentPage);
-        } catch (error: any) {
-            toast.error('Error al restaurar rol');
-        }
-    };
-
-
     const handleBulkDelete = () => {
         setConfirmModalConfig({
             isOpen: true,
-            title: `¿Seguro que deseas disolver ${selectedCount} rangos?`,
+            title: `¿Seguro que deseas exiliar ${selectedCount} rangos?`,
             onConfirm: async () => {
                 try {
                     await apiService.axiosInstance.post('/api/admin/roles/bulk-delete', { ids: selectedList });
-                    toast.success('Rangos disueltos correctamente');
+                    toast.success('Rangos exiliados correctamente');
                     clear();
                     fetchRoles(currentPage);
                 } catch (error) {
-                    toast.error('Error al realizar borrado masivo');
+                    toast.error('Error al realizar exilio masivo');
+                }
+            }
+        });
+    };
+
+    const handleBulkRestore = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Deseas restaurar ${selectedCount} rangos exiliados?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/roles/bulk-restore', { ids: selectedList });
+                    toast.success('Restauración masiva completada');
+                    clear();
+                    fetchRoles(currentPage);
+                } catch (error) {
+                    toast.error('Error al restaurar roles');
+                }
+            }
+        });
+    };
+
+    const handleBulkForceDelete = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿ELIMINAR DEFINITIVAMENTE ${selectedCount} RANGOS? Esta acción es irreversible.`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/roles/bulk-force-delete', { ids: selectedList });
+                    toast.success('Eliminación definitiva completada');
+                    clear();
+                    fetchRoles(currentPage);
+                } catch (error) {
+                    toast.error('Error al eliminar permanentemente');
                 }
             }
         });
@@ -182,7 +210,6 @@ export default function AdminRoles() {
             permission_ids: role.permissions?.map((p) => p.id) || [],
         });
         setShowForm(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleCreateOrUpdate = async (e: React.FormEvent) => {
@@ -208,13 +235,13 @@ export default function AdminRoles() {
     };
 
     if (loading) {
-return (
-<div className="p-20 flex flex-col items-center justify-center gap-4">
-<Loader2 className="animate-spin text-primary w-10 h-10" />
-<p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Jerarquías...</p>
-</div>
-);
-}
+        return (
+            <div className="p-20 flex flex-col items-center justify-center gap-4">
+                <Loader2 className="animate-spin text-primary w-10 h-10" />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/50">Consultando Jerarquías...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 max-w-7xl mx-auto w-full font-literata">
@@ -223,90 +250,72 @@ return (
                     <h1 className="text-4xl font-forum font-black text-foreground mb-2">Círculo de Poder</h1>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Define los rangos, privilegios y capacidades de los caminantes en el sistema.</p>
                 </div>
-                <Button
-onClick={() => {
-                    setEditingRoleId(null);
-                    setForm({ name: '', description: '', permission_ids: [] });
-                    setShowForm(!showForm);
-                }}
-className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {showForm ? 'Cerrar' : 'Nuevo Rango'}
-                </Button>
+                <div className="flex gap-4">
+                    <Button
+                        onClick={() => {
+                            setEditingRoleId(null);
+                            setForm({ name: '', description: '', permission_ids: [] });
+                            setShowForm(true);
+                        }}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nuevo Rango
+                    </Button>
+                </div>
             </div>
 
+            {/* Modal de Adición/Edición de Rango */}
             {showForm && (
-                <div className="bg-card border border-border p-8 rounded-xl mb-12 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-16 translate-x-16" />
-                    <h2 className="text-2xl font-forum font-black text-foreground mb-8 flex items-center gap-3">
-                        <Shield className="text-primary w-6 h-6" />
-                        {editingRoleId ? 'Alterar Cualidades del Rango' : 'Forjar Nuevo Rango'}
-                    </h2>
-                    <form onSubmit={handleCreateOrUpdate} className="space-y-10">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-card border border-border rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-transparent" />
+                        <h2 className="text-2xl font-forum font-black text-foreground mb-8 flex items-center gap-3">
+                            <ShieldCheck className="text-primary w-6 h-6" />
+                            {editingRoleId ? 'Alterar Pergamino de Rango' : 'Forjar Nuevo Rango'}
+                        </h2>
+                        <form onSubmit={handleCreateOrUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Nombre del Rango</label>
-                                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required placeholder="Ej: Protector de los Planos" />
+                                 <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Nombre del Rango (ID)</label>
+                                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required placeholder="Ej: mod_tournaments" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Propósito (Descripción)</label>
-                                <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" placeholder="Ej: Gestión de los hilos del destino..." />
+                                 <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Descripción de la Orden</label>
+                                <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required placeholder="Ej: Gestor de Torneos Arcanos" />
                             </div>
-                        </div>
 
-                        <div className="border-t border-border/40 pt-10">
-                            <div className="flex items-center gap-3 mb-6">
-                                <ShieldCheck className="text-primary w-4 h-4" />
-                                <label className="text-[11px] font-black font-montserrat uppercase tracking-[0.2em] text-foreground">Conceder Privilegios (Permisos)</label>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {permissionsList.map((perm) => {
-                                    const isSelected = form.permission_ids.includes(perm.id);
-                                    return (
-                                        <div
-                                            key={perm.id}
-                                            onClick={() => togglePermission(perm.id)}
-                                            className={cn(
-                                                'group relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex flex-col justify-between min-h-[100px]',
-                                                isSelected
-                                                ? 'bg-primary/5 border-primary shadow-xl shadow-primary/5'
-                                                : 'bg-accent/20 border-border/30 hover:border-primary/40',
-                                            )}
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <p className={cn(
-                                                    'text-[13px] font-black uppercase tracking-tight font-montserrat transition-colors',
-                                                    isSelected ? 'text-primary' : 'text-foreground',
-                                                )}>
-                                                    {perm.display_name}
-                                                </p>
-                                                <div className={cn(
-                                                    'h-5 w-5 rounded-lg border-2 flex items-center justify-center transition-all',
-                                                    isSelected
-                                                    ? 'bg-primary border-primary text-primary-foreground rotate-0 scale-100'
-                                                    : 'border-border/60 bg-transparent rotate-90 scale-90',
-                                                )}>
-                                                    {isSelected && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="4" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>}
-                                                </div>
+                            <div className="md:col-span-2 space-y-4">
+                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                    <Shield className="w-3 h-3" />
+                                    Privilegios Concedidos
+                                </label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-accent/20 p-6 rounded-xl border border-border/30">
+                                    {permissionsList.map((perm) => (
+                                        <div key={perm.id} className="flex items-center space-x-3 group cursor-pointer" onClick={() => togglePermission(perm.id)}>
+                                            <div className={cn(
+                                                "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
+                                                form.permission_ids.includes(perm.id)
+                                                    ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                                    : "border-border/50 bg-accent/40 group-hover:border-primary/50"
+                                            )}>
+                                                {form.permission_ids.includes(perm.id) && <Plus className="w-3 h-3" />}
                                             </div>
-                                            <p className="text-[11px] text-muted-foreground/60 leading-relaxed italic line-clamp-2">{perm.description || 'Sin descripción en los archivos.'}</p>
+                                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">{perm.display_name}</span>
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="flex gap-4 pt-4">
-                            <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest h-14 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
-                                {submitting ? <Loader2 className="animate-spin" /> : (editingRoleId ? 'Confirmar Alteraciones' : 'Forjar Rango')}
-                            </Button>
-                            {editingRoleId && (
-                                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingRoleId(null); }} className="px-10 border-border/50 text-muted-foreground hover:bg-accent h-14 rounded-xl font-black uppercase tracking-widest font-montserrat">
+                            <div className="md:col-span-2 flex gap-4 pt-4">
+                                <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest h-14 rounded-xl shadow-xl shadow-primary/20 font-montserrat">
+                                    {submitting ? 'Sellando...' : editingRoleId ? 'Actualizar Rango' : 'Inscribir Rango'}
+                                </Button>
+                                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingRoleId(null); }} className="flex-1 border-border/50 text-muted-foreground hover:bg-accent h-14 rounded-xl font-black uppercase tracking-widest font-montserrat">
                                     Cancelar
                                 </Button>
-                            )}
-                        </div>
-                    </form>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
@@ -316,24 +325,23 @@ className="bg-primary hover:bg-primary/90 text-primary-foreground font-black upp
                         <thead className="bg-accent/40 border-b border-border text-[9px] font-black uppercase tracking-[0.3em] font-montserrat text-muted-foreground/60">
                             <tr>
                                 <th className="px-8 py-6 w-10">
-                                    <input
-                                        type="checkbox"
-                                        checked={allSelected}
-                                        onChange={selectAll}
-                                        className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
-                                    />
+                                    <input type="checkbox" checked={allSelected} onChange={selectAll} className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer" />
                                 </th>
-                                <th className="px-6 py-6 font-black">ID</th>
-                                <th className="px-6 py-6 font-black">Designación y Rango</th>
-                                <th className="px-6 py-6 font-black">Atributos Concedidos</th>
-                                <th className="px-8 py-6 font-black text-right">Manejo</th>
+                                <th className="px-6 py-6 font-black cursor-pointer hover:text-primary transition-colors group" onClick={() => handleSort('id')}>
+                                    <div className="flex items-center gap-1">ID <ArrowUpDown className={cn("w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity", sortBy === 'id' && "opacity-100 text-primary")} /></div>
+                                </th>
+                                <th className="px-6 py-6 font-black cursor-pointer hover:text-primary transition-colors group" onClick={() => handleSort('name')}>
+                                    <div className="flex items-center gap-1">Jerarquía (Rango) <ArrowUpDown className={cn("w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity", sortBy === 'name' && "opacity-100 text-primary")} /></div>
+                                </th>
+                                <th className="px-6 py-6 font-black cursor-pointer hover:text-primary transition-colors group" onClick={() => handleSort('created_at')}>
+                                    <div className="flex items-center gap-1">Origen <ArrowUpDown className={cn("w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity", sortBy === 'created_at' && "opacity-100 text-primary")} /></div>
+                                </th>
+                                <th className="px-6 py-6 font-black text-right">Atributos Concedidos</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
                             {roles.map((r) => (
-                                <tr
-key={r.id}
-className={cn(
+                                <tr key={r.id} className={cn(
                                     'group hover:bg-accent/20 transition-all duration-300',
                                     isSelected(r.id) ? 'bg-primary/[0.03]' : '',
                                 )}>
@@ -355,12 +363,15 @@ className={cn(
                                                 <span className="text-foreground font-black text-[16px] group-hover:text-primary transition-colors font-forum">{r.name}</span>
                                                 {r.name.toLowerCase().includes('admin') && <ShieldCheck className="w-4 h-4 text-primary opacity-60" />}
                                                 {r.name.toLowerCase() === 'super_admin' && <Badge className="bg-primary text-primary-foreground text-[7px] font-black h-4 px-1 rounded uppercase tracking-[0.2em]">Raíz</Badge>}
+                                                {r.deleted_at && (
+                                                    <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-[7px] font-black h-4 px-1 rounded uppercase tracking-[0.2em]">Exiliado</Badge>
+                                                )}
                                             </div>
                                             <span className="text-[11px] text-muted-foreground/50 leading-relaxed italic">{r.description || 'Este rango aún no ha sido descrito.'}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
-                                        <div className="flex flex-wrap gap-1.5 max-w-md">
+                                        <div className="flex flex-wrap justify-end gap-1.5 max-w-md">
                                             {(() => {
                                                 return r.permissions && r.permissions.length > 0 ? (
                                                     r.permissions.map((p) => (
@@ -377,23 +388,12 @@ className={cn(
                                             })()}
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(r)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
-                                                <Edit2 size={15} />
-                                            </Button>
-                                            {!r.deleted_at ? (
-                                                // Rol ACTIVO (no exiliado)
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Exiliar rol">
-                                                    <UserMinus size={15} />
-                                                </Button>
-                                            ) : (
-                                                // Rol EXILIADO (soft deleted)
-                                                <Button variant="ghost" size="icon" onClick={() => handleRestore(r.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar rol">
-                                                    <UserCheck size={15} />
-                                                </Button>
-                                            )}
-                                        </div>
+                                    <td className="px-6 py-6 text-center">
+                                        {r.deleted_at ? (
+                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg bg-destructive/10 text-destructive border-destructive/20">Exiliado</Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg bg-primary/10 text-primary border-primary/20">Vigente</Badge>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -420,7 +420,25 @@ className={cn(
                             if (roleToEdit) handleEdit(roleToEdit);
                         },
                         className: 'text-primary hover:text-primary',
-                    }] : [])
+                    }] : []),
+                    {
+                        label: 'Exiliar',
+                        icon: <UserMinus className="w-4 h-4" />,
+                        onClick: handleBulkDelete,
+                        className: 'text-warning-600 hover:text-warning-700',
+                    },
+                    {
+                        label: 'Restaurar',
+                        icon: <UserCheck className="w-4 h-4" />,
+                        onClick: handleBulkRestore,
+                        className: 'text-green-600 hover:text-green-700',
+                    },
+                    {
+                        label: 'Borrar Definitivamente',
+                        icon: <Plus className="w-4 h-4 rotate-45" />,
+                        onClick: handleBulkForceDelete,
+                        className: 'text-destructive hover:text-destructive',
+                    }
                 ]}
             />
 

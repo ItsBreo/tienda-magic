@@ -21,6 +21,7 @@ class BoosterPack extends Model
     protected $fillable = [
         'name',
         'price',
+        'stock',
         'card_set_id',
         'type',
         'config',
@@ -31,6 +32,7 @@ class BoosterPack extends Model
     protected $casts = [
         'config' => 'array',
         'price' => 'float',
+        'stock' => 'integer',
         'is_active' => 'boolean',
         'card_set_id' => 'string', // Must stay string — stores set codes like 'msh', not integers
     ];
@@ -150,6 +152,15 @@ class BoosterPack extends Model
         } else {
             $query->orderBy('id', 'desc');
         }
+    }
+
+    /**
+     * Virtual property for stock validation
+     * Booster packs now have finite stock (not infinite like before)
+     */
+    public function getIsInfiniteStockAttribute(): bool
+    {
+        return false; // Los booster packs ahora tienen stock finito
     }
 
 }

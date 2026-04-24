@@ -73,13 +73,13 @@ export default function PackCard({
     <div
       key={pack.id}
       className={cn(
-        'border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1',
+        'border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full h-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1',
         isOutOfStock && 'opacity-80 grayscale-[0.5]',
       )}
     >
       {/* Contenedor de Imagen */}
       <div
-        className="group/img cursor-pointer flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden"
+        className="group/img cursor-pointer flex items-center justify-center bg-accent/5 rounded-lg p-2 h-48 relative overflow-hidden shrink-0"
         onClick={() => onClick(pack)}
       >
         {getImageSrc() ? (
@@ -104,45 +104,55 @@ export default function PackCard({
 
       {/* Información */}
       <div className="mt-4 flex flex-col flex-1">
-        <div className="flex justify-between items-start gap-2 mb-1">
-            <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 min-h-[2.5rem] flex-1 uppercase tracking-tight">
-                <HighlightedText text={cleanName} highlight={searchTerm} highlightClassName="bg-primary/20 text-primary rounded-sm" />
-            </h3>
-            {pack.card_set?.icon_svg_uri && (
-                <img
-                    src={pack.card_set.icon_svg_uri}
-                    alt=""
-                    className="w-5 h-5 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all filter dark:invert shrink-0 mt-0.5"
-                />
-            )}
-        </div>
-
-        <div className="flex items-center gap-2 h-5 mt-1 mb-2">
-            {showStock && (
-                <span className={cn(
-                    'text-[10px] font-black uppercase tracking-tighter',
-                    pack.stock && pack.stock > 0 ? 'text-green-500' : 'text-destructive',
-                )}>
-                    {pack.stock && pack.stock > 0 ? `Stock: ${pack.stock}` : 'Agotado'}
-                </span>
-            )}
-        </div>
-
-        {/* Info Directa (Lore/Artist) para Cartas Sueltas */}
-        {pack.data && (
-            <div className="space-y-2 mb-4">
-                {pack.data.oracle_text && (
-                    <p className="text-[10px] text-foreground/70 font-literata line-clamp-2 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
-                        {pack.data.oracle_text}
-                    </p>
-                )}
-                {pack.data.artist && (
-                    <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40">
-                        Art: {pack.data.artist}
-                    </p>
-                )}
-            </div>
+        <div className="flex justify-between items-start gap-2 mb-1 h-[3.5rem] overflow-hidden">
+    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 flex-1 uppercase tracking-tight">
+        <HighlightedText text={cleanName} highlight={searchTerm} highlightClassName="bg-primary/20 text-primary rounded-sm" />
+    </h3>
+    {/* Siempre ocupa el espacio, con o sin icono */}
+    <div className="w-5 shrink-0">
+        {pack.card_set?.icon_svg_uri && (
+            <img
+                src={pack.card_set.icon_svg_uri}
+                alt=""
+                className="w-5 h-5 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all filter dark:invert"
+            />
         )}
+    </div>
+</div>
+
+        <div className="flex items-center gap-2 h-5 mt-1 mb-2 shrink-0">
+            {pack.stock !== undefined && (
+        <span className={cn(
+            'text-[10px] font-black uppercase tracking-tighter',
+                    pack.stock > 0 ? 'text-green-500' : 'text-destructive',
+        )}>
+                    {pack.stock > 0 ? `Stock: ${pack.stock}` : 'Agotado'}
+        </span>
+    )}
+</div>
+
+        {/* Info Directa (Lore/Artist) para Cartas Sueltas - Espacio reservado para uniformidad */}
+        <div className="h-[70px] flex flex-col justify-start mb-2 overflow-hidden shrink-0">
+            {pack.data ? (
+                <div className="space-y-2">
+                    {pack.data.oracle_text && (
+                        <p className="text-[10px] text-foreground/70 font-literata line-clamp-2 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
+                            {pack.data.oracle_text}
+                        </p>
+                    )}
+                    {pack.data.artist && (
+                        <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40">
+                            Art: {pack.data.artist}
+                        </p>
+                    )}
+                </div>
+            ) : (
+                <div className="text-[10px] text-muted-foreground/30 font-literata italic leading-relaxed">
+                    {pack.config.description?.substring(0, 80) || "Sobre de expansión oficial para Magic: The Gathering. Contiene cartas aleatorias de este set."}
+                    {pack.config.description && pack.config.description.length > 80 && "..."}
+                </div>
+            )}
+        </div>
 
         <div className="flex items-end justify-between mt-auto pt-4">
             <div className="flex flex-col">

@@ -17,9 +17,21 @@ class AdminCardController extends Controller
         security: [["bearerAuth" => []]]
     )]
     #[OA\Response(response: 200, description: "Lista de cartas")]
-    public function index()
+    public function index(Request $request)
     {
-        $cards = Card::with('cardSet')->latest()->paginate(20);
+        $sortBy = $request->query('sort_by', 'name');
+        $sortDir = $request->query('sort_dir', 'asc');
+
+        $allowedColumns = ['id', 'name', 'set_code', 'price', 'rarity', 'is_active', 'created_at'];
+        if (!in_array($sortBy, $allowedColumns)) {
+            $sortBy = 'name';
+        }
+
+        $cards = Card::withTrashed()
+            ->with('cardSet')
+            ->orderBy($sortBy, $sortDir)
+            ->paginate(30);
+
         return response()->json($cards);
     }
 
@@ -163,7 +175,35 @@ class AdminCardController extends Controller
         Card::whereIn('id', $validated['ids'])->delete();
 
         return response()->json([
-            'message' => count($validated['ids']) . ' cartas eliminadas correctamente.'
+            'message' => count($validated['ids']) . ' cartas exiliadas correctamente.'
+        ]);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:cards,id'
+        ]);
+
+        $count = Card::onlyTrashed()->whereIn('id', $validated['ids'])->restore();
+
+        return response()->json([
+            'message' => "{$count} cartas restauradas correctamente."
+        ]);
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:cards,id'
+        ]);
+
+        $count = Card::onlyTrashed()->whereIn('id', $validated['ids'])->forceDelete();
+
+        return response()->json([
+            'message' => "{$count} cartas eliminadas permanentemente."
         ]);
     }
 

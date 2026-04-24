@@ -399,18 +399,39 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/sets/bulk-delete', [AdminSetController::class, 'bulkDelete'])
             ->middleware('permission:manage-sets');
+        Route::post('/sets/bulk-restore', [AdminSetController::class, 'bulkRestore'])
+            ->middleware('permission:manage-sets');
+        Route::post('/sets/bulk-force-delete', [AdminSetController::class, 'bulkForceDelete'])
+            ->middleware('permission:manage-sets');
         Route::post('/sets/bulk-toggle-active', [AdminSetController::class, 'bulkToggleActive'])
             ->middleware('permission:manage-sets');
 
         Route::post('/cards/bulk-delete', [AdminCardController::class, 'bulkDelete'])
+            ->middleware('permission:manage-cards');
+        Route::post('/cards/bulk-restore', [AdminCardController::class, 'bulkRestore'])
+            ->middleware('permission:manage-cards');
+        Route::post('/cards/bulk-force-delete', [AdminCardController::class, 'bulkForceDelete'])
             ->middleware('permission:manage-cards');
         Route::post('/cards/bulk-toggle-active', [AdminCardController::class, 'bulkToggleActive'])
             ->middleware('permission:manage-cards');
 
         Route::post('/booster-packs/bulk-delete', [AdminBoosterPackController::class, 'bulkDelete'])
             ->middleware('permission:manage-booster-packs');
+        Route::post('/booster-packs/bulk-restore', [AdminBoosterPackController::class, 'bulkRestore'])
+            ->middleware('permission:manage-booster-packs');
+        Route::post('/booster-packs/bulk-force-delete', [AdminBoosterPackController::class, 'bulkForceDelete'])
+            ->middleware('permission:manage-booster-packs');
         Route::post('/booster-packs/bulk-toggle-active', [AdminBoosterPackController::class, 'bulkToggleActive'])
             ->middleware('permission:manage-booster-packs');
+
+        Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDelete'])
+            ->middleware('permission:manage-users');
+        Route::post('/users/bulk-restore', [AdminUserController::class, 'bulkRestore'])
+            ->middleware('permission:manage-users');
+        Route::post('/users/bulk-force-delete', [AdminUserController::class, 'bulkForceDelete'])
+            ->middleware('permission:manage-users');
+        Route::post('/users/bulk-toggle-active', [AdminUserController::class, 'bulkToggleActive'])
+            ->middleware('permission:manage-users');
 
         Route::apiResource('users', AdminUserController::class)
             ->only(['index', 'store', 'update', 'destroy'])
@@ -424,6 +445,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{user}/force-delete', [AdminUserController::class, 'forceDelete'])
             ->withTrashed()
             ->middleware('permission:manage-users');
+
+        Route::post('/roles/bulk-delete', [AdminRoleController::class, 'bulkDelete'])
+            ->middleware('permission:manage-roles');
+        Route::post('/roles/bulk-restore', [AdminRoleController::class, 'bulkRestore'])
+            ->middleware('permission:manage-roles');
+        Route::post('/roles/bulk-force-delete', [AdminRoleController::class, 'bulkForceDelete'])
+            ->middleware('permission:manage-roles');
 
         Route::apiResource('roles', AdminRoleController::class)
             ->only(['index', 'store', 'update', 'destroy'])

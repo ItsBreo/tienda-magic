@@ -209,7 +209,7 @@ export default function Marketplace() {
         <div
             key={listing.id}
             className={cn(
-                'border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1',
+                'border border-border rounded-xl md:px-4 px-3 py-4 bg-card w-full h-full flex flex-col group transition-all duration-300 hover:shadow-2xl hover:border-primary/30 hover:-translate-y-1',
             )}
             onClick={() => handleNavigateToProduct(listing)}
         >
@@ -229,7 +229,7 @@ export default function Marketplace() {
             {/* Información */}
             <div className="mt-4 flex flex-col flex-1">
                 <div className="flex justify-between items-start gap-2 mb-1">
-                    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 min-h-[2.5rem] flex-1 uppercase tracking-tight">
+                    <h3 className="text-foreground font-forum font-bold text-lg md:text-xl leading-tight line-clamp-2 min-h-[3.5rem] flex-1 uppercase tracking-tight">
                         <HighlightedText text={listing.listable.name} highlight={searchTerm} highlightClassName="bg-primary/20 text-primary rounded-sm" />
                     </h3>
                 </div>
@@ -246,21 +246,29 @@ export default function Marketplace() {
                     </p>
                 </div>
 
-                {/* Info Directa (Lore/Artist) */}
-                {listing.listable.data && (
-                    <div className="space-y-2 mb-4">
-                        {listing.listable.data.oracle_text && (
-                            <p className="text-[10px] text-foreground/70 font-literata line-clamp-2 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
-                                {listing.listable.data.oracle_text}
-                            </p>
-                        )}
-                        {listing.listable.data.artist && (
-                            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40">
-                                Art: {listing.listable.data.artist}
-                            </p>
-                        )}
-                    </div>
-                )}
+                {/* Info Directa (Lore/Artist) - Espacio reservado para uniformidad */}
+                <div className="h-[88px] flex flex-col justify-start mb-2 overflow-hidden">
+    {listing.listable.data ? (
+        <div className="space-y-1">
+            {listing.listable.data.oracle_text && (
+                <p className="text-[10px] text-foreground/70 font-literata line-clamp-3 leading-relaxed italic opacity-80 border-l border-primary/20 pl-2">
+                    {listing.listable.data.oracle_text}
+                </p>
+            )}
+            {listing.listable.data.artist && (
+                <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40 mt-1">
+                    Art: {listing.listable.data.artist}
+                </p>
+            )}
+        </div>
+    ) : (
+        <div className="text-[10px] text-muted-foreground/30 font-literata italic leading-relaxed line-clamp-3">
+            {listing.listable_type.includes('Pack') 
+                ? "Sobre de cartas sellado. Contenido aleatorio según el set de expansión correspondiente." 
+                : "Sin descripción adicional para este artículo."}
+        </div>
+    )}
+</div>
 
                 <div className="flex items-end justify-between mt-auto pt-4">
                     <div className="flex flex-col">
@@ -487,6 +495,7 @@ artículos
                         {filteredListings.map((listing) => (
                             <motion.div
                                 key={listing.id}
+                                className="h-full flex flex-col"
                                 variants={{
                                     hidden: { opacity: 0, y: 20 },
                                     show: { opacity: 1, y: 0 }

@@ -59,6 +59,7 @@ function PacksGrid({
         {packs.map((pack: Pack) => (
           <motion.div
             key={pack.id}
+            className="h-full flex flex-col"
             variants={{
                 hidden: { opacity: 0, y: 20 },
                 show: { opacity: 1, y: 0 }

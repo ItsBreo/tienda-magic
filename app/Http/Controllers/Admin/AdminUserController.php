@@ -20,10 +20,21 @@ class AdminUserController extends Controller
         security: [["bearerAuth" => []]]
     )]
     #[OA\Response(response: 200, description: "Lista de usuarios")]
-    public function index()
+    public function index(Request $request)
     {
-        // Traemos a los usuarios ordenados por creación con sus roles
-        $users = User::with('roles')->latest()->paginate(20);
+        $sortBy = $request->query('sort_by', 'created_at');
+        $sortDir = $request->query('sort_dir', 'desc');
+
+        $allowedColumns = ['id', 'name', 'username', 'email', 'is_active', 'created_at'];
+        if (!in_array($sortBy, $allowedColumns)) {
+            $sortBy = 'name';
+        }
+
+        $users = User::withTrashed()
+            ->with('roles')
+            ->orderBy($sortBy, $sortDir)
+            ->paginate(20);
+
         return response()->json($users);
     }
 
@@ -276,13 +287,42 @@ class AdminUserController extends Controller
             'ids.*' => 'exists:users,id'
         ]);
 
-        $ids = array_diff($validated['ids'], [1, auth()->id()]); // Protegemos SuperAdmin y a uno mismo
+        // Evitar que el admin se borre a sí mismo en masa
+        $ids = array_filter($validated['ids'], fn($id) => $id != auth()->id());
 
         User::whereIn('id', $ids)->delete();
 
         return response()->json([
-            'message' => count($ids) . ' usuarios eliminados correctamente.',
-            'protected' => count($validated['ids']) - count($ids)
+            'message' => count($ids) . ' usuarios exiliados correctamente.'
+        ]);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id'
+        ]);
+
+        $count = User::onlyTrashed()->whereIn('id', $validated['ids'])->restore();
+
+        return response()->json([
+            'message' => "{$count} usuarios restaurados correctamente."
+        ]);
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id'
+        ]);
+
+        // Solo permitir borrar si ya están en la papelera
+        $count = User::onlyTrashed()->whereIn('id', $validated['ids'])->forceDelete();
+
+        return response()->json([
+            'message' => "{$count} usuarios eliminados permanentemente."
         ]);
     }
 

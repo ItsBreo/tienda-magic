@@ -126,8 +126,8 @@ class LoginController extends Controller
     {
         $user = Auth::guard('web')->user();
         
-        // Revocar token de api si existiera (sólo por precaución)
-        if ($user && $request->user()?->currentAccessToken()) {
+        // Revocar token de api si existiera (sólo por precaución y no aplicable a sesiones SPA)
+        if ($user && $request->user()?->currentAccessToken() && method_exists($request->user()->currentAccessToken(), 'delete')) {
             $request->user()->currentAccessToken()->delete();
         }
 

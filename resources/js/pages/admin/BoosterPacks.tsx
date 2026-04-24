@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
- Plus, Loader2, Edit2, CheckCircle2, XCircle, Package, Sparkles,
+    Plus, Loader2, Edit2, CheckCircle2, XCircle, Trash2, Search,
+    ChevronUp, ChevronDown, ArrowUpDown, Package, Sparkles,
 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
@@ -13,10 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
+
 interface BoosterPack {
     id: number;
     name: string;
     price: number;
+    stock: number;
     card_set_id: string;
     type: string;
     image_uri: string | null;
@@ -35,6 +38,8 @@ export default function AdminBoosterPacks() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
+    const [sortBy, setSortBy] = useState('name');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
     const [confirmModalConfig, setConfirmModalConfig] = useState<{
         isOpen: boolean;
@@ -49,6 +54,7 @@ export default function AdminBoosterPacks() {
     const [form, setForm] = useState({
         name: '',
         price: 0,
+        stock: 0,
         card_set_id: '',
         type: 'booster',
         image_uri: '',
@@ -67,9 +73,13 @@ export default function AdminBoosterPacks() {
 
     const fetchPacks = async (page = 1) => {
         try {
-            const data = await apiService.axiosInstance.get('/api/admin/booster-packs', {
-                params: { page }
-            }).then(res => res.data);
+            const { data } = await apiService.axiosInstance.get('/api/admin/booster-packs', {
+                params: { 
+                    page,
+                    sort_by: sortBy,
+                    sort_dir: sortDir
+                }
+            });
             setPacks(data.data || data);
             if (data.current_page) {
                 setCurrentPage(data.current_page);
@@ -82,9 +92,19 @@ export default function AdminBoosterPacks() {
         }
     };
 
+    const handleSort = (column: string) => {
+        if (sortBy === column) {
+            setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(column);
+            setSortDir('asc');
+        }
+        setCurrentPage(1);
+    };
+
     useEffect(() => {
         fetchPacks(currentPage);
-    }, [currentPage]);
+    }, [currentPage, sortBy, sortDir]);
 
     const handleDelete = (id: number) => {
         setConfirmModalConfig({
@@ -126,15 +146,49 @@ export default function AdminBoosterPacks() {
     const handleBulkDelete = () => {
         setConfirmModalConfig({
             isOpen: true,
-            title: `¿Seguro que deseas eliminar ${selectedCount} sobres?`,
+            title: `¿Seguro que deseas exiliar ${selectedCount} sobres?`,
             onConfirm: async () => {
                 try {
                     await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-delete', { ids: selectedList });
-                    toast.success('Eliminación masiva completada');
+                    toast.success('Sobres exiliados correctamente');
                     clear();
                     fetchPacks(currentPage);
                 } catch (error) {
-                    toast.error('Error al realizar borrado masivo');
+                    toast.error('Error al realizar exilio masivo');
+                }
+            }
+        });
+    };
+
+    const handleBulkRestore = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿Deseas restaurar ${selectedCount} sobres exiliados?`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-restore', { ids: selectedList });
+                    toast.success('Restauración masiva completada');
+                    clear();
+                    fetchPacks(currentPage);
+                } catch (error) {
+                    toast.error('Error al restaurar sobres');
+                }
+            }
+        });
+    };
+
+    const handleBulkForceDelete = () => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: `¿ELIMINAR DEFINITIVAMENTE ${selectedCount} SOBRES? Esta acción es irreversible.`,
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.post('/api/admin/booster-packs/bulk-force-delete', { ids: selectedList });
+                    toast.success('Eliminación definitiva completada');
+                    clear();
+                    fetchPacks(currentPage);
+                } catch (error) {
+                    toast.error('Error al eliminar permanentemente');
                 }
             }
         });
@@ -168,7 +222,7 @@ export default function AdminBoosterPacks() {
             setShowForm(false);
             setEditingId(null);
             setForm({
- name: '', price: 0, card_set_id: '', type: 'booster', image_uri: '', is_active: true,
+ name: '', price: 0, stock: 0, card_set_id: '', type: 'booster', image_uri: '', is_active: true,
 });
             fetchPacks(currentPage);
         } catch (error: any) {
@@ -183,13 +237,13 @@ export default function AdminBoosterPacks() {
         setForm({
             name: pack.name,
             price: pack.price,
+            stock: pack.stock,
             card_set_id: pack.card_set_id,
             type: pack.type,
             image_uri: pack.image_uri || '',
             is_active: pack.is_active,
         });
         setShowForm(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     if (loading) {
@@ -208,69 +262,82 @@ return (
                     <h1 className="text-4xl font-forum font-black text-foreground mb-2">Forja de Sobres</h1>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] font-montserrat text-muted-foreground/60">Configuración de Booster Packs, precios y visibilidad en el mercado.</p>
                 </div>
-                <Button
-onClick={() => {
-                    setShowForm(!showForm);
-                    if (showForm) setEditingId(null);
-                }}
-className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {editingId ? 'Cerrar' : 'Forjar Sobre'}
-                </Button>
+                <div className="flex gap-4">
+                    <Button
+                        onClick={() => {
+                            setEditingId(null);
+                            setForm({
+                                name: '', price: 0, stock: 0, card_set_id: '', type: 'booster', image_uri: '', is_active: true,
+                            });
+                            setShowForm(true);
+                        }}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nuevo Sobre
+                    </Button>
+                </div>
             </div>
 
+            {/* Modal de Adición/Edición de Sobre */}
             {showForm && (
-                <div className="bg-card border border-border p-8 rounded-xl mb-12 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-16 translate-x-16" />
-                    <h2 className="text-2xl font-forum font-black text-foreground mb-8 flex items-center gap-3">
-                        <Sparkles className="text-primary w-6 h-6" />
-                        {editingId ? 'Alterar Esencia del Sobre' : 'Inscribir Nuevo Producto'}
-                    </h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Nombre Comercial</label>
-                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Precio de Venta (Oro)</label>
-                            <Input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Código del Plano (Set)</label>
-                            <Input value={form.card_set_id} onChange={(e) => setForm({ ...form, card_set_id: e.target.value.toLowerCase() })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium uppercase" required placeholder="ej: ktk" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Categoría</label>
-                            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-accent/40 border border-border/50 rounded-xl px-4 h-12 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all font-medium appearance-none">
-                                <option value="booster">Booster Pack</option>
-                                <option value="starter_deck">Starter Deck</option>
-                                <option value="bundle">Bundle Arcano</option>
-                            </select>
-                        </div>
-                        <div className="md:col-span-2 space-y-2">
-                            <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Pergamino Visual (URL Imagen)</label>
-                            <Input value={form.image_uri} onChange={(e) => setForm({ ...form, image_uri: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" />
-                        </div>
-                        <div className="flex items-center space-x-3 pt-6 ml-1">
-                            <Checkbox
-                                id="active-mode"
-                                checked={form.is_active}
-                                onCheckedChange={(val: boolean) => setForm({ ...form, is_active: val })}
-                                className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary transition-all"
-                            />
-                            <label htmlFor="active-mode" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">
-                                Manifestación Activa / Visible
-                            </label>
-                        </div>
-                        <div className="md:col-span-2 flex gap-4 pt-4">
-                            <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest h-14 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
-                                {submitting ? 'Forjando...' : editingId ? 'Actualizar Producto' : 'Guardar en Catálogo'}
-                            </Button>
-                            <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1 border-border/50 text-muted-foreground hover:bg-accent h-14 rounded-xl font-black uppercase tracking-widest font-montserrat">
-                                Cancelar
-                            </Button>
-                        </div>
-                    </form>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-card border border-border rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-transparent" />
+                        <h2 className="text-2xl font-forum font-black text-foreground mb-8 flex items-center gap-3">
+                            <Sparkles className="text-primary w-6 h-6" />
+                            {editingId ? 'Alterar Esencia del Sobre' : 'Inscribir Nuevo Producto'}
+                        </h2>
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Nombre Comercial</label>
+                                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Precio de Venta (Oro)</label>
+                                <Input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Stock Disponible</label>
+                                <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: parseInt(e.target.value) || 0 })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" required />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Código del Plano (Set)</label>
+                                <Input value={form.card_set_id} onChange={(e) => setForm({ ...form, card_set_id: e.target.value.toLowerCase() })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium uppercase" required placeholder="ej: ktk" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Categoría</label>
+                                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-accent/40 border border-border/50 rounded-xl px-4 h-12 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all font-medium appearance-none">
+                                    <option value="booster">Booster Pack</option>
+                                    <option value="starter_deck">Starter Deck</option>
+                                    <option value="bundle">Bundle Arcano</option>
+                                </select>
+                            </div>
+                            <div className="md:col-span-2 space-y-2">
+                                <label className="text-[10px] font-black font-montserrat uppercase tracking-widest text-muted-foreground ml-1">Pergamino Visual (URL Imagen)</label>
+                                <Input value={form.image_uri} onChange={(e) => setForm({ ...form, image_uri: e.target.value })} className="bg-accent/40 border-border/50 h-12 rounded-xl px-4 focus:ring-primary font-medium" />
+                            </div>
+                            <div className="flex items-center space-x-3 pt-6 ml-1">
+                                <Checkbox
+                                    id="active-mode"
+                                    checked={form.is_active}
+                                    onCheckedChange={(val: boolean) => setForm({ ...form, is_active: val })}
+                                    className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary transition-all"
+                                />
+                                <label htmlFor="active-mode" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">
+                                    Manifestación Activa / Visible
+                                </label>
+                            </div>
+                            <div className="md:col-span-2 flex gap-4 pt-4">
+                                <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest h-14 rounded-xl shadow-xl shadow-primary/20 transition-all font-montserrat">
+                                    {submitting ? 'Forjando...' : editingId ? 'Actualizar Producto' : 'Guardar en Catálogo'}
+                                </Button>
+                                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1 border-border/50 text-muted-foreground hover:bg-accent h-14 rounded-xl font-black uppercase tracking-widest font-montserrat">
+                                    Cancelar
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
@@ -287,11 +354,26 @@ className="bg-primary hover:bg-primary/90 text-primary-foreground font-black upp
                                         className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer"
                                     />
                                 </th>
-                                <th className="px-6 py-6 font-black">Producto</th>
-                                <th className="px-6 py-6 font-black text-center">Plano (Set)</th>
-                                <th className="px-6 py-6 font-black text-center">Precio</th>
+                                <th className="px-6 py-6 font-black cursor-pointer hover:text-primary transition-colors group" onClick={() => handleSort('name')}>
+                                    <div className="flex items-center gap-1">
+                                        Producto
+                                        <ArrowUpDown className={cn("w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity", sortBy === 'name' && "opacity-100 text-primary")} />
+                                    </div>
+                                </th>
+                                <th className="px-6 py-6 font-black text-center cursor-pointer hover:text-primary transition-colors group" onClick={() => handleSort('card_set_id')}>
+                                    <div className="flex items-center gap-1 justify-center">
+                                        Plano (Set)
+                                        <ArrowUpDown className={cn("w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity", sortBy === 'card_set_id' && "opacity-100 text-primary")} />
+                                    </div>
+                                </th>
+                                <th className="px-6 py-6 font-black text-center cursor-pointer hover:text-primary transition-colors group" onClick={() => handleSort('price')}>
+                                    <div className="flex items-center gap-1 justify-center">
+                                        Precio
+                                        <ArrowUpDown className={cn("w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity", sortBy === 'price' && "opacity-100 text-primary")} />
+                                    </div>
+                                </th>
+                                <th className="px-6 py-6 font-black text-center">Stock</th>
                                 <th className="px-6 py-6 font-black text-center">Invocación</th>
-                                <th className="px-8 py-6 font-black text-right">Manejo</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
@@ -338,36 +420,33 @@ Oro
 </span>
                                     </td>
                                     <td className="px-6 py-6 text-center">
-                                        <button
-                                            onClick={() => handleToggleActive(p)}
-                                            className={cn(
-                                                'inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
-                                                p.is_active
-                                                ? 'bg-primary/10 text-primary border border-primary/20'
-                                                : 'bg-muted/10 text-muted-foreground/40 border border-border/50',
-                                            )}
-                                        >
-                                            {p.is_active ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
-                                            {p.is_active ? 'Disponible' : 'Agotado'}
-                                        </button>
+                                        <span className="text-[15px] font-black text-foreground font-forum">
+                                            {p.stock}
+                                            <span className="text-[10px] text-muted-foreground/60 ml-1">unidades</span>
+                                        </span>
                                     </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(p)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
-                                                <Edit2 size={15} />
-                                            </Button>
-                                            {!p.deleted_at ? (
-                                                // Pack ACTIVO (no exiliado)
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Exiliar pack">
-                                                    <XCircle size={15} />
-                                                </Button>
-                                            ) : (
-                                                // Pack EXILIADO (soft deleted)
-                                                <Button variant="ghost" size="icon" onClick={() => handleRestore(p.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar pack">
-                                                    <CheckCircle2 size={15} />
-                                                </Button>
-                                            )}
-                                        </div>
+                                    <td className="px-6 py-6 text-center">
+                                        {p.deleted_at ? (
+                                            <Badge
+                                                variant="outline"
+                                                className="text-[8px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg bg-destructive/10 text-destructive border-destructive/20"
+                                            >
+                                                Exiliado
+                                            </Badge>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleToggleActive(p)}
+                                                className={cn(
+                                                    'inline-flex items-center px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
+                                                    p.is_active
+                                                    ? 'bg-primary/10 text-primary border border-primary/20'
+                                                    : 'bg-warning/10 text-warning-600 border border-warning/20',
+                                                )}
+                                            >
+                                                {p.is_active ? <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> : <XCircle className="w-3.5 h-3.5 mr-1.5" />}
+                                                {p.is_active ? 'Disponible' : 'Agotado'}
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -406,6 +485,24 @@ Oro
                         icon: <XCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
                         className: 'text-muted-foreground/60 hover:text-foreground',
+                    },
+                    {
+                        label: 'Exiliar',
+                        icon: <XCircle className="w-4 h-4" />,
+                        onClick: handleBulkDelete,
+                        className: 'text-warning-600 hover:text-warning-700',
+                    },
+                    {
+                        label: 'Restaurar',
+                        icon: <CheckCircle2 className="w-4 h-4" />,
+                        onClick: handleBulkRestore,
+                        className: 'text-green-600 hover:text-green-700',
+                    },
+                    {
+                        label: 'Borrar Permanentemente',
+                        icon: <Plus className="w-4 h-4 rotate-45" />,
+                        onClick: handleBulkForceDelete,
+                        className: 'text-destructive hover:text-destructive',
                     }
                 ]}
             />

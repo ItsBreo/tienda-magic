@@ -18,10 +18,20 @@ class AdminRoleController extends Controller
         security: [["bearerAuth" => []]]
     )]
     #[OA\Response(response: 200, description: "Lista de roles")]
-    public function index()
+    public function index(Request $request)
     {
-        // Traemos todos los roles paginados (los permisos se cargan vía Appends/Accessor)
-        $roles = Role::orderBy('id')->paginate(50);
+        $sortBy = $request->query('sort_by', 'id');
+        $sortDir = $request->query('sort_dir', 'asc');
+
+        $allowedColumns = ['id', 'name', 'created_at'];
+        if (!in_array($sortBy, $allowedColumns)) {
+            $sortBy = 'id';
+        }
+
+        $roles = Role::withTrashed()
+            ->orderBy($sortBy, $sortDir)
+            ->paginate(50);
+            
         return response()->json($roles);
     }
 
@@ -207,8 +217,51 @@ class AdminRoleController extends Controller
         }
 
         return response()->json([
-            'message' => count($rolesToDelete) . ' roles eliminados correctamente.',
+            'message' => count($rolesToDelete) . ' roles exiliados correctamente.',
             'protected' => count($validated['ids']) - count($rolesToDelete)
+        ]);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:roles,id'
+        ]);
+
+        $count = Role::onlyTrashed()->whereIn('id', $validated['ids'])->restore();
+
+        return response()->json([
+            'message' => "{$count} roles restaurados correctamente."
+        ]);
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:roles,id'
+        ]);
+
+        $protectedRoles = [
+            'super_admin', 'admin',
+            'mod_news', 'mod_tournaments', 'mod_general',
+            'user', 'usuario',
+        ];
+
+        // Solo permitir borrar si ya están en la papelera y no son protegidos
+        $rolesToForceDelete = Role::onlyTrashed()
+            ->whereIn('id', $validated['ids'])
+            ->whereNotIn('name', $protectedRoles)
+            ->get();
+
+        foreach ($rolesToForceDelete as $role) {
+            $role->users()->detach();
+            $role->forceDelete();
+        }
+
+        return response()->json([
+            'message' => count($rolesToForceDelete) . ' roles eliminados permanentemente.'
         ]);
     }
 }

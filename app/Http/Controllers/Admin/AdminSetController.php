@@ -17,9 +17,21 @@ class AdminSetController extends Controller
         security: [["bearerAuth" => []]]
     )]
     #[OA\Response(response: 200, description: "Lista de sets")]
-    public function index()
+    public function index(Request $request)
     {
-        $sets = CardSet::latest('released_at')->paginate(20);
+        $sortBy = $request->query('sort_by', 'name');
+        $sortDir = $request->query('sort_dir', 'asc');
+
+        $allowedColumns = ['code', 'name', 'is_active', 'released_at'];
+        if (!in_array($sortBy, $allowedColumns)) {
+            $sortBy = 'name';
+        }
+
+        $sets = CardSet::withTrashed()
+            ->withCount('cards')
+            ->orderBy($sortBy, $sortDir)
+            ->paginate(20);
+
         return response()->json($sets);
     }
 
@@ -118,7 +130,7 @@ class AdminSetController extends Controller
 
     public function restore($code)
     {
-        $set = CardSet::findOrFail($code);
+        $set = CardSet::withTrashed()->findOrFail($code);
 
         // Validar que el set esté exiliado (soft deleted)
         if (!$set->trashed()) {
@@ -133,7 +145,7 @@ class AdminSetController extends Controller
 
     public function forceDelete($code)
     {
-        $set = CardSet::findOrFail($code);
+        $set = CardSet::withTrashed()->findOrFail($code);
 
         // Validar que el set ya esté exiliado (soft deleted)
         if (!$set->trashed()) {
@@ -160,7 +172,35 @@ class AdminSetController extends Controller
         CardSet::whereIn('code', $validated['ids'])->delete();
 
         return response()->json([
-            'message' => count($validated['ids']) . ' sets eliminados correctamente.'
+            'message' => count($validated['ids']) . ' sets exiliados correctamente.'
+        ]);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:card_sets,code'
+        ]);
+
+        $count = CardSet::onlyTrashed()->whereIn('code', $validated['ids'])->restore();
+
+        return response()->json([
+            'message' => "{$count} sets restaurados correctamente."
+        ]);
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:card_sets,code'
+        ]);
+
+        $count = CardSet::onlyTrashed()->whereIn('code', $validated['ids'])->forceDelete();
+
+        return response()->json([
+            'message' => "{$count} sets eliminados permanentemente."
         ]);
     }
 

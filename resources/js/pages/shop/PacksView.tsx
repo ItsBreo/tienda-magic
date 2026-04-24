@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
- Search, Loader2, Tag, X, Filter,
+ Search, Loader2, Tag, X, Filter, ChevronDown
 } from 'lucide-react';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import { Button } from '@/components/ui/button';
@@ -247,17 +247,20 @@ export default function PacksView() {
 
                     {/* Sort & Filter */}
                     <div className="flex items-center gap-2">
-                        <select
-                            value={sortBy}
-                            onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                            className="bg-background border border-border text-foreground px-4 py-2 rounded-xl text-sm h-11 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm font-medium cursor-pointer"
-                        >
-                            <option value="newest">Novedades</option>
-                            <option value="price_asc">Menor Valor</option>
-                            <option value="price_desc">Mayor Valor</option>
-                            <option value="name_asc">A-Z</option>
-                            <option value="name_desc">Z-A</option>
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={sortBy}
+                                onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
+                                className="appearance-none bg-background border border-border text-foreground px-4 py-2 rounded-xl text-sm h-11 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm font-medium cursor-pointer pr-10"
+                            >
+                                <option value="newest">Novedades</option>
+                                <option value="price_asc">Menor Valor</option>
+                                <option value="price_desc">Mayor Valor</option>
+                                <option value="name_asc">A-Z</option>
+                                <option value="name_desc">Z-A</option>
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                        </div>
 
                         {availableSets.length > 0 && (
                             <Button

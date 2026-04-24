@@ -25,12 +25,18 @@ class CommentResource extends JsonResource
                 return $user && $user->can('update', $this->resource);
             })(),
             'created_at' => $this->created_at->diffForHumans(),
-            'author' => [
+            'author' => $this->user ? [
                 'id'         => $this->user->id,
                 'name'       => $this->user->name,
                 'username'   => $this->user->username,
                 'avatar_url' => $this->user->avatar_url,
                 'reputation' => $this->user->reputation,
+            ] : [
+                'id'         => 0,
+                'name'       => 'Desconocido',
+                'username'   => 'desconocido',
+                'avatar_url' => null,
+                'reputation' => 100,
             ],
             // Respuestas anidadas — solo si se cargaron con with()
             'replies' => CommentResource::collection($this->whenLoaded('replies')),

@@ -32,17 +32,22 @@ class ThreadResource extends JsonResource
                 return $user && $user->can('update', $this->resource);
             })(),
             'created_at'     => $this->created_at->diffForHumans(),
-            'forum' => [
+            'forum' => $this->forum ? [
                 'id'   => $this->forum->id,
                 'name' => $this->forum->name,
                 'icon' => $this->forum->icon,
                 'slug' => $this->forum->slug,
-            ],
-            'author' => [
+            ] : null,
+            'author' => $this->user ? [
                 'id'         => $this->user->id,
                 'name'       => $this->user->name,
                 'avatar_url' => $this->user->avatar_url,
                 'reputation' => $this->user->reputation,
+            ] : [
+                'id'         => 0,
+                'name'       => 'Desconocido',
+                'avatar_url' => null,
+                'reputation' => 100,
             ],
             // Solo se incluye si se cargó la relación votes con with()
             'user_vote' => $this->whenLoaded('votes', function () {

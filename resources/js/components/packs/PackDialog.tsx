@@ -245,6 +245,13 @@ export default function PackDialog({
 </span>
                   </div>
                   <div className="flex justify-between items-center py-2.5 border-b border-border/40">
+                    <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Disponibilidad</span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-foreground font-black text-md">{pack.stock || 0}</span>
+                        <span className="text-[9px] text-muted-foreground font-black uppercase">unidades</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center py-2.5 border-b border-border/40">
                     <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Capacidad</span>
                     <div className="flex items-center gap-1.5">
                         <span className="text-foreground font-black text-md">{pack.config?.total_cards || 14}</span>
@@ -309,8 +316,9 @@ export default function PackDialog({
                         </button>
                         <span className="w-10 text-center text-sm font-black text-foreground">{quantity}</span>
                         <button
-                            onClick={() => setQuantity((q) => Math.min(pack.stock || 99, q + 1))}
-                            className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full"
+                            onClick={() => setQuantity((q) => Math.min(pack.stock || 0, q + 1))}
+                            disabled={pack.stock === 0}
+                            className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Plus size={14} strokeWidth={4} />
                         </button>
@@ -328,10 +336,15 @@ export default function PackDialog({
 
                     <Button
                     onClick={handleAddToCartSub}
-                    disabled={isSubmitting}
-                    className="w-full h-14 bg-primary text-primary-foreground font-black uppercase tracking-[0.2em] text-[10px] rounded-xl shadow-xl shadow-primary/20 hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 border-none"
+                    disabled={isSubmitting || (pack.stock === 0)}
+                    className="w-full h-14 bg-primary text-primary-foreground font-black uppercase tracking-[0.2em] text-[10px] rounded-xl shadow-xl shadow-primary/20 hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 border-none disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
                     >
-                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : (
+                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : pack.stock === 0 ? (
+                        <>
+                            <Package size={16} />
+                            Agotado
+                        </>
+                    ) : (
                         <>
                         <ShoppingCart size={16} />
                         Comprar Pack

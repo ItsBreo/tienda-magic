@@ -21,8 +21,10 @@ class EnsureUserIsActive
 
         if ($user && !$user->is_active) {
             // Revocamos el token Sanctum actual
-            if ($request->user()->currentAccessToken()) {
-                $request->user()->currentAccessToken()->delete();
+            // Revocamos el token Sanctum actual (solo si es un token de DB, no sesiones SPA)
+            $token = $request->user()->currentAccessToken();
+            if ($token && method_exists($token, 'delete')) {
+                $token->delete();
             }
 
             return response()->json([

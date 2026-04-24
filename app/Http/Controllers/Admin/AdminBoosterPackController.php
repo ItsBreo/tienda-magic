@@ -17,9 +17,21 @@ class AdminBoosterPackController extends Controller
         security: [["bearerAuth" => []]]
     )]
     #[OA\Response(response: 200, description: "Lista de sobres")]
-    public function index()
+    public function index(Request $request)
     {
-        $packs = BoosterPack::with('cardSet')->latest()->paginate(20);
+        $sortBy = $request->query('sort_by', 'name');
+        $sortDir = $request->query('sort_dir', 'asc');
+
+        $allowedColumns = ['id', 'name', 'card_set_id', 'price', 'is_active', 'created_at', 'stock'];
+        if (!in_array($sortBy, $allowedColumns)) {
+            $sortBy = 'name';
+        }
+
+        $packs = BoosterPack::withTrashed()
+            ->with('cardSet')
+            ->orderBy($sortBy, $sortDir)
+            ->paginate(20);
+
         return response()->json($packs);
     }
 
