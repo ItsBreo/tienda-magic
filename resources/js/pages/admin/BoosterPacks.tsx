@@ -177,8 +177,28 @@ export default function AdminBoosterPacks() {
         });
     };
 
-    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
-    const canHardDelete = selectedCount > 0 && packs.every(pack => pack.deleted_at === null);
+    // Helper functions to determine selection state
+    const getSelectedPacks = () => {
+        return packs.filter(pack => selectedList.includes(pack.id));
+    };
+
+    const areAllSelectedAlive = () => {
+        const selectedPacks = getSelectedPacks();
+        return selectedPacks.length > 0 && selectedPacks.every(pack => pack.deleted_at === null);
+    };
+
+    const areAllSelectedExiled = () => {
+        const selectedPacks = getSelectedPacks();
+        return selectedPacks.length > 0 && selectedPacks.every(pack => pack.deleted_at !== null);
+    };
+
+    const hasMixedSelection = () => {
+        const selectedPacks = getSelectedPacks();
+        return selectedPacks.length > 0 && !areAllSelectedAlive() && !areAllSelectedExiled();
+    };
+
+    // Solo permite hard delete si todos los seleccionados están exiliados (soft deleted)
+    const canHardDelete = areAllSelectedExiled();
 
     const handleBulkForceDelete = () => {
         setConfirmModalConfig({
@@ -468,8 +488,8 @@ Oro
                 count={selectedCount}
                 onClear={clear}
                 actions={[
-                    ...(selectedCount === 1 ? [{
-                        label: 'Alterar Producto',
+                    ...(selectedCount === 1 && !hasMixedSelection() ? [{
+                        label: 'Editar',
                         icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
                             const packToEdit = packs.find((p) => p.id === selectedList[0]);
@@ -477,36 +497,34 @@ Oro
                         },
                         className: 'text-primary hover:text-primary',
                     }] : []),
-                    {
-                        label: 'Activar Oferta',
-                        icon: <CheckCircle2 className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary',
-                    },
-                    {
-                        label: 'Pausar Oferta',
-                        icon: <XCircle className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground',
-                    },
-                    {
-                        label: 'Exiliar',
-                        icon: <XCircle className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        className: 'text-warning-600 hover:text-warning-700',
-                    },
-                    {
-                        label: 'Restaurar',
-                        icon: <CheckCircle2 className="w-4 h-4" />,
-                        onClick: handleBulkRestore,
-                        className: 'text-green-600 hover:text-green-700',
-                    },
-                    {
-                        label: 'Borrar Permanentemente',
-                        icon: <Plus className="w-4 h-4 rotate-45" />,
-                        onClick: handleBulkForceDelete,
-                        className: 'text-destructive hover:text-destructive',
-                    }
+                    ...(areAllSelectedAlive() ? [
+                        {
+                            label: 'Exiliar',
+                            icon: <XCircle className="w-4 h-4" />,
+                            onClick: handleBulkDelete,
+                            className: 'text-warning-600 hover:text-warning-700',
+                        },
+                    ] : []),
+                    ...(areAllSelectedExiled() ? [
+                        {
+                            label: 'Restaurar',
+                            icon: <CheckCircle2 className="w-4 h-4" />,
+                            onClick: handleBulkRestore,
+                            className: 'text-green-600 hover:text-green-700',
+                        },
+                        {
+                            label: 'Borrar Definitivamente',
+                            icon: <Plus className="w-4 h-4 rotate-45" />,
+                            onClick: handleBulkForceDelete,
+                            className: 'text-destructive hover:text-destructive',
+                        },
+                    ] : []),
+                    ...(hasMixedSelection() ? [{
+                        label: 'Selección mixta - no se pueden aplicar acciones',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {},
+                        className: 'text-muted-foreground/40 cursor-not-allowed',
+                    }] : []),
                 ]}
             />
             <ConfirmModal

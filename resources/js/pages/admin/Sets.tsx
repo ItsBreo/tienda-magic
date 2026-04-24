@@ -167,8 +167,28 @@ export default function AdminSets() {
         });
     };
 
-    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
-    const canHardDelete = selectedCount > 0 && sets.every(set => set.deleted_at === null);
+    // Helper functions to determine selection state
+    const getSelectedSets = () => {
+        return sets.filter(set => selectedList.includes(set.code));
+    };
+
+    const areAllSelectedAlive = () => {
+        const selectedSets = getSelectedSets();
+        return selectedSets.length > 0 && selectedSets.every(set => set.deleted_at === null);
+    };
+
+    const areAllSelectedExiled = () => {
+        const selectedSets = getSelectedSets();
+        return selectedSets.length > 0 && selectedSets.every(set => set.deleted_at !== null);
+    };
+
+    const hasMixedSelection = () => {
+        const selectedSets = getSelectedSets();
+        return selectedSets.length > 0 && !areAllSelectedAlive() && !areAllSelectedExiled();
+    };
+
+    // Solo permite hard delete si todos los seleccionados están exiliados (soft deleted)
+    const canHardDelete = areAllSelectedExiled();
 
     const handleBulkForceDelete = () => {
         setConfirmModalConfig({
@@ -442,8 +462,8 @@ return (
                 count={selectedCount}
                 onClear={clear}
                 actions={[
-                    ...(selectedCount === 1 ? [{
-                        label: 'Alterar Crónica',
+                    ...(selectedCount === 1 && !hasMixedSelection() ? [{
+                        label: 'Editar',
                         icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
                             const setToEdit = sets.find((s) => s.code === selectedList[0]);
@@ -451,40 +471,34 @@ return (
                         },
                         className: 'text-primary hover:text-primary',
                     }] : []),
-                    {
-                        label: 'Abrir Planos',
-                        icon: <CheckCircle className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary',
-                    },
-                    {
-                        label: 'Cerrar Nexo',
-                        icon: <XCircle className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground',
-                    },
-                    {
-                        label: 'Exiliar',
-                        icon: <XCircle className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        className: 'text-warning-600 hover:text-warning-700',
-                    },
-                    {
-                        label: 'Restaurar',
-                        icon: <CheckCircle2 className="w-4 h-4" />,
-                        onClick: handleBulkRestore,
-                        className: 'text-green-600 hover:text-green-700',
-                    },
-                    {
-                        label: 'Borrar Permanentemente',
-                        icon: <Plus className="w-4 h-4 rotate-45" />,
-                        onClick: handleBulkForceDelete,
-                        className: cn(
-                            'text-destructive hover:text-destructive',
-                            !canHardDelete && 'disabled:opacity-50 disabled:cursor-not-allowed'
-                        ),
-                        disabled: !canHardDelete,
-                    }
+                    ...(areAllSelectedAlive() ? [
+                        {
+                            label: 'Exiliar',
+                            icon: <XCircle className="w-4 h-4" />,
+                            onClick: handleBulkDelete,
+                            className: 'text-warning-600 hover:text-warning-700',
+                        },
+                    ] : []),
+                    ...(areAllSelectedExiled() ? [
+                        {
+                            label: 'Restaurar',
+                            icon: <CheckCircle2 className="w-4 h-4" />,
+                            onClick: handleBulkRestore,
+                            className: 'text-green-600 hover:text-green-700',
+                        },
+                        {
+                            label: 'Borrar Definitivamente',
+                            icon: <Plus className="w-4 h-4 rotate-45" />,
+                            onClick: handleBulkForceDelete,
+                            className: 'text-destructive hover:text-destructive',
+                        },
+                    ] : []),
+                    ...(hasMixedSelection() ? [{
+                        label: 'Selección mixta - no se pueden aplicar acciones',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {},
+                        className: 'text-muted-foreground/40 cursor-not-allowed',
+                    }] : []),
                 ]}
             />
 

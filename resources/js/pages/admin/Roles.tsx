@@ -71,7 +71,7 @@ export default function AdminRoles() {
     const fetchRoles = async (page = 1) => {
         try {
             const { data } = await apiService.axiosInstance.get('/api/admin/roles', {
-                params: { 
+                params: {
                     page,
                     sort_by: sortBy,
                     sort_dir: sortDir
@@ -175,6 +175,36 @@ export default function AdminRoles() {
             }
         });
     };
+
+    // Helper functions to determine selection state
+    const getSelectedRoles = () => {
+        return roles.filter(role => selectedList.includes(role.id));
+    };
+
+    const areAllSelectedAlive = () => {
+        const selectedRoles = getSelectedRoles();
+        return selectedRoles.length > 0 && selectedRoles.every(role => role.deleted_at === null);
+    };
+
+    const areAllSelectedExiled = () => {
+        const selectedRoles = getSelectedRoles();
+        return selectedRoles.length > 0 && selectedRoles.every(role => role.deleted_at !== null);
+    };
+
+    const hasMixedSelection = () => {
+        const selectedRoles = getSelectedRoles();
+        return selectedRoles.length > 0 && !areAllSelectedAlive() && !areAllSelectedExiled();
+    };
+
+    const hasCoreRoleSelected = () => {
+        const selectedRoles = getSelectedRoles();
+        return selectedRoles.some(role =>
+            role.name.toLowerCase().includes('admin') || role.name.toLowerCase() === 'super_admin'
+        );
+    };
+
+    // Solo permite hard delete si todos los seleccionados están exiliados (soft deleted)
+    const canHardDelete = areAllSelectedExiled();
 
     const handleBulkForceDelete = () => {
         setConfirmModalConfig({
@@ -412,33 +442,43 @@ export default function AdminRoles() {
                 count={selectedCount}
                 onClear={clear}
                 actions={[
-                    ...(selectedCount === 1 ? [{
-                        label: 'Alterar Rango',
-                        icon: <ShieldCheck className="w-4 h-4" />,
+                    ...(selectedCount === 1 && !hasMixedSelection() ? [{
+                        label: 'Editar',
+                        icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
                             const roleToEdit = roles.find((r) => r.id === selectedList[0]);
                             if (roleToEdit) handleEdit(roleToEdit);
                         },
                         className: 'text-primary hover:text-primary',
                     }] : []),
-                    {
-                        label: 'Exiliar',
-                        icon: <UserMinus className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        className: 'text-warning-600 hover:text-warning-700',
-                    },
-                    {
-                        label: 'Restaurar',
-                        icon: <UserCheck className="w-4 h-4" />,
-                        onClick: handleBulkRestore,
-                        className: 'text-green-600 hover:text-green-700',
-                    },
-                    {
-                        label: 'Borrar Definitivamente',
-                        icon: <Plus className="w-4 h-4 rotate-45" />,
-                        onClick: handleBulkForceDelete,
-                        className: 'text-destructive hover:text-destructive',
-                    }
+                    ...(areAllSelectedAlive() ? [
+                        {
+                            label: 'Exiliar',
+                            icon: <UserMinus className="w-4 h-4" />,
+                            onClick: handleBulkDelete,
+                            className: 'text-warning-600 hover:text-warning-700',
+                        },
+                    ] : []),
+                    ...(areAllSelectedExiled() ? [
+                        {
+                            label: 'Restaurar',
+                            icon: <UserCheck className="w-4 h-4" />,
+                            onClick: handleBulkRestore,
+                            className: 'text-green-600 hover:text-green-700',
+                        },
+                        {
+                            label: 'Borrar Definitivamente',
+                            icon: <Plus className="w-4 h-4 rotate-45" />,
+                            onClick: handleBulkForceDelete,
+                            className: 'text-destructive hover:text-destructive',
+                        },
+                    ] : []),
+                    ...(hasMixedSelection() ? [{
+                        label: 'Selección mixta - no se pueden aplicar acciones',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {},
+                        className: 'text-muted-foreground/40 cursor-not-allowed',
+                    }] : []),
                 ]}
             />
 

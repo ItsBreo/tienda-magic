@@ -159,8 +159,28 @@ export default function AdminUsers() {
         });
     };
 
-    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
-    const canHardDelete = selectedCount > 0 && users.every(user => user.deleted_at === null);
+    // Helper functions to determine selection state
+    const getSelectedUsers = () => {
+        return users.filter(user => selectedList.includes(user.id));
+    };
+
+    const areAllSelectedAlive = () => {
+        const selectedUsers = getSelectedUsers();
+        return selectedUsers.length > 0 && selectedUsers.every(user => user.deleted_at === null);
+    };
+
+    const areAllSelectedExiled = () => {
+        const selectedUsers = getSelectedUsers();
+        return selectedUsers.length > 0 && selectedUsers.every(user => user.deleted_at !== null);
+    };
+
+    const hasMixedSelection = () => {
+        const selectedUsers = getSelectedUsers();
+        return selectedUsers.length > 0 && !areAllSelectedAlive() && !areAllSelectedExiled();
+    };
+
+    // Solo permite hard delete si todos los seleccionados están exiliados (soft deleted)
+    const canHardDelete = areAllSelectedExiled();
 
     const handleBulkForceDelete = () => {
         setConfirmModalConfig({
@@ -412,7 +432,7 @@ className={cn(
                 count={selectedCount}
                 onClear={clear}
                 actions={[
-                    ...(selectedCount === 1 ? [{
+                    ...(selectedCount === 1 && !hasMixedSelection() ? [{
                         label: 'Editar Ficha',
                         icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
@@ -421,46 +441,40 @@ className={cn(
                         },
                         className: 'text-primary hover:text-primary',
                     }] : []),
-                    {
-                        label: 'Desexiliar',
-                        icon: <UserCheck className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary',
-                    },
-                    {
-                        label: 'Exiliar',
-                        icon: <UserMinus className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground',
-                    },
-                    {
-                        label: 'Exiliar Selección',
-                        icon: <UserMinus className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        className: 'text-warning-600 hover:text-warning-700',
-                    },
-                    {
-                        label: 'Restaurar',
-                        icon: <UserCheck className="w-4 h-4" />,
-                        onClick: handleBulkRestore,
-                        className: 'text-green-600 hover:text-green-700',
-                    },
-                    {
-                        label: 'Borrar Definitivamente',
-                        icon: <Plus className="w-4 h-4 rotate-45" />,
-                        onClick: handleBulkForceDelete,
-                        className: cn(
-                            'text-destructive hover:text-destructive',
-                            !canHardDelete && 'disabled:opacity-50 disabled:cursor-not-allowed'
-                        ),
-                        disabled: !canHardDelete,
-                    },
-                    {
-                        label: 'Reasignar Rango',
-                        icon: <UserCog className="w-4 h-4" />,
-                        onClick: handleBulkChangeRole,
-                        className: 'text-primary hover:text-primary',
-                    },
+                    ...(areAllSelectedAlive() ? [
+                        {
+                            label: 'Exiliar',
+                            icon: <UserMinus className="w-4 h-4" />,
+                            onClick: handleBulkDelete,
+                            className: 'text-warning-600 hover:text-warning-700',
+                        },
+                        {
+                            label: 'Reasignar Rango',
+                            icon: <UserCog className="w-4 h-4" />,
+                            onClick: handleBulkChangeRole,
+                            className: 'text-primary hover:text-primary',
+                        },
+                    ] : []),
+                    ...(areAllSelectedExiled() ? [
+                        {
+                            label: 'Restaurar',
+                            icon: <UserCheck className="w-4 h-4" />,
+                            onClick: handleBulkRestore,
+                            className: 'text-green-600 hover:text-green-700',
+                        },
+                        {
+                            label: 'Borrar Definitivamente',
+                            icon: <Plus className="w-4 h-4 rotate-45" />,
+                            onClick: handleBulkForceDelete,
+                            className: 'text-destructive hover:text-destructive',
+                        },
+                    ] : []),
+                    ...(hasMixedSelection() ? [{
+                        label: 'Selección mixta - no se pueden aplicar acciones',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {},
+                        className: 'text-muted-foreground/40 cursor-not-allowed',
+                    }] : []),
                 ]}
             />
             <ConfirmModal

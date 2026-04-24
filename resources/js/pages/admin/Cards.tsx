@@ -169,8 +169,28 @@ export default function AdminCards() {
         });
     };
 
-    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
-    const canHardDelete = selectedCount > 0 && cards.every(card => card.deleted_at === null);
+    // Helper functions to determine selection state
+    const getSelectedCards = () => {
+        return cards.filter(card => selectedList.includes(card.id));
+    };
+
+    const areAllSelectedAlive = () => {
+        const selectedCards = getSelectedCards();
+        return selectedCards.length > 0 && selectedCards.every(card => card.deleted_at === null);
+    };
+
+    const areAllSelectedExiled = () => {
+        const selectedCards = getSelectedCards();
+        return selectedCards.length > 0 && selectedCards.every(card => card.deleted_at !== null);
+    };
+
+    const hasMixedSelection = () => {
+        const selectedCards = getSelectedCards();
+        return selectedCards.length > 0 && !areAllSelectedAlive() && !areAllSelectedExiled();
+    };
+
+    // Solo permite hard delete si todos los seleccionados están exiliados (soft deleted)
+    const canHardDelete = areAllSelectedExiled();
 
     const handleBulkForceDelete = () => {
         if (!canHardDelete) return;
@@ -450,49 +470,43 @@ Plano Inaccesible
                 count={selectedCount}
                 onClear={clear}
                 actions={[
-                    ...(selectedCount === 1 ? [{
-                        label: 'Alterar Hechizo',
-                        icon: <Search className="w-4 h-4" />,
+                    ...(selectedCount === 1 && !hasMixedSelection() ? [{
+                        label: 'Editar',
+                        icon: <Edit2 className="w-4 h-4" />,
                         onClick: () => {
                             const cardToEdit = cards.find((c) => c.id === selectedList[0]);
                             if (cardToEdit) handleEdit(cardToEdit);
                         },
                         className: 'text-primary hover:text-primary',
                     }] : []),
-                    {
-                        label: 'Manifestar',
-                        icon: <CheckCircle className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(true),
-                        className: 'text-primary hover:text-primary',
-                    },
-                    {
-                        label: 'Pausar',
-                        icon: <XCircle className="w-4 h-4" />,
-                        onClick: () => handleBulkToggleActive(false),
-                        className: 'text-muted-foreground/60 hover:text-foreground',
-                    },
-                    {
-                        label: 'Exiliar',
-                        icon: <XCircle className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        className: 'text-warning-600 hover:text-warning-700',
-                    },
-                    {
-                        label: 'Restaurar',
-                        icon: <CheckCircle2 className="w-4 h-4" />,
-                        onClick: handleBulkRestore,
-                        className: 'text-green-600 hover:text-green-700',
-                    },
-                    {
-                        label: 'Borrar Permanentemente',
-                        icon: <Plus className="w-4 h-4 rotate-45" />,
-                        onClick: handleBulkForceDelete,
-                        className: cn(
-                            'text-destructive hover:text-destructive',
-                            !canHardDelete && 'disabled:opacity-50 disabled:cursor-not-allowed'
-                        ),
-                        disabled: !canHardDelete,
-                    }
+                    ...(areAllSelectedAlive() ? [
+                        {
+                            label: 'Exiliar',
+                            icon: <XCircle className="w-4 h-4" />,
+                            onClick: handleBulkDelete,
+                            className: 'text-warning-600 hover:text-warning-700',
+                        },
+                    ] : []),
+                    ...(areAllSelectedExiled() ? [
+                        {
+                            label: 'Restaurar',
+                            icon: <CheckCircle2 className="w-4 h-4" />,
+                            onClick: handleBulkRestore,
+                            className: 'text-green-600 hover:text-green-700',
+                        },
+                        {
+                            label: 'Borrar Definitivamente',
+                            icon: <Plus className="w-4 h-4 rotate-45" />,
+                            onClick: handleBulkForceDelete,
+                            className: 'text-destructive hover:text-destructive',
+                        },
+                    ] : []),
+                    ...(hasMixedSelection() ? [{
+                        label: 'Selección mixta - no se pueden aplicar acciones',
+                        icon: <Edit2 className="w-4 h-4" />,
+                        onClick: () => {},
+                        className: 'text-muted-foreground/40 cursor-not-allowed',
+                    }] : []),
                 ]}
             />
             <ConfirmModal
