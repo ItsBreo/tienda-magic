@@ -92,6 +92,7 @@ class CatalogController extends Controller
                         'booster_pack_id' => $pack->id,
                         'name' => $pack->name,
                         'price' => (float) $pack->price,
+                        'stock' => $pack->stock ?? 0,
                         'image_url' => $pack->cover_image ?? '/placeholder-pack.png',
                         'type' => $pack->type ?? 'Booster',
                         'card_set_id' => $pack->card_set_id,

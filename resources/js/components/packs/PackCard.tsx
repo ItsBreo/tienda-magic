@@ -16,7 +16,7 @@ interface Pack {
   image_uri?: string;
   image_url?: string;
   card_id?: number;
-  stock?: number;
+  stock: number;
   card_set?: {
     icon_svg_uri?: string;
     code?: string;
@@ -121,15 +121,13 @@ export default function PackCard({
 </div>
 
         <div className="flex items-center gap-2 h-5 mt-1 mb-2 shrink-0">
-            {pack.stock !== undefined && (
-        <span className={cn(
-            'text-[10px] font-black uppercase tracking-tighter',
-                    pack.stock > 0 ? 'text-green-500' : 'text-destructive',
-        )}>
-                    {pack.stock > 0 ? `Stock: ${pack.stock}` : 'Agotado'}
-        </span>
-    )}
-</div>
+            <span className={cn(
+                'text-[10px] font-black uppercase tracking-tighter',
+                pack.stock > 0 ? 'text-green-500' : 'text-destructive',
+            )}>
+                {pack.stock > 0 ? `Stock: ${pack.stock}` : 'Agotado'}
+            </span>
+        </div>
 
         {/* Info Directa (Lore/Artist) para Cartas Sueltas - Espacio reservado para uniformidad */}
         <div className="h-[70px] flex flex-col justify-start mb-2 overflow-hidden shrink-0">

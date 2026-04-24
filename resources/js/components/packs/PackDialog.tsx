@@ -22,7 +22,7 @@ interface Pack {
   type: string;
   cover_image?: string;
   image_uri?: string;
-  stock?: number;
+  stock: number;
   config?: {
     commons?: number;
     uncommons?: number;
@@ -79,6 +79,9 @@ export default function PackDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addToCart } = useCart();
 
+  // Calcular estado de stock
+  const isOutOfStock = !pack || pack.stock <= 0;
+
   useEffect(() => {
     if (!isOpen) {
       setQuantity(1);
@@ -91,6 +94,9 @@ export default function PackDialog({
 
   useEffect(() => {
     if (pack && isOpen) {
+      // Inicializar cantidad según stock disponible
+      setQuantity(isOutOfStock ? 0 : 1);
+
       const loadCards = async () => {
         try {
           setLoadingCards(true);
@@ -112,7 +118,7 @@ export default function PackDialog({
       };
       loadCards();
     }
-  }, [pack, isOpen]);
+  }, [pack, isOpen, isOutOfStock]);
 
   const handleCardClick = (card: Card) => {
     setSelectedCardFullscreen(card);
@@ -310,14 +316,15 @@ export default function PackDialog({
                         <div className="flex items-center bg-accent/40 rounded-xl border border-border h-12 w-32 overflow-hidden shadow-sm">
                         <button
                             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                            className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full"
+                            disabled={isOutOfStock}
+                            className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Minus size={14} strokeWidth={4} />
                         </button>
                         <span className="w-10 text-center text-sm font-black text-foreground">{quantity}</span>
                         <button
-                            onClick={() => setQuantity((q) => Math.min(pack.stock || 0, q + 1))}
-                            disabled={pack.stock === 0}
+                            onClick={() => setQuantity((q) => Math.min(pack.stock, q + 1))}
+                            disabled={isOutOfStock}
                             className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Plus size={14} strokeWidth={4} />
@@ -336,13 +343,13 @@ export default function PackDialog({
 
                     <Button
                     onClick={handleAddToCartSub}
-                    disabled={isSubmitting || (pack.stock === 0)}
+                    disabled={isSubmitting || isOutOfStock}
                     className="w-full h-14 bg-primary text-primary-foreground font-black uppercase tracking-[0.2em] text-[10px] rounded-xl shadow-xl shadow-primary/20 hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 border-none disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
                     >
-                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : pack.stock === 0 ? (
+                    {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : isOutOfStock ? (
                         <>
                             <Package size={16} />
-                            Agotado
+                            AGOTADO
                         </>
                     ) : (
                         <>

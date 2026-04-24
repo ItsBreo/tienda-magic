@@ -31,7 +31,7 @@ interface Pack {
     rarity?: string;
     booster_pack_id?: number;
     card_id?: number;
-    stock?: number;
+    stock: number;
     config: any; // Simplified since it's dynamic
 }
 
