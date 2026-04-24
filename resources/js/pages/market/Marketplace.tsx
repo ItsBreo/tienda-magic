@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
- Search, Loader2, TrendingUp, ShoppingCart, User, Package, Calendar, XCircle, PlusCircle, ArrowRight, Tag, SlidersHorizontal, X, Filter, ArrowUp, ArrowDown,
+ Search, Loader2, TrendingUp, ShoppingCart, User, Package, Calendar, XCircle, PlusCircle, ArrowRight, Tag, SlidersHorizontal, X, Filter, ChevronDown,
 } from 'lucide-react';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import { useTitle } from '@/hooks/useTitle';
@@ -173,11 +173,18 @@ export default function Marketplace() {
     };
 
     const getSortIcon = () => {
-        if (sortBy === 'price_asc') return <ArrowUp className="w-3.5 h-3.5 text-primary" />;
-        if (sortBy === 'price_desc') return <ArrowDown className="w-3.5 h-3.5 text-primary" />;
-        if (sortBy === 'name_asc') return <ArrowUp className="w-3.5 h-3.5 text-primary" />;
-        if (sortBy === 'name_desc') return <ArrowDown className="w-3.5 h-3.5 text-primary" />;
-        return null; // No icon for 'newest'
+        // Solo mostrar icono para ordenaciones con dirección
+        if (!sortBy.includes('_asc') && !sortBy.includes('_desc')) return null;
+
+        const isAscending = sortBy.includes('_asc');
+        return (
+            <ChevronDown
+                className={cn(
+                    'w-3.5 h-3.5 text-primary transition-transform',
+                    isAscending && 'rotate-180'
+                )}
+            />
+        );
     };
 
     const handleCancel = async (e: React.MouseEvent, listingId: number) => {
