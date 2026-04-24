@@ -20,6 +20,7 @@ interface Card {
     rarity: string;
     price_usd: number;
     is_active: boolean;
+    deleted_at: string | null;
     card_set?: {
         is_active: boolean;
     };
@@ -83,17 +84,27 @@ export default function AdminCards() {
     const handleDelete = (id: number) => {
         setConfirmModalConfig({
             isOpen: true,
-            title: '¿Seguro que deseas eliminar esta carta de la colección?',
+            title: '¿Seguro que deseas exiliar esta carta de la colección?',
             onConfirm: async () => {
                 try {
                     await apiService.axiosInstance.delete(`/api/admin/cards/${id}`);
-                    toast.success('Carta eliminada de los registros');
+                    toast.success('Carta exiliada de los registros');
                     fetchCards(currentPage);
                 } catch (error: any) {
-                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                    toast.error(error.response?.data?.message || 'Error al exiliar');
                 }
             }
         });
+    };
+
+    const handleRestore = async (id: number) => {
+        try {
+            await apiService.axiosInstance.post(`/api/admin/cards/${id}/restore`);
+            toast.success('Carta restaurada exitosamente');
+            fetchCards(currentPage);
+        } catch (error: any) {
+            toast.error('Error al restaurar carta');
+        }
     };
 
     const handleToggleActive = async (card: Card) => {
@@ -334,20 +345,17 @@ Plano Inaccesible
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(c)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
                                                     <Edit2 size={15} />
                                                 </Button>
-                                                {c.is_active ? (
-                                                    <Button variant="ghost" size="icon" onClick={() => handleToggleActive(c)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Desactivar carta">
-                                                        <XCircle size={15} />
-                                                    </Button>
-                                                ) : (
-                                                    <>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleToggleActive(c)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Activar carta">
-                                                            <CheckCircle2 size={15} />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
-                                                            <Trash2 size={15} />
-                                                        </Button>
-                                                    </>
-                                                )}
+                                                {!c.deleted_at ? (
+                                                // Carta ACTIVA (no exiliada)
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Exiliar carta">
+                                                    <XCircle size={15} />
+                                                </Button>
+                                            ) : (
+                                                // Carta EXILIADA (soft deleted)
+                                                <Button variant="ghost" size="icon" onClick={() => handleRestore(c.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar carta">
+                                                    <CheckCircle2 size={15} />
+                                                </Button>
+                                            )}
                                             </div>
                                         </td>
                                     </tr>

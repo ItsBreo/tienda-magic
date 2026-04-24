@@ -149,21 +149,6 @@ export default function AdminUsers() {
         }
     };
 
-    const handleForceDelete = async (id: number) => {
-        setConfirmModalConfig({
-            isOpen: true,
-            title: '¿Estás seguro de eliminar permanentemente este usuario? Esta acción no se puede deshacer.',
-            onConfirm: async () => {
-                try {
-                    await apiService.axiosInstance.delete(`/api/admin/users/${id}/force-delete`);
-                    toast.success('Usuario eliminado permanentemente');
-                    fetchUsers(currentPage);
-                } catch (error: any) {
-                    toast.error('Error al eliminar permanentemente');
-                }
-            },
-        });
-    };
 
     const handleBulkChangeRole = () => {
         if (availableRoles.length > 0) setSelectedRoleForBulk(availableRoles[0].id.toString());
@@ -412,14 +397,9 @@ className={cn(
                                                 </Button>
                                             ) : (
                                                 // Usuario EXILIADO (soft deleted)
-                                                <>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleRestore(u.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar usuario">
-                                                        <UserCheck className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleForceDelete(u.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                </>
+                                                <Button variant="ghost" size="icon" onClick={() => handleRestore(u.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar usuario">
+                                                    <UserCheck className="w-4 h-4" />
+                                                </Button>
                                             )}
                                         </div>
                                     </td>

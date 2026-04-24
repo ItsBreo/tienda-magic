@@ -20,6 +20,7 @@ interface CardSet {
     card_count: number;
     icon_svg_uri: string;
     is_active: boolean;
+    deleted_at: string | null;
 }
 
 export default function AdminSets() {
@@ -81,17 +82,27 @@ export default function AdminSets() {
     const handleDelete = (code: string) => {
         setConfirmModalConfig({
             isOpen: true,
-            title: `¿Seguro que deseas eliminar el set ${code}?`,
+            title: `¿Seguro que deseas exiliar el set ${code}?`,
             onConfirm: async () => {
                 try {
                     await apiService.axiosInstance.delete(`/api/admin/sets/${code}`);
-                    toast.success('Set eliminado');
+                    toast.success('Set exiliado');
                     fetchSets(currentPage);
                 } catch (error: any) {
-                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                    toast.error(error.response?.data?.message || 'Error al exiliar');
                 }
             }
         });
+    };
+
+    const handleRestore = async (code: string) => {
+        try {
+            await apiService.axiosInstance.post(`/api/admin/sets/${code}/restore`);
+            toast.success('Set restaurado exitosamente');
+            fetchSets(currentPage);
+        } catch (error: any) {
+            toast.error('Error al restaurar set');
+        }
     };
 
     const handleToggleActive = async (set: CardSet) => {
@@ -317,19 +328,16 @@ Lanzado:
                                             <Button variant="ghost" size="icon" onClick={() => handleEdit(s)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
                                                 <Edit2 size={15} />
                                             </Button>
-                                            {s.is_active ? (
-                                                <Button variant="ghost" size="icon" onClick={() => handleToggleActive(s)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Cerrar plano">
+                                            {!s.deleted_at ? (
+                                                // Set ACTIVO (no exiliado)
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(s.code)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Exiliar set">
                                                     <XCircle size={15} />
                                                 </Button>
                                             ) : (
-                                                <>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleToggleActive(s)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Abrir plano">
-                                                        <CheckCircle2 size={15} />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(s.code)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
-                                                        <Trash2 size={15} />
-                                                    </Button>
-                                                </>
+                                                // Set EXILIADO (soft deleted)
+                                                <Button variant="ghost" size="icon" onClick={() => handleRestore(s.code)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar set">
+                                                    <CheckCircle2 size={15} />
+                                                </Button>
                                             )}
                                         </div>
                                     </td>

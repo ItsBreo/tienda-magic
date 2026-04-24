@@ -219,13 +219,15 @@ export default function Marketplace() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">
-                    <UserAvatar 
-                        src={(listing.seller as any)?.avatar_url}
-                        name={listing.seller?.username}
+                    <UserAvatar
+                        src={user?.id === listing.seller?.id ? user?.avatar_url : (listing.seller as any)?.avatar_url}
+                        name={user?.id === listing.seller?.id ? user?.username : listing.seller?.username}
                         className="w-5 h-5 rounded bg-primary/10 border border-primary/20 flex-shrink-0"
                         fallbackClassName="text-[10px] font-black text-primary"
                     />
-                    <p className="text-[11px] font-black tracking-wider uppercase text-muted-foreground truncate">{listing.seller?.username || 'Desconocido'}</p>
+                    <p className="text-[11px] font-black tracking-wider uppercase text-muted-foreground truncate">
+                        {user?.id === listing.seller?.id ? 'TÚ' : (listing.seller?.username || 'Desconocido')}
+                    </p>
                 </div>
 
                 {/* Info Directa (Lore/Artist) */}
@@ -449,7 +451,7 @@ artículos
                     </div>
                 ) : (
                     // Normal grid view
-                    <motion.div 
+                    <motion.div
                         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                         initial="hidden"
                         animate="show"

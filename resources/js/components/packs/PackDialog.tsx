@@ -309,7 +309,7 @@ export default function PackDialog({
                         </button>
                         <span className="w-10 text-center text-sm font-black text-foreground">{quantity}</span>
                         <button
-                            onClick={() => setQuantity((q) => Math.min(99, pack.stock || 99))}
+                            onClick={() => setQuantity((q) => Math.min(pack.stock || 99, q + 1))}
                             className="flex-1 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all h-full"
                         >
                             <Plus size={14} strokeWidth={4} />
