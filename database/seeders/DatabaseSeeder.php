@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
         // 4. Crear los Logros
         $this->call([AchievementSeeder::class]);
 
+        // 5. Historial de Ventas Ficticio para las gráficas
+        $this->call([SalesHistorySeeder::class]);
+
         // 5. Crear los usuarios estáticos de prueba (Para Frontend Devs)
         $this->seedTestAccounts();
     }

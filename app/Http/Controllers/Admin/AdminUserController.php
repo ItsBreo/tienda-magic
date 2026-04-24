@@ -25,9 +25,9 @@ class AdminUserController extends Controller
         $sortBy = $request->query('sort_by', 'created_at');
         $sortDir = $request->query('sort_dir', 'desc');
 
-        $allowedColumns = ['id', 'name', 'username', 'email', 'is_active', 'created_at'];
+        $allowedColumns = ['id', 'name', 'username', 'email', 'created_at'];
         if (!in_array($sortBy, $allowedColumns)) {
-            $sortBy = 'name';
+            $sortBy = 'created_at';
         }
 
         $users = User::withTrashed()
@@ -66,7 +66,6 @@ class AdminUserController extends Controller
             'password'  => 'required|string|min:8',
             'role_id'   => 'required|exists:roles,id',
             'forum_id'  => 'nullable|exists:forums,id',
-            'is_active' => 'sometimes|boolean',
         ]);
 
         $user = User::create([
@@ -75,11 +74,11 @@ class AdminUserController extends Controller
             'email'          => $validated['email'],
             'password'       => Hash::make($validated['password']),
             'wallet_balance' => 0,
-            'is_active'      => $validated['is_active'] ?? true,
+            'is_active'      => true,
         ]);
 
         $user->roles()->attach($validated['role_id'], [
-            'forum_id' => $validated['forum_id'] ?? null,
+            'forum_id' => $request->input('forum_id'),
         ]);
 
         return response()->json([
@@ -103,28 +102,25 @@ class AdminUserController extends Controller
             new OA\Property(property: "username", type: "string"),
             new OA\Property(property: "email", type: "string", format: "email"),
             new OA\Property(property: "password", type: "string", nullable: true),
-            new OA\Property(property: "role_id", type: "integer"),
-            new OA\Property(property: "forum_id", type: "integer", nullable: true),
-            new OA\Property(property: "is_active", type: "boolean")
+            new OA\Property(property: "forum_id", type: "integer", nullable: true)
         ])
     )]
     #[OA\Response(response: 200, description: "Usuario actualizado")]
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
+        $user = User::withTrashed()->findOrFail($id);
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'username'  => ['required', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
             'email'     => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password'  => 'nullable|string|min:8',
-            'role_id'   => 'required|exists:roles,id',
-            'forum_id'  => 'nullable|exists:forums,id',
-            'is_active' => 'required|boolean',
+            'role_id'   => 'required',
+            'forum_id'  => 'nullable',
         ]);
 
         $user->name      = $validated['name'];
         $user->username  = $validated['username'];
         $user->email     = $validated['email'];
-        $user->is_active = $validated['is_active'];
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
@@ -134,7 +130,7 @@ class AdminUserController extends Controller
 
         // Sincronizamos el rol con su forum_id (borra los anteriores y pone este)
         $user->roles()->sync([
-            $validated['role_id'] => ['forum_id' => $validated['forum_id'] ?? null],
+            $validated['role_id'] => ['forum_id' => $request->input('forum_id')],
         ]);
 
         return response()->json([
@@ -214,16 +210,24 @@ class AdminUserController extends Controller
     #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
     #[OA\Response(response: 200, description: "Usuario exiliado exitosamente")]
     #[OA\Response(response: 403, description: "No puedes eliminar tu propia cuenta")]
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
-        if (auth()->id() === $user->id) {
-            return response()->json(['message' => 'No puedes eliminar tu propia cuenta.'], 403);
+        if ((int) $request->user()->id === (int) $user->id) {
+            return response()->json([
+                'message' => 'No puedes exiliar tu propia cuenta. La autoinmolación no está permitida en este plano.'
+            ], 403);
         }
 
         // Soft Delete (exilio)
         $user->delete();
 
-        return response()->json(['message' => 'Usuario exiliado exitosamente.']);
+        // Ocultar sus listings del mercado mientras esté exiliado
+        \Illuminate\Support\Facades\DB::table('market_listings')
+            ->where('seller_id', $user->id)
+            ->where('status', 'active')
+            ->update(['status' => 'suspended']);
+
+        return response()->json(['message' => 'Usuario exiliado exitosamente. Los objetos que tenía en el mercado han sido retirados temporalmente.']);
     }
 
     #[OA\Post(
@@ -246,7 +250,13 @@ class AdminUserController extends Controller
         // Restore (restaurar soft delete)
         $user->restore();
 
-        return response()->json(['message' => 'Usuario restaurado exitosamente.']);
+        // Volver a poner en venta sus listings si estaban suspendidos por exilio
+        \Illuminate\Support\Facades\DB::table('market_listings')
+            ->where('seller_id', $user->id)
+            ->where('status', 'suspended')
+            ->update(['status' => 'active']);
+
+        return response()->json(['message' => 'Usuario restaurado exitosamente. Sus objetos vuelven a estar disponibles en el mercado.']);
     }
 
     #[OA\Delete(
@@ -259,10 +269,14 @@ class AdminUserController extends Controller
     #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
     #[OA\Response(response: 200, description: "Usuario eliminado permanentemente")]
     #[OA\Response(response: 403, description: "Solo se puede eliminar usuarios exiliados")]
-    public function forceDelete(User $user)
+    public function forceDelete(Request $request, $id)
     {
-        if (auth()->id() === $user->id) {
-            return response()->json(['message' => 'No puedes eliminar tu propia cuenta.'], 403);
+        $user = User::withTrashed()->findOrFail($id);
+
+        if ((int) $request->user()->id === (int) $user->id) {
+            return response()->json([
+                'message' => 'No puedes eliminar definitivamente tu propia cuenta.'
+            ], 403);
         }
 
         // Validar que el usuario ya esté exiliado (soft deleted)
@@ -287,13 +301,30 @@ class AdminUserController extends Controller
             'ids.*' => 'exists:users,id'
         ]);
 
+        $authId = (int) $request->user()->id;
+        
         // Evitar que el admin se borre a sí mismo en masa
-        $ids = array_filter($validated['ids'], fn($id) => $id != auth()->id());
+        $ids = array_filter($validated['ids'], fn($id) => (int)$id !== $authId);
+        
+        if (empty($ids)) {
+            return response()->json([
+                'message' => 'No se han realizado acciones (intentaste exiliarte a ti mismo).'
+            ], 400);
+        }
 
-        User::whereIn('id', $ids)->delete();
+        // Usamos destroy para asegurar que se maneje el soft delete correctamente y se activen eventos
+        User::destroy($ids);
+
+        // Suspender listings de mercado
+        \Illuminate\Support\Facades\DB::table('market_listings')
+            ->whereIn('seller_id', $ids)
+            ->where('status', 'active')
+            ->update(['status' => 'suspended']);
+
+        $wasSelfExileAttempted = count($validated['ids']) > count($ids);
 
         return response()->json([
-            'message' => count($ids) . ' usuarios exiliados correctamente.'
+            'message' => count($ids) . ' usuarios exiliados correctamente.' . ($wasSelfExileAttempted ? ' Tu cuenta ha sido protegida y no ha sido alterada.' : '')
         ]);
     }
 
@@ -306,6 +337,12 @@ class AdminUserController extends Controller
 
         $count = User::onlyTrashed()->whereIn('id', $validated['ids'])->restore();
 
+        // Restaurar listings de mercado
+        \Illuminate\Support\Facades\DB::table('market_listings')
+            ->whereIn('seller_id', $validated['ids'])
+            ->where('status', 'suspended')
+            ->update(['status' => 'active']);
+
         return response()->json([
             'message' => "{$count} usuarios restaurados correctamente."
         ]);
@@ -315,33 +352,29 @@ class AdminUserController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:users,id'
+            // No usamos exists:users,id porque fallaría para los que están en la papelera
+            'ids.*' => 'integer'
         ]);
 
-        // Solo permitir borrar si ya están en la papelera
-        $count = User::onlyTrashed()->whereIn('id', $validated['ids'])->forceDelete();
+        $ids = $validated['ids'];
+        
+        // Obtenemos los modelos para que se disparen los eventos de elinado (observer)
+        $users = User::withTrashed()->whereIn('id', $ids)->get();
+        $count = 0;
+
+        foreach ($users as $user) {
+            // Solo forzamos el borrado si ya estaba en papelera
+            if ($user->trashed()) {
+                $user->forceDelete();
+                $count++;
+            }
+        }
 
         return response()->json([
             'message' => "{$count} usuarios eliminados permanentemente."
         ]);
     }
 
-    public function bulkToggleActive(Request $request)
-    {
-        $validated = $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:users,id',
-            'is_active' => 'required|boolean'
-        ]);
-
-        $ids = array_diff($validated['ids'], [1]); // Protegemos SuperAdmin
-
-        User::whereIn('id', $ids)->update(['is_active' => $validated['is_active']]);
-
-        return response()->json([
-            'message' => 'Estado de ' . count($ids) . ' usuarios actualizado.',
-        ]);
-    }
 
     public function bulkChangeRole(Request $request)
     {

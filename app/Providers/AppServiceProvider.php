@@ -48,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         Thread::observe(ThreadObserver::class);
         Comment::observe(CommentObserver::class);
         Vote::observe(VoteObserver::class);
+        \App\Models\User::observe(\App\Observers\UserObserver::class);
 
         // Policies del foro
         Gate::policy(Tournament::class, TournamentPolicy::class);

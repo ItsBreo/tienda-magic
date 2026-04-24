@@ -307,6 +307,20 @@ export default function Exchanges() {
                       No tienes la carta requerida.
                     </p>
                   )}
+                {selectedInventoryCardId && (() => {
+                  const selectedItem = inventory.find(inv => inv.id === selectedInventoryCardId);
+                  if (selectedItem && (selectedItem.quantity - selectedItem.quantity_locked) === 1) {
+                    return (
+                      <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-start gap-2">
+                        <span className="text-yellow-500 mt-0.5">⚠️</span>
+                        <p className="text-[10px] font-black text-yellow-500/90 uppercase tracking-widest leading-relaxed">
+                          Solo te queda 1 copia disponible de esta carta. ¡Ten en cuenta que los intercambios no se pueden cancelar una vez aceptados!
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
 
               <div className="flex gap-3">
@@ -365,6 +379,20 @@ export default function Exchanges() {
                     emptyText="No hay cartas disponibles"
                     options={inventoryOptions}
                   />
+                  {newOfferCardId && (() => {
+                    const selectedItem = inventory.find(inv => inv.id === newOfferCardId);
+                    if (selectedItem && (selectedItem.quantity - selectedItem.quantity_locked) === 1) {
+                      return (
+                        <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-start gap-2">
+                          <span className="text-yellow-500 mt-0.5">⚠️</span>
+                          <p className="text-[10px] font-black text-yellow-500/90 uppercase tracking-widest leading-relaxed">
+                            Solo te queda 1 copia disponible de esta carta. ¡Ten en cuenta que los intercambios no se pueden cancelar una vez aceptados!
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
 
                 <div className="space-y-2">

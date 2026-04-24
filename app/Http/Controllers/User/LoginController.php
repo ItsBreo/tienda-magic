@@ -82,8 +82,8 @@ class LoginController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        // Buscar el usuario por email
-        $user = User::where('email', $credentials['email'])->first();
+        // Buscar el usuario por email (incluyendo los exiliados para dar mejor feedback)
+        $user = User::withTrashed()->where('email', $credentials['email'])->first();
 
         // Validar si el usuario existe y la contraseña es correcta
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
@@ -94,11 +94,11 @@ class LoginController extends Controller
             ]);
         }
 
-        // Validar si el usuario está activo
-        if (!$user->is_active) {
-            Log::warning('Login blocked for inactive user', ['user_id' => $user->id]);
+        // Validar si el usuario está exiliado (soft deleted)
+        if ($user->trashed()) {
+            Log::warning('Login blocked for exiled user', ['user_id' => $user->id]);
             throw ValidationException::withMessages([
-                'email' => ['Tu cuenta ha sido desactivada. Ponte en contacto con soporte.'],
+                'email' => ['Esta cuenta ha sido exiliada de la ciudadela. No tienes permitido el acceso.'],
             ]);
         }
 

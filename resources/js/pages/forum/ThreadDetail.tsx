@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import {
-  Trash2, ArrowLeft, Edit2, Send, Loader2, Bookmark, Share2, Scroll
+  Trash2, ArrowLeft, Edit2, Send, Loader2, Bookmark, Share2, Scroll, X
 } from 'lucide-react';
 import { Post, Comment } from './types';
 import CommentItem from './CommentItem';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { UserAvatar } from '@/components/common/UserAvatar';
+import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { motion } from 'framer-motion';
 
 interface ThreadDetailViewProps {
@@ -83,8 +84,12 @@ export default function ThreadDetailView({
     }
   };
 
-  const handleDeleteThread = async () => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este hilo permanentemente?')) return;
+  const [isDeleteThreadModalOpen, setIsDeleteThreadModalOpen] = useState(false);
+  const [isBulkDeleteCommentsModalOpen, setIsBulkDeleteCommentsModalOpen] = useState(false);
+
+  const handleDeleteThread = () => setIsDeleteThreadModalOpen(true);
+  
+  const executeDeleteThread = async () => {
     try {
       await ApiService.deleteThread(post.id);
       toast.success('Hilo eliminado correctamente');
@@ -99,8 +104,12 @@ export default function ThreadDetailView({
     window.location.reload();
   };
 
-  const handleBulkDeleteComments = async () => {
-    if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} comentarios/respuestas?`)) return;
+  const handleBulkDeleteComments = () => {
+    if (selectedCount === 0) return;
+    setIsBulkDeleteCommentsModalOpen(true);
+  };
+
+  const executeBulkDeleteComments = async () => {
     try {
       const { data } = await ApiService.axiosInstance.post('/api/mod/comments/bulk-delete', { ids: selectedList });
       toast.success(data.message);
@@ -235,14 +244,50 @@ EP
             </h1>
 
             {post.image_url && (
-              <div className="mb-8 rounded-2xl overflow-hidden border border-border/50 shadow-2xl relative group bg-zinc-900/10 aspect-video max-h-[500px]">
-                <img 
-                  src={post.image_url} 
-                  alt={post.title} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-              </div>
+              <>
+                <div 
+                  className="mb-8 rounded-2xl overflow-hidden border border-border/50 shadow-2xl relative group bg-zinc-900/10 aspect-video max-h-[500px] cursor-zoom-in"
+                  onClick={() => {
+                    const el = document.getElementById(`img-modal-${post.id}`);
+                    if (el) el.style.display = 'flex';
+                  }}
+                >
+                  <img 
+                    src={post.image_url} 
+                    alt={post.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                </div>
+                
+                {/* Image Modal */}
+                <div 
+                  id={`img-modal-${post.id}`}
+                  className="fixed inset-0 z-[100] hidden items-center justify-center bg-background/90 backdrop-blur-sm p-4 sm:p-8 cursor-zoom-out"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      e.currentTarget.style.display = 'none';
+                    }
+                  }}
+                >
+                  <div className="relative max-w-7xl max-h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-200">
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById(`img-modal-${post.id}`);
+                        if (el) el.style.display = 'none';
+                      }}
+                      className="absolute -top-12 right-0 sm:-right-12 text-white/50 hover:text-white bg-black/50 hover:bg-black rounded-full w-10 h-10 flex items-center justify-center transition-all cursor-pointer border border-white/10"
+                    >
+                      <X size={20} />
+                    </button>
+                    <img 
+                      src={post.image_url} 
+                      alt={post.title} 
+                      className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-1 ring-white/10 cursor-default" 
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="text-[17px] text-foreground/90 font-literata leading-[1.8] whitespace-pre-wrap mb-10 italic">
@@ -347,6 +392,26 @@ Comentarios (
           ]}
         />
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteThreadModalOpen}
+        onClose={() => setIsDeleteThreadModalOpen(false)}
+        title="¿Eliminar Hilo?"
+        description="Esta acción eliminará permanentemente la publicación. No se puede deshacer."
+        confirmText="Eliminar"
+        variant="destructive"
+        onConfirm={executeDeleteThread}
+      />
+
+      <ConfirmModal
+        isOpen={isBulkDeleteCommentsModalOpen}
+        onClose={() => setIsBulkDeleteCommentsModalOpen(false)}
+        title="¿Eliminar Comentarios?"
+        description={`Esta acción eliminará permanentemente los ${selectedCount} comentarios/respuestas seleccionados. No se puede deshacer.`}
+        confirmText="Eliminar Selección"
+        variant="destructive"
+        onConfirm={executeBulkDeleteComments}
+      />
     </motion.div>
   );
 }

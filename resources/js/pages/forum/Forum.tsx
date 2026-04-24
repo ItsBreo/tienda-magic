@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 
 /** Convierte fecha ISO a formato legible */
 function formatDate(iso: string): string {
@@ -378,10 +379,14 @@ export default function MagicForum() {
       .finally(() => setIsSubmittingComment(false));
   };
 
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+
   const handleBulkDeleteThreads = async () => {
     if (selectedCount === 0) return;
-    if (!window.confirm(`¿Seguro que deseas eliminar ${selectedCount} hilos del foro?`)) return;
+    setIsBulkDeleteModalOpen(true);
+  };
 
+  const executeBulkDeleteThreads = async () => {
     try {
       if (isModOrAdmin) {
         const { data } = await ApiService.axiosInstance.post('/api/mod/threads/bulk-delete', { ids: selectedList });
@@ -572,22 +577,26 @@ export default function MagicForum() {
             />
 
             <div className="px-6 py-2 pt-6 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Categorías</div>
-            {(['noticias', 'estrategia', 'general', 'torneos'] as Category[]).map((cat) => (
+            {forumsList.map((forum) => (
               <NavItem
-                key={cat}
-                active={activeCategory === cat}
+                key={forum.id}
+                active={activeCategory === forum.slug}
                 icon={
-                  cat === "noticias" ? <Newspaper className="w-4 h-4" /> :
-                    cat === "estrategia" ? <Swords className="w-4 h-4" /> :
-                      cat === "torneos" ? <Trophy className="w-4 h-4" /> :
-                        <MessageCircle className="w-4 h-4" />
+                  forum.icon && (forum.icon.startsWith('http') || forum.icon.includes('/') || forum.icon.includes('.')) ? (
+                    <img src={forum.icon} alt="" className="w-4 h-4 rounded-sm object-cover" />
+                  ) : (
+                    forum.slug === "noticias" ? <Newspaper className="w-4 h-4" /> :
+                    forum.slug === "estrategia" ? <Swords className="w-4 h-4" /> :
+                    forum.slug === "torneos" ? <Trophy className="w-4 h-4" /> :
+                    <MessageCircle className="w-4 h-4" />
+                  )
                 }
-                label={CAT_LABELS[cat]}
+                label={forum.name}
                 onClick={() => {
                   navigate('/forum');
-                  setActiveCategory(cat);
+                  setActiveCategory(forum.slug);
                   handleSetView('feed');
-                  setActiveSideNav(cat);
+                  setActiveSideNav(forum.slug);
                 }}
               />
             ))}
@@ -700,6 +709,16 @@ export default function MagicForum() {
 
       {showTournamentModal && <TournamentModal onClose={() => setShowTournamentModal(false)} onSuccess={() => { setShowTournamentModal(false); setRefreshKey((k) => k + 1); }} />}
       {selectedTournamentId && <TournamentDetailModal tournamentId={selectedTournamentId} onClose={() => setSelectedTournamentId(null)} />}
+      
+      <ConfirmModal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        title="¿Eliminar Hilos?"
+        description={`Esta acción eliminará permanentemente los ${selectedCount} hilos seleccionados. No se puede deshacer.`}
+        confirmText="Eliminar Selección"
+        variant="destructive"
+        onConfirm={executeBulkDeleteThreads}
+      />
     </div>
   );
 }

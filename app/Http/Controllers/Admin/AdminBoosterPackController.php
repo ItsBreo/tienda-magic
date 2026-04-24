@@ -164,12 +164,58 @@ class AdminBoosterPackController extends Controller
     )]
     public function bulkDelete(Request $request)
     {
-        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:booster_packs,id']);
+        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:booster_pack,id']);
 
         $deletedCount = BoosterPack::whereIn('id', $validated['ids'])->delete();
 
         return response()->json([
-            'message' => "Se han eliminado {$deletedCount} sobres correctamente."
+            'message' => "Se han exiliado {$deletedCount} sobres correctamente."
+        ]);
+    }
+
+    #[OA\Post(
+        path: "/api/admin/booster-packs/bulk-restore",
+        summary: "Restauración masiva de sobres",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "ids", type: "array", items: new OA\Items(type: "integer"))
+        ])
+    )]
+    public function bulkRestore(Request $request)
+    {
+        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:booster_pack,id']);
+
+        $restoredCount = BoosterPack::onlyTrashed()->whereIn('id', $validated['ids'])->restore();
+
+        return response()->json([
+            'message' => "Se han restaurado {$restoredCount} sobres correctamente."
+        ]);
+    }
+
+    #[OA\Post(
+        path: "/api/admin/booster-packs/bulk-force-delete",
+        summary: "Eliminación permanente masiva de sobres",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: "ids", type: "array", items: new OA\Items(type: "integer"))
+        ])
+    )]
+    public function bulkForceDelete(Request $request)
+    {
+        $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:booster_pack,id']);
+
+        $deletedCount = BoosterPack::onlyTrashed()->whereIn('id', $validated['ids'])->forceDelete();
+
+        return response()->json([
+            'message' => "Se han eliminado permanentemente {$deletedCount} sobres."
         ]);
     }
 
@@ -190,7 +236,7 @@ class AdminBoosterPackController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:booster_packs,id',
+            'ids.*' => 'exists:booster_pack,id',
             'is_active' => 'required|boolean'
         ]);
 

@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/common/UserAvatar";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 
 const CAT_COLORS: Record<string, string> = {
   noticias: 'bg-primary/10 text-primary border-primary/20',
@@ -109,6 +110,7 @@ export default function PostCard({
 }) {
   const { user } = useAuth();
   const [isSaved, setIsSaved] = useState((post as any).isSaved || false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     setIsSaved((post as any).isSaved || false);
@@ -146,95 +148,118 @@ export default function PostCard({
   const canSelect = selection?.isMod || post.can_delete;
 
   return (
-    <div className={cn(
-        "flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-md min-h-[160px]",
-        selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.03]' : 'hover:border-primary/40 hover:shadow-primary/5 hover:-translate-y-0.5'
-    )}>
-      {canSelect && (
-        <div className="flex items-center px-4 bg-zinc-50/50 dark:bg-zinc-900/40 border-r border-border/50">
-          <input 
-            type="checkbox" 
-            checked={selection?.isSelected || false}
-            onChange={(e) => {
-              e.stopPropagation();
-              selection?.toggle();
-            }}
-            className="w-5 h-5 rounded-lg border-border bg-background text-primary focus:ring-primary cursor-pointer transition-all"
-          />
-        </div>
-      )}
+    <>
+      <div className={cn(
+          "flex bg-card border border-border rounded-xl mb-4 overflow-hidden transition-all duration-300 group shadow-md min-h-[160px]",
+          selection?.isSelected ? 'ring-2 ring-primary border-primary bg-primary/[0.03]' : 'hover:border-primary/40 hover:shadow-primary/5 hover:-translate-y-0.5'
+      )}>
+        {canSelect && (
+          <div className="flex items-center px-4 bg-zinc-50/50 dark:bg-zinc-900/40 border-r border-border/50">
+            <input 
+              type="checkbox" 
+              checked={selection?.isSelected || false}
+              onChange={(e) => {
+                e.stopPropagation();
+                selection?.toggle();
+              }}
+              className="w-5 h-5 rounded-lg border-border bg-background text-primary focus:ring-primary cursor-pointer transition-all"
+            />
+          </div>
+        )}
 
-      <VoteCol threadId={post.id} initialScore={post.score} initialVote={post.userVote} />
+        <VoteCol threadId={post.id} initialScore={post.score} initialVote={post.userVote} />
 
-      <div className="py-5 px-6 flex-1 min-w-0 flex flex-col justify-between">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 flex-wrap font-montserrat overflow-hidden">
-            <span className={cn(
-                'text-[8px] font-black py-1 px-3 rounded-lg uppercase tracking-widest border shrink-0 w-24 text-center',
-                CAT_COLORS[post.category] || 'bg-primary/10 text-primary border-primary/20',
-            )}>
-                {CAT_LABELS[post.category]}
-            </span>
-            <div className="flex items-center gap-2">
-              <UserAvatar 
-                src={post.avatar_url}
-                name={post.author}
-                className="w-5 h-5 rounded-md bg-accent border border-border/50"
-                fallbackClassName="text-[10px] text-muted-foreground"
-              />
-              <b className="text-[11px] text-foreground font-black truncate leading-none hover:text-primary transition-colors cursor-pointer">@{post.author}</b>
+        <div className="py-5 px-6 flex-1 min-w-0 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 flex-wrap font-montserrat overflow-hidden">
+              <span className={cn(
+                  'text-[8px] font-black py-1 px-3 rounded-lg uppercase tracking-widest border shrink-0 w-24 text-center',
+                  CAT_COLORS[post.category] || 'bg-primary/10 text-primary border-primary/20',
+              )}>
+                  {CAT_LABELS[post.category]}
+              </span>
+              <div className="flex items-center gap-2">
+                <UserAvatar 
+                  src={post.avatar_url}
+                  name={post.author}
+                  className="w-5 h-5 rounded-md bg-accent border border-border/50"
+                  fallbackClassName="text-[10px] text-muted-foreground"
+                />
+                <b className="text-[11px] text-foreground font-black truncate leading-none hover:text-primary transition-colors cursor-pointer">@{post.author}</b>
+              </div>
+              
+              <Badge variant="outline" className="text-[9px] font-black text-primary bg-primary/5 border-primary/10 px-2 py-0 h-5" title="Reputación">
+                  {post.reputation || 100} EP
+              </Badge>
+              {post.isMod && <Badge className="bg-primary text-primary-foreground text-[8px] font-black h-4 px-1">MOD</Badge>}
+              
+              <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest font-montserrat">
+                · {post.timeAgo}
+              </span>
             </div>
-            
-            <Badge variant="outline" className="text-[9px] font-black text-primary bg-primary/5 border-primary/10 px-2 py-0 h-5" title="Reputación">
-                {post.reputation || 100} EP
-            </Badge>
-            {post.isMod && <Badge className="bg-primary text-primary-foreground text-[8px] font-black h-4 px-1">MOD</Badge>}
-            
-            <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest font-montserrat">
-              · {post.timeAgo}
-            </span>
+
+            <div className="flex gap-6 items-start">
+              <div className="flex-1 min-w-0">
+                  <h3 onClick={() => onOpen()} className="text-xl font-forum font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-[1.2] mb-3 line-clamp-2">
+                      {post.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-literata italic leading-relaxed line-clamp-2 opacity-80 mb-4">
+                      {post.preview}
+                  </p>
+              </div>
+              {post.image_url && (
+                  <div onClick={() => onOpen()} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-border cursor-pointer group-hover:border-primary/50 transition-all shadow-sm">
+                      <img src={post.image_url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-6 items-start">
-            <div className="flex-1 min-w-0">
-                <h3 onClick={() => onOpen()} className="text-xl font-forum font-bold text-foreground hover:text-primary transition-colors cursor-pointer leading-[1.2] mb-3 line-clamp-2">
-                    {post.title}
-                </h3>
-                <p className="text-sm text-muted-foreground font-literata italic leading-relaxed line-clamp-2 opacity-80 mb-4">
-                    {post.preview}
-                </p>
-            </div>
-            {post.image_url && (
-                <div onClick={() => onOpen()} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-border cursor-pointer group-hover:border-primary/50 transition-all shadow-sm">
-                    <img src={post.image_url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                </div>
-            )}
+          <div className="flex flex-col gap-4">
+              {post.tags.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                      {post.tags.map((t) => (
+                          <span key={t} className="text-[8px] py-1 px-2.5 rounded-lg bg-accent/50 text-muted-foreground/60 border border-border/50 font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-colors cursor-pointer font-montserrat">
+                              #{t}
+                          </span>
+                      ))}
+                  </div>
+              )}
+
+              <div className="flex items-center gap-1 border-t border-border/40 pt-1 -mx-2">
+                  <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={() => onOpen()} />
+                  <ActionBtn icon={Share2} label="Share" onClick={handleShare} />
+                  <ActionBtn icon={Bookmark} label={isSaved ? "Saved" : "Save"} onClick={toggleSave} active={isSaved} />
+                  {post.can_delete && !selection && (
+                      <div className="ml-auto">
+                          <ActionBtn 
+                            icon={Trash2} 
+                            label="" 
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setIsDeleteModalOpen(true);
+                            }} 
+                            variant="danger" 
+                          />
+                      </div>
+                  )}
+              </div>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-4">
-            {post.tags.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                    {post.tags.map((t) => (
-                        <span key={t} className="text-[8px] py-1 px-2.5 rounded-lg bg-accent/50 text-muted-foreground/60 border border-border/50 font-black uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-colors cursor-pointer font-montserrat">
-                            #{t}
-                        </span>
-                    ))}
-                </div>
-            )}
-
-            <div className="flex items-center gap-1 border-t border-border/40 pt-1 -mx-2">
-                <ActionBtn icon={MessageSquare} label={`${post.comments}`} onClick={() => onOpen()} />
-                <ActionBtn icon={Share2} label="Share" onClick={handleShare} />
-                <ActionBtn icon={Bookmark} label={isSaved ? "Saved" : "Save"} onClick={toggleSave} active={isSaved} />
-                {post.can_delete && !selection && (
-                    <div className="ml-auto">
-                        <ActionBtn icon={Trash2} label="" onClick={(e) => { e.stopPropagation(); if(window.confirm('¿Seguro?')) ApiService.deleteThread(post.id).then(() => onDeleteSuccess?.()); }} variant="danger" />
-                    </div>
-                )}
-            </div>
         </div>
       </div>
-    </div>
+      
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="¿Eliminar Hilo?"
+        description="Esta acción eliminará permanentemente la publicación. No se puede deshacer."
+        confirmText="Eliminar"
+        variant="destructive"
+        onConfirm={() => {
+            ApiService.deleteThread(post.id).then(() => onDeleteSuccess?.());
+        }}
+      />
+    </>
   );
 }
+

@@ -18,7 +18,6 @@ interface UserData {
     name: string;
     username: string;
     email: string;
-    is_active: boolean;
     deleted_at: string | null;
     roles: { id: number; name: string }[];
 }
@@ -50,7 +49,7 @@ export default function AdminUsers() {
     const [selectedRoleForBulk, setSelectedRoleForBulk] = useState('1');
 
     const [form, setForm] = useState({
-        name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
+        name: '', username: '', email: '', password: '', role_id: '1',
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -199,19 +198,6 @@ export default function AdminUsers() {
         });
     };
 
-    const handleBulkToggleActive = async (active: boolean) => {
-        try {
-            await apiService.axiosInstance.post('/api/admin/users/bulk-toggle-active', {
-                ids: selectedList,
-                is_active: active,
-            });
-            toast.success(`${selectedCount} usuarios ${active ? 'activados' : 'desactivados'}`);
-            clear();
-            fetchUsers(currentPage);
-        } catch (error) {
-            toast.error('Error al cambiar estado masivo');
-        }
-    };
 
     const handleRestore = async (id: number) => {
         try {
@@ -238,7 +224,6 @@ export default function AdminUsers() {
             email: u.email,
             password: '',
             role_id: u.roles[0]?.id.toString() || '1',
-            is_active: u.is_active,
         });
         setEditModalOpen(true);
     };
@@ -247,7 +232,7 @@ export default function AdminUsers() {
         setSelectedUser(null);
         setEditingUserId(null);
         setForm({
-            name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
+            name: '', username: '', email: '', password: '', role_id: '1',
         });
         setEditModalOpen(true);
     };
@@ -265,7 +250,7 @@ export default function AdminUsers() {
             }
             setEditModalOpen(false);
             setForm({
-                name: '', username: '', email: '', password: '', role_id: '1', is_active: true,
+                name: '', username: '', email: '', password: '', role_id: '1',
             });
             setEditingUserId(null);
             fetchUsers(currentPage);
@@ -278,6 +263,7 @@ export default function AdminUsers() {
 
     const openEditModal = (user: UserData) => {
         setSelectedUser(user);
+        setEditingUserId(user.id);
         const roleId = user.roles.length > 0 ? user.roles[0].id.toString() : '1';
         setForm({
             name: user.name,
@@ -285,7 +271,6 @@ export default function AdminUsers() {
             email: user.email,
             password: '',
             role_id: roleId,
-            is_active: user.is_active,
         });
         setEditModalOpen(true);
     };
@@ -396,12 +381,9 @@ className={cn(
                                         ) : (
                                             <Badge
                                                 variant="outline"
-                                                className={cn(
-                                                    'text-[8px] font-black uppercase tracking-widest px-2.5 h-5 rounded-lg',
-                                                    u.is_active ? 'bg-primary/5 text-primary border-primary/20' : 'bg-warning/5 text-warning-600 border-warning/20',
-                                                )}
+                                                className="text-[8px] font-black uppercase tracking-widest px-2.5 h-5 rounded-lg bg-primary/5 text-primary border-primary/20"
                                             >
-                                                {u.is_active ? 'Vivo' : 'Inactivo'}
+                                                Vivo
                                             </Badge>
                                         )}
                                     </td>
@@ -518,18 +500,6 @@ Contraseña (Opcional)
                                         <option key={role.id} value={role.id}>{role.name}</option>
                                     ))}
                                 </select>
-                            </div>
-                            <div className="flex items-center space-x-3 pt-6 ml-1">
-                                <input
-                                    type="checkbox"
-                                    id="is_active_modal"
-                                    checked={form.is_active}
-                                    onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                                    className="w-5 h-5 rounded-lg border-border bg-accent text-primary focus:ring-primary cursor-pointer transition-all"
-                                />
-                                <label htmlFor="is_active_modal" className="text-[13px] font-black uppercase tracking-widest text-foreground cursor-pointer select-none font-montserrat">
-                                    Cuenta Activa
-                                </label>
                             </div>
                             <div className="md:col-span-2 flex gap-4 pt-4">
                                 <Button disabled={submitting} type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest h-14 rounded-xl shadow-xl shadow-primary/20 font-montserrat">

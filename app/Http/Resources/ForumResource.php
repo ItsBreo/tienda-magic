@@ -13,7 +13,9 @@ class ForumResource extends JsonResource
             'id'             => $this->id,
             'name'           => $this->name,
             'slug'           => $this->slug,
-            'icon'           => $this->icon,
+            'icon'           => $this->icon && (str_contains($this->icon, '/') || str_contains($this->icon, '.')) 
+                                ? (str_starts_with($this->icon, 'http') ? $this->icon : asset('storage/' . $this->icon)) 
+                                : $this->icon,
             'description'    => $this->description,
             'threads_count'  => $this->threads_count,
         ];
