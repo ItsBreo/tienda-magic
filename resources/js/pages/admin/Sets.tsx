@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
- Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, CheckCircle,
+ Plus, Loader2, Edit2, CheckCircle2, XCircle, CheckCircle,
 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
@@ -378,14 +378,7 @@ Lanzado:
                         icon: <XCircle className="w-4 h-4" />,
                         onClick: () => handleBulkToggleActive(false),
                         className: 'text-muted-foreground/60 hover:text-foreground',
-                    },
-                    {
-                        label: 'Borrar Crónicas',
-                        icon: <Trash2 className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
-                    },
+                    }
                 ]}
             />
 

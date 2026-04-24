@@ -420,14 +420,7 @@ className={cn(
                             if (roleToEdit) handleEdit(roleToEdit);
                         },
                         className: 'text-primary hover:text-primary',
-                    }] : []),
-                    {
-                        label: 'Disolver Rangos',
-                        icon: <Trash2 className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
-                    },
+                    }] : [])
                 ]}
             />
 
