@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Role extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'description',
@@ -26,7 +29,7 @@ class Role extends Model
     {
         $ids = $this->permission_ids ?? [];
         if (empty($ids)) return collect();
-        
+
         return Permission::whereIn('id', $ids)->get();
     }
 

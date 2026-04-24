@@ -18,6 +18,7 @@ interface UserData {
     username: string;
     email: string;
     is_active: boolean;
+    deleted_at: string | null;
     roles: { id: number; name: string }[];
 }
 
@@ -138,17 +139,30 @@ export default function AdminUsers() {
         }
     };
 
-    const handleToggleActive = async (user: UserData) => {
+    const handleRestore = async (id: number) => {
         try {
-            await apiService.axiosInstance.post('/api/admin/users/toggle-active', {
-                id: user.id,
-                is_active: !user.is_active,
-            });
-            toast.success(`Usuario ${!user.is_active ? 'activado' : 'desactivado'}`);
+            await apiService.axiosInstance.post(`/api/admin/users/${id}/restore`);
+            toast.success('Usuario restaurado exitosamente');
             fetchUsers(currentPage);
         } catch (error: any) {
-            toast.error('Error al cambiar estado');
+            toast.error('Error al restaurar usuario');
         }
+    };
+
+    const handleForceDelete = async (id: number) => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: '¿Estás seguro de eliminar permanentemente este usuario? Esta acción no se puede deshacer.',
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.delete(`/api/admin/users/${id}/force-delete`);
+                    toast.success('Usuario eliminado permanentemente');
+                    fetchUsers(currentPage);
+                } catch (error: any) {
+                    toast.error('Error al eliminar permanentemente');
+                }
+            },
+        });
     };
 
     const handleBulkChangeRole = () => {
@@ -391,16 +405,18 @@ className={cn(
                                             <Button variant="ghost" size="icon" onClick={() => openEditModal(u)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
                                                 <Edit2 className="w-4 h-4" />
                                             </Button>
-                                            {u.is_active ? (
-                                                <Button variant="ghost" size="icon" onClick={() => handleToggleActive(u)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Desactivar usuario">
+                                            {!u.deleted_at ? (
+                                                // Usuario ACTIVO (no exiliado)
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(u.id)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Exiliar usuario">
                                                     <UserMinus className="w-4 h-4" />
                                                 </Button>
                                             ) : (
+                                                // Usuario EXILIADO (soft deleted)
                                                 <>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleToggleActive(u)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Activar usuario">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleRestore(u.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar usuario">
                                                         <UserCheck className="w-4 h-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(u.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleForceDelete(u.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
                                                         <Trash2 className="w-4 h-4" />
                                                     </Button>
                                                 </>

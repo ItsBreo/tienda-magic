@@ -283,7 +283,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/cards/{id}/cancel', [MarketController::class, 'cancelListing']);
         Route::get('/my-listings', [MarketController::class, 'myListings']);
         Route::get('/price-history/{type}/{id}', [MarketController::class, 'getPriceHistory']);
-        
+
         Route::get('/transactions', [TransactionController::class, 'index']);
         Route::get('/transactions/my', [TransactionController::class, 'myTransactions']);
     });
@@ -416,8 +416,26 @@ Route::middleware('auth:sanctum')->group(function () {
             ->only(['index', 'store', 'update', 'destroy'])
             ->middleware('permission:manage-users');
 
+        // Rutas adicionales para Soft Deletes
+        Route::post('/users/{user}/restore', [AdminUserController::class, 'restore'])
+            ->withTrashed()
+            ->middleware('permission:manage-users');
+
+        Route::delete('/users/{user}/force-delete', [AdminUserController::class, 'forceDelete'])
+            ->withTrashed()
+            ->middleware('permission:manage-users');
+
         Route::apiResource('roles', AdminRoleController::class)
             ->only(['index', 'store', 'update', 'destroy'])
+            ->middleware('permission:manage-roles');
+
+        // Rutas adicionales para Soft Deletes
+        Route::post('/roles/{role}/restore', [AdminRoleController::class, 'restore'])
+            ->withTrashed()
+            ->middleware('permission:manage-roles');
+
+        Route::delete('/roles/{role}/force-delete', [AdminRoleController::class, 'forceDelete'])
+            ->withTrashed()
             ->middleware('permission:manage-roles');
 
         Route::get('/permissions', [AdminPermissionController::class, 'index'])

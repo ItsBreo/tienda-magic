@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Modelo de Booster Pack (Sobre de cartas).
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class BoosterPack extends Model
 {
+    use SoftDeletes;
 
     protected $table = 'booster_pack';
 

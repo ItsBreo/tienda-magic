@@ -26,6 +26,17 @@ interface Role {
     permissions?: Permission[];
 }
 
+interface RoleData {
+    id: number;
+    name: string;
+    description: string;
+    permission_ids: number[];
+    permissions: { id: number; display_name: string }[];
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
 export default function AdminRoles() {
     const [roles, setRoles] = useState<Role[]>([]);
     const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
@@ -113,16 +124,42 @@ export default function AdminRoles() {
     const handleDelete = (id: number) => {
         setConfirmModalConfig({
             isOpen: true,
-            title: '¿Seguro que deseas eliminar este rango? Los efectos en los usuarios serán inmediatos.',
+            title: '¿Estás seguro de exiliar este rol?',
             onConfirm: async () => {
                 try {
-                    await apiService.axiosInstance.delete(`/api/admin/roles/${id}`);
-                    toast.success('Rango eliminado de los archivos');
+                    await apiService.deleteRole(id);
+                    toast.success('Rol exiliado exitosamente');
+                    fetchRoles(currentPage);
+                } catch (error) {
+                    toast.error('Error al exiliar rol');
+                }
+            },
+        });
+    };
+
+    const handleRestore = async (id: number) => {
+        try {
+            await apiService.axiosInstance.post(`/api/admin/roles/${id}/restore`);
+            toast.success('Rol restaurado exitosamente');
+            fetchRoles(currentPage);
+        } catch (error: any) {
+            toast.error('Error al restaurar rol');
+        }
+    };
+
+    const handleForceDelete = async (id: number) => {
+        setConfirmModalConfig({
+            isOpen: true,
+            title: '¿Estás seguro de eliminar permanentemente este rol? Esta acción no se puede deshacer.',
+            onConfirm: async () => {
+                try {
+                    await apiService.axiosInstance.delete(`/api/admin/roles/${id}/force-delete`);
+                    toast.success('Rol eliminado permanentemente');
                     fetchRoles(currentPage);
                 } catch (error: any) {
-                    toast.error(error.response?.data?.message || 'Error al eliminar');
+                    toast.error('Error al eliminar permanentemente');
                 }
-            }
+            },
         });
     };
 
@@ -361,9 +398,22 @@ className={cn(
                                             <Button variant="ghost" size="icon" onClick={() => handleEdit(r)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
                                                 <Edit2 size={15} />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10">
-                                                <Trash2 size={15} />
-                                            </Button>
+                                            {!r.deleted_at ? (
+                                                // Rol ACTIVO (no exiliado)
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Exiliar rol">
+                                                    <UserMinus size={15} />
+                                                </Button>
+                                            ) : (
+                                                // Rol EXILIADO (soft deleted)
+                                                <>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleRestore(r.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar rol">
+                                                        <UserCheck size={15} />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleForceDelete(r.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
+                                                        <Trash2 size={15} />
+                                                    </Button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

@@ -93,7 +93,7 @@ class AdminRoleController extends Controller
         if (isset($validated['description'])) {
             $role->description = $validated['description'];
         }
-        
+
         if (isset($validated['permission_ids'])) {
             $role->permission_ids = $validated['permission_ids'];
         }
@@ -133,9 +133,50 @@ class AdminRoleController extends Controller
         // Por seguridad limpiamos sus usuarios
         $role->users()->detach();
 
+        // Soft Delete (exilio)
         $role->delete();
 
-        return response()->json(['message' => 'Rol eliminado exitosamente.']);
+        return response()->json(['message' => 'Rol exiliado exitosamente.']);
+    }
+
+    public function restore(Role $role)
+    {
+        // Validar que el rol esté exiliado (soft deleted)
+        if (!$role->trashed()) {
+            return response()->json(['message' => 'Solo se puede restaurar roles que han sido exiliados.'], 403);
+        }
+
+        // Restore (restaurar soft delete)
+        $role->restore();
+
+        return response()->json(['message' => 'Rol restaurado exitosamente.']);
+    }
+
+    public function forceDelete(Role $role)
+    {
+        // Roles protegidos del sistema — nunca se pueden borrar
+        $protectedRoles = [
+            'super_admin', 'admin',
+            'mod_news', 'mod_tournaments', 'mod_general',
+            'user', 'usuario',
+        ];
+
+        if (in_array(strtolower($role->name), $protectedRoles)) {
+            return response()->json(['message' => 'No puedes eliminar este rol protegido del sistema.'], 403);
+        }
+
+        // Validar que el rol ya esté exiliado (soft deleted)
+        if (!$role->trashed()) {
+            return response()->json(['message' => 'Solo se puede eliminar definitivamente roles que ya han sido exiliados.'], 403);
+        }
+
+        // Si el rol tiene usuarios, limpiamos sus usuarios
+        $role->users()->detach();
+
+        // Force Delete (borrado físico)
+        $role->forceDelete();
+
+        return response()->json(['message' => 'Rol eliminado permanentemente.']);
     }
 
     /**
