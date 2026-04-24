@@ -116,6 +116,9 @@ class ThreadController extends Controller
     #[OA\Response(response: 201, description: "Hilo creado exitosamente")]
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('Raw request data:', $request->all());
+        \Illuminate\Support\Facades\Log::info('Files in request:', $request->allFiles());
+
         $validated = $request->validate([
             'forum_id' => 'required|exists:forums,id',
             'title'    => 'required|string|max:255',
@@ -129,6 +132,8 @@ class ThreadController extends Controller
             $path = $request->file('image')->store('forum_images', 'public');
             $validated['image'] = $path;
         }
+
+        \Illuminate\Support\Facades\Log::info('Validated data:', $validated);
 
         $thread = $request->user()->threads()->create($validated);
         $thread->load(['user', 'forum']);

@@ -244,7 +244,7 @@ export default function MagicForum() {
         setSearchResults([]);
         setIsSearchOpen(false);
         if (!trimmedSearch && searchParams.get('q')) {
-            navigate('/forum');
+          navigate('/forum');
         }
       }
     }, 400);
@@ -277,8 +277,8 @@ export default function MagicForum() {
       fetcher = activeSideNav === 'guardados'
         ? ApiService.getSavedThreads(currentPage, perPage)
         : (activeCategory
-            ? ApiService.getForumThreads(activeCategory, sortMode, currentPage, perPage)
-            : ApiService.getThreads(sortMode, currentPage, perPage));
+          ? ApiService.getForumThreads(activeCategory, sortMode, currentPage, perPage)
+          : ApiService.getThreads(sortMode, currentPage, perPage));
     }
 
     fetcher
@@ -322,16 +322,16 @@ export default function MagicForum() {
     ApiService.getThread(post.id).then((res) => {
       // res es response.data de Axios. 
       // ThreadResource envuelve en 'data'.
-      const threadData = res.data || res; 
+      const threadData = res.data || res;
       // Si CommentResource::collection envuelve en 'data', lo manejamos
       const rawComments = threadData.comments?.data || threadData.comments || [];
       const mapped = Array.isArray(rawComments) ? rawComments.map(mapComment) : [];
       setComments(mapped);
     })
-    .catch((err) => {
-      console.error(`Error al cargar el hilo ${post.id}:`, err);
-      setComments([]);
-    });
+      .catch((err) => {
+        console.error(`Error al cargar el hilo ${post.id}:`, err);
+        setComments([]);
+      });
   };
 
   const handleCreatePost = (data: { forum_id: number; title: string; body: string; tags?: string[]; image?: File }) => {
@@ -349,33 +349,33 @@ export default function MagicForum() {
     }
 
     ApiService.createThread(formData)
-    .then(() => {
+      .then(() => {
         handleSetView('feed');
         setActiveSideNav('reciente');
         setActiveCategory(null);
         setSortMode('nuevo');
         setRefreshKey((k) => k + 1);
-    })
-    .catch((err) => {
+      })
+      .catch((err) => {
         console.error('Error creando el post:', err.response?.data || err.message);
         toast.error('Hubo un error al publicar el post.');
-    })
-    .finally(() => setIsSubmitting(false));
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   const handleCreateComment = (body: string, parentId?: number) => {
     if (!activePost) return;
     setIsSubmittingComment(true);
     ApiService.createComment(activePost.id, { body, parent_id: parentId })
-    .then(() => {
+      .then(() => {
         // En vez de openThread (que recargaría), volvemos a obtener el hilo
         loadThreadById(activePost.id);
-    })
-    .catch((err) => {
+      })
+      .catch((err) => {
         console.error('Error creando el comentario:', err.response?.data || err.message);
         toast.error('Hubo un error al publicar el comentario.');
-    })
-    .finally(() => setIsSubmittingComment(false));
+      })
+      .finally(() => setIsSubmittingComment(false));
   };
 
   const handleBulkDeleteThreads = async () => {
@@ -475,13 +475,13 @@ export default function MagicForum() {
 
         <aside className="bg-card/40 backdrop-blur-md border-r border-border flex flex-col h-full">
           <div className="p-6 flex items-center gap-3 border-b border-border/50 mb-4">
-             <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-                <span className="text-primary font-black font-forum text-xl">⬟</span>
-             </div>
-             <div className="text-sm font-black uppercase tracking-[0.2em] font-montserrat text-foreground">
-                Lotus
-                <span className="text-primary"> Forum</span>
-             </div>
+            <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+              <span className="text-primary font-black font-forum text-xl">⬟</span>
+            </div>
+            <div className="text-sm font-black uppercase tracking-[0.2em] font-montserrat text-foreground">
+              Lotus
+              <span className="text-primary"> Forum</span>
+            </div>
           </div>
 
           <div className="px-4 mb-8 relative z-20" ref={searchRef}>
@@ -512,7 +512,7 @@ export default function MagicForum() {
                 <div className="flex-1 overflow-y-auto">
                   {!isSearching && searchResults.length === 0 && (
                     <div className="px-4 py-10 text-[10px] text-center text-muted-foreground font-black uppercase tracking-widest opacity-30">
-                       No se encontraron hilos
+                      No se encontraron hilos
                     </div>
                   )}
                   {searchResults.map((post, idx) => (
@@ -527,9 +527,9 @@ export default function MagicForum() {
                       <div className="text-xs font-black font-forum text-foreground line-clamp-2 leading-tight mb-2 group-hover:text-primary">{post.title}</div>
                       <div className="flex items-center gap-3 text-[10px] text-muted-foreground/60 font-montserrat uppercase font-black tracking-widest">
                         <span className="truncate">
-@
-{post.author}
-</span>
+                          @
+                          {post.author}
+                        </span>
                         <div className="flex items-center gap-1 shrink-0 text-amber-500">
                           <Flame className="w-3 h-3 fill-current" />
                           <span>{post.score}</span>
@@ -547,55 +547,55 @@ export default function MagicForum() {
           </div>
 
           <div className="space-y-1">
-              <div className="px-6 py-2 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Canales</div>
-              <NavItem
-                active={activeSideNav === "reciente"}
-                icon={<LayoutDashboard className="w-4 h-4" />}
-                label="Inicio"
-                onClick={() => {
-                  navigate('/forum');
-                  setActiveCategory(null);
-                  handleSetView('feed');
-                  setActiveSideNav('reciente');
-                }}
-              />
-              <NavItem
-                active={activeSideNav === "guardados"}
-                icon={<Bookmark className="w-4 h-4" />}
-                label="Marcadores"
-                onClick={() => {
-                  navigate('/forum');
-                  setActiveCategory(null);
-                  handleSetView('feed');
-                  setActiveSideNav('guardados');
-                }}
-              />
+            <div className="px-6 py-2 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Canales</div>
+            <NavItem
+              active={activeSideNav === "reciente"}
+              icon={<LayoutDashboard className="w-4 h-4" />}
+              label="Inicio"
+              onClick={() => {
+                navigate('/forum');
+                setActiveCategory(null);
+                handleSetView('feed');
+                setActiveSideNav('reciente');
+              }}
+            />
+            <NavItem
+              active={activeSideNav === "guardados"}
+              icon={<Bookmark className="w-4 h-4" />}
+              label="Marcadores"
+              onClick={() => {
+                navigate('/forum');
+                setActiveCategory(null);
+                handleSetView('feed');
+                setActiveSideNav('guardados');
+              }}
+            />
 
-              <div className="px-6 py-2 pt-6 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Categorías</div>
-              {(['noticias', 'estrategia', 'general', 'torneos'] as Category[]).map((cat) => (
-                <NavItem
-                  key={cat}
-                  active={activeCategory === cat}
-                  icon={
-                    cat === "noticias" ? <Newspaper className="w-4 h-4" /> : 
-                    cat === "estrategia" ? <Swords className="w-4 h-4" /> : 
-                    cat === "torneos" ? <Trophy className="w-4 h-4" /> : 
-                    <MessageCircle className="w-4 h-4" />
-                  }
-                  label={CAT_LABELS[cat]}
-                  onClick={() => {
-                    navigate('/forum');
-                    setActiveCategory(cat);
-                    handleSetView('feed');
-                    setActiveSideNav(cat);
-                  }}
-                />
-              ))}
+            <div className="px-6 py-2 pt-6 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em] font-montserrat">Categorías</div>
+            {(['noticias', 'estrategia', 'general', 'torneos'] as Category[]).map((cat) => (
+              <NavItem
+                key={cat}
+                active={activeCategory === cat}
+                icon={
+                  cat === "noticias" ? <Newspaper className="w-4 h-4" /> :
+                    cat === "estrategia" ? <Swords className="w-4 h-4" /> :
+                      cat === "torneos" ? <Trophy className="w-4 h-4" /> :
+                        <MessageCircle className="w-4 h-4" />
+                }
+                label={CAT_LABELS[cat]}
+                onClick={() => {
+                  navigate('/forum');
+                  setActiveCategory(cat);
+                  handleSetView('feed');
+                  setActiveSideNav(cat);
+                }}
+              />
+            ))}
           </div>
 
           <div className="mt-auto p-6 border-t border-border/50">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-accent/40 border border-border/30 cursor-pointer hover:border-primary/30 transition-all group">
-              <UserAvatar 
+              <UserAvatar
                 src={user?.avatar_url}
                 name={user?.name}
                 className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20"
@@ -643,25 +643,25 @@ export default function MagicForum() {
           <Widget title="Grandes Torneos">
             <div className="px-4 py-2 space-y-1">
               {tournaments.length === 0 ? (
-                 <div className="py-6 text-[10px] text-muted-foreground font-black uppercase tracking-widest text-center opacity-30 italic">No hay torneos activos.</div>
+                <div className="py-6 text-[10px] text-zinc-400 font-black uppercase tracking-widest text-center italic">No hay torneos activos.</div>
               ) : tournaments.map((t, i) => (
                 <div key={t.id} className="py-3 border-b border-border/30 last:border-0 group">
-                   <div className="flex items-center justify-between mb-2">
-                        <Badge
-variant="outline"
-className={cn(
-                            'text-[8px] font-black uppercase tracking-widest px-1.5 h-4',
-                            t.status === 'live' ? 'bg-primary/5 text-primary border-primary/20' : 'bg-muted text-muted-foreground border-border/50',
-                        )}>
-                            {t.status === 'live' ? (
-                                <span className="flex items-center gap-1.5 animate-in fade-in duration-500">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                                    Live
-                                </span>
-                            ) : "Draft"}
-                        </Badge>
-                        <span className="text-[10px] font-black text-muted-foreground/50 font-montserrat tracking-tighter">{formatDate(t.date).split(',')[0]}</span>
-                   </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'text-[8px] font-black uppercase tracking-widest px-1.5 h-4',
+                        t.status === 'live' ? 'bg-primary/5 text-primary border-primary/20' : 'bg-muted text-muted-foreground border-border/50',
+                      )}>
+                      {t.status === 'live' ? (
+                        <span className="flex items-center gap-1.5 animate-in fade-in duration-500">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                          Live
+                        </span>
+                      ) : "Draft"}
+                    </Badge>
+                    <span className="text-[10px] font-black text-zinc-400 font-montserrat tracking-tighter">{formatDate(t.date).split(',')[0]}</span>
+                  </div>
                   <div onClick={() => setSelectedTournamentId(t.id)} className="text-sm font-black font-forum text-foreground hover:text-primary transition-colors cursor-pointer truncate leading-tight group-hover:translate-x-1 transition-transform">
                     {t.name}
                   </div>
@@ -671,9 +671,9 @@ className={cn(
 
             {user && (
               <div className="p-4 pt-0">
-                  <Button onClick={() => setShowTournamentModal(true)} className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border-primary/20 text-[10px] font-black uppercase tracking-[0.2em] shadow-none">
-                    + FORJAR TORNEO
-                  </Button>
+                <Button onClick={() => setShowTournamentModal(true)} className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border-primary/20 text-[10px] font-black uppercase tracking-[0.2em] shadow-none">
+                  + FORJAR TORNEO
+                </Button>
               </div>
             )}
           </Widget>
@@ -682,10 +682,10 @@ className={cn(
             <div className="px-4 py-2">
               {RULES.map((rule, i) => (
                 <div key={rule} className="py-4 flex gap-4 border-b border-border/30 last:border-0">
-                  <span className="text-xl font-forum font-black text-primary/20 flex-shrink-0">
-0
-{i + 1}
-</span>
+                  <span className="text-xl font-forum font-black text-primary/60 flex-shrink-0">
+                    0
+                    {i + 1}
+                  </span>
                   <p className="text-[11.5px] text-muted-foreground font-literata leading-relaxed italic line-clamp-3">{rule}</p>
                 </div>
               ))}
@@ -693,7 +693,7 @@ className={cn(
           </Widget>
 
           <div className="mt-auto opacity-10 flex justify-center pb-4">
-             <div className="text-[8px] font-black uppercase tracking-[1em] text-muted-foreground whitespace-nowrap">Origin v2.0</div>
+            <div className="text-[8px] font-black uppercase tracking-[1em] text-muted-foreground whitespace-nowrap">Origin v2.0</div>
           </div>
         </aside>
       </div>

@@ -235,8 +235,12 @@ EP
             </h1>
 
             {post.image_url && (
-              <div className="mb-8 rounded-2xl overflow-hidden border border-border/50 shadow-2xl relative group">
-                <img src={post.image_url} alt={post.title} className="w-full h-auto block transition-transform duration-700 group-hover:scale-[1.02]" />
+              <div className="mb-8 rounded-2xl overflow-hidden border border-border/50 shadow-2xl relative group bg-zinc-900/10 aspect-video max-h-[500px]">
+                <img 
+                  src={post.image_url} 
+                  alt={post.title} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]" 
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               </div>
             )}
