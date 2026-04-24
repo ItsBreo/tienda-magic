@@ -86,7 +86,25 @@ export default function AdminRoles() {
     const fetchPermissions = async () => {
         try {
             const data = await apiService.getAdminPermissions();
-            setPermissionsList(data);
+
+            // Mapeo manual de permisos que pertenecen a mod_todos
+            const modTodosPermissions = [
+                'view-admin-dashboard',
+                'manage-users',
+                'manage-roles',
+                'manage-permissions',
+                'manage-cards',
+                'manage-sets',
+                'manage-booster-packs',
+                'view-reports',
+                'manage-settings'
+            ];
+
+            const filteredPermissions = data.filter(perm =>
+                modTodosPermissions.includes(perm.name)
+            );
+
+            setPermissionsList(filteredPermissions);
         } catch (error) {
             toast.error('Error al cargar lista de permisos');
         }
@@ -321,18 +339,21 @@ className={cn(
                                     </td>
                                     <td className="px-6 py-6">
                                         <div className="flex flex-wrap gap-1.5 max-w-md">
-                                            {r.permissions && r.permissions.length > 0 ? (
-                                                r.permissions.map((p) => (
-                                                    <Badge key={p.id} variant="outline" className="bg-accent/40 text-[8px] font-black uppercase tracking-[0.1em] text-muted-foreground/60 border-border/30 h-5 px-2 hover:border-primary/30 hover:text-primary transition-all">
-                                                        {p.display_name}
-                                                    </Badge>
-                                                ))
-                                            ) : (
-                                                <div className="flex items-center gap-2 opacity-20 italic">
-                                                    <Info size={10} />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest font-montserrat px-1">Sin Atributos</span>
-                                                </div>
-                                            )}
+                                            {(() => {
+                                                console.log(`Rol "${r.name}" permissions:`, r.permissions);
+                                                return r.permissions && r.permissions.length > 0 ? (
+                                                    r.permissions.map((p) => (
+                                                        <Badge key={p.id} variant="outline" className="bg-accent/40 text-[8px] font-black uppercase tracking-[0.1em] text-muted-foreground/60 border-border/30 h-5 px-2 hover:border-primary/30 hover:text-primary transition-all">
+                                                            {p.display_name}
+                                                        </Badge>
+                                                    ))
+                                                ) : (
+                                                    <div className="flex items-center gap-2 opacity-20 italic">
+                                                        <Info size={10} />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest font-montserrat px-1">Sin Atributos</span>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">

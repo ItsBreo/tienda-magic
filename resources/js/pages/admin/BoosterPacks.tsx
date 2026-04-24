@@ -69,7 +69,6 @@ export default function AdminBoosterPacks() {
             const data = await apiService.axiosInstance.get('/api/admin/booster-packs', {
                 params: { page }
             }).then(res => res.data);
-            
             setPacks(data.data || data);
             if (data.current_page) {
                 setCurrentPage(data.current_page);
@@ -345,9 +344,20 @@ Oro
                                             <Button variant="ghost" size="icon" onClick={() => handleEdit(p)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
                                                 <Edit2 size={15} />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10">
-                                                <Trash2 size={15} />
-                                            </Button>
+                                            {p.is_active ? (
+                                                <Button variant="ghost" size="icon" onClick={() => handleToggleActive(p)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Agotar pack">
+                                                    <XCircle size={15} />
+                                                </Button>
+                                            ) : (
+                                                <>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleToggleActive(p)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Reabastecer pack">
+                                                        <CheckCircle2 size={15} />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
+                                                        <Trash2 size={15} />
+                                                    </Button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -397,7 +407,6 @@ Oro
                     },
                 ]}
             />
-            
             <ConfirmModal
                 isOpen={confirmModalConfig.isOpen}
                 onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}

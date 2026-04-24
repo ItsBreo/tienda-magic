@@ -334,9 +334,20 @@ Plano Inaccesible
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(c)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
                                                     <Edit2 size={15} />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10">
-                                                    <Trash2 size={15} />
-                                                </Button>
+                                                {c.is_active ? (
+                                                    <Button variant="ghost" size="icon" onClick={() => handleToggleActive(c)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Desactivar carta">
+                                                        <XCircle size={15} />
+                                                    </Button>
+                                                ) : (
+                                                    <>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleToggleActive(c)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Activar carta">
+                                                            <CheckCircle2 size={15} />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
+                                                            <Trash2 size={15} />
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

@@ -134,15 +134,15 @@ export default function CreatePostView({
           </div>
 
           {imagePreview && (
-            <div className="relative w-max mt-4 group">
+            <div className="relative w-full max-w-2xl mt-4 group aspect-video max-h-[300px] overflow-hidden rounded-2xl border border-border shadow-2xl bg-zinc-900/10">
               <img 
                 src={imagePreview} 
                 alt="Vista previa" 
-                className="max-w-full max-h-[300px] rounded-2xl border border-border shadow-2xl object-cover" 
+                className="w-full h-full object-cover transition-transform duration-500" 
               />
               <button
                 onClick={removeImage}
-                className="absolute top-3 right-3 bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center text-[18px] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none shadow-xl"
+                className="absolute top-3 right-3 bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center text-[18px] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none shadow-xl z-10"
                 title="Quitar imagen"
               >
                 ×
