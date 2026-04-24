@@ -195,22 +195,74 @@ class AdminUserController extends Controller
 
     #[OA\Delete(
         path: "/api/admin/users/{userId}",
-        summary: "Eliminar usuario",
-        description: "Elimina una cuenta de usuario.",
+        summary: "Exiliar usuario (Soft Delete)",
+        description: "Exilia una cuenta de usuario (Soft Delete). Solo se puede eliminar definitivamente si ya está exiliado.",
         tags: ["Admin"],
         security: [["bearerAuth" => []]]
     )]
     #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
-    #[OA\Response(response: 200, description: "Usuario eliminado exitosamente")]
+    #[OA\Response(response: 200, description: "Usuario exiliado exitosamente")]
+    #[OA\Response(response: 403, description: "No puedes eliminar tu propia cuenta")]
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) {
             return response()->json(['message' => 'No puedes eliminar tu propia cuenta.'], 403);
         }
 
+        // Soft Delete (exilio)
         $user->delete();
 
-        return response()->json(['message' => 'Usuario eliminado exitosamente.']);
+        return response()->json(['message' => 'Usuario exiliado exitosamente.']);
+    }
+
+    #[OA\Post(
+        path: "/api/admin/users/{userId}/restore",
+        summary: "Restaurar usuario exiliado",
+        description: "Restaura una cuenta de usuario que ha sido exiliada (Soft Delete).",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Usuario restaurado exitosamente")]
+    #[OA\Response(response: 403, description: "Solo se puede restaurar usuarios exiliados")]
+    public function restore(User $user)
+    {
+        // Validar que el usuario esté exiliado (soft deleted)
+        if (!$user->trashed()) {
+            return response()->json(['message' => 'Solo se puede restaurar usuarios que han sido exiliados.'], 403);
+        }
+
+        // Restore (restaurar soft delete)
+        $user->restore();
+
+        return response()->json(['message' => 'Usuario restaurado exitosamente.']);
+    }
+
+    #[OA\Delete(
+        path: "/api/admin/users/{userId}/force-delete",
+        summary: "Eliminar usuario definitivamente",
+        description: "Elimina permanentemente una cuenta de usuario (solo si ya está exiliada).",
+        tags: ["Admin"],
+        security: [["bearerAuth" => []]]
+    )]
+    #[OA\Parameter(name: "userId", in: "path", required: true, description: "ID del usuario", schema: new OA\Schema(type: "integer"))]
+    #[OA\Response(response: 200, description: "Usuario eliminado permanentemente")]
+    #[OA\Response(response: 403, description: "Solo se puede eliminar usuarios exiliados")]
+    public function forceDelete(User $user)
+    {
+        if (auth()->id() === $user->id) {
+            return response()->json(['message' => 'No puedes eliminar tu propia cuenta.'], 403);
+        }
+
+        // Validar que el usuario ya esté exiliado (soft deleted)
+        if (!$user->trashed()) {
+            return response()->json(['message' => 'Solo se puede eliminar definitivamente usuarios que ya han sido exiliados.'], 403);
+        }
+
+        // Force Delete (borrado físico)
+        $user->forceDelete();
+
+        return response()->json(['message' => 'Usuario eliminado permanentemente.']);
     }
 
     /**

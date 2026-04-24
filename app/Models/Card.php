@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Modelo de Carta Magic.
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Card extends Model
 {
+    use SoftDeletes;
+
     // Permitir asignación masiva para todos los campos
     protected $guarded = [];
 
