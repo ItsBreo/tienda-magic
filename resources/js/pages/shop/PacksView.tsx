@@ -204,7 +204,7 @@ export default function PacksView() {
     }, [currentData, selectedSets, availableSets]);
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -253,8 +253,8 @@ export default function PacksView() {
                             className="bg-background border border-border text-foreground px-4 py-2 rounded-xl text-sm h-11 focus:ring-1 focus:ring-primary outline-none transition-all shadow-sm font-medium cursor-pointer"
                         >
                             <option value="newest">Novedades</option>
-                            <option value="price_asc">Menor a Mayor</option>
-                            <option value="price_desc">Mayor a Menor</option>
+                            <option value="price_asc">Menor Valor</option>
+                            <option value="price_desc">Mayor Valor</option>
                             <option value="name_asc">A-Z</option>
                             <option value="name_desc">Z-A</option>
                         </select>

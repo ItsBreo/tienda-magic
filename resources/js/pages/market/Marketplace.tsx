@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
- Search, Loader2, TrendingUp, ShoppingCart, User, Package, Calendar, XCircle, PlusCircle, ArrowRight, Tag, SlidersHorizontal, X, Filter,
+ Search, Loader2, TrendingUp, ShoppingCart, User, Package, Calendar, XCircle, PlusCircle, ArrowRight, Tag, SlidersHorizontal, X, Filter, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import SetFilterModal from '@/components/common/SetFilterModal';
 import { useTitle } from '@/hooks/useTitle';
@@ -168,7 +168,16 @@ export default function Marketplace() {
 
     const handleNavigateToProduct = (listing: Listing) => {
         const productType = listing.listable_type.includes('Card') ? 'card' : 'pack';
-        navigate(`/market/product/${productType}/${listing.listable_id}`);
+        const productId = listing.listable_id;
+        navigate(`/market/product/${productType}/${productId}`);
+    };
+
+    const getSortIcon = () => {
+        if (sortBy === 'price_asc') return <ArrowUp className="w-3.5 h-3.5 text-primary" />;
+        if (sortBy === 'price_desc') return <ArrowDown className="w-3.5 h-3.5 text-primary" />;
+        if (sortBy === 'name_asc') return <ArrowUp className="w-3.5 h-3.5 text-primary" />;
+        if (sortBy === 'name_desc') return <ArrowDown className="w-3.5 h-3.5 text-primary" />;
+        return null; // No icon for 'newest'
     };
 
     const handleCancel = async (e: React.MouseEvent, listingId: number) => {
@@ -340,7 +349,7 @@ export default function Marketplace() {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="w-full sm:w-auto h-10 pl-3 pr-8 bg-background border border-border text-foreground text-sm font-medium rounded-lg focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-sm hover:border-primary/50 transition-all"
+                                className="w-full sm:w-auto h-10 pl-3 pr-12 bg-background border border-border text-foreground text-sm font-medium rounded-lg focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer shadow-sm hover:border-primary/50 transition-all"
                             >
                                 <option value="newest">Novedades</option>
                                 <option value="price_asc">Menor Valor</option>
@@ -348,7 +357,10 @@ export default function Marketplace() {
                                 <option value="name_asc">A-Z</option>
                                 <option value="name_desc">Z-A</option>
                             </select>
-                            <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                                {getSortIcon()}
+                                <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                            </div>
                         </div>
 
                         {/* Filtrar por set */}
