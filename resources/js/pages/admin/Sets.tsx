@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
+import { formatDateShort } from '@/utils/formatDateShort';
 interface CardSet {
     code: string;
     name: string;
@@ -292,7 +293,7 @@ className={cn(
                                             <span className="text-foreground font-black text-[16px] group-hover:text-primary transition-colors font-forum">{s.name}</span>
                                             <span className="text-[10px] text-muted-foreground/40 font-black uppercase tracking-widest font-montserrat opacity-60">
 Lanzado:
-{s.released_at || 'Desconocida'}
+{s.released_at ? formatDateShort(s.released_at) : 'Desconocida'}
 </span>
                                         </div>
                                     </td>
@@ -316,9 +317,20 @@ Lanzado:
                                             <Button variant="ghost" size="icon" onClick={() => handleEdit(s)} className="text-muted-foreground hover:text-primary hover:bg-primary/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-primary/10">
                                                 <Edit2 size={15} />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(s.code)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10">
-                                                <Trash2 size={15} />
-                                            </Button>
+                                            {s.is_active ? (
+                                                <Button variant="ghost" size="icon" onClick={() => handleToggleActive(s)} className="text-muted-foreground hover:text-warning-600 hover:bg-warning-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-warning-20" title="Cerrar plano">
+                                                    <XCircle size={15} />
+                                                </Button>
+                                            ) : (
+                                                <>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleToggleActive(s)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Abrir plano">
+                                                        <CheckCircle2 size={15} />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(s.code)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
+                                                        <Trash2 size={15} />
+                                                    </Button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
