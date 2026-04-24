@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
- Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, Package, Sparkles,
+ Plus, Loader2, Edit2, CheckCircle2, XCircle, Package, Sparkles,
 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
@@ -111,6 +111,7 @@ export default function AdminBoosterPacks() {
             toast.error('Error al restaurar sobre');
         }
     };
+
 
     const handleToggleActive = async (pack: BoosterPack) => {
         try {

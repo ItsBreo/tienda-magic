@@ -444,10 +444,37 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('sets', AdminSetController::class)
             ->middleware('permission:manage-sets');
 
+        // Rutas adicionales para Soft Deletes - Sets
+        Route::post('/sets/{code}/restore', [AdminSetController::class, 'restore'])
+            ->withTrashed()
+            ->middleware('permission:manage-sets');
+
+        Route::delete('/sets/{code}/force-delete', [AdminSetController::class, 'forceDelete'])
+            ->withTrashed()
+            ->middleware('permission:manage-sets');
+
         Route::apiResource('cards', AdminCardController::class)
             ->middleware('permission:manage-cards');
 
+        // Rutas adicionales para Soft Deletes - Cards
+        Route::post('/cards/{card}/restore', [AdminCardController::class, 'restore'])
+            ->withTrashed()
+            ->middleware('permission:manage-cards');
+
+        Route::delete('/cards/{card}/force-delete', [AdminCardController::class, 'forceDelete'])
+            ->withTrashed()
+            ->middleware('permission:manage-cards');
+
         Route::apiResource('booster-packs', AdminBoosterPackController::class)
+            ->middleware('permission:manage-booster-packs');
+
+        // Rutas adicionales para Soft Deletes - BoosterPacks
+        Route::post('/booster-packs/{id}/restore', [AdminBoosterPackController::class, 'restore'])
+            ->withTrashed()
+            ->middleware('permission:manage-booster-packs');
+
+        Route::delete('/booster-packs/{id}/force-delete', [AdminBoosterPackController::class, 'forceDelete'])
+            ->withTrashed()
             ->middleware('permission:manage-booster-packs');
 
         Route::patch('/users/{userId}/reputation', [UserProfileController::class, 'updateReputation'])

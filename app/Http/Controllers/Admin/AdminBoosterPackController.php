@@ -101,11 +101,41 @@ class AdminBoosterPackController extends Controller
     public function destroy($id)
     {
         $pack = BoosterPack::findOrFail($id);
-        
-        // Podríamos comprobar si hay órdenes asociadas antes de borrar
+
+        // Soft Delete (exilio)
         $pack->delete();
 
-        return response()->json(['message' => 'Sobre eliminado exitosamente']);
+        return response()->json(['message' => 'Sobre exiliado exitosamente.']);
+    }
+
+    public function restore($id)
+    {
+        $pack = BoosterPack::findOrFail($id);
+
+        // Validar que el sobre esté exiliado (soft deleted)
+        if (!$pack->trashed()) {
+            return response()->json(['message' => 'Solo se puede restaurar sobres que han sido exiliados.'], 403);
+        }
+
+        // Restore (restaurar soft delete)
+        $pack->restore();
+
+        return response()->json(['message' => 'Sobre restaurado exitosamente.']);
+    }
+
+    public function forceDelete($id)
+    {
+        $pack = BoosterPack::findOrFail($id);
+
+        // Validar que el sobre ya esté exiliado (soft deleted)
+        if (!$pack->trashed()) {
+            return response()->json(['message' => 'Solo se puede eliminar definitivamente sobres que ya han sido exiliados.'], 403);
+        }
+
+        // Force Delete (borrado físico)
+        $pack->forceDelete();
+
+        return response()->json(['message' => 'Sobre eliminado permanentemente.']);
     }
 
     #[OA\Post(
@@ -123,7 +153,7 @@ class AdminBoosterPackController extends Controller
     public function bulkDelete(Request $request)
     {
         $validated = $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:booster_packs,id']);
-        
+
         $deletedCount = BoosterPack::whereIn('id', $validated['ids'])->delete();
 
         return response()->json([

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
- Trash2, Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle, CheckCircle, XCircle as XIcon, Search,
+ Plus, Loader2, Edit2, CheckCircle2, XCircle, AlertTriangle, CheckCircle, XCircle as XIcon, Search,
 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
@@ -106,6 +106,7 @@ export default function AdminCards() {
             toast.error('Error al restaurar carta');
         }
     };
+
 
     const handleToggleActive = async (card: Card) => {
         try {

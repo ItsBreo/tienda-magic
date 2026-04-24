@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
- Trash2, Plus, Loader2, Shield, UserMinus, ShieldCheck, Info, Edit2,
+ Plus, Loader2, Shield, UserMinus, ShieldCheck, Info, Edit2, UserCheck,
 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
@@ -147,21 +147,6 @@ export default function AdminRoles() {
         }
     };
 
-    const handleForceDelete = async (id: number) => {
-        setConfirmModalConfig({
-            isOpen: true,
-            title: '¿Estás seguro de eliminar permanentemente este rol? Esta acción no se puede deshacer.',
-            onConfirm: async () => {
-                try {
-                    await apiService.axiosInstance.delete(`/api/admin/roles/${id}/force-delete`);
-                    toast.success('Rol eliminado permanentemente');
-                    fetchRoles(currentPage);
-                } catch (error: any) {
-                    toast.error('Error al eliminar permanentemente');
-                }
-            },
-        });
-    };
 
     const handleBulkDelete = () => {
         setConfirmModalConfig({
@@ -404,14 +389,9 @@ className={cn(
                                                 </Button>
                                             ) : (
                                                 // Rol EXILIADO (soft deleted)
-                                                <>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleRestore(r.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar rol">
-                                                        <UserCheck size={15} />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleForceDelete(r.id)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-destructive/10" title="Eliminar permanentemente">
-                                                        <Trash2 size={15} />
-                                                    </Button>
-                                                </>
+                                                <Button variant="ghost" size="icon" onClick={() => handleRestore(r.id)} className="text-muted-foreground hover:text-green-600 hover:bg-green-10 h-10 w-10 rounded-xl shadow-inner border border-transparent hover:border-green-20" title="Restaurar rol">
+                                                    <UserCheck size={15} />
+                                                </Button>
                                             )}
                                         </div>
                                     </td>

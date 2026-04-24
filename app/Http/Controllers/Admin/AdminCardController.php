@@ -118,8 +118,35 @@ class AdminCardController extends Controller
     #[OA\Response(response: 200, description: "Carta eliminada")]
     public function destroy(Card $card)
     {
+        // Soft Delete (exilio)
         $card->delete();
-        return response()->json(['message' => 'Carta eliminada exitosamente.']);
+        return response()->json(['message' => 'Carta exiliada exitosamente.']);
+    }
+
+    public function restore(Card $card)
+    {
+        // Validar que la carta esté exiliada (soft deleted)
+        if (!$card->trashed()) {
+            return response()->json(['message' => 'Solo se puede restaurar cartas que han sido exiliadas.'], 403);
+        }
+
+        // Restore (restaurar soft delete)
+        $card->restore();
+
+        return response()->json(['message' => 'Carta restaurada exitosamente.']);
+    }
+
+    public function forceDelete(Card $card)
+    {
+        // Validar que la carta ya esté exiliada (soft deleted)
+        if (!$card->trashed()) {
+            return response()->json(['message' => 'Solo se puede eliminar definitivamente cartas que ya han sido exiliadas.'], 403);
+        }
+
+        // Force Delete (borrado físico)
+        $card->forceDelete();
+
+        return response()->json(['message' => 'Carta eliminada permanentemente.']);
     }
 
     /**

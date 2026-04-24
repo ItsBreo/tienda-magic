@@ -109,9 +109,41 @@ class AdminSetController extends Controller
     public function destroy($code)
     {
         $set = CardSet::findOrFail($code);
+
+        // Soft Delete (exilio)
         $set->delete();
 
-        return response()->json(['message' => 'Set eliminado exitosamente.']);
+        return response()->json(['message' => 'Set exiliado exitosamente.']);
+    }
+
+    public function restore($code)
+    {
+        $set = CardSet::findOrFail($code);
+
+        // Validar que el set esté exiliado (soft deleted)
+        if (!$set->trashed()) {
+            return response()->json(['message' => 'Solo se puede restaurar sets que han sido exiliados.'], 403);
+        }
+
+        // Restore (restaurar soft delete)
+        $set->restore();
+
+        return response()->json(['message' => 'Set restaurado exitosamente.']);
+    }
+
+    public function forceDelete($code)
+    {
+        $set = CardSet::findOrFail($code);
+
+        // Validar que el set ya esté exiliado (soft deleted)
+        if (!$set->trashed()) {
+            return response()->json(['message' => 'Solo se puede eliminar definitivamente sets que ya han sido exiliados.'], 403);
+        }
+
+        // Force Delete (borrado físico)
+        $set->forceDelete();
+
+        return response()->json(['message' => 'Set eliminado permanentemente.']);
     }
 
     /**

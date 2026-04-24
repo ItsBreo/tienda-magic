@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
- Trash2, Plus, Loader2, UserCheck, UserMinus, UserCog, Edit2, Shield, Mail, User,
+ Plus, Loader2, UserCheck, UserMinus, UserCog, Edit2, Shield, Mail, User,
 } from 'lucide-react';
 import apiService from '@/services/ApiService';
 import { Button } from '@/components/ui/button';
@@ -446,13 +446,6 @@ className={cn(
                         icon: <UserCog className="w-4 h-4" />,
                         onClick: handleBulkChangeRole,
                         className: 'text-primary hover:text-primary',
-                    },
-                    {
-                        label: 'Borrar Alma',
-                        icon: <Trash2 className="w-4 h-4" />,
-                        onClick: handleBulkDelete,
-                        variant: 'destructive',
-                        className: 'bg-destructive/10 hover:bg-destructive text-destructive hover:text-white border border-destructive/20 rounded-xl',
                     },
                 ]}
             />
