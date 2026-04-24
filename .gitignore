@@ -53,3 +53,5 @@ stripe
 "first()" 
 "get(['code'])))" 
 "toArray()" 
+proxy/data/database.sqlite
+proxy/data/nginx/proxy_host/1.conf
