@@ -340,7 +340,7 @@ class MarketController extends Controller
     public function getPriceHistory($type, $id)
     {
         $modelType = $type === 'card' ? Card::class : BoosterPack::class;
-        
+
         // 1. Obtener historial de precios del mercado (snapshots)
         $marketHistory = \App\Models\CardPriceHistory::where('priceable_id', $id)
             ->where('priceable_type', $modelType)
@@ -379,7 +379,7 @@ class MarketController extends Controller
     public function myListings()
     {
         $user = Auth::user();
-        $listings = MarketListing::with(['listable'])
+        $listings = MarketListing::with(['listable', 'seller.profile'])
             ->where('seller_id', $user->id)
             ->active()
             ->latest()
@@ -394,7 +394,7 @@ class MarketController extends Controller
     public function cancelListing($id)
     {
         $user = Auth::user();
-        
+
         return DB::transaction(function () use ($user, $id) {
             $listing = MarketListing::where('seller_id', $user->id)
                 ->lockForUpdate()
