@@ -74,7 +74,7 @@ export default function AdminBoosterPacks() {
     const fetchPacks = async (page = 1) => {
         try {
             const { data } = await apiService.axiosInstance.get('/api/admin/booster-packs', {
-                params: { 
+                params: {
                     page,
                     sort_by: sortBy,
                     sort_dir: sortDir
@@ -176,6 +176,9 @@ export default function AdminBoosterPacks() {
             }
         });
     };
+
+    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
+    const canHardDelete = selectedCount > 0 && packs.every(pack => pack.deleted_at === null);
 
     const handleBulkForceDelete = () => {
         setConfirmModalConfig({

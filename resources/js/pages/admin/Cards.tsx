@@ -70,7 +70,7 @@ export default function AdminCards() {
     const fetchCards = async (page = 1) => {
         try {
             const { data } = await apiService.axiosInstance.get('/api/admin/cards', {
-                params: { 
+                params: {
                     page,
                     sort_by: sortBy,
                     sort_dir: sortDir
@@ -169,7 +169,11 @@ export default function AdminCards() {
         });
     };
 
+    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
+    const canHardDelete = selectedCount > 0 && cards.every(card => card.deleted_at === null);
+
     const handleBulkForceDelete = () => {
+        if (!canHardDelete) return;
         setConfirmModalConfig({
             isOpen: true,
             title: `¿ELIMINAR DEFINITIVAMENTE ${selectedCount} CARTAS? Esta acción es irreversible.`,
@@ -178,7 +182,7 @@ export default function AdminCards() {
                     await apiService.axiosInstance.post('/api/admin/cards/bulk-force-delete', { ids: selectedList });
                     toast.success('Eliminación definitiva completada');
                     clear();
-                    fetchCards(currentPage);
+                    fetchCards();
                 } catch (error) {
                     toast.error('Error al eliminar permanentemente');
                 }
@@ -483,7 +487,11 @@ Plano Inaccesible
                         label: 'Borrar Permanentemente',
                         icon: <Plus className="w-4 h-4 rotate-45" />,
                         onClick: handleBulkForceDelete,
-                        className: 'text-destructive hover:text-destructive',
+                        className: cn(
+                            'text-destructive hover:text-destructive',
+                            !canHardDelete && 'disabled:opacity-50 disabled:cursor-not-allowed'
+                        ),
+                        disabled: !canHardDelete,
                     }
                 ]}
             />

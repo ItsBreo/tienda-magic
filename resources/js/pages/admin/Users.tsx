@@ -81,7 +81,7 @@ export default function AdminUsers() {
     const fetchUsers = async (page = 1) => {
         try {
             const { data } = await apiService.axiosInstance.get('/api/admin/users', {
-                params: { 
+                params: {
                     page,
                     sort_by: sortBy,
                     sort_dir: sortDir
@@ -158,6 +158,9 @@ export default function AdminUsers() {
             }
         });
     };
+
+    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
+    const canHardDelete = selectedCount > 0 && users.every(user => user.deleted_at === null);
 
     const handleBulkForceDelete = () => {
         setConfirmModalConfig({
@@ -446,7 +449,11 @@ className={cn(
                         label: 'Borrar Definitivamente',
                         icon: <Plus className="w-4 h-4 rotate-45" />,
                         onClick: handleBulkForceDelete,
-                        className: 'text-destructive hover:text-destructive',
+                        className: cn(
+                            'text-destructive hover:text-destructive',
+                            !canHardDelete && 'disabled:opacity-50 disabled:cursor-not-allowed'
+                        ),
+                        disabled: !canHardDelete,
                     },
                     {
                         label: 'Reasignar Rango',

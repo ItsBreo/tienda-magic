@@ -65,7 +65,7 @@ export default function AdminSets() {
     const fetchSets = async (page = 1) => {
         try {
             const { data } = await apiService.axiosInstance.get('/api/admin/sets', {
-                params: { 
+                params: {
                     page,
                     sort_by: sortBy,
                     sort_dir: sortDir
@@ -166,6 +166,9 @@ export default function AdminSets() {
             }
         });
     };
+
+    // Constante defensiva: Solo permite hard delete si todos los seleccionados están vivos (no exiliados)
+    const canHardDelete = selectedCount > 0 && sets.every(set => set.deleted_at === null);
 
     const handleBulkForceDelete = () => {
         setConfirmModalConfig({
@@ -476,7 +479,11 @@ return (
                         label: 'Borrar Permanentemente',
                         icon: <Plus className="w-4 h-4 rotate-45" />,
                         onClick: handleBulkForceDelete,
-                        className: 'text-destructive hover:text-destructive',
+                        className: cn(
+                            'text-destructive hover:text-destructive',
+                            !canHardDelete && 'disabled:opacity-50 disabled:cursor-not-allowed'
+                        ),
+                        disabled: !canHardDelete,
                     }
                 ]}
             />
